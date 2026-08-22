@@ -20,11 +20,14 @@ hand-picked color. One system; every brand fills the values.
 
 ## Install
 
+Pin a release tag; `main` moves ahead of the tags:
+
 ```bash
-npm i -D git+ssh://git@github.com/xhunn/verseva-design-core.git
+npm i -D "git+ssh://git@github.com/xhunn/verseva-design-core.git#v0.1.0"
 ```
 
-CI environments without SSH access to this private repo can vendor a packed tarball instead:
+(`#semver:^0.1.0` also works and tracks compatible tags.) CI environments without SSH access
+to this private repo can vendor a packed tarball instead:
 
 ```bash
 npm pack path/to/verseva-design-core --pack-destination vendor
@@ -306,6 +309,24 @@ see IS what ships.
 | [docs/component-contract.md](docs/component-contract.md) | What every component owes the user, per component |
 | [docs/laws.md](docs/laws.md) | The 13 signature laws (TYPE LAW, SEAM LAW, nav-tier-brightness, …) |
 | [docs/theming.md](docs/theming.md) | Authoring a brand theme: scoping, bans, the onboarding checklist |
+
+## Versioning
+
+Every ratified change to the system ships as a tagged release
+([Releases](https://github.com/xhunn/verseva-design-core/releases) hold the changelog); a
+version bump IS the ratification event. Consumers pin tags and upgrade deliberately: with the
+hex gate wired into builds, value changes are breaking by design.
+
+| Bump | Means |
+|---|---|
+| **patch** | Docs, screenshots, board; no token or contract change |
+| **minor** | Additive: a new role, a new component recipe, a new doc |
+| **major** | Value re-ratification or any role/contract break |
+
+Planned: publishing to GitHub Packages (`.github/workflows/publish.yml` is ready) so consumers
+install `"@verseva/design-core": "^0.1.0"` with an `.npmrc` + read token, and Vercel installs
+via an `NPM_TOKEN` env. Gated on one step: the `@verseva` scope requires this repo to live
+under a GitHub org named `verseva`.
 
 ## Rules of the repo
 

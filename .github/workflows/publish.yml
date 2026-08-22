@@ -1,0 +1,44 @@
+# Publishes @verseva/design-core to GitHub Packages on every published release.
+#
+# CONSTRAINT: the npm scope must match the repo owner on GitHub Packages, so
+# @verseva/design-core can only publish once this repo lives under a GitHub org
+# named "verseva" (unclaimed as of 2026-08-22; transfer the repo there and old
+# git URLs keep working via GitHub's redirect). Until then the guard step below
+# skips the publish cleanly instead of failing the run.
+#
+# Consumers, once live:
+#   .npmrc      @verseva:registry=https://npm.pkg.github.com
+#               //npm.pkg.github.com/:_authToken=${NPM_TOKEN}
+#   package.json  "@verseva/design-core": "^0.1.0"
+#   Vercel: set NPM_TOKEN (a read:packages token) in project env.
+name: publish
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard, scope must match owner
+        id: guard
+        run: |
+          if [ "${GITHUB_REPOSITORY_OWNER}" != "verseva" ]; then
+            echo "repo owner is ${GITHUB_REPOSITORY_OWNER}, scope is @verseva: skipping publish until the repo lives under the verseva org"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.skip != 'true'
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+      - run: npm test
+        if: steps.guard.outputs.skip != 'true'
+      - run: npm publish
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

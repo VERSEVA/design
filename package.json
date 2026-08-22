@@ -1,9 +1,15 @@
 {
   "name": "@verseva/design-core",
   "version": "0.1.0",
-  "private": true,
   "description": "VERSEVA Design Core: the signature tokens, component contract, Tailwind bridge, and the off-token hex gate.",
   "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xhunn/verseva-design-core.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "type": "module",
   "exports": {
     "./tokens.css": "./tokens.css",
