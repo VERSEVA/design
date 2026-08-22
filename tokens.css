@@ -1,5 +1,5 @@
 /* ============================================================================
-   @verseva/design-core · tokens.css
+   @verseva/design · tokens.css
    THE VERSEVA SIGNATURE. Dark default; [data-theme="light"] is the one flip
    block. Brand themes override values via [data-brand="<slug>"] blocks in
    their own theme.css (living with the brand), never by editing this file.
@@ -19,7 +19,7 @@
    floors 4.5:1 body / 3:1 large + UI parts.
 
    Provenance: extracted 2026-08-22 from design-core token-architecture.md +
-   the design board (ratified VERSEVA Design Core architecture, 2026-08-22).
+   the design board (ratified VERSEVA Design architecture, 2026-08-22).
    Zero visual change from the pre-package Baseline.
    ========================================================================= */
 

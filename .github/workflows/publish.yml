@@ -1,4 +1,4 @@
-# Publishes @verseva/design-core to GitHub Packages on every published release.
+# Publishes @verseva/design to GitHub Packages on every published release.
 #
 # The npm scope must match the repo owner on GitHub Packages; this repo lives
 # under the VERSEVA org (logins are case-insensitive; the scope is @verseva),
@@ -8,7 +8,7 @@
 # Consumers, once live:
 #   .npmrc      @verseva:registry=https://npm.pkg.github.com
 #               //npm.pkg.github.com/:_authToken=${NPM_TOKEN}
-#   package.json  "@verseva/design-core": "^0.1.0"
+#   package.json  "@verseva/design": "^0.1.1"
 #   Vercel: set NPM_TOKEN (a read:packages token) in project env.
 name: publish
 on:

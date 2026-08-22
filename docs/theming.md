@@ -45,14 +45,14 @@ Partner theme files stay under partner org paths. Never conflate ownership.
 ```css
 /* Tailwind v4 app (globals.css) */
 @import "tailwindcss";
-@import "@verseva/design-core/tailwind.css";
+@import "@verseva/design/tailwind.css";
 @import "../path-to-brand/theme.css";   /* or copy it into the repo it themes */
 ```
 
 ```css
 /* Framework-light surface (deck, artifact, static page) */
-@import "@verseva/design-core/tokens.css";
-@import "@verseva/design-core/components.css";
+@import "@verseva/design/tokens.css";
+@import "@verseva/design/components.css";
 ```
 
 Non-JS surfaces (decks, artifacts) inline the same `tokens.css` content instead of importing.
@@ -63,7 +63,7 @@ Wire the hex gate into the consumer's build so off-token hexes fail it:
 
 ```json
 "scripts": {
-  "lint:hex": "verseva-hex-gate --tokens node_modules/@verseva/design-core/tokens.css --tokens src/app/theme.css src",
+  "lint:hex": "verseva-hex-gate --tokens node_modules/@verseva/design/tokens.css --tokens src/app/theme.css src",
   "build": "npm run lint:hex && next build"
 }
 ```

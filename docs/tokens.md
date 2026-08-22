@@ -112,6 +112,6 @@ while materials disagree is the recorded failure mode.
 
 ## Tailwind
 
-v4: `@import "@verseva/design-core/tailwind.css"` (maps roles into `@theme inline`; radius roles
-emit as `--radius-*`). v3: `presets: [require('@verseva/design-core/preset')]`. Spacing rides
+v4: `@import "@verseva/design/tailwind.css"` (maps roles into `@theme inline`; radius roles
+emit as `--radius-*`). v3: `presets: [require('@verseva/design/preset')]`. Spacing rides
 Tailwind's own 4px scale (p-1 = `--s-1` … p-32 = `--s-10`).

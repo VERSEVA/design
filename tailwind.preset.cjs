@@ -1,11 +1,11 @@
 /**
- * @verseva/design-core · Tailwind v3 preset (legacy consumers).
+ * @verseva/design · Tailwind v3 preset (legacy consumers).
  * v4 projects use tailwind.css instead. Maps role names to the custom
  * properties defined by tokens.css; import tokens.css in the app's global
  * stylesheet so the variables exist at runtime.
  *
  *   // tailwind.config.js
- *   module.exports = { presets: [require('@verseva/design-core/preset')] }
+ *   module.exports = { presets: [require('@verseva/design/preset')] }
  */
 module.exports = {
   theme: {

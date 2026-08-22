@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * verseva-hex-gate: fails the build on any hex not drawn from tokens.
- * "No hand-picked hexes" as pipeline, not doctrine (VERSEVA Design Core,
+ * "No hand-picked hexes" as pipeline, not doctrine (VERSEVA Design,
  * ratified 2026-08-22).
  *
  * Usage:

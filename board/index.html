@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VERSEVA Design Core · Board</title>
+<title>VERSEVA Design · Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@100..900&family=Manrope:wght@200..800&family=JetBrains+Mono:wght@100..800&display=swap">
@@ -427,7 +427,7 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
 
 <header class="board">
   <div class="board-inner">
-    <div class="board-title">VERSEVA DESIGN CORE</div>
+    <div class="board-title">VERSEVA DESIGN</div>
     <div class="board-meta label">v3.0 · 2026-08-22 · the design bible · the signature, packaged</div>
     <div class="controls">
       <span class="label">Brand</span>
@@ -449,9 +449,9 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
 <main>
   <section class="hero">
     <h1>One system. Every brand fills the values.</h1>
-    <p>This board renders the design-core layer: color roles, type scale, spacing, radius, elevation, motion, the component contract, navigation patterns for phone and console, and the data-presentation contract, in the selected brand theme. The package files are the source; this page is the render. If they disagree, the board is wrong and the drift gets fixed and logged.</p>
+    <p>This board renders the whole system: color roles, type scale, spacing, radius, elevation, motion, the component contract, navigation patterns for phone and console, and the data-presentation contract, in the selected brand theme. The package files are the source; this page is the render. If they disagree, the board is wrong and the drift gets fixed and logged.</p>
     <div class="paths">
-      <div>source · @verseva/design-core · tokens.css + components.css + docs/ (tokens.md · component-contract.md · laws.md · theming.md)</div>
+      <div>source · @verseva/design · tokens.css + components.css + docs/ (tokens.md · component-contract.md · laws.md · theming.md)</div>
       <div>laws · docs/laws.md · the VERSEVA signature (soft-glass; first theme: UFITRA)</div>
       <div>gate · verseva-hex-gate · builds fail on any hex not drawn from tokens</div>
       <div>themes · per brand, living with the brand · see the theme index at the bottom of this board</div>
@@ -783,9 +783,9 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
     <table class="reg-table">
       <thead><tr><th>Brand</th><th>Status</th><th>Theme location</th></tr></thead>
       <tbody>
-        <tr><td>VERSEVA signature (Baseline)</td><td><span class="badge ok">Live</span></td><td class="path">@verseva/design-core tokens.css · the package default; every surface without a theme runs on it</td></tr>
+        <tr><td>VERSEVA signature (Baseline)</td><td><span class="badge ok">Live</span></td><td class="path">@verseva/design tokens.css · the package default; every surface without a theme runs on it</td></tr>
         <tr><td>NEMIXO (product: the ERP)</td><td><span class="badge ok">Live</span></td><td class="path">theme.css + design-register.md, with the brand · challenger ERP: opaque + hairline (no soft-glass), considered radii 6/8/12, accent is the mark's own gold #C4A37C</td></tr>
-        <tr><td>Engine</td><td><span class="badge ok">Live</span></td><td class="path">engine-ui-doctrine skill + engine repo token canon (predates design-core; canonical for engine)</td></tr>
+        <tr><td>Engine</td><td><span class="badge ok">Live</span></td><td class="path">engine-ui-doctrine skill + engine repo token canon (predates the package; canonical for engine)</td></tr>
         <tr><td>CandyCeuticals</td><td><span class="badge ok">Live</span></td><td class="path">theme.css + design-register.md, with the brand</td></tr>
         <tr><td>UFITRA</td><td><span class="badge ok">Live</span></td><td class="path">theme.css + design-register.md, with the brand · THE FIRST THEME of the signature</td></tr>
         <tr><td>Verseva</td><td><span class="badge neutral">Pending</span></td><td class="path">seed: dials 5/4/4 · Editorial-Minimal</td></tr>
@@ -798,7 +798,7 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
     <div class="sec-head"><h2>Always true</h2><span class="label">the digest · doctrine lives upstream</span></div>
     <ol class="rules">
       <li><b>Hierarchy first.</b> Every surface answers "where do I look first" instantly. When principles conflict, hierarchy wins.</li>
-      <li><b>Roles are fixed, values are per-brand.</b> A new role gets proposed in design-core for everyone, or it doesn't exist.</li>
+      <li><b>Roles are fixed, values are per-brand.</b> A new role gets proposed in the package for everyone, or it doesn't exist.</li>
       <li><b>One accent per view</b>, with a budget. An accent that is everywhere has stopped being one.</li>
       <li><b>Contrast floors are contract.</b> 4.5:1 body, 3:1 large text and UI parts. The board computes them live.</li>
       <li><b>Every component ships every state.</b> Default, hover, active, focus-visible, disabled, loading, error. Plus empty/loading/error for every data surface.</li>
@@ -827,7 +827,7 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
   <div class="inner">
     <div><b>Sync protocol:</b> the package files (tokens.css, components.css, docs/) and each brand's theme.css are the source; this board is the render. Token values arrive by &lt;link&gt;, so token drift is structurally impossible; specimen markup still updates in the same change as any contract edit. Themes are pulled from their brand homes by <code>npm run board</code> (machine-local board/theme-manifest.json; without one the board renders Baseline). New theme → manifest row + switcher entry. Drift is a defect: log it to design-core/learnings.md.</div>
     <div>Start here for any design work: tokens + contract + this board, then the brand's theme. Doctrine and theming guides live in this repo's docs/.</div>
-    <div>VERSEVA Design Core v3.0 · 2026-08-22 · lives at board/index.html in the verseva/design repo · the soft-glass signature re-homed as VERSEVA's own (first theme: UFITRA) · every design starts here and evolves from it · v3.0 extracts the system into @verseva/design-core (tokens.css · components.css · tailwind bridge · hex gate) and moves brand values into per-brand theme files</div>
+    <div>VERSEVA Design v3.0 · 2026-08-22 · lives at board/index.html in the verseva/design repo · the soft-glass signature re-homed as VERSEVA's own (first theme: UFITRA) · every design starts here and evolves from it · v3.0 extracts the system into @verseva/design (tokens.css · components.css · tailwind bridge · hex gate) and moves brand values into per-brand theme files</div>
   </div>
 </footer>
 

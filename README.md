@@ -1,6 +1,6 @@
-# @verseva/design-core
+# VERSEVA Design
 
-The VERSEVA design signature as an installable package: design tokens, a component contract
+The VERSEVA design signature as an installable package (npm: `@verseva/design`): design tokens, a component contract
 shipped as CSS, Tailwind bridges, a rendered design board, and a build gate that fails CI on any
 hand-picked color. One system; every brand fills the values.
 
@@ -23,20 +23,20 @@ hand-picked color. One system; every brand fills the values.
 Pin a release tag; `main` moves ahead of the tags:
 
 ```bash
-npm i -D "git+ssh://git@github.com/verseva/design.git#v0.1.0"
+npm i -D "git+ssh://git@github.com/verseva/design.git#v0.1.1"
 ```
 
-(`#semver:^0.1.0` also works and tracks compatible tags.) CI environments without SSH access
+(`#semver:^0.1.1` also works and tracks compatible tags.) CI environments without SSH access
 to this private repo can vendor a packed tarball instead:
 
 ```bash
-npm pack path/to/verseva-design-core --pack-destination vendor
-npm i -D ./vendor/verseva-design-core-0.1.0.tgz
+npm pack path/to/this-repo-clone --pack-destination vendor
+npm i -D ./vendor/verseva-design-0.1.1.tgz
 ```
 
 > Known issue: Next.js/Turbopack panics on npm's symlinked `file:` installs
 > ("leaves the filesystem root"). Install from git or from a packed tarball, never
-> `npm i -D file:../verseva-design-core` directly.
+> `npm i -D file:../<clone>` directly.
 
 ## Quick start
 
@@ -46,7 +46,7 @@ npm i -D ./vendor/verseva-design-core-0.1.0.tgz
 ```css
 /* globals.css */
 @import "tailwindcss";
-@import "@verseva/design-core/tailwind.css";
+@import "@verseva/design/tailwind.css";
 ```
 
 **Tailwind v3** (two steps: the preset maps names only; `tokens.css` supplies the values —
@@ -54,23 +54,23 @@ the v4 bridge does this import internally):
 
 ```js
 // tailwind.config.js
-module.exports = { presets: [require('@verseva/design-core/preset')] };
+module.exports = { presets: [require('@verseva/design/preset')] };
 ```
 
 ```css
 /* globals.css */
-@import "@verseva/design-core/tokens.css";
+@import "@verseva/design/tokens.css";
 ```
 
 **Any other surface** — no build step (plain HTML, a deck, a prototype); bare package
 specifiers only resolve under a bundler, so link the files directly:
 
 ```html
-<link rel="stylesheet" href="node_modules/@verseva/design-core/tokens.css">
-<link rel="stylesheet" href="node_modules/@verseva/design-core/components.css">
+<link rel="stylesheet" href="node_modules/@verseva/design/tokens.css">
+<link rel="stylesheet" href="node_modules/@verseva/design/components.css">
 ```
 
-(In a bundled project's CSS, `@import "@verseva/design-core/tokens.css";` works as-is.)
+(In a bundled project's CSS, `@import "@verseva/design/tokens.css";` works as-is.)
 
 **Fonts** — the signature faces are Archivo, Manrope, and JetBrains Mono. The package names
 them but does not ship them; load the variable weights (the tokens use in-between weights like
@@ -263,7 +263,7 @@ Tailwind arbitrary values like `bg-[#12E4B0]`), and exits 1 on anything off-toke
 
 ```json
 "scripts": {
-  "lint:hex": "verseva-hex-gate --tokens node_modules/@verseva/design-core/tokens.css --tokens src/app/theme.css src",
+  "lint:hex": "verseva-hex-gate --tokens node_modules/@verseva/design/tokens.css --tokens src/app/theme.css src",
   "build": "npm run lint:hex && next build"
 }
 ```
@@ -333,7 +333,7 @@ registry dependency instead of a git URL:
 ```
 
 ```json
-"devDependencies": { "@verseva/design-core": "^0.1.0" }
+"devDependencies": { "@verseva/design": "^0.1.1" }
 ```
 
 On Vercel, set `NPM_TOKEN` in the project env and the same `.npmrc` just works.

@@ -1,9 +1,9 @@
 /* ============================================================================
-   @verseva/design-core · tailwind.css: Tailwind v4 bridge.
+   @verseva/design · tailwind.css: Tailwind v4 bridge.
    Usage in a v4 project's globals.css:
 
      @import "tailwindcss";
-     @import "@verseva/design-core/tailwind.css";
+     @import "@verseva/design/tailwind.css";
 
    Imports the signature tokens and maps roles into Tailwind namespaces so
    utilities stay on-token (bg-surface, text-text-2, border-hairline,
