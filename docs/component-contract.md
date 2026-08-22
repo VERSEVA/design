@@ -26,6 +26,15 @@ shipped as CSS in `components.css`.
   filters, a theme switch), to genuine creation forms, or to a modal opened expressly to
   edit something, where the intent was captured by opening it.
 
+## Consumption note (the tokens-only foot-gun)
+
+`tokens.css` carries values only. A consumer that imports tokens without `components.css`
+(including the Tailwind bridges, which import tokens alone) inherits NONE of the contract
+states: no `:disabled` treatment, no loading affordance, no state recipes. Either import
+`components.css`, or own the full state set in the app's own component layer, copied
+verbatim from it so the two cannot drift. An app-declared `.btn` with no `:disabled` rule is
+the recorded failure mode (a dozen live-looking dead buttons).
+
 ## Button: `.btn`
 
 - Variants: `primary` (accent fill, `--accent-ink` label), `secondary` (`--surface` +

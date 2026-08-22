@@ -72,6 +72,11 @@ specifiers only resolve under a bundler, so link the files directly:
 
 (In a bundled project's CSS, `@import "@verseva/design/tokens.css";` works as-is.)
 
+Note: `tokens.css` and the Tailwind bridges carry values only. Contract STATES (`:disabled`,
+loading, the state recipes) ship in `components.css`; skip it and your own component layer
+owes the full state set (see the consumption note in
+[docs/component-contract.md](docs/component-contract.md)).
+
 **Fonts** — the signature faces are Archivo, Manrope, and JetBrains Mono. The package names
 them but does not ship them; load the variable weights (the tokens use in-between weights like
 650/620) or the whole system falls back to system faces:
