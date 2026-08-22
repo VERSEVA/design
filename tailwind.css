@@ -1,0 +1,69 @@
+/* ============================================================================
+   @verseva/design-core · tailwind.css — Tailwind v4 bridge.
+   Usage in a v4 project's globals.css:
+
+     @import "tailwindcss";
+     @import "@verseva/design-core/tailwind.css";
+
+   Imports the signature tokens and maps roles into Tailwind namespaces so
+   utilities stay on-token (bg-surface, text-text-2, border-hairline,
+   rounded-lg → --r-lg, shadow-2 → --e-2). Spacing stays on Tailwind's own
+   4px scale, which is the craft scale: p-1=--s-1 … p-32=--s-10.
+   Values live in tokens.css only; this file maps names, never values.
+   ========================================================================= */
+
+@import "./tokens.css";
+
+@theme inline {
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-hairline-soft: var(--hairline-soft);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-focus: var(--focus);
+  --color-accent-2: var(--accent-2);
+  --color-highlight: var(--highlight);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+
+  --radius-*: initial;
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-pill: var(--r-pill);
+  --radius-btn: var(--r-btn);
+
+  --shadow-*: initial;
+  --shadow-1: var(--e-1);
+  --shadow-2: var(--e-2);
+  --shadow-3: var(--e-3);
+
+  --ease-standard: var(--ease-standard);
+  --ease-emph: var(--ease-emph);
+  --ease-spring: var(--ease-spring);
+  --ease-entrance: var(--ease-entrance);
+
+  --container-prose: var(--container-prose);
+  --container-content: var(--container-content);
+  --container-wide: var(--container-wide);
+}

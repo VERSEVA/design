@@ -1,0 +1,30 @@
+{
+  "name": "@verseva/design-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VERSEVA Design Core: the signature tokens, component contract, Tailwind bridge, and the off-token hex gate.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./components.css": "./components.css",
+    "./tailwind.css": "./tailwind.css",
+    "./preset": "./tailwind.preset.cjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "verseva-hex-gate": "bin/hex-gate.mjs"
+  },
+  "files": [
+    "tokens.css",
+    "components.css",
+    "tailwind.css",
+    "tailwind.preset.cjs",
+    "bin",
+    "docs"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "board": "node board/pull-themes.mjs && python3 -m http.server 4390 --directory ."
+  }
+}

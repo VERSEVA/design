@@ -1,0 +1,235 @@
+/* ============================================================================
+   @verseva/design-core · components.css
+   The component contract rendered as CSS. Framework-light: plain classes on
+   the tokens; no build step required. Values are extracted VERBATIM from the
+   design board's specimen CSS (board/index.html renders every class below in
+   every contract state). Renames from board-only specimen names are noted
+   inline; specimen scaffolding (device frames, state simulators' wrappers)
+   is not shipped.
+
+   Contract floor (docs/component-contract.md): all states shipped, 2px
+   focus-visible ring, ≥44px touch targets, 4.5:1 labels / 3:1 parts, never
+   color-alone, motion on transform/opacity via the duration/easing tokens.
+   ========================================================================= */
+
+/* ---- Button ---- */
+.btn{
+  appearance:none;border:0;cursor:pointer;font-family:var(--font-sans);
+  font-weight:var(--btn-weight);font-size:.9375rem;line-height:1;
+  height:40px;padding:0 var(--s-4);border-radius:var(--r-btn);
+  display:inline-flex;align-items:center;gap:var(--s-2);
+  transition:background var(--dur-1) var(--ease-standard),color var(--dur-1) var(--ease-standard),transform var(--dur-1) var(--ease-standard),box-shadow var(--dur-1) var(--ease-standard);
+}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--focus)}
+.btn-primary{background:var(--accent-fill,var(--accent));color:var(--accent-ink)}
+.btn-primary:hover{background:var(--accent-fill-hover,var(--accent-hover))}
+.btn-secondary{background:var(--surface);border:1px solid var(--hairline);color:var(--text-1)}
+.btn-secondary:hover{background:var(--surface-2)}
+.btn-ghost{background:transparent;color:var(--text-1)}
+.btn-ghost:hover{background:var(--surface-2)}
+.btn-destructive{background:var(--danger-bg);color:var(--danger);border:1px solid transparent}
+.btn-destructive:hover{border-color:var(--danger)}
+.btn.sm{height:32px;padding:0 var(--s-3);font-size:.875rem}
+.btn.lg{height:48px;padding:0 var(--s-5);font-size:1rem}
+.btn:active{transform:translateY(1px)}
+.btn:disabled,.btn.is-disabled{opacity:.45;cursor:not-allowed}
+.spinner{width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:dc-spin .7s linear infinite}
+@keyframes dc-spin{to{transform:rotate(360deg)}}
+
+/* ---- Input / field ---- */
+.field{display:grid;gap:var(--s-2)}
+.field label{font-size:.875rem;font-weight:500}
+.field input{
+  height:40px;padding:0 var(--s-3);border-radius:var(--r-sm);
+  border:1px solid var(--hairline);background:var(--surface);color:var(--text-1);
+  font:inherit;font-size:.9375rem;
+  transition:border-color var(--dur-1) var(--ease-standard),box-shadow var(--dur-1) var(--ease-standard);
+}
+.field input::placeholder{color:var(--text-3)}
+.field input:focus-visible{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 25%,transparent)}
+.field .help{font-size:.75rem;color:var(--text-3)}
+.field.error input{border-color:var(--danger)}
+.field.error .help{color:var(--danger)}
+.field input:disabled{background:var(--surface-2);color:var(--text-3);cursor:not-allowed}
+
+/* ---- Selection controls ---- */
+.sel{display:flex;align-items:center;gap:var(--s-2);font-size:.9375rem;cursor:pointer}
+.sel input{accent-color:var(--accent);width:18px;height:18px}
+.switch{position:relative;width:40px;height:22px;border-radius:var(--r-pill);background:var(--surface-2);border:1px solid var(--hairline);transition:background var(--dur-2) var(--ease-standard)}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text-2);transition:transform var(--dur-2) var(--ease-standard),background var(--dur-2) var(--ease-standard)}
+.sel input:checked+.switch{background:var(--accent);border-color:transparent}
+.sel input:checked+.switch::after{transform:translateX(18px);background:var(--accent-ink)}
+.sel input.sw{position:absolute;opacity:0;width:40px;height:22px;margin:0;cursor:pointer}
+.sel.switch-wrap{position:relative}
+.sel input.sw:focus-visible+.switch{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--focus)}
+
+/* ---- Card (board name: .card-demo; specimen max-width dropped) ---- */
+.card{border:1px solid var(--hairline);border-radius:var(--r-md);background:var(--surface);box-shadow:var(--e-1);overflow:hidden}
+.card .hd{padding:var(--s-4) var(--s-5);border-bottom:1px solid var(--hairline)}
+.card .hd h4{font-size:1rem;font-weight:600}
+.card .bd{padding:var(--s-5);color:var(--text-2);font-size:.9375rem}
+.card .ft{padding:var(--s-3) var(--s-5);border-top:1px solid var(--hairline);display:flex;justify-content:flex-end;gap:var(--s-2)}
+
+/* ---- Top navigation bar (board name: .nav-demo) ---- */
+.topnav{border:1px solid var(--hairline);border-radius:var(--r-md);background:var(--surface);display:flex;align-items:center;gap:var(--s-5);padding:0 var(--s-5);height:60px}
+.topnav nav{display:flex;gap:var(--s-4);flex:1}
+.topnav nav a{text-decoration:none;font-size:.9375rem;color:var(--text-2)}
+.topnav nav a.active{color:var(--text-1);font-weight:600;border-bottom:2px solid var(--accent);padding-bottom:2px}
+
+/* ---- Table (board name: .table-demo) ---- */
+.table{width:100%;border-collapse:collapse;font-size:.9375rem}
+.table th{text-align:left;font-family:var(--font-mono);font-size:.6875rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:var(--s-3) var(--s-3);border-bottom:1px solid var(--hairline)}
+.table td{padding:var(--s-3);border-bottom:1px solid var(--hairline)}
+.table tr:hover td{background:var(--surface-2)}
+.table .num{text-align:right;font-variant-numeric:tabular-nums}
+.table th.num{text-align:right}
+
+/* ---- Badge / status chip (always paired with text, never a dot alone) ---- */
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:500;letter-spacing:.01em;padding:3px 10px;border-radius:var(--r-pill)}
+.badge svg{width:10px;height:10px}
+.badge.ok{color:var(--success);background:var(--success-bg)}
+.badge.warn{color:var(--warn);background:var(--warn-bg)}
+.badge.err{color:var(--danger);background:var(--danger-bg)}
+.badge.neutral{color:var(--text-2);background:var(--surface-2)}
+
+/* ---- Toast ---- */
+.toast{display:flex;align-items:center;gap:var(--s-3);max-width:360px;background:var(--surface-2);border:1px solid var(--hairline);border-radius:var(--r-md);box-shadow:var(--e-2);padding:var(--s-3) var(--s-4);font-size:.875rem}
+.toast .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.toast.ok .dot{background:var(--success)}
+.toast.err .dot{background:var(--danger)}
+.toast button{margin-left:auto;background:none;border:0;color:var(--text-3);cursor:pointer;font-size:1rem;line-height:1}
+
+/* ---- Modal / dialog (board name: .modal-demo; overlay is the consumer's) ---- */
+.modal{width:min(100%,420px);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-lg);box-shadow:var(--e-3);overflow:hidden}
+.modal .bd{padding:var(--s-5)}
+.modal h4{font-size:1.2rem;font-weight:600;margin-bottom:var(--s-2)}
+.modal p{color:var(--text-2);font-size:.9375rem}
+.modal .ft{padding:var(--s-4) var(--s-5);border-top:1px solid var(--hairline);display:flex;justify-content:flex-end;gap:var(--s-2)}
+
+/* ---- Skeleton (loading state; skeletons mirror real layout) ---- */
+.skel{height:10px;border-radius:4px;background:var(--surface-2);width:100%;position:relative;overflow:hidden}
+.skel::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--text-1) 7%,transparent),transparent);animation:dc-shimmer 1.4s var(--ease-standard) infinite}
+@keyframes dc-shimmer{to{transform:translateX(100%)}}
+
+/* ---- Segmented control ---- */
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--hairline);border-radius:var(--r-pill);padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--text-2);font:inherit;font-size:.875rem;padding:7px 16px;border-radius:var(--r-pill);cursor:pointer;transition:background var(--dur-1) var(--ease-standard),color var(--dur-1) var(--ease-standard)}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--text-1);font-weight:600;box-shadow:var(--e-1)}
+.seg button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+
+/* ---- Filter chip row ---- */
+.chiprow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fchip{display:inline-flex;align-items:center;gap:6px;font-size:.8125rem;padding:6px 12px;border-radius:var(--r-pill);border:1px solid var(--hairline);background:var(--surface);color:var(--text-2);cursor:pointer;transition:all var(--dur-1) var(--ease-standard)}
+.fchip[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:color-mix(in srgb,var(--accent) 36%,transparent);color:var(--text-1);font-weight:600}
+.fchip .cnt{font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
+.fchip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---- Search field ---- */
+.searchbox{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-sm);padding:8px 12px;color:var(--text-3);font-size:.875rem;max-width:300px}
+.searchbox svg{width:15px;height:15px;flex:none}
+.searchbox input{border:0;background:transparent;color:var(--text-1);font:inherit;outline:none;flex:1;min-width:0}
+.searchbox kbd{font-family:var(--font-mono);font-size:10px;border:1px solid var(--hairline);border-radius:5px;padding:2px 6px;background:var(--surface-2);color:var(--text-3)}
+
+/* ---- List rows + identity ---- */
+.lrows{border:1px solid var(--hairline);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.lrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--hairline);transition:background var(--dur-1) var(--ease-standard)}
+.lrow:last-child{border-bottom:0}
+.lrow:hover{background:var(--surface-2)}
+.avc{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:var(--surface-2);border:1px solid var(--hairline);color:var(--text-2)}
+.lrow .tx{flex:1;min-width:0}
+.lrow .tx b{display:block;font-size:.9375rem;font-weight:600;color:var(--text-1)}
+.metaline{font-size:12px;color:var(--text-3)}
+.lrow .val{font-variant-numeric:tabular-nums;font-weight:600;font-size:.875rem}
+.avstack{display:flex;padding-left:8px}
+.avstack .avc{margin-left:-8px;border:2px solid var(--surface)}
+
+/* ---- Sheet (mobile bottom sheet; board name: .sheet-demo) ---- */
+.sheet{width:min(100%,340px);background:var(--surface);border:1px solid var(--hairline);border-radius:26px 26px var(--r-md) var(--r-md);box-shadow:var(--e-3);overflow:hidden}
+.sheet .grab{width:36px;height:4px;border-radius:999px;background:var(--text-3);opacity:.4;margin:10px auto 4px}
+.sheet .bd{padding:var(--s-4) var(--s-5) var(--s-5)}
+.sheet h4{font-size:1.05rem;font-weight:600;margin-bottom:4px}
+.sheet p{font-size:.875rem;color:var(--text-2)}
+.sheet .ft{display:flex;gap:var(--s-2);padding:0 var(--s-5) var(--s-5)}
+.sheet .ft .btn{flex:1;justify-content:center}
+
+/* ---- NAVSHELL, ported 1:1 from ufitra-experience.html (two-tone tiers).
+   The signature's most particular component: copy it, never approximate it.
+   A frosted CONTAINER that FRAMES an inset main-tab pill with a consistent
+   6px framing gap. Tiers separate by SHADE, never a hairline. MODE-SPECIFIC
+   brightness (nav-tier-brightness law):
+   LIGHT: frame = recessed grey wash; main pill = bright WHITE (main leads).
+   DARK:  INVERT: frame = a shade LIGHTER translucency; main pill = DARKER.
+   Deployment form: position:fixed (the board specimen uses absolute inside
+   its device frame; insets 14px sides / 18px bottom are the law). ---- */
+.navshell{position:fixed;left:14px;right:14px;bottom:18px;z-index:14;display:flex;flex-direction:column;
+  padding:var(--nav-gap);
+  background:linear-gradient(var(--nav-frame),var(--nav-frame)), var(--glass-fill-3);
+  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border:1px solid var(--glass-border);border-radius:30px;box-shadow:var(--glass-shadow), var(--glass-glow), var(--glass-inset);overflow:hidden}
+.navsub{display:flex;align-items:center;gap:4px;padding:5px 8px 7px;margin-bottom:var(--nav-gap);overflow-x:auto;scrollbar-width:none;position:relative;background:transparent}
+.navsub::-webkit-scrollbar{display:none}
+.navsub .ns{font-family:var(--font-sans);font-weight:500;font-size:12.5px;letter-spacing:-.005em;color:var(--text-3);padding:6px 12px;border-radius:10px;cursor:pointer;white-space:nowrap;flex:none;transition:.16s var(--ease-standard)}
+.navsub .ns:hover{color:var(--text-2)}
+.navsub .ns.on{color:var(--accent-on);font-weight:600;background:var(--accent-bloom);box-shadow:var(--accent-active-glow)}
+.navmain{position:relative;height:62px;display:flex;padding:8px 8px;background:var(--surface-body), var(--nav-main);
+  border:1px solid var(--glass-border);border-radius:24px;box-shadow:var(--nav-pill-inset)}
+.tab{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-3);cursor:pointer;border-radius:16px;padding:0 4px;transition:flex-grow .26s var(--ease-standard), color .2s var(--ease-standard), background .2s var(--ease-standard), box-shadow .2s var(--ease-standard);position:relative;min-width:44px}
+.tab svg{width:21px;height:21px;transition:.2s;flex:none}
+.tab span{font-size:9.5px;font-weight:700;letter-spacing:.01em;max-height:0;opacity:0;overflow:hidden;transition:max-height .26s var(--ease-standard), opacity .2s var(--ease-standard)}
+.tab.on{flex:1.5 1 0;color:var(--accent-on);background:var(--accent-bloom);box-shadow:var(--accent-active-glow)}
+.tab.on svg{color:var(--accent-on);filter:drop-shadow(0 0 8px color-mix(in srgb,var(--accent) 50%,transparent))}
+.tab.on span{max-height:14px;opacity:1}
+.tab:not(.on):hover{color:var(--text-2)}
+.tab:active{transform:scale(.94)}
+/* Mobile-only. Unlayered on purpose: a component class that sets display and
+   ships unlayered cannot be hidden by a layered utility (md:hidden), so the
+   responsive rule lives here, next to the rule it guards (case law 2026-07-18). */
+@media (min-width:768px){.navshell{display:none}}
+
+/* ---- Console navigation (desktop sidebar patterns) ---- */
+.orgchip{display:flex;align-items:center;gap:9px;padding:8px;border:1px solid var(--hairline);border-radius:12px;background:var(--surface)}
+.orgchip .sq{width:26px;height:26px;border-radius:8px;background:var(--accent-fill,var(--accent));color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none}
+.orgchip b{display:block;font-size:.8125rem;line-height:1.2}
+.orgchip small{display:block;font-size:10px;color:var(--text-3)}
+.grouplabel{font-family:var(--font-mono);font-size:.625rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:2px 0 6px}
+.snav{display:grid;gap:2px}
+.snav a{position:relative;display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:10px;font-size:.8125rem;color:var(--text-2);text-decoration:none;transition:background var(--dur-1) var(--ease-standard)}
+.snav a:hover{background:var(--surface-2)}
+.snav a svg{width:15px;height:15px;color:var(--text-3);flex:none}
+.snav a.active{color:var(--text-1);background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:600;box-shadow:0 0 18px -6px color-mix(in srgb,var(--accent) 45%,transparent)}
+.snav a.active svg{color:var(--accent)}
+.snav .cnt{margin-left:auto;font-size:10px;font-family:var(--font-mono);background:var(--surface-2);border:1px solid var(--hairline);border-radius:999px;padding:1px 6px;color:var(--text-2)}
+
+/* ---- Stat tile / KPI ---- */
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--s-4)}
+.stat{border:1px solid var(--hairline);border-radius:var(--r-md);background:var(--surface);padding:var(--s-4);box-shadow:var(--e-1)}
+.stat .num{font-family:var(--font-display);font-weight:var(--display-weight);font-size:2.1rem;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.stat .num i{color:var(--accent);font-style:normal}
+.stat .lbl{font-size:.75rem;color:var(--text-3);margin-top:2px}
+.stat .delta{margin-top:8px}
+
+/* ---- Charts (takeaway captions are mandatory: label the meaning) ---- */
+.chartcard{border:1px solid var(--hairline);border-radius:var(--r-md);background:var(--surface);padding:var(--s-4);box-shadow:var(--e-1)}
+.chartcard h4{font-size:.9375rem;font-weight:600}
+.chartcard .sub{font-size:.75rem;color:var(--text-3);margin-bottom:12px}
+.takeaway{margin-top:12px;font-size:.8125rem;color:var(--text-2);border-top:1px solid var(--hairline);padding-top:9px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:130px;border-bottom:1px solid var(--chart-grid,var(--hairline));padding:0 2px}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;cursor:default}
+.bar .fill{width:100%;max-width:34px;background:var(--data-3,var(--accent));border-radius:4px 4px 0 0;transition:opacity var(--dur-1) var(--ease-standard)}
+.bar:hover .fill{opacity:.82}
+.bar .mlab{font-family:var(--font-mono);font-size:10px;color:var(--chart-label,var(--text-3))}
+.bar .vlab{font-family:var(--font-mono);font-size:10px;color:var(--text-2)}
+.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}
+.heat span{aspect-ratio:1;border-radius:5px;background:var(--data-0);cursor:default}
+.heat span.d1{background:var(--data-1)}
+.heat span.d2{background:var(--data-2)}
+.heat span.d3{background:var(--data-3)}
+.heatlegend{display:flex;align-items:center;gap:5px;margin-top:10px;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
+.heatlegend span{width:12px;height:12px;border-radius:4px;display:inline-block}
+
+/* ---- Reduced motion (functional non-animated equivalents) ---- */
+@media (prefers-reduced-motion:reduce){
+  .skel::after{animation:none}
+  .spinner{animation-duration:1.4s}
+  .tab,.tab span,.btn,.switch,.switch::after{transition:none}
+}
