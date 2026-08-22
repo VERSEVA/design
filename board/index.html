@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VERSEVA Design Core · Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@100..900&family=Manrope:wght@200..800&family=JetBrains+Mono:wght@100..800&display=swap">
 <link rel="stylesheet" href="../tokens.css">
 <!-- brand themes: canonical files live with each brand; npm run board pulls copies here -->
 <link rel="stylesheet" href="_themes/ufitra.css">
@@ -450,7 +453,7 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
     <div class="paths">
       <div>source · @verseva/design-core · tokens.css + components.css + docs/ (tokens.md · component-contract.md · laws.md · theming.md)</div>
       <div>laws · docs/laws.md · the VERSEVA signature (soft-glass; first theme: UFITRA)</div>
-      <div>doctrine · conglomerate-context/design-os.md → visual-design-principles → ui-ux-design-system → frontend-taste</div>
+      <div>gate · verseva-hex-gate · builds fail on any hex not drawn from tokens</div>
       <div>themes · per brand, living with the brand · see the theme index at the bottom of this board</div>
     </div>
   </section>
@@ -781,12 +784,12 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
       <thead><tr><th>Brand</th><th>Status</th><th>Theme location</th></tr></thead>
       <tbody>
         <tr><td>VERSEVA signature (Baseline)</td><td><span class="badge ok">Live</span></td><td class="path">@verseva/design-core tokens.css · the package default; every surface without a theme runs on it</td></tr>
-        <tr><td>NEMIXO (product: the ERP)</td><td><span class="badge ok">Live</span></td><td class="path">~/.claude/skills/nemixo/nemixo/references/theme.css + design-register.md · challenger ERP: opaque + hairline (no soft-glass), considered radii 6/8/12, accent is the mark's own gold #C4A37C</td></tr>
+        <tr><td>NEMIXO (product: the ERP)</td><td><span class="badge ok">Live</span></td><td class="path">theme.css + design-register.md, with the brand · challenger ERP: opaque + hairline (no soft-glass), considered radii 6/8/12, accent is the mark's own gold #C4A37C</td></tr>
         <tr><td>Engine</td><td><span class="badge ok">Live</span></td><td class="path">engine-ui-doctrine skill + engine repo token canon (predates design-core; canonical for engine)</td></tr>
-        <tr><td>CandyCeuticals</td><td><span class="badge ok">Live</span></td><td class="path">~/Development/NEMIXO/partners/nutralogic/candyceuticals/theme.css + design-register.md</td></tr>
-        <tr><td>UFITRA</td><td><span class="badge ok">Live</span></td><td class="path">~/Development/NEMIXO/partners/zark-enterprises/ufitra/theme.css + design-register.md · THE FIRST THEME of the signature (NEXUS + App Experience)</td></tr>
-        <tr><td>Verseva</td><td><span class="badge neutral">Pending</span></td><td class="path">seed: frontend-taste dials 5/4/4 · Editorial-Minimal</td></tr>
-        <tr><td>xhunn.dev · NewHues</td><td><span class="badge neutral">Pending</span></td><td class="path">seeds in frontend-taste style variants</td></tr>
+        <tr><td>CandyCeuticals</td><td><span class="badge ok">Live</span></td><td class="path">theme.css + design-register.md, with the brand</td></tr>
+        <tr><td>UFITRA</td><td><span class="badge ok">Live</span></td><td class="path">theme.css + design-register.md, with the brand · THE FIRST THEME of the signature</td></tr>
+        <tr><td>Verseva</td><td><span class="badge neutral">Pending</span></td><td class="path">seed: dials 5/4/4 · Editorial-Minimal</td></tr>
+        <tr><td>xhunn.dev · NewHues</td><td><span class="badge neutral">Pending</span></td><td class="path">style-variant seeds recorded, pending</td></tr>
       </tbody>
     </table>
   </section>
@@ -810,21 +813,21 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
   <section class="sec" id="shelf">
     <div class="sec-head"><h2>Reference shelf</h2><span class="label">open these before designing · the standard is a place, not a memory</span></div>
     <div class="shelf">
-      <div class="row"><b>UFITRA NEXUS console</b><span class="path">partners/zark-enterprises/ufitra/presentations/ufitra-nexus.html · serve via launch config ufitra-refs (:4391) · THE reference standard, institutional register</span></div>
-      <div class="row"><b>UFITRA App Experience</b><span class="path">partners/zark-enterprises/ufitra/presentations/ufitra-experience.html · 53 screens, boots light · THE reference standard, consumer register</span></div>
+      <div class="row"><b>UFITRA NEXUS console</b><span class="path">partners/zark-enterprises/ufitra/presentations/ufitra-nexus.html · the signature at institutional scale</span></div>
+      <div class="row"><b>UFITRA App Experience</b><span class="path">partners/zark-enterprises/ufitra/presentations/ufitra-experience.html · 53 screens, boots light · the navshell source</span></div>
       <div class="row"><b>UFITRA theme</b><span class="path">partners/zark-enterprises/ufitra/theme.css + design-register.md · verbatim values, laws, devices</span></div>
-      <div class="row"><b>Engine board (sibling glass register)</b><span class="path">engine repo · docs/ui/design-board.html + docs/brand/ENGINE-BRAND-OS.md · skill: engine-ui-doctrine</span></div>
-      <div class="row"><b>CandyCeuticals</b><span class="path">partners/nutralogic/candyceuticals/design-register.md · live: engine.xhunn.dev/candyceuticals/shop + /candyceuticals/components</span></div>
-      <div class="row"><b>Doctrine + laws</b><span class="path">@verseva/design-core docs/: laws.md · tokens.md · component-contract.md · theming.md · plus conglomerate-context design-os.md</span></div>
+      <div class="row"><b>Engine board (sibling glass register)</b><span class="path">engine repo · docs/ui/design-board.html (its own register and render)</span></div>
+      <div class="row"><b>CandyCeuticals</b><span class="path">partners/nutralogic/candyceuticals/design-register.md · theme.css beside it</span></div>
+      <div class="row"><b>Doctrine + laws</b><span class="path">this repo, docs/: laws.md · tokens.md · component-contract.md · theming.md</span></div>
     </div>
   </section>
 </main>
 
 <footer class="board">
   <div class="inner">
-    <div><b>Sync protocol:</b> the package files (tokens.css, components.css, docs/) and each brand's theme.css are the source; this board is the render. Token values arrive by &lt;link&gt;, so token drift is structurally impossible; specimen markup still updates in the same change as any contract edit. Themes are pulled from their brand homes by <code>npm run board</code> (board/theme-manifest.json). New theme → manifest row + switcher entry. Drift is a defect: log it to design-core/learnings.md.</div>
-    <div>Load stack for any design work: design-os (the constitution) → design-core, THE FUNDAMENT (tokens + contract + this board) → the brand's theme → the lens for the work: frontend-taste (code), visual-design-principles (static visuals), ui-ux-design-system (flows), cultural-ui-ux-patterns (regional), presentation-strategy (decks).</div>
-    <div>VERSEVA Design Core v3.0 · 2026-08-22 · lives at /Volumes/XDev/Development/verseva-design-core/board/index.html · the soft-glass signature re-homed as VERSEVA's own (first theme: UFITRA) · every design starts here and evolves from it · v3.0 extracts the system into @verseva/design-core (tokens.css · components.css · tailwind bridge · hex gate) and moves brand values into per-brand theme files</div>
+    <div><b>Sync protocol:</b> the package files (tokens.css, components.css, docs/) and each brand's theme.css are the source; this board is the render. Token values arrive by &lt;link&gt;, so token drift is structurally impossible; specimen markup still updates in the same change as any contract edit. Themes are pulled from their brand homes by <code>npm run board</code> (machine-local board/theme-manifest.json; without one the board renders Baseline). New theme → manifest row + switcher entry. Drift is a defect: log it to design-core/learnings.md.</div>
+    <div>Start here for any design work: tokens + contract + this board, then the brand's theme. Doctrine and theming guides live in this repo's docs/.</div>
+    <div>VERSEVA Design Core v3.0 · 2026-08-22 · lives at board/index.html in the verseva-design-core repo · the soft-glass signature re-homed as VERSEVA's own (first theme: UFITRA) · every design starts here and evolves from it · v3.0 extracts the system into @verseva/design-core (tokens.css · components.css · tailwind bridge · hex gate) and moves brand values into per-brand theme files</div>
   </div>
 </footer>
 

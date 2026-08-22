@@ -1,10 +1,10 @@
 # The VERSEVA signature: laws
 
-The signature is the soft-glass language: designed by Xhunn, proven across the first theme's
-shipped surfaces (an institutional console of ~20 waves and a 53-screen consumer app), re-homed
-2026-08-22 as VERSEVA's own. Dated laws, written into the tokens; they bind every surface built
-on this package. Themes may deviate from the MATERIAL with a stated, recorded reason; the craft
-laws (type, seams, contrast, states) are not deviable.
+The signature is the soft-glass language, first proven at production scale across an
+institutional console (~20 shipped waves) and a 53-screen consumer app. Dated laws, written
+into the tokens; they bind every surface built on this package. Themes may deviate from the
+MATERIAL with a stated, recorded reason; the craft laws (type, seams, contrast, states) are
+not deviable.
 
 1. **Material: soft-glass.** Soft (tangible: rounded, pressable, soft-shadowed) converged with
    glass (light, translucency, air), lit by ONE overhead light source: bright catch-light
