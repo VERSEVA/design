@@ -15,6 +15,16 @@ shipped as CSS in `components.css`.
 - **Never color-alone:** state changes pair color with text, icon, or shape.
 - **Motion:** `--dur-1`/`--dur-2` + `--ease-standard`, transform/opacity (+ color) only.
 - **Keyboard:** every pointer interaction has a keyboard path; focus order follows visual order.
+- **View first, edit on intent (ratified by Xhunn 2026-08-22):** a surface that shows a
+  person their own data opens in a READING state, not an editing one. Fields render as
+  values, and an explicit Edit turns the block into inputs with Save and Cancel. Reasons:
+  a page of live text boxes reads as a form to be completed rather than a record to be
+  read; it gives no signal about what is already saved; and it invites a stray keystroke
+  into a field nobody meant to touch. Capture the intent to edit before offering the
+  means. Applies to profile, settings, org and brand detail, and any single-record
+  surface. It does NOT apply to controls whose whole purpose is immediate (search,
+  filters, a theme switch), to genuine creation forms, or to a modal opened expressly to
+  edit something, where the intent was captured by opening it.
 
 ## Button: `.btn`
 
