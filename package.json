@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xhunn/verseva-design-core.git"
+    "url": "git+https://github.com/verseva/design.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

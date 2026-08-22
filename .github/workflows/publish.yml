@@ -1,10 +1,9 @@
 # Publishes @verseva/design-core to GitHub Packages on every published release.
 #
-# CONSTRAINT: the npm scope must match the repo owner on GitHub Packages, so
-# @verseva/design-core can only publish once this repo lives under a GitHub org
-# named "verseva" (unclaimed as of 2026-08-22; transfer the repo there and old
-# git URLs keep working via GitHub's redirect). Until then the guard step below
-# skips the publish cleanly instead of failing the run.
+# The npm scope must match the repo owner on GitHub Packages; this repo lives
+# under the VERSEVA org (logins are case-insensitive; the scope is @verseva),
+# so publishing is live. The guard below is a safety net that skips cleanly if
+# the repo is ever forked or moved to a non-matching owner.
 #
 # Consumers, once live:
 #   .npmrc      @verseva:registry=https://npm.pkg.github.com
@@ -27,8 +26,9 @@ jobs:
       - name: Guard, scope must match owner
         id: guard
         run: |
-          if [ "${GITHUB_REPOSITORY_OWNER}" != "verseva" ]; then
-            echo "repo owner is ${GITHUB_REPOSITORY_OWNER}, scope is @verseva: skipping publish until the repo lives under the verseva org"
+          owner=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          if [ "$owner" != "verseva" ]; then
+            echo "repo owner is ${GITHUB_REPOSITORY_OWNER}, scope is @verseva: skipping publish"
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/setup-node@v4

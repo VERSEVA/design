@@ -23,7 +23,7 @@ hand-picked color. One system; every brand fills the values.
 Pin a release tag; `main` moves ahead of the tags:
 
 ```bash
-npm i -D "git+ssh://git@github.com/xhunn/verseva-design-core.git#v0.1.0"
+npm i -D "git+ssh://git@github.com/verseva/design.git#v0.1.0"
 ```
 
 (`#semver:^0.1.0` also works and tracks compatible tags.) CI environments without SSH access
@@ -313,7 +313,7 @@ see IS what ships.
 ## Versioning
 
 Every ratified change to the system ships as a tagged release
-([Releases](https://github.com/xhunn/verseva-design-core/releases) hold the changelog); a
+([Releases](https://github.com/verseva/design/releases) hold the changelog); a
 version bump IS the ratification event. Consumers pin tags and upgrade deliberately: with the
 hex gate wired into builds, value changes are breaking by design.
 
@@ -323,10 +323,20 @@ hex gate wired into builds, value changes are breaking by design.
 | **minor** | Additive: a new role, a new component recipe, a new doc |
 | **major** | Value re-ratification or any role/contract break |
 
-Planned: publishing to GitHub Packages (`.github/workflows/publish.yml` is ready) so consumers
-install `"@verseva/design-core": "^0.1.0"` with an `.npmrc` + read token, and Vercel installs
-via an `NPM_TOKEN` env. Gated on one step: the `@verseva` scope requires this repo to live
-under a GitHub org named `verseva`.
+Releases also publish to GitHub Packages (`.github/workflows/publish.yml`). To consume as a
+registry dependency instead of a git URL:
+
+```ini
+# .npmrc (NPM_TOKEN = a token with read:packages)
+@verseva:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NPM_TOKEN}
+```
+
+```json
+"devDependencies": { "@verseva/design-core": "^0.1.0" }
+```
+
+On Vercel, set `NPM_TOKEN` in the project env and the same `.npmrc` just works.
 
 ## Rules of the repo
 
