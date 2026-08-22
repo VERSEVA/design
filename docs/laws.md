@@ -1,4 +1,4 @@
-# The VERSEVA signature — laws
+# The VERSEVA signature: laws
 
 The signature is the soft-glass language: designed by Xhunn, proven across the first theme's
 shipped surfaces (an institutional console of ~20 waves and a 53-screen consumer app), re-homed
@@ -17,13 +17,13 @@ laws (type, seams, contrast, states) are not deviable.
    low-contrast gradient body, whisper-thin top catch-light, NO colored outer glow, label held
    at AA. Named accent devices: the radial bloom behind the active nav item, the accent full
    stop on display headings, the single-hue data-intensity ladder.
-4. **TYPE LAW — mono is for machines.** Mono only for machine artifacts (IDs, codes, SKUs,
+4. **TYPE LAW: mono is for machines.** Mono only for machine artifacts (IDs, codes, SKUs,
    payloads, code inputs), live timers/stage displays, chart-internal microlabels ≤10px, and
    pure-number identity chips. Everything a human reads is body. Never uppercase tracked-out
    mono footnotes; footnotes are quiet sentence-case body.
 5. **Display voice.** Tight negative tracking (-.01 to -.03em), heavy weight, short statements,
    accent full stop. Product type runs fine-grained (body 13–14px, meta 11–12.5px).
-6. **SEAM LAW — sections must breathe.** Section→section ≥18px (32 standard, 20 tight); stacked
+6. **SEAM LAW: sections must breathe.** Section→section ≥18px (32 standard, 20 tight); stacked
    cards in one pad ≥12px; a full-width button after a list ≥14px. Rhythm at class level, never
    per-screen inline margins.
 7. **Radius posture: soft-large.** Cards 20–26, sheets 30, controls 9–13, chips pill. One

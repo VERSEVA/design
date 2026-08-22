@@ -10,7 +10,7 @@ installed per project via git.
 | `components.css` | The component contract as framework-light CSS (navshell ported 1:1) |
 | `tailwind.css` | Tailwind v4 bridge (`@theme inline` role mapping) |
 | `tailwind.preset.cjs` | Tailwind v3 preset |
-| `bin/hex-gate.mjs` | `verseva-hex-gate` — build fails on any hex not drawn from tokens |
+| `bin/hex-gate.mjs` | `verseva-hex-gate`: build fails on any hex not drawn from tokens |
 | `docs/` | `tokens.md` · `component-contract.md` · `laws.md` · `theming.md` |
 | `board/` | The design board (the render of this package; `npm run board` pulls brand themes + serves) |
 

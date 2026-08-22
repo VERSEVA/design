@@ -5,9 +5,9 @@
    their own theme.css (living with the brand), never by editing this file.
 
    Two strata in one file:
-   · CRAFT   — roles, scales, states-bearing tokens. Brand-agnostic skeleton.
+   · CRAFT  : roles, scales, states-bearing tokens. Brand-agnostic skeleton.
                Every surface, owned or partner, inherits these.
-   · SIGNATURE — the soft-glass material values (glass fills, catch-light,
+   · SIGNATURE: the soft-glass material values (glass fills, catch-light,
                navshell tiers, accent bloom). VERSEVA's own language; the
                default clothing for owned surfaces. Partner themes may
                re-value or null these (white-label: craft yes, credit no).

@@ -16,7 +16,7 @@ shipped as CSS in `components.css`.
 - **Motion:** `--dur-1`/`--dur-2` + `--ease-standard`, transform/opacity (+ color) only.
 - **Keyboard:** every pointer interaction has a keyboard path; focus order follows visual order.
 
-## Button — `.btn`
+## Button: `.btn`
 
 - Variants: `primary` (accent fill, `--accent-ink` label), `secondary` (`--surface` +
   `--hairline` border), `ghost`, `destructive` (confirm or undo downstream).
@@ -28,32 +28,32 @@ shipped as CSS in `components.css`.
 - **Dark-floor deviation required:** the secondary recipe's `--hairline` border does not clear
   the 3:1 boundary floor on a dark ground; the boundary comes from the text ladder or a fill.
 
-## Input / field — `.field`
+## Input / field: `.field`
 
 Label above (placeholder is never the label), 40/48px heights, `--r-sm`, error replaces help with
 `aria-invalid` + `aria-describedby` wired. Inline validation on blur; error copy says how to fix.
 
-## Selection controls — `.sel`, `.switch`
+## Selection controls: `.sel`, `.switch`
 
 20px control, 44px hit area, `--accent` selected. Checkbox = many-of, radio = one-of (2–5),
 switch = instant effect. Label inside hit area.
 
-## Card — `.card`
+## Card: `.card`
 
 `--surface` + 1px `--hairline` + radius per theme posture; `--e-1` at most resting. Whole-card
 link: one overlay `<a>`, inner interactives reachable. Hover: hairline strengthens or `--e-2`.
 
-## Top navigation — `.topnav`
+## Top navigation: `.topnav`
 
 56–64px; logo top-left links home; active link `--text-1` + marker; one CTA max. Sticky allowed
 (`backdrop-blur` allowed on fixed chrome). Mobile: disclosure menu, focus trapped, Escape closes.
 
-## Table — `.table`
+## Table: `.table`
 
 Header `label` type + `--hairline` underline, rows ≥44px, hover `--surface-2`, numerics
 right-aligned tabular-nums, sticky header on long tables, states trio applies.
 
-## Badge — `.badge` · Toast — `.toast` · Modal — `.modal`
+## Badge: `.badge` · Toast: `.toast` · Modal: `.modal`
 
 Badge: caption type, tinted fg/bg pairs, always with text. Toast: `--surface-2` + `--e-2`,
 auto-dismiss 4–6s paused on hover, `role="status"`, errors persist. Modal: `--r-lg` + `--e-3`,
@@ -65,24 +65,24 @@ default-focused.
 Empty says what belongs here + one creating action; loading = skeletons (`.skel`) mirroring real
 layout; error says what failed + retry + preserved input. Never bare "No data" or a raw code.
 
-## Segmented — `.seg` · Filter chips — `.fchip` · Search — `.searchbox`
+## Segmented: `.seg` · Filter chips: `.fchip` · Search: `.searchbox`
 
 Segmented: 2–5 options, one active, arrow keys + `role="tablist"`, active pill brightness is
 MODE-SPECIFIC (navshell law). Chips: one scrollable row, selected = accent tint + weight 600,
 dismiss × has its own ≥24px target; filters never repaint chart series colors. Search:
 placeholder-as-hint is the one label exemption (`aria-label` required); shortcut chip in mono.
 
-## List row — `.lrow` + `.metaline`
+## List row: `.lrow` + `.metaline`
 
 Row ≥44px: leading avatar/icon, primary line body/600, metaline 12px sentence-case `--text-3`
 (never mono), right slot tabular-nums or chevron. Whole row tappable, inner actions reachable.
 
-## Sheet — `.sheet`
+## Sheet: `.sheet`
 
 Mobile bottom sheet, top corners 26–30, grabber, focus trapped, drag/Escape dismiss, content
 scrolls inside fixed chrome. Desktop: side drawer 360–480px. Navigation never lives in a sheet.
 
-## NAVSHELL — `.navshell` (the signature's most particular component)
+## NAVSHELL: `.navshell` (the signature's most particular component)
 
 **Copy it, never approximate it.** `components.css` carries the 1:1 port; the board renders it
 interactively.
@@ -97,17 +97,17 @@ interactively.
 - Sub-nav tier ONLY for tabs with real sub-sections (navigation-two-tier law; never invent one).
 - 3–5 destinations, targets ≥44px, floats inset 14px sides / 18px bottom, never scrolls away.
 
-## Console navigation — `.snav`, `.orgchip`, `.grouplabel`
+## Console navigation: `.snav`, `.orgchip`, `.grouplabel`
 
 Sidebar: org switcher top, grouped tree with `label` headers, ONE active item (accent-tinted pill
 + soft glow), counts as badges. Topbar: search + chips + icon actions; a header divides content.
 
-## Stat tile — `.stat`
+## Stat tile: `.stat`
 
 Big numeral (display family, tabular-nums) + quiet caption + optional signed delta chip (never
 color-alone).
 
-## Charts — `.chartcard`, `.bars`, `.heat` (the data contract)
+## Charts: `.chartcard`, `.bars`, `.heat` (the data contract)
 
 - **Form follows the job:** magnitude = bars; change = line; share = ring ≤3 or stacked bar;
   one number = stat tile, not a chart; density = single-hue intensity cells.
