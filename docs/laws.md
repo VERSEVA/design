@@ -14,10 +14,12 @@ enforce, binding by engagement contract rather than by gate.
    neutral-grey shadow, no color in shadows.
 2. **Color is a ladder system.** Canvas, hairline, and text ladders; roles, never ad-hoc grays.
    A surface needing a step between two ladder values is a design smell.
-3. **One accent, matte.** A single desaturated accent. Accent-filled controls sit MATTE: flat
-   low-contrast gradient body, whisper-thin top catch-light, NO colored outer glow, label held
-   at AA. Named accent devices: the radial bloom behind the active nav item, the accent full
-   stop on display headings, the single-hue data-intensity ladder.
+3. **One accent, matte.** A single accent; its saturation is the brand's choice, its
+   treatment is not. Accent-filled controls sit MATTE: flat low-contrast gradient body,
+   whisper-thin top catch-light, NO colored outer glow, label held at AA. Named accent
+   devices: the radial bloom behind the active nav item, the accent full stop on display
+   headings, the single-hue data-intensity ladder. (Amended 2026-08-31: "desaturated"
+   dropped; the signature accent is an energetic red, and saturation is a theme axis.)
 4. **TYPE LAW: mono is for machines.** Mono only for machine artifacts (IDs, codes, SKUs,
    payloads, code inputs), live timers/stage displays, chart-internal microlabels ≤10px, and
    pure-number identity chips. Everything a human reads is body. Never uppercase tracked-out

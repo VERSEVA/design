@@ -38,10 +38,10 @@
   --text-3: #6B7280;
 
   /* ---- CRAFT · accent roles (one accent per brand; themes re-value) ---- */
-  --accent: #BE8455;
-  --accent-hover: #CD9668;
-  --accent-ink: #14100B;
-  --focus: #BE8455;
+  --accent: #E8352E;
+  --accent-hover: #EF5A54;
+  --accent-ink: #1A0605;
+  --focus: #E8352E;
   --accent-2: transparent;
   --highlight: transparent;
 
@@ -130,10 +130,10 @@
   --text-2: #5E6573;
   --text-3: #7A828F;
 
-  --accent: #96662F;
-  --accent-hover: #7D5526;
+  --accent: #C42B21;
+  --accent-hover: #A62119;
   --accent-ink: #FFFFFF;
-  --focus: #96662F;
+  --focus: #C42B21;
 
   --success: #2C6E4B; --success-bg: rgba(44, 110, 75, .10);
   --warn: #8A6512;    --warn-bg: rgba(138, 101, 18, .10);

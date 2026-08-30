@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Example: landing page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.65; }
+  .crumb { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--hairline); font-size: 12.5px; color: var(--text-3); }
+  .crumb a { color: var(--text-2); text-decoration: none; font-family: var(--font-display); font-weight: var(--display-weight); }
+  .stop { color: var(--accent); }
+  .page { max-width: var(--container-content); margin: 0 auto; padding: 0 var(--s-5) var(--s-8); }
+  .nav { display: flex; align-items: center; gap: var(--s-5); padding: var(--s-4) 0; }
+  .nav .mark { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 16px; }
+  .nav nav { flex: 1; display: flex; gap: var(--s-4); }
+  .nav nav a { font-size: 13.5px; color: var(--text-2); text-decoration: none; }
+  .hero { padding: var(--s-9) 0 var(--s-7); max-width: 46rem; }
+  .hero h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(38px, 6vw, 60px); letter-spacing: -0.025em; line-height: 1.05; }
+  .hero p { color: var(--text-2); font-size: 17px; max-width: 52ch; padding-top: var(--s-4); }
+  .hero .cta { display: flex; gap: var(--s-3); padding-top: var(--s-5); }
+  .proof { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s-4); padding-top: var(--s-6); }
+  .proof .card .bd b { color: var(--text-1); font-weight: 600; }
+  .band { display: flex; gap: var(--s-6); flex-wrap: wrap; align-items: center; padding: var(--s-7) 0; }
+  .band .stat { flex: 1; min-width: 160px; }
+  footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); padding-top: var(--s-7); color: var(--text-3); font-size: 12.5px; }
+  .badge-line { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 13px; color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="crumb"><a href="../index.html">VERSEVA Design<span class="stop">.</span></a><span>examples</span><span>landing page</span></div>
+<div class="page">
+  <header class="nav">
+    <span class="mark">Ledgerline<span class="stop">.</span></span>
+    <nav><a href="#how">How it works</a><a href="#proof">Proof</a><a href="#pricing">Pricing</a></nav>
+    <button class="btn btn-ghost sm" type="button">Sign in</button>
+    <button class="btn btn-primary sm" type="button">Start free</button>
+  </header>
+  <section class="hero">
+    <h1>Monthly close in five days<span class="stop">.</span></h1>
+    <p>Ledgerline reconciles every account, flags what a human must see, and files the rest. Built for restaurant groups tired of closing in week three.</p>
+    <div class="cta">
+      <button class="btn btn-primary lg" type="button">Start free</button>
+      <button class="btn btn-secondary lg" type="button">Watch the close</button>
+    </div>
+  </section>
+  <section class="proof" id="proof">
+    <div class="card"><div class="hd"><h4>11 locations</h4></div><div class="bd"><b>Harbor Group</b> closed March in 4 days, 6 hours of bookkeeper time total.</div></div>
+    <div class="card"><div class="hd"><h4>98.4% auto-matched</h4></div><div class="bd"><b>Northline</b> reviews forty transactions a month. The rest file themselves.</div></div>
+    <div class="card"><div class="hd"><h4>Zero restatements</h4></div><div class="bd"><b>Crestpoint</b> has run eleven clean audits on Ledgerline books.</div></div>
+  </section>
+  <section class="band">
+    <div class="stat"><div class="num">5<i>days</i></div><div class="lbl">Median close</div></div>
+    <div class="stat"><div class="num">312</div><div class="lbl">Locations closing monthly</div></div>
+    <div class="stat"><div class="num">4.9</div><div class="lbl">Controller rating</div></div>
+  </section>
+  <footer>
+    <span>Ledgerline is a fictional product; this page is a VERSEVA Design example.</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+</body>
+</html>

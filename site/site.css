@@ -74,5 +74,10 @@ pre.cmd { font-family: var(--font-mono); font-size: 12.5px; background: var(--su
 .gap-tight { display: grid; gap: var(--s-3); }
 .pad-top { padding-top: var(--s-4); }
 
+.rendergrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--s-4); }
+.render { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--e-1); }
+.render img { display: block; width: 100%; height: auto; }
+.render figcaption { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); padding: var(--s-2) var(--s-3); }
+
 footer.site { padding-top: var(--s-8); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); color: var(--text-3); font-size: 12px; }
 .badge-line { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 13px; color: var(--text-2); }
