@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">VERSEVA Design<span class="stop">.</span></a>
+    <nav>
+      <a class="on" href="index.html">Overview</a>
+      <a href="web-ui.html">Web app UI</a>
+      <a href="decks.html">Decks</a>
+      <a href="docs-pdf.html">Docs + PDF</a>
+      <a href="data-viz.html">Data viz</a>
+      <a href="motion.html">Motion</a>
+    </nav>
+    <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
+  </header>
+
+  <section class="hero">
+    <h1>Every project is a signature<span class="stop">.</span></h1>
+    <div class="chips">
+      <span class="chip">@verseva/design v0.1.1</span>
+      <span class="chip">gated · team + engaged clients</span>
+      <span class="chip">laws amended 2026-08-31</span>
+      <span class="chip">4 gates enforce</span>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Chapters</h2>
+    <div class="cardgrid">
+      <a class="chapcard" href="web-ui.html"><b>Web app UI</b><span>Tokens, contract, states, navshell</span></a>
+      <a class="chapcard" href="decks.html"><b>Decks</b><span>The stage, one claim per slide</span></a>
+      <a class="chapcard" href="docs-pdf.html"><b>Docs + PDF</b><span>Verdict-first memo grammar</span></a>
+      <a class="chapcard" href="data-viz.html"><b>Data viz</b><span>Single-hue magnitude, takeaways</span></a>
+      <a class="chapcard" href="motion.html"><b>Motion</b><span>Transform + opacity, press idioms</span></a>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>The fourteen laws</h2>
+    <ol class="laws">
+      <li><b>Material: soft-glass.</b> One overhead light source; richness from material, light, edge, curve. Never gradients.</li>
+      <li><b>Color is a ladder system.</b> Canvas, hairline, text ladders. Roles, never ad-hoc grays.</li>
+      <li><b>One accent, matte.</b> No colored outer glow; labels hold AA; named accent devices only.</li>
+      <li><b>Mono is for machines.</b> IDs, codes, payloads, microlabels. Humans read body.</li>
+      <li><b>Display voice.</b> Tight tracking, heavy weight, short statements, accent full stop.</li>
+      <li><b>Sections must breathe.</b> Rhythm at class level, never per-screen inline margins.</li>
+      <li><b>Radius posture: soft-large.</b> Controls 10-14, product cards 14, elevated 22, sheets 26-30, chips pill.</li>
+      <li><b>Hierarchy from fill, not size.</b> Bar controls sit down 1px; floating controls compress.</li>
+      <li><b>Themes are one flip block.</b> Accent is a separate axis; nothing per-screen.</li>
+      <li><b>Status is ambient.</b> Word-carrying chips, real counts; tinted text clears 4.5:1.</li>
+      <li><b>Hairlines are decoration.</b> Contract boundaries come from the text ladder or a fill.</li>
+      <li><b>Nav-tier brightness is mode-specific.</b> Navshell: copy, never approximate.</li>
+      <li><b>Laws are dated and live with the tokens.</b> Enforced at the pipeline by the gate suite.</li>
+      <li><b>Signature carriage.</b> Named engagements carry the credit line; white-label carries craft only.</li>
+    </ol>
+  </section>
+
+  <section class="ch">
+    <h2>The gate suite</h2>
+    <pre class="cmd">npx verseva-gate --tokens tokens.css path/to/your/files</pre>
+    <div class="pad-top tscroll">
+      <table class="ttable">
+        <thead><tr><th>Gate</th><th>Fails on</th><th>Exception marker</th></tr></thead>
+        <tbody>
+          <tr><td>hex</td><td>Any hex not drawn from tokens</td><td>hex-ok + reason</td></tr>
+          <tr><td>contrast</td><td>A token pair below 4.5:1 body / 3:1 parts</td><td>none · craft law</td></tr>
+          <tr><td>spacing</td><td>Inline margin/padding/gap (seam law)</td><td>sp-ok + reason</td></tr>
+          <tr><td>type</td><td>Off-token faces, sizes below 9.5px</td><td>type-ok + reason</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Carriage</h2>
+    <div class="spec">
+      <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+      <span class="badge ok">Named engagement · default on</span>
+      <span class="badge neutral">White-label · craft only</span>
+    </div>
+  </section>
+
+  <footer class="site">
+    <span>VERSEVA · gated: team + engaged clients · 2026-08-31</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+<script>
+  document.getElementById('themeflip').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  });
+</script>
+</body>
+</html>

@@ -38,7 +38,7 @@
   --color-danger: var(--danger);
   --color-danger-bg: var(--danger-bg);
   --color-white: #FFFFFF;
-  --color-black: #000000;
+  --color-black: #000000; /* hex-ok: bridge absolute, not a design value; pair with --color-white above */
   --color-transparent: transparent;
   --color-current: currentColor;
 

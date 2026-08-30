@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Web app UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">VERSEVA Design<span class="stop">.</span></a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a class="on" href="web-ui.html">Web app UI</a>
+      <a href="decks.html">Decks</a>
+      <a href="docs-pdf.html">Docs + PDF</a>
+      <a href="data-viz.html">Data viz</a>
+      <a href="motion.html">Motion</a>
+    </nav>
+    <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
+  </header>
+
+  <section class="hero">
+    <h1>Web app UI<span class="stop">.</span></h1>
+    <div class="chips">
+      <span class="chip">tokens.css + components.css</span>
+      <span class="chip">all contract states or unfinished</span>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>The ladders</h2>
+    <div class="tscroll">
+      <table class="ttable">
+        <thead><tr><th>Role</th><th></th><th>Job</th><th>Floor</th></tr></thead>
+        <tbody>
+          <tr><td>--bg / --surface / --surface-2</td><td><span class="swatch sw-bg"></span> <span class="swatch sw-surface"></span> <span class="swatch sw-surface2"></span></td><td>Canvas and card grounds</td><td>ground</td></tr>
+          <tr><td>--text-1 / -2 / -3</td><td><span class="swatch sw-t1"></span> <span class="swatch sw-t2"></span> <span class="swatch sw-t3"></span></td><td>Primary, secondary, hints</td><td>4.5 / 4.5 / 3</td></tr>
+          <tr><td>--accent</td><td><span class="swatch sw-accent"></span></td><td>One per view, matte</td><td>label 4.5</td></tr>
+          <tr><td>--success / --warn / --danger</td><td><span class="swatch sw-success"></span> <span class="swatch sw-warn"></span> <span class="swatch sw-danger"></span></td><td>Status on tints, never alone</td><td>4.5 on tint</td></tr>
+          <tr><td>--hairline*</td><td></td><td>Decoration only, never a boundary</td><td>none</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Type trio</h2>
+    <div class="tscroll">
+      <table class="ttable">
+        <thead><tr><th>Token</th><th>Face</th><th>Job</th></tr></thead>
+        <tbody>
+          <tr><td>--font-display</td><td>Archivo 650</td><td>Short statements, tight tracking, accent full stop</td></tr>
+          <tr><td>--font-sans</td><td>Manrope 400-700</td><td>Everything a human reads; body 13-14px, meta 11-12.5px</td></tr>
+          <tr><td>--font-mono</td><td>JetBrains Mono</td><td>Machines: IDs, codes, microlabels to 10px</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Radius + press · amended 2026-08-31</h2>
+    <div class="tscroll">
+      <table class="ttable">
+        <thead><tr><th>Surface</th><th>Radius</th><th>Press</th></tr></thead>
+        <tbody>
+          <tr><td>controls</td><td>10-14 (--r-sm to --r-btn)</td><td>sit down · translateY(1px)</td></tr>
+          <tr><td>product cards</td><td>14 (--r-md)</td><td>none</td></tr>
+          <tr><td>modals, elevated</td><td>22 (--r-lg)</td><td>none</td></tr>
+          <tr><td>sheets</td><td>26-30</td><td>none</td></tr>
+          <tr><td>floating / icon controls</td><td>16 within pill frames</td><td>compress · scale(.92-.97)</td></tr>
+          <tr><td>chips</td><td>pill</td><td>none</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Contract specimens</h2>
+    <div class="specstack">
+      <div>
+        <div class="speclabel">buttons · equal-sized pairs, fill decides</div>
+        <div class="spec">
+          <button class="btn btn-primary" type="button">Primary</button>
+          <button class="btn btn-secondary" type="button">Secondary</button>
+          <button class="btn btn-ghost" type="button">Ghost</button>
+          <button class="btn btn-destructive" type="button">Delete</button>
+          <button class="btn btn-primary" type="button" disabled>Disabled</button>
+        </div>
+      </div>
+      <div>
+        <div class="speclabel">status · word-carrying chips</div>
+        <div class="spec">
+          <span class="badge ok">Deployed</span>
+          <span class="badge warn">2 pending</span>
+          <span class="badge err">1 failing</span>
+          <span class="badge neutral">Draft</span>
+        </div>
+      </div>
+      <div>
+        <div class="speclabel">card + stat</div>
+        <div class="spec">
+          <div class="card">
+            <div class="hd"><h4>Quote 2081</h4></div>
+            <div class="bd">Provenance complete. Ready for review.</div>
+            <div class="ft"><button class="btn btn-secondary sm" type="button">Open</button><button class="btn btn-primary sm" type="button">Approve</button></div>
+          </div>
+          <div class="stat"><div class="num">4.4<i>ms</i></div><div class="lbl">p95 after the sweep</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="speclabel">segmented + field</div>
+        <div class="spec">
+          <div class="seg"><button type="button" aria-selected="true">Week</button><button type="button">Month</button><button type="button">Quarter</button></div>
+          <div class="field"><label for="spec-name">Client name</label><input id="spec-name" placeholder="Acme Bottling"><div class="help">As it appears on the quote.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>States floor</h2>
+    <ul class="rules">
+      <li><b>Every component ships all contract states.</b> Hover, focus-visible ring (2px), active press, disabled, loading, empty, error. The happy path alone is unfinished.</li>
+      <li><b>Touch targets 44px.</b> Compact controls earn their size with surrounding clear space.</li>
+      <li><b>Never color-alone.</b> Status pairs color with a word, count, or shape.</li>
+      <li><b>Skeletons mirror the real layout.</b> Loading is a state of the real component, not a spinner page.</li>
+    </ul>
+  </section>
+
+  <section class="ch">
+    <h2>Navshell</h2>
+    <ul class="rules">
+      <li><b>Copy, never approximate.</b> The navshell ports verbatim from components.css; registers substitute values only.</li>
+      <li><b>Two tiers separate by shade, never a hairline.</b> Light: bright pill leads on recessed frame. Dark: inverted.</li>
+      <li><b>Active tab: bloom + label.</b> The radial bloom is a named accent device; the label opens inside it.</li>
+    </ul>
+  </section>
+
+  <section class="ch">
+    <h2>Do / don't</h2>
+    <div class="dodont">
+      <div class="dd do"><span class="tag">Do</span>One matte accent per view, spent on the primary action.</div>
+      <div class="dd dont"><span class="tag">Don't</span>A second accent, a colored glow, or an accent that is everywhere.</div>
+      <div class="dd do"><span class="tag">Do</span>Primary and secondary equal-sized; the fill says which leads.</div>
+      <div class="dd dont"><span class="tag">Don't</span>A bigger button for the primary action.</div>
+      <div class="dd do"><span class="tag">Do</span>Rhythm from the spacing scale, at class level.</div>
+      <div class="dd dont"><span class="tag">Don't</span>Inline margins per screen. The spacing gate fails them.</div>
+      <div class="dd do"><span class="tag">Do</span>Body type for everything a human reads.</div>
+      <div class="dd dont"><span class="tag">Don't</span>Uppercase tracked-out mono footnotes.</div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <span>VERSEVA · gated: team + engaged clients</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+<script>
+  document.getElementById('themeflip').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  });
+</script>
+</body>
+</html>

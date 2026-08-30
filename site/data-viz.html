@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Data viz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">VERSEVA Design<span class="stop">.</span></a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="web-ui.html">Web app UI</a>
+      <a href="decks.html">Decks</a>
+      <a href="docs-pdf.html">Docs + PDF</a>
+      <a class="on" href="data-viz.html">Data viz</a>
+      <a href="motion.html">Motion</a>
+    </nav>
+    <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
+  </header>
+
+  <section class="hero">
+    <h1>Data viz<span class="stop">.</span></h1>
+    <div class="chips">
+      <span class="chip">single hue = magnitude</span>
+      <span class="chip">takeaway captions mandatory</span>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>The intensity ladder</h2>
+    <div class="tscroll">
+      <table class="ttable">
+        <thead><tr><th>Token</th><th></th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>--data-0</td><td><span class="swatch sw-d0"></span></td><td>Empty, zero, background</td></tr>
+          <tr><td>--data-1</td><td><span class="swatch sw-d1"></span></td><td>Low</td></tr>
+          <tr><td>--data-2</td><td><span class="swatch sw-d2"></span></td><td>Mid</td></tr>
+          <tr><td>--data-3</td><td><span class="swatch sw-d3"></span></td><td>High · the accent itself</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Specimen</h2>
+    <div class="chartcard">
+      <h4>Quotes closed per week</h4>
+      <div class="sub">Last 6 weeks</div>
+      <div class="bars">
+        <div class="bar"><div class="fill" style="height:34%"></div><span class="mlab">W1</span></div>
+        <div class="bar"><div class="fill" style="height:48%"></div><span class="mlab">W2</span></div>
+        <div class="bar"><div class="fill" style="height:41%"></div><span class="mlab">W3</span></div>
+        <div class="bar"><div class="fill" style="height:66%"></div><span class="mlab">W4</span></div>
+        <div class="bar"><div class="fill" style="height:82%"></div><span class="mlab">W5</span></div>
+        <div class="bar"><div class="fill" style="height:100%"></div><span class="mlab">W6</span></div>
+      </div>
+      <div class="takeaway">Throughput doubled after the provenance sweep landed in W4.</div>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Rules</h2>
+    <ul class="rules">
+      <li><b>Single hue encodes magnitude, never category.</b> The ladder is volume; categories separate by position, shape, or label, not a rainbow.</li>
+      <li><b>Takeaway captions label the meaning, not the axis.</b> "Throughput doubled after W4", never "Quotes per week, weekly".</li>
+      <li><b>Mono microlabels to 10px.</b> Chart-internal labels are machine artifacts; everything read as a sentence is body.</li>
+      <li><b>Never color-alone.</b> A second encoding (position, pattern, label) always rides along.</li>
+      <li><b>Grid from --chart-grid, labels from --chart-label.</b> Charts are token consumers like any surface.</li>
+      <li><b>An emphasized endpoint beats a legend.</b> Point at the number that carries the takeaway.</li>
+    </ul>
+  </section>
+
+  <footer class="site">
+    <span>VERSEVA · gated: team + engaged clients</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+<script>
+  document.getElementById('themeflip').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  });
+</script>
+</body>
+</html>

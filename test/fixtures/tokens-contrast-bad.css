@@ -1,0 +1,8 @@
+:root {
+  --bg: #101010; --surface: #141414; --surface-2: #181818;
+  --text-1: #F0F0F0; --text-2: #3A3A3A; --text-3: #2A2A2A;
+  --accent: #444444; --accent-hover: #555555; --accent-ink: #333333;
+  --success: #204020; --success-bg: rgba(32,64,32,.1);
+  --warn: #403820; --warn-bg: rgba(64,56,32,.1);
+  --danger: #402020; --danger-bg: rgba(64,32,32,.1);
+}

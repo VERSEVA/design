@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Decks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">VERSEVA Design<span class="stop">.</span></a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="web-ui.html">Web app UI</a>
+      <a class="on" href="decks.html">Decks</a>
+      <a href="docs-pdf.html">Docs + PDF</a>
+      <a href="data-viz.html">Data viz</a>
+      <a href="motion.html">Motion</a>
+    </nav>
+    <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
+  </header>
+
+  <section class="hero">
+    <h1>Decks<span class="stop">.</span></h1>
+    <div class="chips">
+      <span class="chip">dark stage default</span>
+      <span class="chip">one claim per slide</span>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Slide anatomy</h2>
+    <div class="slide-mock">
+      <div class="kick">THE ANSWER</div>
+      <h3>One claim, stated as a verdict<span class="stop">.</span></h3>
+      <p>One supporting line. Evidence, not adjectives; a number beats a claim.</p>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Stage rules</h2>
+    <ul class="rules">
+      <li><b>Dark stage by default.</b> The tokens' root theme is the projector theme.</li>
+      <li><b>One claim per slide.</b> The action title IS the slide; everything else supports it.</li>
+      <li><b>Display voice.</b> Heavy weight, tight tracking, short statement, accent full stop.</li>
+      <li><b>Mono kickers only.</b> The kicker is a machine label; the claim is for humans.</li>
+      <li><b>Slide-deck emptiness.</b> A deck breathes harder than a page; when in doubt, cut the third support.</li>
+      <li><b>Numbers are evidence.</b> Tabular numerals, one per claim where possible, provenance available on ask.</li>
+    </ul>
+  </section>
+
+  <section class="ch">
+    <h2>Structure</h2>
+    <div class="tscroll">
+      <table class="ttable">
+        <thead><tr><th>Beat</th><th>Slide job</th><th>Kicker</th></tr></thead>
+        <tbody>
+          <tr><td>open</td><td>The claim the deck exists to make, plus stakes</td><td>the deck title</td></tr>
+          <tr><td>situation</td><td>One true thing the room already agrees with</td><td>THE SITUATION</td></tr>
+          <tr><td>complication</td><td>What changed; what breaks if nothing is done</td><td>THE TURN</td></tr>
+          <tr><td>resolution</td><td>Your answer in one line, then supports</td><td>THE ANSWER</td></tr>
+          <tr><td>ask</td><td>What you want decided, by whom, by when</td><td>NEXT</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Carriage</h2>
+    <ul class="rules">
+      <li><b>The badge closes the deck.</b> "Built on VERSEVA Design." on the final slide, quiet corner, on named engagements.</li>
+      <li><b>White-label decks drop it.</b> Craft yes, credit no, unless the contract says otherwise.</li>
+      <li><b>Template:</b> the starter kit's templates/deck.html is the working skeleton; the gate runs on it like any surface.</li>
+    </ul>
+  </section>
+
+  <footer class="site">
+    <span>VERSEVA · gated: team + engaged clients</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+<script>
+  document.getElementById('themeflip').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  });
+</script>
+</body>
+</html>

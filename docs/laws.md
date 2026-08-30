@@ -4,7 +4,8 @@ The signature is the soft-glass language, first proven at production scale acros
 institutional console (~20 shipped waves) and a 53-screen consumer app. Dated laws, written
 into the tokens; they bind every surface built on this package. Themes may deviate from the
 MATERIAL with a stated, recorded reason; the craft laws (type, seams, contrast, states) are
-not deviable.
+not deviable. Law 14 is a posture law (commercial carriage): the one law the pipeline cannot
+enforce, binding by engagement contract rather than by gate.
 
 1. **Material: soft-glass.** Soft (tangible: rounded, pressable, soft-shadowed) converged with
    glass (light, translucency, air), lit by ONE overhead light source: bright catch-light
@@ -26,11 +27,17 @@ not deviable.
 6. **SEAM LAW: sections must breathe.** Section→section ≥18px (32 standard, 20 tight); stacked
    cards in one pad ≥12px; a full-width button after a list ≥14px. Rhythm at class level, never
    per-screen inline margins.
-7. **Radius posture: soft-large.** Cards 20–26, sheets 30, controls 9–13, chips pill. One
-   posture per brand, applied everywhere; a theme re-postures consciously.
+7. **Radius posture: soft-large.** Standalone controls 10–14 (`--r-sm` to `--r-btn`); tabs
+   inset in pill frames 16; product cards 14 (`--r-md`); modals and elevated surfaces 22
+   (`--r-lg`); sheets 26–30; chips pill; decorative and data marks (skeletons, bar fills,
+   heat cells, kbd) 4–8 and never on a control. One posture per brand; a theme re-postures
+   consciously. (Amended 2026-08-31, tokens-win ruling: the shipped contract is canon; the
+   former 9–13 controls / 20–26 cards band described the pre-package standard.)
 8. **Hierarchy comes from FILL, not size.** Primary/secondary pairs sit equal-sized;
-   accent-filled vs surface-filled. Press feedback = scale(.92–.97) + shadow drop at
-   `--dur-1`/`--ease-standard`.
+   accent-filled vs surface-filled. Press feedback at `--dur-1`/`--ease-standard`: `.btn` and
+   full-width bar controls sit down (`translateY(1px)`); navshell tabs and icon-only controls
+   compress (scale .92–.97). (Amended 2026-08-31, tokens-win ruling: the shipped contract's
+   press idioms are canon.)
 9. **Themes are one flip block; accent is a separate axis.** Light and dark re-value the SAME
    tokens in one scoped block; nothing per-screen. Consumer surfaces boot LIGHT by default;
    consoles carry both. Appearance and accent are independent axes.
@@ -43,8 +50,12 @@ not deviable.
     frame. Dark: INVERTED, lighter frame, darker recessed pill. Tiers separate by shade, never
     a hairline. (Navshell: copy, never approximate.)
 13. **Laws are dated and live with the tokens.** Incidents become named laws written into this
-    file and enforced at the pipeline (the hex gate); when a law generalizes, it lands here, not
-    in one brand's theme.
+    file and enforced at the pipeline (the gate suite: hex, contrast, spacing, type); when a
+    law generalizes, it lands here, not in one brand's theme.
+14. **Signature carriage.** Named engagements carry the credit line ("Built on VERSEVA
+    Design.") by default; white-label surfaces carry the craft only, no credit, unless the
+    contract says otherwise. Public naming of any client engagement still requires that
+    client's sign-off. (2026-08-31.)
 
 Also in force from the contract: takeaway captions label the meaning, not the axis;
 no-eyebrow-above-content; a header divides content, nothing sits on top of it; no doctrine prose

@@ -1,0 +1,15 @@
+:root {
+  --bg: rgb(255 255 255);
+  --surface: #FFFFFF;
+  --surface-2: hsl(228 26% 95%);
+  --text-1: hsl(220 20% 10%);
+  --text-2: #5E6573;
+  --text-3: #667085;
+  --accent: #96662F;
+  --accent-hover: #7D5526;
+  --accent-ink: #FFFFFF;
+  --focus: var(--accent);
+  --success: #2C6E4B; --success-bg: rgb(44 110 75 / 10%);
+  --warn: #8A6512; --warn-bg: rgba(138, 101, 18, 0.1);
+  --danger: #A33D2E; --danger-bg: hsla(8, 56%, 41%, 0.1);
+}

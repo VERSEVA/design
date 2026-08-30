@@ -15,6 +15,7 @@ hand-picked color. One system; every brand fills the values.
 | [`tailwind.css`](tailwind.css) | Tailwind v4 bridge (`@theme inline` role mapping) |
 | [`tailwind.preset.cjs`](tailwind.preset.cjs) | Tailwind v3 preset |
 | [`bin/hex-gate.mjs`](bin/hex-gate.mjs) | `verseva-hex-gate`: the build fails on any hex not drawn from tokens |
+| [`bin/verseva-gate.mjs`](bin/verseva-gate.mjs) | `verseva-gate`: the full suite in one run: hex + contrast + spacing + type (each also standalone: `verseva-contrast-gate`, `verseva-spacing-gate`, `verseva-type-gate`) |
 | [`docs/`](docs/) | [tokens.md](docs/tokens.md) · [component-contract.md](docs/component-contract.md) · [laws.md](docs/laws.md) · [theming.md](docs/theming.md) |
 | [`board/`](board/) | The design board: the live render of everything on this page (`npm run board`). Repo clone only: not shipped in the npm package |
 
@@ -260,16 +261,22 @@ A theme can re-value the entire system, down to a light-native paper floor and i
 
 ![Color roles under the CandyCeuticals theme](docs/media/color-roles-candyceuticals.png)
 
-## The hex gate
+## The gate suite
 
-"No hand-picked hexes" as pipeline, not doctrine. The gate reads every hex in your tokens
+Four gates, ratified 2026-08-31: hex (off-token colors), contrast (the 4.5:1 / 3:1
+floors on both themes and every brand block; no exception marker, craft law), spacing
+(inline margin/padding/gap breaks the seam law; `sp-ok` to ratify), and type (off-token
+faces and sub-9.5px sizes; `type-ok` to ratify). `verseva-gate` runs all four with one
+argument set.
+
+"No hand-picked hexes" as pipeline, not doctrine. The hex gate reads every hex in your tokens
 files, scans the source tree (`.css/.scss/.ts/.tsx/.js/.jsx/.mjs/.cjs/.html`, including
 Tailwind arbitrary values like `bg-[#12E4B0]`), and exits 1 on anything off-token:
 
 ```json
 "scripts": {
-  "lint:hex": "verseva-hex-gate --tokens node_modules/@verseva/design/tokens.css --tokens src/app/theme.css src",
-  "build": "npm run lint:hex && next build"
+  "gate": "verseva-gate --tokens node_modules/@verseva/design/tokens.css --tokens src/app/theme.css src",
+  "build": "npm run gate && next build"
 }
 ```
 

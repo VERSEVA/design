@@ -59,7 +59,9 @@ Non-JS surfaces (decks, artifacts) inline the same `tokens.css` content instead 
 
 ## Enforcement
 
-Wire the hex gate into the consumer's build so off-token hexes fail it:
+Wire the gate suite (`verseva-gate`: hex, contrast, spacing, type) into the consumer's
+build so violations fail it. The contrast gate reads `[data-brand]` blocks as their own
+themes, so a brand theme file passed via `--tokens` is measured, not trusted:
 
 ```json
 "scripts": {
