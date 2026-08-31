@@ -6,7 +6,7 @@ only as tools for pre-release drafts.
 
 The site is static: `site/*.html` consuming `../tokens.css` and `../components.css` by
 relative link (the board's no-drift pattern). Deploy the REPO ROOT as the static output so
-those links resolve; `/` rewrites to `/site` (extensionless: cleanUrls strips `.html` routes, so a rewrite aimed at `index.html` dead-ends in a 404).
+those links resolve; the whole site answers at the ROOT of the domain (a catch-all rewrite into `site/`, filesystem first so the package CSS still serves).
 
 ## Steps (Xhunn: 1 and 4 are yours; they need the domain purchase and Vercel auth)
 
@@ -17,10 +17,17 @@ those links resolve; `/` rewrites to `/site` (extensionless: cleanUrls strips `.
 
 ```json
 {
-  "cleanUrls": true,
-  "rewrites": [{ "source": "/", "destination": "/site" }]
+  "rewrites": [
+    { "source": "/", "destination": "/site/index.html" },
+    { "source": "/(.*)", "destination": "/site/$1" }
+  ]
 }
 ```
+
+No `cleanUrls`: it strips `.html` routes, which breaks relative asset resolution on
+rewritten paths and turns the code viewer's raw fetches into redirects. The catch-all
+runs AFTER the filesystem check, so package files (`/tokens.css`, `/components.css`)
+serve from the root while every site path also answers at the root (`/motion.html`).
 
 3. **Local preview**: `npm run board` already serves the repo root on :4390;
    `http://localhost:4390/site/` is the site.
