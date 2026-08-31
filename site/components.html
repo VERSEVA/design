@@ -49,10 +49,44 @@
       <span class="chip">snippets extracted from the specimens</span>
       <span class="chip">every contract state ships</span>
     </div>
-    <div class="toc">
-      <a class="fchip" href="#install">Install</a><a class="fchip" href="#button">Button</a><a class="fchip" href="#field">Field</a><a class="fchip" href="#select">Select</a><a class="fchip" href="#switch">Switch</a><a class="fchip" href="#card">Card</a><a class="fchip" href="#badge">Badge</a><a class="fchip" href="#toast">Toast</a><a class="fchip" href="#modal">Modal</a><a class="fchip" href="#table">Table</a><a class="fchip" href="#stat">Stat</a><a class="fchip" href="#chart">Chart</a><a class="fchip" href="#seg">Segmented</a><a class="fchip" href="#tabs">Tabs</a><a class="fchip" href="#menu">Menu</a><a class="fchip" href="#tooltip">Tooltip</a><a class="fchip" href="#fchip">Filter chips</a><a class="fchip" href="#search">Search</a><a class="fchip" href="#crumbsdoc">Breadcrumbs</a><a class="fchip" href="#pagerdoc">Pagination</a><a class="fchip" href="#progressdoc">Progress</a><a class="fchip" href="#calloutdoc">Callout</a><a class="fchip" href="#emptydoc">Empty</a><a class="fchip" href="#accdoc">Accordion</a><a class="fchip" href="#rows">List rows</a><a class="fchip" href="#skeleton">Skeleton</a><a class="fchip" href="#topnav">Top nav</a><a class="fchip" href="#sidenav">Console nav</a><a class="fchip" href="#accordion-nav">Accordion nav</a><a class="fchip" href="#sheet">Sheet</a><a class="fchip" href="#navshell">Navshell</a>
-    </div>
   </section>
+
+  <div class="docgrid">
+  <aside class="docnav" aria-label="On this page">
+    <a href="#install">Install</a>
+    <a href="#spacing">Spacing utilities</a>
+    <a href="#button">Button</a>
+    <a href="#field">Field</a>
+    <a href="#switch">Checkbox + switch</a>
+    <a href="#card">Card</a>
+    <a href="#badge">Badge</a>
+    <a href="#toast">Toast</a>
+    <a href="#modal">Modal</a>
+    <a href="#table">Table</a>
+    <a href="#stat">Stat</a>
+    <a href="#chart">Chart</a>
+    <a href="#seg">Segmented</a>
+    <a href="#fchip">Filter chips</a>
+    <a href="#search">Search</a>
+    <a href="#rows">List rows</a>
+    <a href="#skeleton">Skeleton</a>
+    <a href="#select">Select + textarea</a>
+    <a href="#tabs">Tabs</a>
+    <a href="#menu">Menu</a>
+    <a href="#tooltip">Tooltip</a>
+    <a href="#crumbsdoc">Breadcrumbs</a>
+    <a href="#pagerdoc">Pagination</a>
+    <a href="#progressdoc">Progress</a>
+    <a href="#calloutdoc">Callout</a>
+    <a href="#emptydoc">Empty state</a>
+    <a href="#accdoc">Accordion</a>
+    <a href="#topnav">Top nav</a>
+    <a href="#sidenav">Console nav · flat</a>
+    <a href="#accordion-nav">Console nav · accordion</a>
+    <a href="#sheet">Sheet</a>
+    <a href="#navshell">Navshell</a>
+  </aside>
+  <div class="doccol">
 
   <section class="comp" id="install">
     <h2>Install</h2>
@@ -72,6 +106,20 @@ npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src
 npx verseva init
 npx verseva add button field toast console-nav
 npx verseva block add quote-tool</code></pre></div>
+  </section>
+
+  <section class="comp" id="spacing">
+    <h2>Spacing utilities</h2>
+    <p class="note">The seam law's handrail: margin, padding, and gap straight off the scale as classes (mt-5 = var(--s-5) = 24px), so a seam between a control row and its content is never left to memory. Vertical and gap only; horizontal rhythm comes from layout.</p>
+    <div class="demo"><div class="specimen">
+      <div>
+        <div class="chiprow"><button class="fchip" type="button" aria-pressed="true">All</button><button class="fchip" type="button" aria-pressed="false">Open</button></div>
+        <div class="lrows mt-4">
+          <div class="lrow"><span class="avc">KW</span><span class="tx"><b>The mt-4 above me is the seam</b><span class="metaline">chiprow to content, on the scale</span></span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
   <section class="comp" id="button">
@@ -490,6 +538,9 @@ npx verseva block add quote-tool</code></pre></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
+  </div>
+  </div>
+
   <footer class="site">
     <span>VERSEVA · open source · MIT</span>
     <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
@@ -500,6 +551,52 @@ npx verseva block add quote-tool</code></pre></div>
     const r = document.documentElement;
     r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
   });
+
+  document.querySelectorAll('.comp').forEach((comp) => {
+    const demo = comp.querySelector('.demo');
+    const cw = comp.querySelector('.codewrap');
+    if (!demo || !cw) return;
+    cw.hidden = true;
+    const bar = document.createElement('div');
+    bar.className = 'codetoggle';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-ghost sm';
+    btn.textContent = 'Show code';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.addEventListener('click', () => {
+      const show = cw.hidden;
+      cw.hidden = !show;
+      bar.classList.toggle('opened', show);
+      btn.textContent = show ? 'Hide code' : 'Show code';
+      btn.setAttribute('aria-expanded', String(show));
+    });
+    bar.append(btn);
+    demo.after(bar);
+    bar.after(cw);
+  });
+
+  /* Scroll spy as a rAF position watcher, not a scroll listener: one integer
+     compare per frame, and it works in embedded panes that swallow scroll
+     events. */
+  const navLinks = [...document.querySelectorAll('.docnav a')];
+  const sections = [...document.querySelectorAll('.comp')];
+  const spy = () => {
+    const line = innerHeight * 0.16;
+    let current = sections[0];
+    for (const s of sections) {
+      if (s.getBoundingClientRect().top <= line) current = s;
+    }
+    navLinks.forEach((a) => a.classList.toggle('on', a.getAttribute('href') === `#${current.id}`));
+  };
+  let lastSpyY = -1;
+  const spyLoop = () => {
+    if (scrollY !== lastSpyY) { lastSpyY = scrollY; spy(); }
+    requestAnimationFrame(spyLoop);
+  };
+  spy();
+  requestAnimationFrame(spyLoop);
+  addEventListener('hashchange', spy);
 
   const dedent = (html) => {
     const lines = html.replace(/^\n+|\s+$/g, '').split('\n');

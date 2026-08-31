@@ -1,6 +1,6 @@
 {
   "name": "@verseva/design",
-  "homepage": "https://verseva.design",
+  "homepage": "https://design.verseva.com",
   "components": [
     { "name": "cx", "file": "react/cx.ts", "kind": "util", "deps": [], "description": "Class-join helper; the only utility the kit needs" },
     { "name": "button", "file": "react/button.tsx", "kind": "component", "deps": ["cx"], "description": "Primary/secondary/ghost/destructive, sm-lg, loading; press sits it down 1px" },

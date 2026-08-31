@@ -45,7 +45,7 @@ npx verseva add button field toast console-nav
 npx verseva block add quote-tool
 npx verseva theme add cobalt
 npx verseva list</pre>
-    <ul class="rules">
+    <ul class="rules mt-4">
       <li><b>Components land as source.</b> Typed, dependency-free React files in your project; edit freely, reset with --force.</li>
       <li><b>Blocks land as full working pages,</b> css hrefs already pointed at node_modules; byte-locked to the live gallery by test.</li>
       <li><b>Nothing ships unproven:</b> init wires the gate script; run it before every ship.</li>
@@ -56,12 +56,12 @@ npx verseva list</pre>
     <h2>Registries</h2>
     <pre class="cmd">npx verseva build
 verseva build: 25 items + registry.json -&gt; site/r</pre>
-    <ul class="rules">
+    <ul class="rules mt-4">
       <li><b>Host your own.</b> `verseva build` flattens the registry into per-item JSON with content embedded; serve the directory anywhere static.</li>
       <li><b>Namespaces.</b> Consumers map them in verseva.json: <span style="font-family: var(--font-mono); font-size: 12px">{"registries": {"@you": "https://your.host/r/{name}.json"}}</span> then <span style="font-family: var(--font-mono); font-size: 12px">npx verseva add @you/thing</span>.</li>
       <li><b>URLs and files too.</b> `add` takes bare names, @ns/name, a full https URL, or a local .json item.</li>
       <li><b>Contained by construction:</b> written names flatten to basenames, symlink destinations are refused, only source extensions install, fetched items must embed content, deps stay on their item's origin, and registries are https-only.</li>
-      <li><b>This registry is hosted here:</b> once verseva.design is live, every item resolves at <span style="font-family: var(--font-mono); font-size: 12px">verseva.design/r/{name}.json</span>.</li>
+      <li><b>This registry is hosted here:</b> once design.verseva.com is live, every item resolves at <span style="font-family: var(--font-mono); font-size: 12px">design.verseva.com/r/{name}.json</span>.</li>
     </ul>
   </section>
 
@@ -80,7 +80,7 @@ verseva build: 25 items + registry.json -&gt; site/r</pre>
         </tbody>
       </table>
     </div>
-    <ul class="rules">
+    <ul class="rules mt-4">
       <li><b>The tool nobody else ships:</b> run_gate lets the agent PROVE its output stayed on-signature before claiming it's done.</li>
       <li><b>Zero dependencies.</b> The server is one file over stdio; cursor and vscode wiring included.</li>
     </ul>
@@ -94,7 +94,7 @@ verseva build: 25 items + registry.json -&gt; site/r</pre>
       <span class="badge ok">violet · 64 pairs proven</span>
       <span class="badge ok">slate · 64 pairs proven</span>
     </div>
-    <ul class="rules">
+    <ul class="rules mt-4">
       <li><b>One accent, matte (law 3):</b> a preset re-values the accent axis only; structure never changes.</li>
       <li><b>Every preset ships gate-proven</b> across all four theme axes (base and brand, dark and light), and stays provable in your build.</li>
       <li><b>Wire it:</b> link after tokens.css, set <span style="font-family: var(--font-mono); font-size: 12px">&lt;html data-brand="cobalt"&gt;</span>.</li>

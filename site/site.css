@@ -96,5 +96,19 @@ pre.cmd { font-family: var(--font-mono); font-size: 12.5px; background: var(--su
 .render img { display: block; width: 100%; height: auto; }
 .render figcaption { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); padding: var(--s-2) var(--s-3); }
 
+.docgrid { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: var(--s-7); align-items: start; }
+.docnav { position: sticky; top: var(--s-5); display: grid; gap: 2px; max-height: calc(100vh - var(--s-7)); overflow-y: auto; scrollbar-width: thin; padding-top: var(--s-7); }
+.docnav a { font-size: 12.5px; color: var(--text-3); text-decoration: none; padding: 4px 10px; border-radius: var(--r-sm); }
+.docnav a:hover { color: var(--text-1); background: var(--surface-2); }
+.docnav a.on { color: var(--text-1); font-weight: 600; background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.doccol { min-width: 0; }
+@media (max-width: 900px) { .docgrid { grid-template-columns: 1fr; } .docnav { display: none; } }
+
+.codetoggle { display: flex; justify-content: flex-end; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); padding: var(--s-2) var(--s-3); }
+.codetoggle.opened { border-radius: 0; }
+
+.prevlink { display: block; text-decoration: none; }
+.gcap .acts { display: flex; gap: var(--s-3); }
+
 footer.site { padding-top: var(--s-8); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); color: var(--text-3); font-size: 12px; }
 .badge-line { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 13px; color: var(--text-2); }

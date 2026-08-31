@@ -1,4 +1,4 @@
-# verseva.design · deploy
+# design.verseva.com · deploy
 
 **Ruled OPEN 2026-08-31** (supersedes the same-day gated ruling): the package is MIT and
 public, and this docs + gallery site ships public with it. The gating options below stay
@@ -10,7 +10,8 @@ those links resolve; `/` rewrites to `/site/index.html`.
 
 ## Steps (Xhunn: 1 and 4 are yours; they need the domain purchase and Vercel auth)
 
-1. **Domain**: buy `verseva.design` at the registrar of choice.
+1. **Domain**: `design.verseva.com` is a subdomain of verseva.com, which VERSEVA already
+   owns — nothing to buy, just the DNS record in step 4.
 2. **Vercel project**: `vercel link` in the repo, framework preset "Other", no build step,
    output directory `.` (repo root). Add `vercel.json`:
 
@@ -23,7 +24,7 @@ those links resolve; `/` rewrites to `/site/index.html`.
 
 3. **Local preview**: `npm run board` already serves the repo root on :4390;
    `http://localhost:4390/site/` is the site.
-4. **DNS**: point `verseva.design` at the Vercel project (A/CNAME per Vercel's dashboard).
+4. **DNS**: point `design.verseva.com` at the Vercel project (A/CNAME per Vercel's dashboard).
 
 ## Gating (ratified 2026-08-31: team + engaged clients, not public)
 

@@ -36,8 +36,9 @@ full working page with its css hrefs pointed at `node_modules`. The registry is
 `add` also takes `@namespace/item` (mapped in `verseva.json` under `registries`),
 full URLs, and local `.json` item files — and `npx verseva build` flattens YOUR
 registry into hostable per-item JSON so anyone can distribute on the same rails.
-Written filenames flatten to basenames: a registry can never traverse outside the
-target directory.
+Contained by construction: written names flatten to basenames, symlink destinations
+are refused, only source extensions install, fetched items must embed content, deps
+stay on their item's origin, and registries are https-only.
 
 ## Agents
 
@@ -67,7 +68,7 @@ Link it after `tokens.css`, set `<html data-brand="cobalt">`. One accent, matte
 | Path | What |
 |---|---|
 | `tokens.css` | The signature: color ladders, one accent, type trio, 4px spacing scale, radius posture, elevation, motion, data-viz ladder. Dark default, one light flip block, `[data-brand]` theming |
-| `components.css` | The component contract: buttons, fields, cards, tables, badges, toasts, modals, chips, stats, charts, the navshell. Every contract state ships |
+| `components.css` | The component contract: buttons, fields, cards, tables, badges, toasts, modals, chips, stats, charts, the navshell — plus scale-mapped spacing utilities (`mt-5`, `pb-4`, `gap-3`). Every contract state ships |
 | `tailwind.css` / `preset` | The Tailwind bridge for utility-first stacks |
 | `bin/` | The gate suite (below) |
 | `docs/` | The laws, token reference, component contract, theming guide |
@@ -75,7 +76,7 @@ Link it after `tokens.css`, set `<html data-brand="cobalt">`. One accent, matte
 
 Component documentation with live specimens and copyable snippets, plus a gallery of
 fully interactive example sites (a Three.js hero among them), lives in `site/` and at
-verseva.design.
+design.verseva.com.
 
 ## The gate suite
 

@@ -46,10 +46,18 @@ The open release. VERSEVA Design goes MIT and public.
 - **Component breadth.** Ten new contract components (select + textarea fields,
   tabs, menu, tooltip, breadcrumbs, pagination, progress, callout, empty state,
   content accordion) with React counterparts for the interactive ones.
+- **Spacing utilities.** `mt-* / mb-* / pt-* / pb-* / gap-*` mapped straight onto
+  the scale (mt-5 = `var(--s-5)`): the seam law as a handrail, so rhythm between a
+  control row and its content is never left to memory.
+- **Docs, the shadcn bar and past it.** Components page: sticky side nav with
+  scrollspy (the pill wall is gone), preview-first with a Show code toggle per
+  component, snippets still auto-extracted from the live specimens. Gallery: every
+  mock site now carries Open AND Code (a source viewer with copy). Home:
+  design.verseva.com.
 - **Templates.** `templates/starter.html`: a single-file starting point on the tokens.
 - **Docs site.** Guidelines, component documentation with copyable snippets extracted
   from live specimens, and a gallery of interactive example sites (`site/` in the
-  repo; verseva.design once DNS lands).
+  repo; design.verseva.com once DNS lands).
 
 ## 0.1.1 · 2026-08-22
 

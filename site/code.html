@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Source</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../tokens.css?v=red1">
+<link rel="stylesheet" href="../components.css?v=red1">
+<link rel="stylesheet" href="site.css">
+<style>
+  .srchead { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
+  .srchead h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; flex: 1; }
+  .srcfile { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
+  .srcwrap { position: relative; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); overflow: hidden; }
+  .srcwrap pre { margin: 0; padding: var(--s-5); overflow-x: auto; max-height: 74vh; }
+  .srcwrap code { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-2); }
+  .srcbtns { position: absolute; top: var(--s-2); right: var(--s-2); display: flex; gap: var(--s-2); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">VERSEVA Design<span class="stop">.</span></a>
+    <nav>
+      <a href="examples.html">Back to the gallery</a>
+    </nav>
+    <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
+  </header>
+
+  <section class="hero pb-5">
+    <div class="srchead">
+      <h1 id="srctitle">Source<span class="stop">.</span></h1>
+      <span class="srcfile" id="srcfile"></span>
+    </div>
+  </section>
+
+  <div class="srcwrap">
+    <div class="srcbtns">
+      <a class="btn btn-secondary sm" id="openlive" href="examples.html">Open live</a>
+      <button class="btn btn-secondary sm" id="copysrc" type="button">Copy</button>
+    </div>
+    <pre><code id="srccode">Loading the source.</code></pre>
+  </div>
+
+  <footer class="site">
+    <span>VERSEVA · open source · MIT</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+<script>
+  document.getElementById('themeflip').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  });
+
+  const file = new URLSearchParams(location.search).get('f') ?? '';
+  const code = document.getElementById('srccode');
+  if (!/^examples\/[a-z0-9-]+\.html$/.test(file)) {
+    code.textContent = 'Pick a page from the gallery to read its source.';
+  } else {
+    document.getElementById('srcfile').textContent = 'site/' + file;
+    document.getElementById('openlive').href = file;
+    document.getElementById('srctitle').innerHTML = file.replace('examples/', '').replace('.html', '') + '<span class="stop">.</span>';
+    fetch(file, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
+      .then((t) => { code.textContent = t; })
+      .catch(() => { code.textContent = 'Could not load ' + file + '.'; });
+  }
+  document.getElementById('copysrc').addEventListener('click', async (e) => {
+    try {
+      await navigator.clipboard.writeText(code.textContent);
+      e.target.textContent = 'Copied';
+    } catch {
+      e.target.textContent = 'Select + copy';
+    }
+    setTimeout(() => { e.target.textContent = 'Copy'; }, 1400);
+  });
+</script>
+</body>
+</html>
