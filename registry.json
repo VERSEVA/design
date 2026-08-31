@@ -19,7 +19,8 @@
     { "name": "menu", "file": "react/menu.tsx", "kind": "component", "deps": ["cx"], "description": "Dropdown menu; closes on select, Escape, outside click" },
     { "name": "accordion", "file": "react/accordion.tsx", "kind": "component", "deps": ["cx"], "description": "Content accordion on native details/summary" },
     { "name": "tooltip", "file": "react/tooltip.tsx", "kind": "component", "deps": ["cx"], "description": "Hover/focus label on the inverse ground" },
-    { "name": "viz", "file": "react/viz.tsx", "kind": "component", "deps": ["cx"], "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning" }
+    { "name": "viz", "file": "react/viz.tsx", "kind": "component", "deps": ["cx"], "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning" },
+    { "name": "motion", "file": "react/motion.tsx", "kind": "component", "deps": ["cx"], "description": "The motion kit: Stagger, Reveal (masked lines), Spotlight (group), Magnetic, NumberRoll; enter on entrance, settle on back, reduced-motion honored" }
   ],
   "themes": [
     { "name": "cobalt", "file": "themes/cobalt.css", "description": "Blue accent preset, contrast-gate proven both themes" },
@@ -33,6 +34,7 @@
     { "name": "landing", "file": "blocks/landing.html", "assets": false, "description": "Light marketing landing with a validating signup modal" },
     { "name": "three-hero", "file": "blocks/three-hero.html", "assets": false, "description": "Three.js hero reading the tokens at runtime" },
     { "name": "pulse", "file": "blocks/pulse.html", "assets": false, "description": "Analytics console: the whole viz kit assembled, crosshair hover, range toggle" },
+    { "name": "launch", "file": "blocks/launch.html", "assets": false, "description": "Launch landing: the motion kit assembled — line reveal, spotlight, magnetic CTA, rolling stats, theme wipe" },
     { "name": "store", "source": "repo", "assets": true, "description": "Storefront with working cart; image assets live in the repo (site/examples)" },
     { "name": "studio", "source": "repo", "assets": true, "description": "Studio portfolio with tag filter; image assets live in the repo (site/examples)" }
   ]

@@ -157,6 +157,15 @@
         "cx"
       ],
       "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning"
+    },
+    {
+      "name": "motion",
+      "file": "react/motion.tsx",
+      "kind": "component",
+      "deps": [
+        "cx"
+      ],
+      "description": "The motion kit: Stagger, Reveal (masked lines), Spotlight (group), Magnetic, NumberRoll; enter on entrance, settle on back, reduced-motion honored"
     }
   ],
   "themes": [
@@ -211,6 +220,12 @@
       "file": "blocks/pulse.html",
       "assets": false,
       "description": "Analytics console: the whole viz kit assembled, crosshair hover, range toggle"
+    },
+    {
+      "name": "launch",
+      "file": "blocks/launch.html",
+      "assets": false,
+      "description": "Launch landing: the motion kit assembled — line reveal, spotlight, magnetic CTA, rolling stats, theme wipe"
     },
     {
       "name": "store",

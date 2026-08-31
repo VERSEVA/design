@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- **The data-viz kit.** `--data-alt` joins the tokens as the fixed second-series
+  hue (validator-proven against the accent in both modes) and enters the contrast
+  gate's permanent pairs. Contract: microbar, judged trend, hbars, activity
+  strip/calendar, ring (label below the dial), markstrip, chart furniture.
+  React: `npx verseva add viz`. New block: `pulse`.
+- **The motion kit.** Tokens gain `--ease-exit` (leaving for good) and
+  `--ease-back` (snap-back settle). Contract: staggered entrances, masked line
+  reveal (JS-gated behind `html.js` so no-JS still reads), pointer spotlight,
+  border beam, rolling numbers, sequenced text swap, finite attention ring,
+  fr-track grow, marquee, overlay choreography. React: `npx verseva add motion`.
+  New block: `launch`.
+- **Behavior change: `.modal` and `.ovl.open` now animate their entrance**
+  (scrim one beat faster than the panel, enter-only). Consumers of the shipped
+  modal get the choreography without markup changes; reduced-motion disables it.
+
 ## 1.0.0 · 2026-08-31
 
 The open release. VERSEVA Design goes MIT and public.

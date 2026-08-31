@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Example: Launch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../../tokens.css?v=red1">
+<link rel="stylesheet" href="../../components.css?v=red1">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.5; overflow-x: hidden; }
+  .crumb { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--hairline); font-size: 12.5px; color: var(--text-3); position: relative; z-index: 2; }
+  .crumb a { color: var(--text-2); text-decoration: none; font-family: var(--font-display); font-weight: var(--display-weight); }
+  .crumb .btn { margin-left: auto; }
+  .stop { color: var(--accent); }
+  .wrap { max-width: 66rem; margin: 0 auto; padding: 0 var(--s-5); position: relative; z-index: 1; }
+
+  /* The light arrives AFTER the words: a static blur, animated only on transform/opacity */
+  .glow { position: absolute; top: -220px; left: 50%; width: 720px; height: 480px; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 22%, transparent), transparent 65%);
+    filter: blur(80px); opacity: 0; transform: translate(-50%, -18%) scale(.7); }
+  @media (prefers-reduced-motion: no-preference) {
+    .glow { animation: lands 1.6s var(--ease-entrance) .7s forwards; }
+  }
+  @media (prefers-reduced-motion: reduce) { .glow { opacity: .55; transform: translate(-50%, 0) scale(1); } }
+  @keyframes lands { to { opacity: .55; transform: translate(-50%, 0) scale(1); } }
+
+  .hero { padding: calc(var(--s-8) + var(--s-6)) 0 var(--s-7); text-align: center; }
+  .kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; color: var(--text-3); text-transform: uppercase; }
+  .hero h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(40px, 7vw, 64px); letter-spacing: -0.025em; line-height: 1.12; padding-top: var(--s-4); }
+  .hero .sub { color: var(--text-2); max-width: 46ch; margin: 0 auto; padding-top: var(--s-4); }
+  .cta { display: flex; justify-content: center; align-items: center; gap: var(--s-4); padding-top: var(--s-6); }
+  .ctanote { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-3); }
+
+  .statrow.launch { max-width: 46rem; margin: 0 auto; }
+  .statline { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--s-4); padding-top: var(--s-7); }
+  .fcard { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-5); box-shadow: var(--e-1); }
+  .fcard b { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 15px; display: block; }
+  .fcard p { font-size: 13px; color: var(--text-3); padding-top: var(--s-2); }
+  .fcard .swver { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); display: inline-block; padding-top: var(--s-3); }
+
+  .band { padding: var(--s-8) 0; }
+  .band h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 24px; letter-spacing: -0.015em; text-align: center; }
+  .marqitem { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 15px; color: var(--text-3); white-space: nowrap; }
+  .marqitem .stop { color: var(--accent); }
+
+  footer { border-top: 1px solid var(--hairline); padding: var(--s-5); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); color: var(--text-3); font-size: 12.5px; position: relative; z-index: 1; }
+  .badge-line { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 13px; color: var(--text-2); }
+  .unit-sm { font-size: 13px; color: var(--text-3); font-family: var(--font-sans); font-weight: 500; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+</style>
+</head>
+<body>
+<div class="crumb">
+  <a href="../index.html">VERSEVA Design<span class="stop">.</span></a><span>examples</span><span>Launch</span>
+  <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
+</div>
+<div class="glow" aria-hidden="true"></div>
+<main class="wrap">
+
+  <section class="hero">
+    <span class="kicker mo-rise">Pulse 1.0 · out today</span>
+    <h1><span class="mo-lines" id="heroline">
+      <span><span>The number,</span></span>
+      <span><span>then the why<span class="stop">.</span></span></span>
+    </span></h1>
+    <p class="sub mo-rise">Pulse is the analytics console built on VERSEVA Design: denominator-first tiles, deltas colored by meaning, and not one gridline forest.</p>
+    <div class="cta">
+      <span class="magnet" data-magnet><a class="btn btn-primary lg beam" href="pulse.html">Open the console</a></span>
+      <span class="ctanote xswap"><span class="xa">npx verseva block add pulse</span><span class="xb" aria-hidden="true">one command, yours</span></span>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="statrow launch mo-st">
+      <div class="stat">
+        <div class="statline"><span class="ticker" data-roll="112"></span><span class="unit-sm">/wk</span></div>
+        <div class="lbl">Quotes priced</div>
+      </div>
+      <div class="stat">
+        <div class="statline"><span class="ticker" data-roll="45"></span><span class="unit-sm">%</span></div>
+        <div class="lbl">Win rate · 14 of 31</div>
+      </div>
+      <div class="stat">
+        <div class="statline"><span class="ticker" data-roll="97"></span><span class="unit-sm">%</span></div>
+        <div class="lbl">Lines with provenance</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cards mo-st" data-spot>
+    <div class="fcard spot">
+      <b>Numbers on the marks</b>
+      <p>Every bar carries its count. Hover is a courtesy, never a requirement.</p>
+      <span class="swver xswap"><span class="xa">doctrine 01</span><span class="xb" aria-hidden="true">axes are a luxury</span></span>
+    </div>
+    <div class="fcard spot">
+      <b>Deltas by meaning</b>
+      <p>A falling 5K time renders green. Direction is arithmetic; judgment is the color.</p>
+      <span class="swver xswap"><span class="xa">doctrine 02</span><span class="xb" aria-hidden="true">sign ≠ meaning</span></span>
+    </div>
+    <div class="fcard spot">
+      <b>Attention that ends</b>
+      <p>The guide ring pulses twice, holds, and fades. Nothing on a Pulse screen nags.</p>
+      <span class="swver xswap"><span class="xa">doctrine 03</span><span class="xb" aria-hidden="true">pulse · hold · fade</span></span>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="marq" aria-hidden="true">
+      <div class="mrow"><span class="marqitem">Denominator first<span class="stop">.</span></span><span class="marqitem">Two series max<span class="stop">.</span></span><span class="marqitem">Rings with a verdict<span class="stop">.</span></span><span class="marqitem">Takeaway captions<span class="stop">.</span></span><span class="marqitem">Provenance chips<span class="stop">.</span></span></div>
+      <div class="mrow"><span class="marqitem">Denominator first<span class="stop">.</span></span><span class="marqitem">Two series max<span class="stop">.</span></span><span class="marqitem">Rings with a verdict<span class="stop">.</span></span><span class="marqitem">Takeaway captions<span class="stop">.</span></span><span class="marqitem">Provenance chips<span class="stop">.</span></span></div>
+    </div>
+  </section>
+
+</main>
+<footer>
+  <span>Pulse · a VERSEVA Design example</span>
+  <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+</footer>
+<script>
+  document.documentElement.classList.add('js');
+  // Theme wipe: the new theme sweeps out of the button as one View Transition.
+  const flipTheme = () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  };
+  document.getElementById('themeflip').addEventListener('click', (e) => {
+    const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || rm) return flipTheme();
+    const x = e.clientX || innerWidth / 2;
+    const y = e.clientY || 40;
+    const t = document.startViewTransition(flipTheme);
+    t.ready.then(() => {
+      const far = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      document.documentElement.animate(
+        { clipPath: [`circle(0 at ${x}px ${y}px)`, `circle(${far}px at ${x}px ${y}px)`] },
+        { duration: 480, easing: 'cubic-bezier(.16,1,.3,1)', pseudoElement: '::view-transition-new(root)' }
+      );
+    }).catch(() => {});
+  });
+
+  // Line reveal: closed state paints first, then the lines travel.
+  const hero = document.getElementById('heroline');
+  requestAnimationFrame(() => requestAnimationFrame(() => hero.classList.add('in')));
+
+  // Spotlight group: the handler writes numbers; the contract owns the
+  // light. Rect reads coalesce to one batch per frame.
+  document.querySelectorAll('[data-spot]').forEach((group) => {
+    let frame = 0;
+    let last = null;
+    group.addEventListener('pointermove', (e) => {
+      last = { x: e.clientX, y: e.clientY };
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        group.querySelectorAll('.spot').forEach((card) => {
+          const r = card.getBoundingClientRect();
+          card.style.setProperty('--mx', (last.x - r.left) + 'px');
+          card.style.setProperty('--my', (last.y - r.top) + 'px');
+        });
+      });
+    });
+  });
+
+  // Magnetic CTA: follow at a third, settle on --ease-back. Home rect is
+  // cached at pointerenter so the follow never measures its own transform.
+  document.querySelectorAll('[data-magnet]').forEach((el) => {
+    let home = null;
+    el.addEventListener('pointerenter', () => {
+      const r = el.getBoundingClientRect();
+      home = { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!home || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      el.style.transition = 'none';
+      el.style.transform = `translate(${((e.clientX - home.cx) * 0.3).toFixed(1)}px, ${((e.clientY - home.cy) * 0.3).toFixed(1)}px)`;
+    });
+    el.addEventListener('pointerleave', () => {
+      home = null;
+      el.style.transition = 'transform var(--dur-4) var(--ease-back)';
+      el.style.transform = 'translate(0,0)';
+    });
+  });
+
+  // Rolling stats: build the columns at zero, roll to the value on first view.
+  const buildTicker = (host, str, at) => {
+    host.textContent = '';
+    for (const ch of str) {
+      if (!/\d/.test(ch)) {
+        const s = document.createElement('span');
+        s.textContent = ch;
+        s.setAttribute('aria-hidden', 'true');
+        host.append(s);
+        continue;
+      }
+      const col = document.createElement('span');
+      col.className = 'td';
+      col.setAttribute('aria-hidden', 'true');
+      for (let d = 0; d <= 9; d++) { const i = document.createElement('i'); i.textContent = d; col.append(i); }
+      col.style.setProperty('--d', at ? ch : '0');
+      host.append(col);
+    }
+    const sr = document.createElement('span');
+    sr.className = 'sr-only';
+    sr.textContent = str;
+    host.append(sr);
+  };
+  const tickers = [...document.querySelectorAll('[data-roll]')];
+  tickers.forEach((t) => buildTicker(t, t.dataset.roll, false));
+  const roll = (t) => {
+    const digits = t.dataset.roll.replace(/\D/g, '');
+    t.querySelectorAll('.td').forEach((col, i) => col.style.setProperty('--d', digits[i]));
+  };
+  if (typeof IntersectionObserver !== 'undefined') {
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) { roll(e.target); io.unobserve(e.target); } });
+    }, { threshold: 0.4 });
+    tickers.forEach((t) => io.observe(t));
+  } else {
+    tickers.forEach(roll);
+  }
+</script>
+</body>
+</html>

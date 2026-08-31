@@ -80,7 +80,7 @@ test('asset-heavy blocks refuse with a pointer to the repo', () => {
 });
 
 test('blocks/ cannot drift from site/examples/ (byte-identical)', () => {
-  for (const name of ['console', 'quote-tool', 'landing', 'three-hero']) {
+  for (const name of ['console', 'quote-tool', 'landing', 'three-hero', 'pulse', 'launch']) {
     const a = fs.readFileSync(path.join(here, '..', 'blocks', `${name}.html`), 'utf8');
     const b = fs.readFileSync(path.join(here, '..', 'site', 'examples', `${name}.html`), 'utf8');
     assert.equal(a, b, `${name}.html drifted between blocks/ and site/examples/`);

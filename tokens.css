@@ -83,6 +83,8 @@
   --ease-emph: cubic-bezier(.3, 0, .1, 1);
   --ease-spring: cubic-bezier(.22, 1, .36, 1);
   --ease-entrance: cubic-bezier(.16, 1, .3, 1);
+  --ease-exit: cubic-bezier(.3, 0, 1, 1);
+  --ease-back: cubic-bezier(.34, 1.56, .64, 1);
 
   /* ---- CRAFT · data-viz (single-hue magnitude ladder; volume, never type).
      Series identity: --data-3 (accent) is series one, --data-alt the fixed

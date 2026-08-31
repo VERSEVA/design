@@ -9,6 +9,50 @@
 <link rel="stylesheet" href="../tokens.css?v=red1">
 <link rel="stylesheet" href="../components.css?v=red1">
 <link rel="stylesheet" href="site.css">
+<style>
+  .comp { padding-top: var(--s-7); }
+  .comp > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; padding-bottom: var(--s-3); }
+  .comp .note { font-size: 13px; color: var(--text-3); padding-bottom: var(--s-3); max-width: 62ch; }
+  .demo { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s-5); display: flex; flex-wrap: wrap; gap: var(--s-5); align-items: flex-start; }
+  .codewrap { position: relative; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); }
+  .codewrap pre { margin: 0; padding: var(--s-4) var(--s-5); overflow-x: auto; }
+  .codewrap code { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-2); }
+  .copybtn { position: absolute; top: var(--s-2); right: var(--s-2); }
+  .replaybar { width: 100%; display: flex; justify-content: flex-end; }
+  .mcard { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-4); box-shadow: var(--e-1); min-width: 180px; }
+  .mcard b { font-size: 13.5px; font-weight: 600; display: block; }
+  .mcard span.mnote { font-size: 12px; color: var(--text-3); display: block; padding-top: var(--s-1); }
+  .curverow { display: flex; flex-direction: column; gap: var(--s-3); width: 100%; }
+  .curve { display: grid; grid-template-columns: 132px 1fr; align-items: center; gap: var(--s-4); }
+  .curve .cl { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); }
+  .curve .track { position: relative; height: 22px; border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--hairline); }
+  .curve .ball { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); }
+  .curve.go .ball { transform: translateX(var(--trav)); }
+  .c-standard .ball { transition: transform 600ms var(--ease-standard); }
+  .c-entrance .ball { transition: transform 600ms var(--ease-entrance); }
+  .c-emph .ball { transition: transform 600ms var(--ease-emph); }
+  .c-exit .ball { transition: transform 600ms var(--ease-exit); }
+  .c-back .ball { transition: transform 600ms var(--ease-back); }
+  .heroline { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 30px; letter-spacing: -0.02em; line-height: 1.12; }
+  .heroline .stop { color: var(--accent); }
+  .swver { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: var(--s-2) var(--s-3); background: var(--surface); cursor: default; }
+  .statline { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 30px; font-variant-numeric: tabular-nums; }
+  .statline .ticker { vertical-align: baseline; }
+  .growdemo { width: 100%; max-width: 380px; }
+  .growdemo .inner { border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--surface); }
+  .growdemo .inner .pad { padding: var(--s-4); font-size: 13px; color: var(--text-2); }
+  .marqitem { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 14px; color: var(--text-3); white-space: nowrap; }
+  .marqitem .stop { color: var(--accent); }
+  .skdemo { width: 100%; max-width: 340px; display: grid; gap: var(--s-3); }
+  .anti { display: grid; gap: var(--s-2); width: 100%; }
+  .anti .row { display: flex; align-items: baseline; gap: var(--s-3); background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: var(--s-3) var(--s-4); font-size: 13.5px; color: var(--text-2); }
+  .anti .no { font-family: var(--font-mono); font-size: 11px; color: var(--danger); flex: none; }
+  .sprow { display: flex; flex-wrap: wrap; }
+  .ambcol { display: grid; width: 100%; }
+  .unit { font-size: 14px; color: var(--text-3); }
+  .beamcard { max-width: 320px; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+</style>
 </head>
 <body>
 <div class="shell">
@@ -32,54 +76,247 @@
   <section class="hero">
     <h1>Motion<span class="stop">.</span></h1>
     <div class="chips">
-      <span class="chip">transform + opacity only</span>
-      <span class="chip">reduced-motion honored</span>
+      <span class="chip">enter decelerating · exit accelerating</span>
+      <span class="chip">transitions over keyframes: interruptible</span>
+      <span class="chip">attention is finite · ambient never on data</span>
+      <span class="chip">React kit: npx verseva add motion</span>
     </div>
   </section>
 
-  <section class="ch">
-    <h2>The tokens</h2>
-    <div class="tscroll">
-      <table class="ttable">
-        <thead><tr><th>Token</th><th>Value</th><th>Job</th></tr></thead>
-        <tbody>
-          <tr><td>--dur-1</td><td>120ms</td><td>Press, hover, color shifts</td></tr>
-          <tr><td>--dur-2</td><td>200ms</td><td>Toggles, switches, chips</td></tr>
-          <tr><td>--dur-3</td><td>320ms</td><td>Entrances, sheets, disclosure</td></tr>
-          <tr><td>--dur-4</td><td>480ms</td><td>Orchestrated moments, rare</td></tr>
-          <tr><td>--ease-standard</td><td>cubic-bezier(.2, 0, 0, 1)</td><td>The default; press and state</td></tr>
-          <tr><td>--ease-emph</td><td>cubic-bezier(.3, 0, .1, 1)</td><td>Emphasis, attention</td></tr>
-          <tr><td>--ease-spring</td><td>cubic-bezier(.22, 1, .36, 1)</td><td>Playful settle, sparing</td></tr>
-          <tr><td>--ease-entrance</td><td>cubic-bezier(.16, 1, .3, 1)</td><td>Things arriving</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="docgrid">
+  <aside class="docnav" aria-label="On this page">
+    <a href="#doctrine">Doctrine</a>
+    <a href="#tokens">Tokens</a>
+    <a href="#press">Press</a>
+    <a href="#entrances">Entrances</a>
+    <a href="#lines">Line reveal</a>
+    <a href="#spotlight">Spotlight</a>
+    <a href="#magnetic">Magnetic</a>
+    <a href="#numbers">Numbers</a>
+    <a href="#swap">Text swap</a>
+    <a href="#attention">Attention</a>
+    <a href="#loading">Loading</a>
+    <a href="#grow">Height + width</a>
+    <a href="#ambient">Ambient</a>
+    <a href="#wipe">Theme wipe</a>
+    <a href="#anti">Anti-patterns</a>
+  </aside>
+  <div class="doccol">
+
+  <section class="comp" id="doctrine">
+    <h2>Doctrine</h2>
+    <p class="note">Synthesized from the portfolio's shipped motion (Spectre, the NEMIXO console, this site) and the systems worth studying: Apple's springs, Material's easing pairs, Carbon's two registers, the sonner and vaul playbooks.</p>
+    <div class="demo"><div class="specimen">
+      <div class="tscroll">
+        <table class="ttable">
+          <thead><tr><th>Rule</th><th>It means</th></tr></thead>
+          <tbody>
+            <tr><td>motion shows behavior</td><td>Every animation answers "what just happened"; a heading earns nothing</td></tr>
+            <tr><td>enter ≠ exit</td><td>Arrivals decelerate (--ease-entrance); permanent departures accelerate (--ease-exit); panels that will return leave on --ease-standard</td></tr>
+            <tr><td>two registers</td><td>Task UI is fast and quiet (--dur-1/2); brand moments get --dur-3/4, and one page gets ONE of them</td></tr>
+            <tr><td>interruptible</td><td>State motion is a transition flipped by class, never a one-shot keyframe; mid-flight reversals animate from where they are</td></tr>
+            <tr><td>attention is finite</td><td>Pulse twice, hold, fade. Only progress may loop forever, at the 1.4s house period</td></tr>
+            <tr><td>compositor first</td><td>transform + opacity; the earned exceptions are outline (.attn), fr tracks (.grow-*), and alpha-only masks</td></tr>
+            <tr><td>JS writes numbers</td><td>Handlers set --mx/--my or a transform; every visual decision stays in CSS where the theme owns it</td></tr>
+            <tr><td>frequency discounts delight</td><td>Never decorate an action performed a hundred times a day; hover may delight, focus never</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
-  <section class="ch">
-    <h2>Press idioms · amended 2026-08-31</h2>
-    <div class="tscroll">
-      <table class="ttable">
-        <thead><tr><th>Control class</th><th>Press</th><th>At</th></tr></thead>
-        <tbody>
-          <tr><td>bar + inline (.btn)</td><td>sit down · translateY(1px)</td><td>--dur-1 / --ease-standard</td></tr>
-          <tr><td>floating + icon (.tab)</td><td>compress · scale(.92-.97)</td><td>--dur-1 / --ease-standard</td></tr>
-          <tr><td>elevated</td><td>either, plus shadow drop</td><td>--dur-1 / --ease-standard</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <section class="comp" id="tokens">
+    <h2>Tokens</h2>
+    <p class="note">Four beats, six curves. Fire them: the difference between the curves IS the doctrine. --ease-exit leaves for good; --ease-back settles direct manipulation.</p>
+    <div class="demo"><div class="specimen curverow" id="curves">
+      <div class="curve c-standard"><span class="cl">--ease-standard</span><span class="track"><span class="ball"></span></span></div>
+      <div class="curve c-entrance"><span class="cl">--ease-entrance</span><span class="track"><span class="ball"></span></span></div>
+      <div class="curve c-emph"><span class="cl">--ease-emph</span><span class="track"><span class="ball"></span></span></div>
+      <div class="curve c-exit"><span class="cl">--ease-exit</span><span class="track"><span class="ball"></span></span></div>
+      <div class="curve c-back"><span class="cl">--ease-back</span><span class="track"><span class="ball"></span></span></div>
+      <div class="replaybar"><button class="btn btn-secondary sm" id="firecurves" type="button">Run the curves</button></div>
+      <div class="tscroll">
+        <table class="ttable">
+          <thead><tr><th>Token</th><th>Value</th><th>Job</th></tr></thead>
+          <tbody>
+            <tr><td>--dur-1</td><td>120ms</td><td>Press, hover, color shifts</td></tr>
+            <tr><td>--dur-2</td><td>200ms</td><td>Toggles, switches, chips</td></tr>
+            <tr><td>--dur-3</td><td>320ms</td><td>Entrances, sheets, disclosure</td></tr>
+            <tr><td>--dur-4</td><td>480ms</td><td>Orchestrated moments, rare</td></tr>
+            <tr><td>--ease-standard</td><td>cubic-bezier(.2, 0, 0, 1)</td><td>The default; press and state</td></tr>
+            <tr><td>--ease-entrance</td><td>cubic-bezier(.16, 1, .3, 1)</td><td>Things arriving</td></tr>
+            <tr><td>--ease-emph</td><td>cubic-bezier(.3, 0, .1, 1)</td><td>Emphasis, attention</td></tr>
+            <tr><td>--ease-exit</td><td>cubic-bezier(.3, 0, 1, 1)</td><td>Leaving for good</td></tr>
+            <tr><td>--ease-back</td><td>cubic-bezier(.34, 1.56, .64, 1)</td><td>Snap-back settle after a drag or magnet</td></tr>
+            <tr><td>--ease-spring</td><td>cubic-bezier(.22, 1, .36, 1)</td><td>Playful settle, sparing</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
-  <section class="ch">
-    <h2>Rules</h2>
-    <ul class="rules">
-      <li><b>Animate transform and opacity only.</b> Never blur, filter, gradient stops, or layout properties.</li>
-      <li><b>Reduced-motion is honored everywhere.</b> Every animation ships a functional non-animated equivalent.</li>
-      <li><b>Motion shows behavior, never decorates.</b> A convection current earns animation; a heading does not.</li>
-      <li><b>One orchestrated moment beats scattered effects.</b> Spend --dur-4 once, keep everything around it quiet.</li>
-      <li><b>Durations come from the tokens.</b> A literal ms value in a surface is a smell the way a literal hex is.</li>
-    </ul>
+  <section class="comp" id="press">
+    <h2>Press</h2>
+    <p class="note">Acknowledged within 120ms, always. Bar and inline controls sit down 1px; floating and icon controls compress to .94-.97; a disabled control never animates. Amended 2026-08-31.</p>
+    <div class="demo"><div class="specimen">
+      <button class="btn btn-primary" type="button">Sits down 1px</button>
+      <button class="btn btn-secondary" type="button">Same idiom</button>
+      <button class="btn btn-primary" type="button" disabled>Disabled: still</button>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
+
+  <section class="comp" id="entrances">
+    <h2>Entrances</h2>
+    <p class="note">Fade + 10px rise on --ease-entrance, children 60ms apart, capped at six. Travel scales with the surface: 10px for cards, 24px for drawers and sheets, and the responsive trick is swapping animation-name, not the class.</p>
+    <div class="demo">
+      <div class="specimen mo-st" id="stagdemo">
+        <div class="mcard"><b>First</b><span class="mnote">0ms</span></div>
+        <div class="mcard"><b>Second</b><span class="mnote">+60ms</span></div>
+        <div class="mcard"><b>Third</b><span class="mnote">+120ms</span></div>
+        <div class="mcard"><b>Fourth</b><span class="mnote">+180ms</span></div>
+      </div>
+      <div class="replaybar"><button class="btn btn-secondary sm" data-replay="stagdemo" type="button">Replay</button></div>
+    </div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="lines">
+    <h2>Line reveal</h2>
+    <p class="note">Each line travels up out of its own mask, 70ms apart, on a transition so it stays interruptible. For display headings only: one per page.</p>
+    <div class="demo">
+      <div class="specimen">
+        <span class="mo-lines heroline" id="linedemo">
+          <span><span>Design is the</span></span>
+          <span><span>signature<span class="stop">.</span></span></span>
+        </span>
+      </div>
+      <div class="replaybar"><button class="btn btn-secondary sm" data-replay-lines="linedemo" type="button">Replay</button></div>
+    </div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="spotlight">
+    <h2>Spotlight</h2>
+    <p class="note">The light follows the pointer; the group tracks on the container so neighbors warm before arrival. One handler writes --mx/--my, the CSS owns every visual decision. Touch gets no dead effect.</p>
+    <div class="demo"><div class="specimen sprow gap-5" data-spot>
+      <div class="mcard spot"><b>Move across these</b><span class="mnote">the halo tracks the pointer</span></div>
+      <div class="mcard spot"><b>Neighbors warm early</b><span class="mnote">tracking is on the group</span></div>
+      <div class="mcard spot"><b>Accent at 10%</b><span class="mnote">never a new color</span></div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="magnetic">
+    <h2>Magnetic</h2>
+    <p class="note">Follows at a third of the pointer's offset with no transition, then settles home on --ease-back. Direct manipulation is the only place overshoot is honest.</p>
+    <div class="demo"><div class="specimen">
+      <span class="magnet" data-magnet><button class="btn btn-primary" type="button">Come closer</button></span>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="numbers">
+    <h2>Numbers</h2>
+    <p class="note">Digits are columns travelling on transform behind an edge mask; tabular-nums so the width never jitters; every column rolls the SAME direction so the trend stays legible. The live number keeps its meaning in a sr-only twin.</p>
+    <div class="demo">
+      <div class="specimen">
+        <span class="statline"><span class="ticker" id="tickdemo"></span><span class="unit">/wk</span></span>
+      </div>
+      <div class="replaybar"><button class="btn btn-secondary sm" id="tickroll" type="button">Roll it</button></div>
+    </div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="swap">
+    <h2>Text swap</h2>
+    <p class="note">Two strings cross-dissolved read as garbage. The house idiom sequences them by flipping transition-delay: the outgoing string fully leaves, THEN the incoming one lands. Fenced behind hover-capable pointers.</p>
+    <div class="demo"><div class="specimen">
+      <span class="swver xswap"><span class="xa">v1.0.0 · stable</span><span class="xb" aria-hidden="true">8243358 · signed</span></span>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="attention">
+    <h2>Attention</h2>
+    <p class="note">The guide ring: pulse twice, hold five seconds, fade to nothing. Attention that persists is nagging; the reduced-motion cut keeps the ring and the fade, drops the pulse. From the console's error guide.</p>
+    <div class="demo">
+      <div class="specimen">
+        <div class="mcard" id="attndemo"><b>Batch size</b><span class="mnote">the field the error points at</span></div>
+      </div>
+      <div class="replaybar"><button class="btn btn-secondary sm" id="attnfire" type="button">Point at it</button></div>
+    </div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="loading">
+    <h2>Loading</h2>
+    <p class="note">Skeletons mirror the real layout and sweep at the 1.4s house period, an overlay on transform, never background-position. Content replaces them with one rise beat, and the swap happens once: loading never flickers back.</p>
+    <div class="demo">
+      <div class="specimen skdemo" id="skdemo">
+        <span class="skel" style="width:60%"></span>
+        <span class="skel"></span>
+        <span class="skel" style="width:82%"></span>
+      </div>
+      <div class="replaybar"><button class="btn btn-secondary sm" id="skload" type="button">Resolve it</button></div>
+    </div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="grow">
+    <h2>Height + width</h2>
+    <p class="note">Intrinsic size animates through fr tracks: 0fr to 1fr, the one sanctioned route. Disclosure chrome still snaps, chevron-only. Width adds opacity so the string never squishes visibly.</p>
+    <div class="demo">
+      <div class="specimen growdemo">
+        <div class="grow-y" id="growdemo"><div><div class="inner"><div class="pad">Auto height, travelling. The wrapper animates grid-template-rows; the child clips. No measured pixels, no max-height guesses.</div></div></div></div>
+      </div>
+      <div class="replaybar"><button class="btn btn-secondary sm" id="growfire" type="button" aria-expanded="false" aria-controls="growdemo">Open it</button></div>
+    </div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="ambient">
+    <h2>Ambient</h2>
+    <p class="note">The beam and the marquee live on marketing surfaces only, never near data. Ambient loops randomize or pause; a uniform loop reads cheap in a minute. Hover pauses the marquee.</p>
+    <div class="demo"><div class="specimen ambcol gap-5">
+      <div class="mcard beam beamcard"><b>Border beam</b><span class="mnote">conic accent on a ring mask · 4s</span></div>
+      <div class="marq" aria-hidden="true">
+        <div class="mrow"><span class="marqitem">Web app UI<span class="stop">.</span></span><span class="marqitem">Decks<span class="stop">.</span></span><span class="marqitem">Docs + PDF<span class="stop">.</span></span><span class="marqitem">Data viz<span class="stop">.</span></span><span class="marqitem">Motion<span class="stop">.</span></span></div>
+        <div class="mrow"><span class="marqitem">Web app UI<span class="stop">.</span></span><span class="marqitem">Decks<span class="stop">.</span></span><span class="marqitem">Docs + PDF<span class="stop">.</span></span><span class="marqitem">Data viz<span class="stop">.</span></span><span class="marqitem">Motion<span class="stop">.</span></span></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="wipe">
+    <h2>Theme wipe</h2>
+    <p class="note">This page's own Theme button does it: the new theme sweeps out of the button as a circle, one View Transition, 480ms. The one orchestrated moment this page spends. No support, no motion preference: instant flip, same result.</p>
+    <div class="demo"><div class="specimen">
+      <button class="btn btn-primary" id="wipedemo" type="button">Flip the theme</button>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="anti">
+    <h2>Anti-patterns</h2>
+    <p class="note">If a surface matches a row, the motion is wrong.</p>
+    <div class="demo"><div class="specimen anti">
+      <div class="row"><span class="no">NEVER</span><span>Animating height, width, margin, or top directly. fr tracks or a transform proxy, always.</span></div>
+      <div class="row"><span class="no">NEVER</span><span>A one-shot keyframe on state that can reverse. Mid-flight reversal jump-cuts; transitions don't.</span></div>
+      <div class="row"><span class="no">NEVER</span><span>Exit slower than enter. Leaving is not an event; it accelerates and gets out of the way.</span></div>
+      <div class="row"><span class="no">NEVER</span><span>Attention that loops until clicked. Pulse twice, hold, fade; nagging is not urgency.</span></div>
+      <div class="row"><span class="no">NEVER</span><span>Ambient motion on a data surface. A beam next to a number is a lie about which one changed.</span></div>
+      <div class="row"><span class="no">NEVER</span><span>Meaning carried by motion alone. Kill every animation and the interface must still say everything.</span></div>
+      <div class="row"><span class="no">NEVER</span><span>A literal ms in a surface. Durations come from the tokens; only the contract itself holds the named above-the-ladder beats (the 1.4s loop, the attention choreography, the ambient periods).</span></div>
+      <div class="row"><span class="no">NEVER</span><span>Staggering past six children or 600ms total. A queue is choreography's failure mode.</span></div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  </div>
+  </div>
 
   <footer class="site">
     <span>VERSEVA · open source · MIT</span>
@@ -87,10 +324,234 @@
   </footer>
 </div>
 <script>
-  document.getElementById('themeflip').addEventListener('click', () => {
+  document.documentElement.classList.add('js');
+  const flipTheme = () => {
     const r = document.documentElement;
     r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  };
+  const wipeFlip = (e) => {
+    const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || rm) return flipTheme();
+    const x = e.clientX || innerWidth / 2;
+    const y = e.clientY || 40;
+    const t = document.startViewTransition(flipTheme);
+    t.ready.then(() => {
+      const far = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      document.documentElement.animate(
+        { clipPath: [`circle(0 at ${x}px ${y}px)`, `circle(${far}px at ${x}px ${y}px)`] },
+        { duration: 480, easing: 'cubic-bezier(.16,1,.3,1)', pseudoElement: '::view-transition-new(root)' }
+      );
+    }).catch(() => {});
+  };
+  document.getElementById('themeflip').addEventListener('click', wipeFlip);
+  document.getElementById('wipedemo').addEventListener('click', wipeFlip);
+
+  // The curves race: same distance, same 600ms, five different personalities.
+  const fireCurves = () => {
+    const rows = document.querySelectorAll('#curves .curve');
+    rows.forEach((c) => {
+      const track = c.querySelector('.track');
+      c.style.setProperty('--trav', (track.clientWidth - 20) + 'px');
+      c.classList.remove('go');
+    });
+    requestAnimationFrame(() => requestAnimationFrame(() => rows.forEach((c) => c.classList.add('go'))));
+  };
+  document.getElementById('firecurves').addEventListener('click', fireCurves);
+
+  // Replay a staggered entrance by re-minting the children's animations.
+  document.querySelectorAll('[data-replay]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const host = document.getElementById(btn.dataset.replay);
+      host.querySelectorAll(':scope > *').forEach((el) => {
+        el.style.animation = 'none';
+        void el.offsetWidth;
+        el.style.animation = '';
+      });
+    });
   });
+
+  // Line reveal: arm after two frames so the closed state paints first.
+  const armLines = (host) => {
+    host.classList.remove('in');
+    void host.offsetWidth;
+    requestAnimationFrame(() => requestAnimationFrame(() => host.classList.add('in')));
+  };
+  const lineDemo = document.getElementById('linedemo');
+  armLines(lineDemo);
+  document.querySelectorAll('[data-replay-lines]').forEach((btn) => {
+    btn.addEventListener('click', () => armLines(document.getElementById(btn.dataset.replayLines)));
+  });
+
+  // Spotlight group: one handler, numbers only; CSS owns the light.
+  // Rect reads coalesce to one batch per frame.
+  document.querySelectorAll('[data-spot]').forEach((group) => {
+    let frame = 0;
+    let last = null;
+    group.addEventListener('pointermove', (e) => {
+      last = { x: e.clientX, y: e.clientY };
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        group.querySelectorAll('.spot').forEach((card) => {
+          const r = card.getBoundingClientRect();
+          card.style.setProperty('--mx', (last.x - r.left) + 'px');
+          card.style.setProperty('--my', (last.y - r.top) + 'px');
+        });
+      });
+    });
+  });
+
+  // Magnetic: follow at strength, settle on --ease-back. The home rect is
+  // cached at pointerenter (the element is unmoved then), never re-measured
+  // mid-follow: a transformed box measuring itself converges wrong and wobbles.
+  document.querySelectorAll('[data-magnet]').forEach((el) => {
+    let home = null;
+    el.addEventListener('pointerenter', () => {
+      const r = el.getBoundingClientRect();
+      home = { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!home || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      el.style.transition = 'none';
+      el.style.transform = `translate(${((e.clientX - home.cx) * 0.3).toFixed(1)}px, ${((e.clientY - home.cy) * 0.3).toFixed(1)}px)`;
+    });
+    el.addEventListener('pointerleave', () => {
+      home = null;
+      el.style.transition = 'transform var(--dur-4) var(--ease-back)';
+      el.style.transform = 'translate(0,0)';
+    });
+  });
+
+  // Rolling number: build digit columns once, then just move --d.
+  const tick = document.getElementById('tickdemo');
+  const buildTicker = (host, str) => {
+    host.textContent = '';
+    for (const ch of str) {
+      if (/\d/.test(ch)) {
+        const col = document.createElement('span');
+        col.className = 'td';
+        col.setAttribute('aria-hidden', 'true');
+        for (let d = 0; d <= 9; d++) { const i = document.createElement('i'); i.textContent = d; col.append(i); }
+        col.style.setProperty('--d', ch);
+        host.append(col);
+      } else {
+        const s = document.createElement('span');
+        s.textContent = ch;
+        host.append(s);
+      }
+    }
+    const sr = document.createElement('span');
+    sr.className = 'sr-only';
+    sr.textContent = str;
+    host.append(sr);
+  };
+  const tickVals = ['112', '148', '093', '127'];
+  let tickAt = 0;
+  buildTicker(tick, tickVals[0]);
+  document.getElementById('tickroll').addEventListener('click', () => {
+    tickAt = (tickAt + 1) % tickVals.length;
+    const next = tickVals[tickAt];
+    const cols = tick.querySelectorAll('.td');
+    const digits = next.replace(/\D/g, '');
+    if (cols.length === digits.length) {
+      cols.forEach((col, i) => col.style.setProperty('--d', digits[i]));
+      tick.querySelector('.sr-only').textContent = next;
+    } else {
+      buildTicker(tick, next);
+    }
+  });
+
+  // Attention: re-mint the finite choreography.
+  document.getElementById('attnfire').addEventListener('click', () => {
+    const el = document.getElementById('attndemo');
+    el.classList.remove('attn');
+    void el.offsetWidth;
+    el.classList.add('attn');
+  });
+
+  // Grow: a transition flipped by class; open and close both animate.
+  const growBtn = document.getElementById('growfire');
+  growBtn.addEventListener('click', () => {
+    const el = document.getElementById('growdemo');
+    const open = el.classList.toggle('open');
+    growBtn.setAttribute('aria-expanded', String(open));
+    growBtn.textContent = open ? 'Close it' : 'Open it';
+  });
+
+  // Loading: skeletons resolve once into content with one rise beat.
+  document.getElementById('skload').addEventListener('click', (e) => {
+    const host = document.getElementById('skdemo');
+    host.innerHTML = '<div class="mcard mo-rise"><b>Q-2081 · Northline</b><span class="mnote">resolved in one beat, no flicker back</span></div>';
+    e.target.disabled = true;
+  });
+
+  // Show code / auto-snippets / copy / scrollspy: the chapter chrome.
+  document.querySelectorAll('.comp').forEach((comp) => {
+    const demo = comp.querySelector('.demo');
+    const cw = comp.querySelector('.codewrap');
+    if (!demo || !cw) return;
+    cw.hidden = true;
+    const bar = document.createElement('div');
+    bar.className = 'codetoggle';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-ghost sm';
+    btn.textContent = 'Show code';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.addEventListener('click', () => {
+      const show = cw.hidden;
+      cw.hidden = !show;
+      bar.classList.toggle('opened', show);
+      btn.textContent = show ? 'Hide code' : 'Show code';
+      btn.setAttribute('aria-expanded', String(show));
+    });
+    bar.append(btn);
+    demo.after(bar);
+    bar.after(cw);
+  });
+
+  const dedent = (html) => {
+    const lines = html.replace(/^\n+|\s+$/g, '').split('\n');
+    const indents = lines.filter((l) => l.trim()).map((l) => l.match(/^\s*/)[0].length);
+    const min = Math.min(...indents);
+    return lines.map((l) => l.slice(min)).join('\n');
+  };
+  document.querySelectorAll('.comp').forEach((comp) => {
+    const spec = comp.querySelector('.specimen');
+    const code = comp.querySelector('.codewrap code');
+    if (spec && code && !code.textContent.trim()) code.textContent = dedent(spec.innerHTML);
+  });
+  document.querySelectorAll('.copybtn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const code = btn.parentElement.querySelector('code');
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+        btn.textContent = 'Copied';
+      } catch (e) {
+        btn.textContent = 'Select + copy';
+      }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+    });
+  });
+
+  const navLinks = [...document.querySelectorAll('.docnav a')];
+  const sections = [...document.querySelectorAll('.comp')];
+  const spy = () => {
+    const line = innerHeight * 0.16;
+    let current = sections[0];
+    for (const s of sections) {
+      if (s.getBoundingClientRect().top <= line) current = s;
+    }
+    navLinks.forEach((a) => a.classList.toggle('on', a.getAttribute('href') === `#${current.id}`));
+  };
+  let lastSpyY = -1;
+  const spyLoop = () => {
+    if (scrollY !== lastSpyY) { lastSpyY = scrollY; spy(); }
+    requestAnimationFrame(spyLoop);
+  };
+  spy();
+  requestAnimationFrame(spyLoop);
+  addEventListener('hashchange', spy);
 </script>
 </body>
 </html>
