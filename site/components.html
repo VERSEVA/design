@@ -49,7 +49,7 @@
       <span class="chip">every contract state ships</span>
     </div>
     <div class="toc">
-      <a class="fchip" href="#install">Install</a><a class="fchip" href="#button">Button</a><a class="fchip" href="#field">Field</a><a class="fchip" href="#switch">Switch</a><a class="fchip" href="#card">Card</a><a class="fchip" href="#badge">Badge</a><a class="fchip" href="#toast">Toast</a><a class="fchip" href="#modal">Modal</a><a class="fchip" href="#table">Table</a><a class="fchip" href="#stat">Stat</a><a class="fchip" href="#chart">Chart</a><a class="fchip" href="#seg">Segmented</a><a class="fchip" href="#fchip">Filter chips</a><a class="fchip" href="#search">Search</a><a class="fchip" href="#rows">List rows</a><a class="fchip" href="#skeleton">Skeleton</a><a class="fchip" href="#topnav">Top nav</a><a class="fchip" href="#sidenav">Console nav</a><a class="fchip" href="#sheet">Sheet</a><a class="fchip" href="#navshell">Navshell</a>
+      <a class="fchip" href="#install">Install</a><a class="fchip" href="#button">Button</a><a class="fchip" href="#field">Field</a><a class="fchip" href="#switch">Switch</a><a class="fchip" href="#card">Card</a><a class="fchip" href="#badge">Badge</a><a class="fchip" href="#toast">Toast</a><a class="fchip" href="#modal">Modal</a><a class="fchip" href="#table">Table</a><a class="fchip" href="#stat">Stat</a><a class="fchip" href="#chart">Chart</a><a class="fchip" href="#seg">Segmented</a><a class="fchip" href="#fchip">Filter chips</a><a class="fchip" href="#search">Search</a><a class="fchip" href="#rows">List rows</a><a class="fchip" href="#skeleton">Skeleton</a><a class="fchip" href="#topnav">Top nav</a><a class="fchip" href="#sidenav">Console nav</a><a class="fchip" href="#accordion-nav">Accordion nav</a><a class="fchip" href="#sheet">Sheet</a><a class="fchip" href="#navshell">Navshell</a>
     </div>
   </section>
 
@@ -64,7 +64,13 @@
 &lt;html data-theme="light"&gt;
 
 &lt;!-- enforce before you ship: --&gt;
-npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src</code></pre></div>
+npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src
+
+&lt;!-- React, source-distribution (the shadcn model): components land in
+     YOUR project as source you own --&gt;
+npx verseva init
+npx verseva add button field toast console-nav
+npx verseva block add quote-tool</code></pre></div>
   </section>
 
   <section class="comp" id="button">
@@ -276,8 +282,8 @@ npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src</code></pr
   </section>
 
   <section class="comp" id="sidenav">
-    <h2>Console navigation</h2>
-    <p class="note">Org chip, mono group labels, rows with count chips. The active row takes the accent tint, not a hairline.</p>
+    <h2>Console navigation · flat</h2>
+    <p class="note">The NEMIXO console model: flat grouped rows under non-interactive eyebrows, exactly one item active by URL, the active row on the accent tint, never a hairline. React: npx verseva add console-nav.</p>
     <div class="demo"><div class="specimen">
       <div class="orgchip"><span class="sq">AC</span><span><b>Acme Console</b><small>production</small></span></div>
       <div>
@@ -306,7 +312,7 @@ npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src</code></pr
 
   <section class="comp" id="navshell">
     <h2>Navshell</h2>
-    <p class="note">The signature's most particular component: copy it verbatim, substitute only theme values (law 12). Ships position: fixed and mobile-only; this demo pins it inside a frame.</p>
+    <p class="note">The signature's most particular component: copy it verbatim, substitute only theme values (law 12, amended 2026-08-31). Single tier, equal-width tabs, labels always on, constant height: the nav is the most stable object on screen. A tab's sub-sections live at the top of its own content as a segmented control or chip row. Ships position: fixed and mobile-only; this demo pins it inside a frame.</p>
     <div class="demo">
       <div class="phoneframe"><div class="specimen">
       <div class="navshell">
@@ -314,10 +320,41 @@ npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src</code></pr
           <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/></svg><span>Overview</span></div>
           <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="3"/></svg><span>Quotes</span></div>
           <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18 L10 10 L14 14 L20 6"/></svg><span>Trends</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="4"/><path d="M5 20 C7 15, 17 15, 19 20"/></svg><span>You</span></div>
         </div>
       </div>
       </div></div>
     </div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="accordion-nav">
+    <h2>Console navigation · accordion</h2>
+    <p class="note">The second console variant (law 12): collapse is the HTML hidden attribute, never a height animation; the only motion is the chevron; and the group holding the active item refuses to collapse, so you can never fold away where you are. Try it: Manage collapses, Operate will not. React: npx verseva add console-nav.</p>
+    <div class="demo"><div class="specimen">
+      <div>
+        <div class="sgroup" data-open="true">
+          <button type="button" class="sgroup-head" aria-expanded="true" aria-controls="acc-operate">
+            <span class="grouplabel">Operate</span>
+            <svg class="sgroup-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <nav class="snav" id="acc-operate" aria-label="Operate">
+            <a class="active" href="#overview">Overview <span class="cnt">4</span></a>
+            <a href="#quotes">Quotes <span class="cnt">18</span></a>
+          </nav>
+        </div>
+        <div class="sgroup" data-open="true">
+          <button type="button" class="sgroup-head" aria-expanded="true" aria-controls="acc-manage">
+            <span class="grouplabel">Manage</span>
+            <svg class="sgroup-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <nav class="snav" id="acc-manage" aria-label="Manage">
+            <a href="#team">Team</a>
+            <a href="#workspace">Workspace</a>
+          </nav>
+        </div>
+      </div>
+    </div></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
@@ -343,6 +380,18 @@ npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src</code></pr
     const code = comp.querySelector('.codewrap code');
     if (spec && code && !code.textContent.trim()) code.textContent = dedent(spec.innerHTML);
   });
+  document.querySelectorAll('.sgroup-head').forEach((head) => {
+    head.addEventListener('click', () => {
+      const group = head.closest('.sgroup');
+      const nav = group.querySelector('.snav');
+      if (nav.querySelector('a.active')) return;
+      const open = group.dataset.open !== 'true';
+      group.dataset.open = String(open);
+      head.setAttribute('aria-expanded', String(open));
+      nav.hidden = !open;
+    });
+  });
+
   document.querySelectorAll('.copybtn').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const code = btn.parentElement.querySelector('code');

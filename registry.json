@@ -1,0 +1,27 @@
+{
+  "name": "@verseva/design",
+  "homepage": "https://verseva.design",
+  "components": [
+    { "name": "cx", "file": "react/cx.ts", "kind": "util", "deps": [], "description": "Class-join helper; the only utility the kit needs" },
+    { "name": "button", "file": "react/button.tsx", "kind": "component", "deps": ["cx"], "description": "Primary/secondary/ghost/destructive, sm-lg, loading; press sits it down 1px" },
+    { "name": "badge", "file": "react/badge.tsx", "kind": "component", "deps": ["cx"], "description": "Status word on a tint; never a dot alone" },
+    { "name": "card", "file": "react/card.tsx", "kind": "component", "deps": ["cx"], "description": "Card + header/body/footer at the r-md posture" },
+    { "name": "field", "file": "react/field.tsx", "kind": "component", "deps": ["cx"], "description": "Label + input + help with a fix-it error state, wired for a11y" },
+    { "name": "switch", "file": "react/switch.tsx", "kind": "component", "deps": ["cx"], "description": "Switch + Checkbox; the word carries the state" },
+    { "name": "segmented", "file": "react/segmented.tsx", "kind": "component", "deps": ["cx"], "description": "Segmented control; aria-selected carries it" },
+    { "name": "chips", "file": "react/chips.tsx", "kind": "component", "deps": ["cx"], "description": "Filter chips with counts, single or multi" },
+    { "name": "toast", "file": "react/toast.tsx", "kind": "component", "deps": [], "description": "ToastProvider + useToast; one at a time, bottom-right" },
+    { "name": "modal", "file": "react/modal.tsx", "kind": "component", "deps": ["cx"], "description": "Dialog at r-lg with escape/overlay close" },
+    { "name": "stat", "file": "react/stat.tsx", "kind": "component", "deps": ["cx"], "description": "Display-face numeral over a quiet label" },
+    { "name": "skeleton", "file": "react/skeleton.tsx", "kind": "component", "deps": ["cx"], "description": "Skeleton bars that mirror the real layout" },
+    { "name": "console-nav", "file": "react/console-nav.tsx", "kind": "component", "deps": [], "description": "Console navigation, flat or accordion; active group refuses to collapse" }
+  ],
+  "blocks": [
+    { "name": "console", "file": "blocks/console.html", "assets": false, "description": "Ops console: sidebar, stats, chart, sortable table, live search" },
+    { "name": "quote-tool", "file": "blocks/quote-tool.html", "assets": false, "description": "Pricing tool: live recompute, freight toggle, rush-ruling gate" },
+    { "name": "landing", "file": "blocks/landing.html", "assets": false, "description": "Light marketing landing with a validating signup modal" },
+    { "name": "three-hero", "file": "blocks/three-hero.html", "assets": false, "description": "Three.js hero reading the tokens at runtime" },
+    { "name": "store", "source": "repo", "assets": true, "description": "Storefront with working cart; image assets live in the repo (site/examples)" },
+    { "name": "studio", "source": "repo", "assets": true, "description": "Studio portfolio with tag filter; image assets live in the repo (site/examples)" }
+  ]
+}

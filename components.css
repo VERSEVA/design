@@ -152,33 +152,28 @@
 .sheet .ft{display:flex;gap:var(--s-2);padding:0 var(--s-5) var(--s-5)}
 .sheet .ft .btn{flex:1;justify-content:center}
 
-/* ---- NAVSHELL, ported 1:1 from ufitra-experience.html (two-tone tiers).
-   The signature's most particular component: copy it, never approximate it.
-   A frosted CONTAINER that FRAMES an inset main-tab pill with a consistent
-   6px framing gap. Tiers separate by SHADE, never a hairline. MODE-SPECIFIC
-   brightness (nav-tier-brightness law):
-   LIGHT: frame = recessed grey wash; main pill = bright WHITE (main leads).
-   DARK:  INVERT: frame = a shade LIGHTER translucency; main pill = DARKER.
-   Deployment form: position:fixed (the board specimen uses absolute inside
-   its device frame; insets 14px sides / 18px bottom are the law). ---- */
+/* ---- NAVSHELL v2 (amended 2026-08-31, operator ruling: "so long and it
+   does not make sense"). SINGLE tier, equal-width tabs, labels ALWAYS
+   visible, constant height: the nav is the most stable object on screen.
+   The frosted container + inset pill + mode-specific tier brightness stay
+   (nav-tier-brightness law): LIGHT frame recessed grey / pill bright white;
+   DARK inverted. Sub-sections of a tab NEVER stack a second tier on the
+   shell: they live at the top of the tab's own content as a .seg or .fchip
+   row. Deployment: position:fixed, insets 14px sides / 18px bottom.
+   (v1's two-tier .navsub + active flex-growth are retired; the historical
+   port source remains ufitra-experience.html, superseded by this ruling.) ---- */
 .navshell{position:fixed;left:14px;right:14px;bottom:18px;z-index:14;display:flex;flex-direction:column;
   padding:var(--nav-gap);
   background:linear-gradient(var(--nav-frame),var(--nav-frame)), var(--glass-fill-3);
   backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
   border:1px solid var(--glass-border);border-radius:30px;box-shadow:var(--glass-shadow), var(--glass-glow), var(--glass-inset);overflow:hidden}
-.navsub{display:flex;align-items:center;gap:4px;padding:5px 8px 7px;margin-bottom:var(--nav-gap);overflow-x:auto;scrollbar-width:none;position:relative;background:transparent}
-.navsub::-webkit-scrollbar{display:none}
-.navsub .ns{font-family:var(--font-sans);font-weight:500;font-size:12.5px;letter-spacing:-.005em;color:var(--text-3);padding:6px 12px;border-radius:10px;cursor:pointer;white-space:nowrap;flex:none;transition:.16s var(--ease-standard)}
-.navsub .ns:hover{color:var(--text-2)}
-.navsub .ns.on{color:var(--accent-on);font-weight:600;background:var(--accent-bloom);box-shadow:var(--accent-active-glow)}
-.navmain{position:relative;height:62px;display:flex;padding:8px 8px;background:var(--surface-body), var(--nav-main);
+.navmain{position:relative;height:56px;display:flex;padding:6px 8px;background:var(--surface-body), var(--nav-main);
   border:1px solid var(--glass-border);border-radius:24px;box-shadow:var(--nav-pill-inset)}
-.tab{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-3);cursor:pointer;border-radius:16px;padding:0 4px;transition:flex-grow .26s var(--ease-standard), color .2s var(--ease-standard), background .2s var(--ease-standard), box-shadow .2s var(--ease-standard);position:relative;min-width:44px}
-.tab svg{width:21px;height:21px;transition:.2s;flex:none}
-.tab span{font-size:9.5px;font-weight:700;letter-spacing:.01em;max-height:0;opacity:0;overflow:hidden;transition:max-height .26s var(--ease-standard), opacity .2s var(--ease-standard)}
-.tab.on{flex:1.5 1 0;color:var(--accent-on);background:var(--accent-bloom);box-shadow:var(--accent-active-glow)}
+.tab{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-3);cursor:pointer;border-radius:16px;padding:0 4px;transition:color var(--dur-2) var(--ease-standard), background var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard);position:relative;min-width:44px}
+.tab svg{width:20px;height:20px;transition:color var(--dur-2) var(--ease-standard);flex:none}
+.tab span{font-size:10px;font-weight:700;letter-spacing:.01em;line-height:1.2}
+.tab.on{color:var(--accent-on);background:var(--accent-bloom);box-shadow:var(--accent-active-glow)}
 .tab.on svg{color:var(--accent-on);filter:drop-shadow(0 0 8px color-mix(in srgb,var(--accent) 50%,transparent))}
-.tab.on span{max-height:14px;opacity:1}
 .tab:not(.on):hover{color:var(--text-2)}
 .tab:active{transform:scale(.94)}
 /* Mobile-only. Unlayered on purpose: a component class that sets display and
@@ -192,6 +187,19 @@
 .orgchip b{display:block;font-size:.8125rem;line-height:1.2}
 .orgchip small{display:block;font-size:10px;color:var(--text-3)}
 .grouplabel{font-family:var(--font-mono);font-size:.625rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:2px 0 6px}
+/* Accordion console-nav variant (mechanics ported 1:1 from Spectre's rail):
+   collapse = the HTML hidden attribute on .snav, never a height animation;
+   the ONLY motion is the chevron. Doctrine: the group holding the active
+   item is always forced open, and everything starts open for a new visitor.
+   Persist a SHUT set (not open) so later-added groups default open. */
+.sgroup{margin-top:var(--s-3)}
+.sgroup-head{display:flex;align-items:center;gap:6px;width:100%;padding:0;margin:0 0 6px;border:0;background:none;cursor:pointer;text-align:left;color:inherit}
+.sgroup-head .grouplabel{flex:1;margin:0}
+.sgroup-head:hover .grouplabel{color:var(--text-2)}
+.sgroup-head:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--r-sm)}
+.sgroup-chev{flex:none;color:var(--text-3);transition:transform var(--dur-1) var(--ease-standard)}
+.sgroup[data-open="false"] .sgroup-chev{transform:rotate(-90deg)}
+@media (prefers-reduced-motion:reduce){.sgroup-chev{transition:none}}
 .snav{display:grid;gap:2px}
 .snav a{position:relative;display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:10px;font-size:.8125rem;color:var(--text-2);text-decoration:none;transition:background var(--dur-1) var(--ease-standard)}
 .snav a:hover{background:var(--surface-2)}

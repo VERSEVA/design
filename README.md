@@ -16,6 +16,23 @@ npm i @verseva/design
 Consumer surfaces boot light (`<html data-theme="light">`); consoles run the dark
 default. `templates/starter.html` is a working single-file starting point.
 
+## React, source-distribution
+
+The shadcn model, held to the signature: components land in YOUR project as typed,
+dependency-free source you own, and the gate suite can prove the result stayed
+on-signature — which is the part no other system does.
+
+```sh
+npx verseva init
+npx verseva add button field toast console-nav
+npx verseva block add quote-tool
+npx verseva list
+```
+
+`add` resolves dependencies and refuses nothing you can't edit; `block add` copies a
+full working page with its css hrefs pointed at `node_modules`. The registry is
+`registry.json` in this package; every listed file ships in the tarball.
+
 ## What's in the box
 
 | Path | What |

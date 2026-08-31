@@ -19,6 +19,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
+    "verseva": "bin/verseva.mjs",
     "verseva-hex-gate": "bin/hex-gate.mjs",
     "verseva-contrast-gate": "bin/contrast-gate.mjs",
     "verseva-spacing-gate": "bin/spacing-gate.mjs",
@@ -33,6 +34,9 @@
     "bin",
     "docs",
     "templates",
+    "react",
+    "blocks",
+    "registry.json",
     "LICENSE",
     "CHANGELOG.md"
   ],

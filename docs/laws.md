@@ -50,7 +50,12 @@ enforce, binding by engagement contract rather than by gate.
     from the text ladder (`--text-3`+) or a fill.
 12. **nav-tier-brightness is MODE-SPECIFIC.** Light: bright main pill leads on a recessed grey
     frame. Dark: INVERTED, lighter frame, darker recessed pill. Tiers separate by shade, never
-    a hairline. (Navshell: copy, never approximate.)
+    a hairline. (Navshell: copy, never approximate.) (Amended 2026-08-31, operator ruling:
+    the navshell is SINGLE-tier with equal-width, always-labeled tabs and a constant height;
+    the nav is the most stable object on screen. A tab's sub-sections live at the top of its
+    own content as a segmented control or chip row, never as a second shell tier. Console
+    navigation ships in two variants: flat grouped rows, and an accordion whose collapse is
+    the hidden attribute with chevron-only motion and whose active group refuses to collapse.)
 13. **Laws are dated and live with the tokens.** Incidents become named laws written into this
     file and enforced at the pipeline (the gate suite: hex, contrast, spacing, type); when a
     law generalizes, it lands here, not in one brand's theme.

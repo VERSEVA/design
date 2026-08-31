@@ -19,6 +19,19 @@ The open release. VERSEVA Design goes MIT and public.
   margin/padding/gap, including multi-line JSX style objects), type (off-token faces,
   sizes below the 9.5px floor, `font:` shorthand included). Each gate also ships
   standalone.
+- **React, source-distribution.** A typed, dependency-free React kit
+  (`react/`: button, field, switch, card, badge, toast, modal, segmented, chips,
+  stat, skeleton, console-nav) delivered shadcn-style: `npx verseva add <name>`
+  copies the source into your project, `npx verseva block add <name>` copies a
+  full working page, `npx verseva init` wires the imports and the gate script.
+  The registry is `registry.json`; blocks are byte-locked to the live gallery by
+  test.
+- **Navshell v2** (operator ruling): single tier, equal-width tabs, labels always
+  visible, constant height; a tab's sub-sections live at the top of its own
+  content. **Console navigation in two variants**: flat grouped rows (the NEMIXO
+  console model) and an accordion whose collapse is the `hidden` attribute with
+  chevron-only motion and whose active group refuses to collapse (the Spectre
+  model, mechanics ported 1:1).
 - **Templates.** `templates/starter.html`: a single-file starting point on the tokens.
 - **Docs site.** Guidelines, component documentation with copyable snippets extracted
   from live specimens, and a gallery of interactive example sites (`site/` in the

@@ -301,19 +301,15 @@ header.board{
   background:linear-gradient(var(--nav-frame),var(--nav-frame)), var(--glass-fill-3);
   backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
   border:1px solid var(--glass-border);border-radius:30px;box-shadow:var(--glass-shadow), var(--glass-glow), var(--glass-inset);overflow:hidden}
-.navsub{display:flex;align-items:center;gap:4px;padding:5px 8px 7px;margin-bottom:var(--nav-gap);overflow-x:auto;scrollbar-width:none;position:relative;background:transparent}
-.navsub::-webkit-scrollbar{display:none}
-.navsub .ns{font-family:var(--font-sans);font-weight:500;font-size:12.5px;letter-spacing:-.005em;color:var(--text-3);padding:6px 12px;border-radius:10px;cursor:pointer;white-space:nowrap;flex:none;transition:.16s var(--ease-standard)}
-.navsub .ns:hover{color:var(--text-2)}
-.navsub .ns.on{color:var(--accent-on);font-weight:600;background:var(--accent-bloom);box-shadow:var(--accent-active-glow)}
-.navmain{position:relative;height:62px;display:flex;padding:8px 8px;background:var(--surface-body), var(--nav-main);
+/* navshell v2 (amended 2026-08-31): single tier, equal tabs, labels always on,
+   constant height. Sub-sections live at the top of the tab's own content. */
+.navmain{position:relative;height:56px;display:flex;padding:6px 8px;background:var(--surface-body), var(--nav-main);
   border:1px solid var(--glass-border);border-radius:24px;box-shadow:var(--nav-pill-inset)}
-.tab{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-3);cursor:pointer;border-radius:16px;padding:0 4px;transition:flex-grow .26s var(--ease-standard), color .2s var(--ease-standard), background .2s var(--ease-standard), box-shadow .2s var(--ease-standard);position:relative;min-width:44px}
-.tab svg{width:21px;height:21px;transition:.2s;flex:none}
-.tab span{font-size:9.5px;font-weight:700;letter-spacing:.01em;max-height:0;opacity:0;overflow:hidden;transition:max-height .26s var(--ease-standard), opacity .2s var(--ease-standard)}
-.tab.on{flex:1.5 1 0;color:var(--accent-on);background:var(--accent-bloom);box-shadow:var(--accent-active-glow)}
+.tab{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-3);cursor:pointer;border-radius:16px;padding:0 4px;transition:color var(--dur-2) var(--ease-standard), background var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard);position:relative;min-width:44px}
+.tab svg{width:20px;height:20px;transition:color var(--dur-2) var(--ease-standard);flex:none}
+.tab span{font-size:10px;font-weight:700;letter-spacing:.01em;line-height:1.2}
+.tab.on{color:var(--accent-on);background:var(--accent-bloom);box-shadow:var(--accent-active-glow)}
 .tab.on svg{color:var(--accent-on);filter:drop-shadow(0 0 8px color-mix(in srgb,var(--accent) 50%,transparent))}
-.tab.on span{max-height:14px;opacity:1}
 .tab:not(.on):hover{color:var(--text-2)}
 .tab:active{transform:scale(.94)}
 .console{flex:1;min-width:400px;display:flex;border:1px solid var(--hairline);border-radius:var(--r-lg);overflow:hidden;background:var(--bg);box-shadow:var(--e-1)}
@@ -1065,33 +1061,16 @@ footer.board .inner{max-width:var(--container-content);margin:0 auto;padding:var
     c.addEventListener("click",function(){c.setAttribute("aria-pressed",String(c.getAttribute("aria-pressed")!=="true"))});
   });
 
-  /* navshell demo, behavior per the App Experience: the sub-nav tier renders
-     ONLY for tabs with real sub-sections (navigation-two-tier law); Home and
-     You are single-tier. Sub-section labels are the real TABSUB map. */
-  var TABSUB={
-    train:["Hub","Programs","Workouts","Exercises","Benchmarks"],
-    wellness:["Overview","Sleep","Nutrition","Cycle","Mind"],
-    community:["Feed","Chats","Clubs","Care","Market","Leaderboard","Matching"]
-  };
+  /* navshell v2 demo (amended 2026-08-31): single tier only. Sub-sections
+     moved into the tab's own content (segmented control / chip row), so the
+     shell height never changes and every destination stays labeled. */
   var demoSub=document.getElementById("demoNavsub");
+  if(demoSub){demoSub.style.display="none"}
   var demoShell=document.getElementById("demoNavshell");
-  function renderNavsub(tab){
-    if(!demoSub)return;
-    var subs=TABSUB[tab];
-    if(!subs){demoSub.style.display="none";return}
-    demoSub.style.display="flex";
-    demoSub.innerHTML=subs.map(function(s,i){return '<span class="ns'+(i===0?" on":"")+'">'+s+"</span>"}).join("");
-  }
   if(demoShell){
-    renderNavsub("train");
     demoShell.querySelector(".navmain").addEventListener("click",function(e){
       var t=e.target.closest(".tab");if(!t)return;
       demoShell.querySelectorAll(".tab").forEach(function(x){x.classList.toggle("on",x===t)});
-      renderNavsub(t.dataset.tab);
-    });
-    demoSub.addEventListener("click",function(e){
-      var n=e.target.closest(".ns");if(!n)return;
-      demoSub.querySelectorAll(".ns").forEach(function(x){x.classList.toggle("on",x===n)});
     });
   }
 

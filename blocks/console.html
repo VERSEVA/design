@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Example: ops console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../../tokens.css?v=red1">
+<link rel="stylesheet" href="../../components.css?v=red1">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.5; }
+  .crumb { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--hairline); font-size: 12.5px; color: var(--text-3); }
+  .crumb a { color: var(--text-2); text-decoration: none; font-family: var(--font-display); font-weight: var(--display-weight); }
+  .crumb .stop { color: var(--accent); }
+  .app { display: grid; grid-template-columns: 232px 1fr; min-height: 92vh; }
+  aside { border-right: 1px solid var(--hairline); padding: var(--s-4); display: grid; gap: var(--s-4); align-content: start; }
+  main { padding: var(--s-5) var(--s-6); display: grid; gap: var(--s-5); align-content: start; }
+  .mainhead { display: flex; align-items: center; gap: var(--s-4); }
+  .mainhead h1 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; flex: 1; }
+  .duo { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s-4); }
+  @media (max-width: 900px) { .app { grid-template-columns: 1fr; } aside { display: none; } .duo { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="crumb"><a href="../index.html">VERSEVA Design<span class="stop">.</span></a><span>examples</span><span>ops console</span></div>
+<div class="app">
+  <aside>
+    <div class="orgchip"><span class="sq">AC</span><span><b>Acme Console</b><small>production</small></span></div>
+    <div>
+      <div class="grouplabel">Operate</div>
+      <nav class="snav">
+        <a class="active" href="#overview">Overview <span class="cnt">4</span></a>
+        <a href="#quotes">Quotes <span class="cnt">18</span></a>
+        <a href="#machines">Machines <span class="cnt">17</span></a>
+      </nav>
+    </div>
+    <div>
+      <div class="grouplabel">Manage</div>
+      <nav class="snav">
+        <a href="#clients">Clients</a>
+        <a href="#settings">Settings</a>
+      </nav>
+    </div>
+  </aside>
+  <main>
+    <div class="mainhead">
+      <h1>Overview</h1>
+      <div class="searchbox"><input placeholder="Search quotes, clients"><kbd>/</kbd></div>
+      <button class="btn btn-secondary sm" type="button">Export</button>
+      <button class="btn btn-primary sm" type="button">New quote</button>
+    </div>
+    <div class="statrow">
+      <div class="stat"><div class="num">18</div><div class="lbl">Open quotes</div><div class="delta"><span class="badge ok">3 verified today</span></div></div>
+      <div class="stat"><div class="num">4.4<i>ms</i></div><div class="lbl">p95 response</div></div>
+      <div class="stat"><div class="num">97<i>%</i></div><div class="lbl">Provenance complete</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">Awaiting ruling</div><div class="delta"><span class="badge warn">Blocked on client</span></div></div>
+    </div>
+    <div class="duo">
+      <div class="chartcard">
+        <h4>Quotes closed</h4>
+        <div class="sub">Last 6 weeks</div>
+        <div class="bars">
+          <div class="bar"><div class="fill" style="height:34%"></div><span class="mlab">W1</span></div>
+          <div class="bar"><div class="fill" style="height:48%"></div><span class="mlab">W2</span></div>
+          <div class="bar"><div class="fill" style="height:41%"></div><span class="mlab">W3</span></div>
+          <div class="bar"><div class="fill" style="height:66%"></div><span class="mlab">W4</span></div>
+          <div class="bar"><div class="fill" style="height:82%"></div><span class="mlab">W5</span></div>
+          <div class="bar"><div class="fill" style="height:100%"></div><span class="mlab">W6</span></div>
+        </div>
+        <div class="takeaway">Throughput doubled after the provenance sweep landed in W4.</div>
+      </div>
+      <div class="card">
+        <div class="hd"><h4>Recent activity</h4></div>
+        <div class="bd">
+          <div class="lrows">
+            <div class="lrow"><span class="avc">KW</span><span class="tx"><b>Quote 2081 verified</b><span class="metaline">2 minutes ago</span></span><span class="badge ok">Verified</span></div>
+            <div class="lrow"><span class="avc">MR</span><span class="tx"><b>Machine 12 recalibrated</b><span class="metaline">1 hour ago</span></span><span class="badge neutral">Logged</span></div>
+            <div class="lrow"><span class="avc">KW</span><span class="tx"><b>Ruling v18 filed</b><span class="metaline">Yesterday</span></span><span class="badge warn">2 conflicts</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <table class="table">
+      <thead><tr><th>Quote</th><th>Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Q-2081</td><td>Northline Foods</td><td><span class="badge ok">Verified</span></td><td class="num">48,220.00</td></tr>
+        <tr><td>Q-2080</td><td>Harbor Botanics</td><td><span class="badge warn">Pending sourcing</span></td><td class="num">12,940.00</td></tr>
+        <tr><td>Q-2079</td><td>Crestpoint Labs</td><td><span class="badge ok">Verified</span></td><td class="num">86,410.00</td></tr>
+        <tr><td>Q-2078</td><td>Meridian Goods</td><td><span class="badge err">Rejected</span></td><td class="num">7,300.00</td></tr>
+      </tbody>
+    </table>
+  </main>
+</div>
+<div id="toastwrap"></div>
+<script>
+  const table = document.querySelector('.table tbody');
+  const search = document.querySelector('.searchbox input');
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    [...table.rows].forEach((r) => { r.hidden = q !== '' && !r.textContent.toLowerCase().includes(q); });
+  });
+  const amountTh = document.querySelector('.table th.num');
+  amountTh.style.cursor = 'pointer';
+  let asc = false;
+  amountTh.addEventListener('click', () => {
+    asc = !asc;
+    [...table.rows]
+      .sort((a, b) => {
+        const num = (r) => parseFloat(r.cells[3].textContent.replace(/,/g, ''));
+        return asc ? num(a) - num(b) : num(b) - num(a);
+      })
+      .forEach((r) => table.append(r));
+  });
+  document.querySelectorAll('.mainhead .btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const wrap = document.getElementById('toastwrap');
+      wrap.replaceChildren();
+      const toast = document.createElement('div');
+      toast.className = 'toast ok';
+      toast.style.position = 'fixed';
+      toast.style.right = 'var(--s-5)';
+      toast.style.bottom = 'var(--s-5)';
+      toast.style.zIndex = '9';
+      toast.innerHTML = '<span class="dot"></span>' + (btn.textContent.includes('Export') ? 'Export queued: 18 quotes.' : 'Draft quote Q-2082 opened.');
+      wrap.append(toast);
+      setTimeout(() => toast.remove(), 2200);
+    });
+  });
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.stat .num').forEach((el) => {
+      const target = el.firstChild.textContent.trim();
+      if (!/^\d+$/.test(target)) return;
+      const n = parseInt(target, 10);
+      let cur = 0;
+      const step = Math.max(1, Math.round(n / 24));
+      const tick = () => {
+        cur = Math.min(n, cur + step);
+        el.firstChild.textContent = cur;
+        if (cur < n) requestAnimationFrame(tick);
+      };
+      el.firstChild.textContent = '0';
+      requestAnimationFrame(tick);
+    });
+  }
+</script>
+</body>
+</html>
