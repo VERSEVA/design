@@ -112,3 +112,19 @@ pre.cmd { font-family: var(--font-mono); font-size: 12.5px; background: var(--su
 
 footer.site { padding-top: var(--s-8); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); color: var(--text-3); font-size: 12px; }
 .badge-line { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 13px; color: var(--text-2); }
+
+/* The mark rides the wordmark; one SVG, currentColor, both themes */
+.wordmark { display: inline-flex; align-items: center; gap: 10px; }
+.wordmark .vmark { width: 19px; height: 19px; flex: none; }
+
+/* Theme control: icon-only, sun in the dark, moon in the light; the swap
+   rotates through on the settle curve */
+#themeflip { display: inline-grid; place-items: center; }
+#themeflip .ticon { width: 16px; height: 16px; grid-area: 1 / 1; transition: transform var(--dur-3) var(--ease-back), opacity var(--dur-2) var(--ease-standard); }
+#themeflip .tmoon { opacity: 0; transform: rotate(-90deg) scale(.5); }
+[data-theme="light"] #themeflip .tsun { opacity: 0; transform: rotate(90deg) scale(.5); }
+[data-theme="light"] #themeflip .tmoon { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { #themeflip .ticon { transition: none; } }
+
+/* The wipe replaces the default crossfade sitewide */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }

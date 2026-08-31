@@ -8,7 +8,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <link rel="stylesheet" href="../tokens.css?v=red1">
 <link rel="stylesheet" href="../components.css?v=red1">
-<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="site.css?v=1p1">
+<script src="theme.js?v=1p1"></script>
 <style>
   .srchead { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
   .srchead h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; flex: 1; }
@@ -23,7 +24,7 @@
 <div class="shell">
 
   <header class="topbar">
-    <a class="wordmark" href="index.html">VERSEVA Design<span class="stop">.</span></a>
+    <a class="wordmark" href="index.html"><svg class="vmark" viewBox="0 0 768 775.92" aria-hidden="true"><defs><clipPath id="vmk-a"><path d="M400 277h358v396.4H400z"/></clipPath><clipPath id="vmk-b"><path d="M10 97h550v576.4H10z"/></clipPath><clipPath id="vmk-c"><path d="M10 94.5h358V491H10z"/></clipPath><clipPath id="vmk-d"><path d="M208 94.5h550V671H208z"/></clipPath></defs><g clip-path="url(#vmk-a)"><path fill="currentColor" opacity=".55" d="M 558.605469 278.128906 C 555.410156 277.984375 552.164062 277.90625 548.96875 277.90625 C 466.261719 277.90625 407.433594 327.675781 401.222656 333.144531 L 400.800781 333.59375 C 400.800781 333.59375 587.386719 406.570312 718.046875 673.386719 C 718.046875 673.386719 767.757812 550.011719 756.207031 509.574219 C 740.042969 453 663.917969 362.328125 584.683594 279.359375 L 558.605469 278.128906"/></g><g clip-path="url(#vmk-b)"><path fill="currentColor" d="M 49.953125 673.386719 C 49.953125 673.386719 262.128906 253.59375 559.761719 253.59375 C 497.894531 190.457031 437.765625 134.679688 406.402344 106.136719 C 393.699219 94.574219 374.308594 94.574219 361.601562 106.136719 C 285.859375 175.0625 42.257812 402.917969 11.796875 509.574219 C 0.242188 550.011719 49.953125 673.386719 49.953125 673.386719"/></g><g clip-path="url(#vmk-c)"><path fill="currentColor" opacity=".55" d="M 209.394531 489.785156 C 212.589844 489.929688 215.835938 490.007812 219.03125 490.007812 C 301.738281 490.007812 360.566406 440.238281 366.777344 434.765625 L 367.199219 434.316406 C 367.199219 434.316406 180.613281 361.34375 49.953125 94.523438 C 49.953125 94.523438 0.242188 217.902344 11.792969 258.335938 C 27.957031 314.914062 104.082031 405.585938 183.316406 488.554688 L 209.394531 489.785156"/></g><g clip-path="url(#vmk-d)"><path fill="currentColor" d="M 718.046875 94.523438 C 718.046875 94.523438 505.871094 514.316406 208.238281 514.316406 C 270.105469 577.453125 330.234375 633.230469 361.597656 661.773438 C 374.300781 673.335938 393.691406 673.335938 406.398438 661.773438 C 482.140625 592.847656 725.742188 364.992188 756.203125 258.335938 C 767.757812 217.902344 718.046875 94.523438 718.046875 94.523438"/></g></svg><span>VERSEVA Design<span class="stop">.</span></span></a>
     <nav>
       <a href="examples.html">Back to the gallery</a>
     </nav>
@@ -51,10 +52,6 @@
   </footer>
 </div>
 <script>
-  document.getElementById('themeflip').addEventListener('click', () => {
-    const r = document.documentElement;
-    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
-  });
 
   const file = new URLSearchParams(location.search).get('f') ?? '';
   const code = document.getElementById('srccode');

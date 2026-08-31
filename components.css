@@ -31,6 +31,8 @@
 .btn-destructive:hover{border-color:var(--danger)}
 .btn.sm{height:32px;padding:0 var(--s-3);font-size:.875rem}
 .btn.lg{height:48px;padding:0 var(--s-5);font-size:1rem}
+.btn.icon{width:40px;padding:0;justify-content:center}
+.btn.sm.icon{width:32px}
 .btn:active{transform:translateY(1px)}
 .btn:disabled,.btn.is-disabled{opacity:.45;cursor:not-allowed}
 .spinner{width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:dc-spin .7s linear infinite}

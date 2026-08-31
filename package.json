@@ -1,6 +1,6 @@
 {
   "name": "@verseva/design",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "VERSEVA Design: the signature tokens, component contract, Tailwind bridge, and the four-gate enforcement suite (hex, contrast, spacing, type).",
   "license": "MIT",
   "repository": {

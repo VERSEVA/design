@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 · 2026-09-01
 
 - **The data-viz kit.** `--data-alt` joins the tokens as the fixed second-series
   hue (validator-proven against the accent in both modes) and enters the contrast
@@ -16,6 +16,10 @@
 - **Behavior change: `.modal` and `.ovl.open` now animate their entrance**
   (scrim one beat faster than the panel, enter-only). Consumers of the shipped
   modal get the choreography without markup changes; reduced-motion disables it.
+- **One theme control, sitewide.** Every page's toggle is now an icon (sun in
+  the dark, moon in the light) that runs the View Transition circle wipe and
+  remembers the choice across pages. The VERSEVA mark rides every wordmark and
+  crumb as a currentColor SVG. Contract gains `.btn.icon`.
 
 ## 1.0.0 · 2026-08-31
 
