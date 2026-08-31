@@ -14,6 +14,6 @@ test('every shipped theme preset clears every contrast floor in all four theme a
   assert.ok(registry.themes.length >= 4);
   for (const t of registry.themes) {
     const out = execFileSync(process.execPath, [gate, '--tokens', path.join(root, 'tokens.css'), '--tokens', path.join(root, t.file)], { encoding: 'utf8' });
-    assert.match(out, /clean \(72 pairs measured across 4 themes, 0 skipped\)/, `${t.name} not fully measured/clean`);
+    assert.match(out, /clean \(80 pairs measured across 4 themes, 0 skipped\)/, `${t.name} not fully measured/clean`);
   }
 });

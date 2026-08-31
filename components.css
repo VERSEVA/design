@@ -305,6 +305,71 @@
 .acc details[open] summary::after{content:"\2013"}
 .acc .accbody{padding:0 var(--s-4) var(--s-4);color:var(--text-2);font-size:13.5px}
 
+/* ---- Data-viz kit (synthesized 2026-08-31 from the portfolio's shipped
+   viz: Spectre, the NEMIXO console, the UFITRA reference mockups).
+   Doctrine carried in the classes: numbers ON the marks (no gridline
+   forests; an axis is one hairline at most), denominator-first stats,
+   deltas colored by MEANING not sign, one magnitude hue + the fixed
+   --data-alt second series, identity never color-alone. ---- */
+
+/* Stat micro-bar: a 4px proportional bar under a stat numeral */
+.stat .microbar{height:4px;border-radius:2px;background:var(--surface-2);margin-top:8px;overflow:hidden}
+.stat .microbar i{display:block;height:100%;border-radius:2px;background:var(--data-3)}
+
+/* Trend delta: direction is the arrow, judgment is the class */
+.trend{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.trend.good{color:var(--success)}
+.trend.bad{color:var(--danger)}
+.trend.flat{color:var(--text-3)}
+
+/* Horizontal bar rows: label / track / mono count (axis-free) */
+.hbars{display:grid;gap:8px}
+.hbar{display:flex;align-items:center;gap:var(--s-3);font-size:12.5px}
+.hbar .hlabel{width:88px;flex:none;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .htrack{height:8px;min-width:0;flex:1;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
+.hbar .htrack i{display:block;height:100%;border-radius:var(--r-pill);background:var(--data-3)}
+.hbar .htrack i.alt{background:var(--data-alt)}
+.hbar .hcount{width:40px;flex:none;text-align:right;font-family:var(--font-mono);font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-1)}
+
+/* Activity strip + calendar cells: ONE intensity language via the ladder */
+.actstrip{display:grid;grid-auto-flow:column;gap:4px}
+.actstrip i,.actcal i{aspect-ratio:1;border-radius:4px;background:var(--data-0)}
+.actcal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.actstrip i[data-l="1"],.actcal i[data-l="1"]{background:var(--data-1)}
+.actstrip i[data-l="2"],.actcal i[data-l="2"]{background:var(--data-2)}
+.actstrip i[data-l="3"],.actcal i[data-l="3"]{background:var(--data-3)}
+.actstrip i.today,.actcal i.today{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 28%,transparent)}
+
+/* Ring (the UFITRA pattern): rotate the svg, overlay the number */
+.ring{position:relative;display:inline-grid;place-items:center}
+.ring svg{transform:rotate(-90deg)}
+.ring .ringtrack{fill:none;stroke:var(--data-0);stroke-width:6}
+.ring .ringfill{fill:none;stroke:var(--data-3);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset var(--dur-4) var(--ease-standard)}
+.ring .rv{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .rv b{font-family:var(--font-display);font-weight:var(--display-weight);font-variant-numeric:tabular-nums;font-size:18px;line-height:1}
+.ring .rv small{font-family:var(--font-mono);font-size:9.5px;color:var(--text-3);letter-spacing:.04em}
+
+/* Mini state strip (the gate-squares pattern): word+glyph carried in title/aria */
+.markstrip{display:inline-flex;gap:3px}
+.markstrip i{width:7px;height:7px;border-radius:2px;background:var(--surface-2);border:1px solid var(--hairline-strong)}
+.markstrip i.cleared{background:var(--success-bg);border-color:var(--success)}
+.markstrip i.current{background:var(--data-3);border-color:transparent}
+.markstrip i.attention{background:var(--danger-bg);border-color:var(--danger)}
+
+/* Chart furniture: reference line, target band, legend, spark wrapper */
+.spark{height:40px}
+.spark svg,.vizplot svg{display:block;width:100%;height:100%}
+.vizplot{position:relative}
+.refline{stroke:var(--text-3);stroke-width:1;stroke-dasharray:2 3;opacity:.7}
+.reftag{position:absolute;right:0;transform:translateY(-50%);font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.04em;color:var(--text-3);background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:2px 6px}
+.vizlegend{display:flex;gap:var(--s-4);flex-wrap:wrap;font-size:11.5px;color:var(--text-2)}
+.vizlegend i{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--data-3);vertical-align:baseline}
+.vizlegend i.alt{background:var(--data-alt)}
+.xlabels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9.5px;color:var(--chart-label)}
+.viztip{position:absolute;top:0;right:0;display:grid;gap:2px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-sm);box-shadow:var(--e-2);padding:6px 10px;font-size:11.5px;color:var(--text-2);pointer-events:none;z-index:5}
+.viztip b{font-family:var(--font-mono);font-size:10px;color:var(--text-3);font-weight:600}
+.viztip span{font-variant-numeric:tabular-nums;color:var(--text-1)}
+
 /* ---- Spacing utilities (the seam law's handrail). Rhythm stays at class
    level, and these ARE classes: mt-5 means margin-top: var(--s-5), straight
    off the scale, so a seam is never left to memory. Vertical + gap only;

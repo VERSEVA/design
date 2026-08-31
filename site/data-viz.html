@@ -9,6 +9,33 @@
 <link rel="stylesheet" href="../tokens.css?v=red1">
 <link rel="stylesheet" href="../components.css?v=red1">
 <link rel="stylesheet" href="site.css">
+<style>
+  .comp { padding-top: var(--s-7); }
+  .comp > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; padding-bottom: var(--s-3); }
+  .comp .note { font-size: 13px; color: var(--text-3); padding-bottom: var(--s-3); max-width: 62ch; }
+  .demo { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s-5); display: flex; flex-wrap: wrap; gap: var(--s-5); align-items: flex-start; }
+  .codewrap { position: relative; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); }
+  .codewrap pre { margin: 0; padding: var(--s-4) var(--s-5); overflow-x: auto; }
+  .codewrap code { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-2); }
+  .copybtn { position: absolute; top: var(--s-2); right: var(--s-2); }
+  .vcard { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-4); box-shadow: var(--e-1); min-width: 220px; }
+  .vcard .vh { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
+  .vcard .vh b { font-size: 13px; font-weight: 600; }
+  .vcard .src { font-family: var(--font-mono); font-size: 9.5px; color: var(--text-3); letter-spacing: .04em; }
+  .bignum { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 26px; font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1.1; }
+  .bignum small { font-size: 12px; color: var(--text-3); font-family: var(--font-sans); font-weight: 500; letter-spacing: 0; }
+  .goal { position: relative; }
+  .goal .goalline { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--text-3); opacity: .7; }
+  .stackcol { display: flex; flex-direction: column-reverse; width: 34px; height: 120px; gap: 2px; }
+  .stackcol i { border-radius: 3px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; color: var(--accent-ink); }
+  .stackrow { display: flex; gap: var(--s-4); align-items: flex-end; }
+  .stackrow .mlab { font-family: var(--font-mono); font-size: 9.5px; color: var(--chart-label); text-align: center; display: block; padding-top: 4px; }
+  .srcdot { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+  .srcdot i { width: 7px; height: 7px; border-radius: 50%; background: var(--data-alt); }
+  .srcdot i.mom { background: var(--data-3); }
+  .vlegcol { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .chips.tight { padding-top: 0; }
+</style>
 </head>
 <body>
 <div class="shell">
@@ -32,54 +59,255 @@
   <section class="hero">
     <h1>Data viz<span class="stop">.</span></h1>
     <div class="chips">
-      <span class="chip">single hue = magnitude</span>
-      <span class="chip">takeaway captions mandatory</span>
+      <span class="chip">numbers on the marks · axes are a luxury</span>
+      <span class="chip">series pair validator-proven, both modes</span>
+      <span class="chip">deltas colored by meaning, never by sign</span>
+      <span class="chip">React kit: npx verseva add viz</span>
     </div>
   </section>
 
-  <section class="ch">
-    <h2>The intensity ladder</h2>
-    <div class="tscroll">
-      <table class="ttable">
-        <thead><tr><th>Token</th><th></th><th>Meaning</th></tr></thead>
-        <tbody>
-          <tr><td>--data-0</td><td><span class="swatch sw-d0"></span></td><td>Empty, zero, background</td></tr>
-          <tr><td>--data-1</td><td><span class="swatch sw-d1"></span></td><td>Low</td></tr>
-          <tr><td>--data-2</td><td><span class="swatch sw-d2"></span></td><td>Mid</td></tr>
-          <tr><td>--data-3</td><td><span class="swatch sw-d3"></span></td><td>High · the accent itself</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <div class="docgrid">
+  <aside class="docnav" aria-label="On this page">
+    <a href="#doctrine">Doctrine</a>
+    <a href="#stat">Stat tiles</a>
+    <a href="#spark">Sparklines</a>
+    <a href="#lines">Line + area</a>
+    <a href="#bars">Bars</a>
+    <a href="#stacked">Stacked segments</a>
+    <a href="#hbars">Horizontal bars</a>
+    <a href="#heat">Intensity + calendar</a>
+    <a href="#rings">Rings</a>
+    <a href="#gates">State strips</a>
+    <a href="#meaning">Meaning + provenance</a>
+    <a href="#anti">Anti-patterns</a>
+  </aside>
+  <div class="doccol">
 
-  <section class="ch">
-    <h2>Specimen</h2>
-    <div class="chartcard">
-      <h4>Quotes closed per week</h4>
-      <div class="sub">Last 6 weeks</div>
-      <div class="bars">
-        <div class="bar"><div class="fill" style="height:34%"></div><span class="mlab">W1</span></div>
-        <div class="bar"><div class="fill" style="height:48%"></div><span class="mlab">W2</span></div>
-        <div class="bar"><div class="fill" style="height:41%"></div><span class="mlab">W3</span></div>
-        <div class="bar"><div class="fill" style="height:66%"></div><span class="mlab">W4</span></div>
-        <div class="bar"><div class="fill" style="height:82%"></div><span class="mlab">W5</span></div>
-        <div class="bar"><div class="fill" style="height:100%"></div><span class="mlab">W6</span></div>
+  <section class="comp" id="doctrine">
+    <h2>Doctrine</h2>
+    <p class="note">Synthesized from the portfolio's shipped viz (Spectre, the NEMIXO console, the UFITRA reference mockups) and held to the dataviz six checks.</p>
+    <div class="demo"><div class="specimen">
+      <div class="tscroll">
+        <table class="ttable">
+          <thead><tr><th>Rule</th><th>It looks like</th></tr></thead>
+          <tbody>
+            <tr><td>numbers on marks</td><td>Bars carry their count; hover is backup, never required</td></tr>
+            <tr><td>axes are a luxury</td><td>No gridline forests; one hairline axis or a dashed reference line at most</td></tr>
+            <tr><td>magnitude = one hue</td><td>--data-0..3, the accent ladder; intensity, never category</td></tr>
+            <tr><td>two series max</td><td>--data-3 then --data-alt (+ dash); a third folds to small multiples</td></tr>
+            <tr><td>denominator first</td><td>"14 of 31 decided", never a naked 45%</td></tr>
+            <tr><td>meaning colors deltas</td><td>A falling 5K time renders green</td></tr>
+            <tr><td>identity never color-alone</td><td>Word + glyph ride along; sr data behind every chart</td></tr>
+            <tr><td>takeaway captions</td><td>Label the meaning, not the axis</td></tr>
+          </tbody>
+        </table>
       </div>
-      <div class="takeaway">Throughput doubled after the provenance sweep landed in W4.</div>
-    </div>
+      <div class="vizlegend mt-4">
+        <span><i></i> --data-3 · series one (the accent)</span>
+        <span><i class="alt"></i> --data-alt · series two, CVD-proven vs the accent in both modes</span>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
-  <section class="ch">
-    <h2>Rules</h2>
-    <ul class="rules">
-      <li><b>Single hue encodes magnitude, never category.</b> The ladder is volume; categories separate by position, shape, or label, not a rainbow.</li>
-      <li><b>Takeaway captions label the meaning, not the axis.</b> "Throughput doubled after W4", never "Quotes per week, weekly".</li>
-      <li><b>Mono microlabels to 10px.</b> Chart-internal labels are machine artifacts; everything read as a sentence is body.</li>
-      <li><b>Never color-alone.</b> A second encoding (position, pattern, label) always rides along.</li>
-      <li><b>Grid from --chart-grid, labels from --chart-label.</b> Charts are token consumers like any surface.</li>
-      <li><b>An emphasized endpoint beats a legend.</b> Point at the number that carries the takeaway.</li>
-    </ul>
+  <section class="comp" id="stat">
+    <h2>Stat tiles</h2>
+    <p class="note">Denominator-first: the number carries where it came from. The micro-bar shows share; the trend is judged, not just signed.</p>
+    <div class="demo"><div class="specimen">
+      <div class="statrow">
+        <div class="stat">
+          <div class="num">45<i>%</i></div>
+          <div class="lbl">Win rate · 14 of 31 decided</div>
+          <div class="microbar"><i style="width:45%"></i></div>
+        </div>
+        <div class="stat">
+          <div class="num">4.4<i>ms</i></div>
+          <div class="lbl">p95 after the sweep</div>
+          <div class="delta"><span class="trend good">↓ −1,709 ms</span></div>
+        </div>
+        <div class="stat">
+          <div class="num">23:18</div>
+          <div class="lbl">5K best · set yesterday</div>
+          <div class="delta"><span class="trend good">↓ −52 s</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
+
+  <section class="comp" id="spark">
+    <h2>Sparklines</h2>
+    <p class="note">The vital-card anatomy: name, source, the big number, a judged delta, and the trend beneath. The last point gets the dot.</p>
+    <div class="demo"><div class="specimen">
+      <div class="vcard">
+        <div class="vh"><b>Quotes priced</b><span class="src">DESK · LIVE</span></div>
+        <div class="vh mt-2"><span class="bignum">112 <small>/ wk</small></span><span class="trend good">↑ +8</span></div>
+        <span class="spark mt-2" style="display:block"><svg viewBox="0 0 140 40" preserveAspectRatio="none" aria-hidden="true" data-spark="62,70,66,74,82,78,88,95,90,98,104,112"></svg></span>
+      </div>
+      <div class="vcard">
+        <div class="vh"><b>Verify kill rate</b><span class="src">GATES · 30 D</span></div>
+        <div class="vh mt-2"><span class="bignum">6<small>%</small></span><span class="trend bad">↑ +2%</span></div>
+        <span class="spark mt-2" style="display:block"><svg viewBox="0 0 140 40" preserveAspectRatio="none" aria-hidden="true" data-spark="2,3,2,4,3,5,4,4,6,5,6,6"></svg></span>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="lines">
+    <h2>Line + area</h2>
+    <p class="note">Two series at most: the accent leads, --data-alt follows with a dash so identity survives print and CVD. The dashed reference line carries a positioned mono tag; hover gives a crosshair readout; the range control re-renders in place.</p>
+    <div class="demo"><div class="specimen" style="flex:1;min-width:280px">
+      <div class="seg mb-4" id="vrange"><button type="button" aria-selected="true">12 weeks</button><button type="button" aria-selected="false">30 days</button></div>
+      <div class="vizplot" id="vseries" style="height:150px"
+        data-labels-a="W1,W2,W3,W4,W5,W6,W7,W8,W9,W10,W11,W12" data-a1="62,70,66,74,82,78,88,95,90,98,104,112" data-a2="41,44,40,52,58,55,61,72,66,74,79,84" data-refa="76|YOUR AVG · 12 WK"
+        data-labels-b="D1,D5,D10,D15,D20,D25,D30" data-b1="88,95,90,98,104,112,118" data-b2="61,72,66,74,79,84,90" data-refb="94|YOUR AVG · 30 D"
+        data-names="Priced,Won">
+        <svg preserveAspectRatio="none" role="img" aria-label="Priced vs won"></svg>
+      </div>
+      <div class="xlabels mt-2" id="vxlab"></div>
+      <div class="vizlegend mt-2"><span><i></i> Priced</span><span><i class="alt"></i> Won</span></div>
+      <div class="takeaway">Won tracks priced with a one-week lag; the gap narrowed after rate card v18.</div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="bars">
+    <h2>Bars</h2>
+    <p class="note">Numbers ride the marks, the goal is drawn on the chart, and today's bar takes the full-strength hue.</p>
+    <div class="demo"><div class="specimen">
+      <div class="goal" style="width:280px">
+        <div class="goalline" style="top:28%"></div>
+        <span class="reftag" style="top:28%">GOAL 130</span>
+        <div class="bars" style="height:130px">
+          <div class="bar"><span class="vlab">96</span><div class="fill" style="height:53%;background:var(--data-2)"></div><span class="mlab">Mon</span></div>
+          <div class="bar"><span class="vlab">118</span><div class="fill" style="height:65%;background:var(--data-2)"></div><span class="mlab">Tue</span></div>
+          <div class="bar"><span class="vlab">74</span><div class="fill" style="height:41%;background:var(--data-1)"></div><span class="mlab">Wed</span></div>
+          <div class="bar"><span class="vlab">128</span><div class="fill" style="height:71%;background:var(--data-2)"></div><span class="mlab">Thu</span></div>
+          <div class="bar"><span class="vlab">142</span><div class="fill" style="height:79%;background:var(--data-3)"></div><span class="mlab">Fri</span></div>
+        </div>
+      </div>
+      <div class="takeaway" style="max-width:220px">Friday cleared the goal; Wednesday's dip was the machine-12 changeover.</div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="stacked">
+    <h2>Stacked segments</h2>
+    <p class="note">Each segment prints its own count when it fits; the stack total sits on top. A 2px surface gap separates fills.</p>
+    <div class="demo"><div class="specimen">
+      <div class="stackrow">
+        <div><span class="xlabels" style="justify-content:center">31</span><div class="stackcol"><i style="flex:14;background:var(--data-1)">14</i><i style="flex:9;background:var(--data-2)">9</i><i style="flex:8;background:var(--data-3)">8</i></div><span class="mlab">W1</span></div>
+        <div><span class="xlabels" style="justify-content:center">38</span><div class="stackcol"><i style="flex:15;background:var(--data-1)">15</i><i style="flex:12;background:var(--data-2)">12</i><i style="flex:11;background:var(--data-3)">11</i></div><span class="mlab">W2</span></div>
+        <div><span class="xlabels" style="justify-content:center">47</span><div class="stackcol"><i style="flex:16;background:var(--data-1)">16</i><i style="flex:14;background:var(--data-2)">14</i><i style="flex:17;background:var(--data-3)">17</i></div><span class="mlab">W3</span></div>
+        <div class="vizlegend vlegcol"><span><i style="background:var(--data-1)"></i> Drafted</span><span><i style="background:var(--data-2)"></i> Priced</span><span><i></i> Won</span></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="hbars">
+    <h2>Horizontal bars</h2>
+    <p class="note">Label, track, mono count: the axis-free distribution. The second hue only when the row IS the second series.</p>
+    <div class="demo"><div class="specimen" style="min-width:300px;flex:1">
+      <div class="hbars">
+        <div class="hbar"><span class="hlabel">Bottling</span><span class="htrack"><i style="width:100%"></i></span><span class="hcount">48</span></div>
+        <div class="hbar"><span class="hlabel">Labeling</span><span class="htrack"><i style="width:65%"></i></span><span class="hcount">31</span></div>
+        <div class="hbar"><span class="hlabel">Kitting</span><span class="htrack"><i style="width:38%"></i></span><span class="hcount">18</span></div>
+        <div class="hbar"><span class="hlabel">Sourcing</span><span class="htrack"><i style="width:23%"></i></span><span class="hcount">11</span></div>
+      </div>
+      <div class="takeaway">Bottling carries the quarter; kitting demand doubled since v18.</div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="heat">
+    <h2>Intensity + calendar</h2>
+    <p class="note">ONE activity language: the same four ladder steps drive the strip, the calendar, and the streak grid, so intensity reads identically everywhere. Today is ringed.</p>
+    <div class="demo"><div class="specimen">
+      <div>
+        <span class="speclabel">12-week strip</span>
+        <span class="actstrip" style="grid-auto-columns:14px">
+          <i data-l="1"></i><i data-l="2"></i><i></i><i data-l="1"></i><i data-l="3"></i><i data-l="2"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="2"></i><i data-l="3"></i><i data-l="3" class="today"></i>
+        </span>
+      </div>
+      <div>
+        <span class="speclabel">month · Less → More</span>
+        <div class="actcal" style="width:196px">
+          <i></i><i data-l="1"></i><i data-l="1"></i><i data-l="2"></i><i></i><i data-l="3"></i><i data-l="2"></i>
+          <i data-l="1"></i><i data-l="2"></i><i></i><i data-l="2"></i><i data-l="3"></i><i data-l="1"></i><i></i>
+          <i data-l="2"></i><i data-l="3"></i><i data-l="2"></i><i data-l="1"></i><i data-l="3"></i><i data-l="2"></i><i data-l="3"></i>
+          <i data-l="1"></i><i></i><i data-l="2"></i><i data-l="3" class="today"></i><i></i><i></i><i></i>
+        </div>
+        <div class="vizlegend mt-2"><span><i style="background:var(--data-0)"></i></span><span><i style="background:var(--data-1)"></i></span><span><i style="background:var(--data-2)"></i></span><span><i></i></span></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="rings">
+    <h2>Rings</h2>
+    <p class="note">The center reads the ACTIONABLE number, not the total. Track on --data-0, fill on the accent, rotated to twelve o'clock, round caps.</p>
+    <div class="demo"><div class="specimen">
+      <span class="ring" role="img" aria-label="Readiness 72 of 100">
+        <svg width="74" height="74" viewBox="0 0 74 74"><circle class="ringtrack" cx="37" cy="37" r="30"/><circle class="ringfill" cx="37" cy="37" r="30" stroke-dasharray="188.5" stroke-dashoffset="52.8"/></svg>
+        <span class="rv"><b>72</b><small>READY</small></span>
+      </span>
+      <span class="ring" role="img" aria-label="1,059 kilocalories left, 45 percent consumed">
+        <svg width="92" height="92" viewBox="0 0 92 92"><circle class="ringtrack" cx="46" cy="46" r="39"/><circle class="ringfill" cx="46" cy="46" r="39" stroke-dasharray="245.0" stroke-dashoffset="134.8"/></svg>
+        <span class="rv"><b>1,059</b><small>KCAL LEFT</small></span>
+      </span>
+      <span class="ring" role="img" aria-label="Provenance 88 percent complete">
+        <svg width="74" height="74" viewBox="0 0 74 74"><circle class="ringtrack" cx="37" cy="37" r="30"/><circle class="ringfill" cx="37" cy="37" r="30" stroke-dasharray="188.5" stroke-dashoffset="22.6"/></svg>
+        <span class="rv"><b>88%</b><small>SOURCED</small></span>
+      </span>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="gates">
+    <h2>State strips</h2>
+    <p class="note">Seven-pixel truth: a process at a glance, triple-encoded (color + the words in the title and aria label). Never color-alone.</p>
+    <div class="demo"><div class="specimen">
+      <div class="lrows" style="min-width:300px">
+        <div class="lrow"><span class="tx"><b>Q-2081 · Northline</b><span class="metaline">gate 6 of 9 · verifying</span></span><span class="markstrip" title="6 of 9 cleared, now verifying" aria-label="6 of 9 gates cleared, current stage verifying"><i class="cleared"></i><i class="cleared"></i><i class="cleared"></i><i class="cleared"></i><i class="cleared"></i><i class="cleared"></i><i class="current"></i><i></i><i></i></span></div>
+        <div class="lrow"><span class="tx"><b>Q-2080 · Harbor</b><span class="metaline">gate 3 of 9 · sourcing blocked</span></span><span class="markstrip" title="2 cleared, attention on sourcing" aria-label="2 of 9 gates cleared, attention on sourcing"><i class="cleared"></i><i class="cleared"></i><i class="attention"></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="meaning">
+    <h2>Meaning + provenance</h2>
+    <p class="note">Deltas are judged, not signed: a falling run time is green. Every datum can carry its source; charts are never anonymous.</p>
+    <div class="demo"><div class="specimen">
+      <div class="lrows" style="min-width:300px">
+        <div class="lrow"><span class="tx"><b>5K time</b><span class="metaline">was 24:10</span></span><span class="trend good">↓ −52 s</span></div>
+        <div class="lrow"><span class="tx"><b>Bench press</b><span class="metaline">was 80 kg</span></span><span class="trend good">↑ +4 kg</span></div>
+        <div class="lrow"><span class="tx"><b>Verify kill rate</b><span class="metaline">was 4%</span></span><span class="trend bad">↑ +2%</span></div>
+      </div>
+      <div class="chips tight"><span class="srcdot"><i class="mom"></i> DESK</span><span class="srcdot"><i></i> ERP IMPORT</span><span class="srcdot"><i style="background:var(--success)"></i> WEARABLE</span></div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="anti">
+    <h2>Anti-patterns</h2>
+    <p class="note">If a chart matches one of these, it is wrong.</p>
+    <div class="demo"><div class="specimen" style="flex:1">
+      <div class="dodont">
+        <div class="dd dont"><span class="tag">Never</span>A dual-axis chart. Two measures of different scale get two charts or an index.</div>
+        <div class="dd dont"><span class="tag">Never</span>A gridline forest. Numbers on the marks; one reference line at most.</div>
+        <div class="dd dont"><span class="tag">Never</span>A rainbow. Magnitude is one hue; a third series folds to small multiples.</div>
+        <div class="dd dont"><span class="tag">Never</span>Color-alone identity. A word or glyph always rides along.</div>
+        <div class="dd dont"><span class="tag">Never</span>A naked percentage. Carry the denominator: "14 of 31 decided".</div>
+        <div class="dd dont"><span class="tag">Never</span>An axis caption as the takeaway. Label the meaning.</div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  </div>
+  </div>
 
   <footer class="site">
     <span>VERSEVA · open source · MIT</span>
@@ -91,6 +319,152 @@
     const r = document.documentElement;
     r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
   });
+
+  const lpts = (vals, W, H, pad, top) => vals.map((v, i) => [
+    pad + (W - pad * 2) * (vals.length === 1 ? 0.5 : i / (vals.length - 1)),
+    pad + (H - pad * 2) * (1 - v / top),
+  ]);
+  const lp = (p) => p.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
+  const ap = (p, H, pad) => `M${p[0][0].toFixed(1)} ${H - pad} ${lp(p).slice(1)} L${p[p.length - 1][0].toFixed(1)} ${H - pad} Z`;
+  let gid = 0;
+  document.querySelectorAll('[data-spark]').forEach((svg) => {
+    const vals = svg.dataset.spark.split(',').map(Number);
+    const top = Math.max(...vals);
+    const p = lpts(vals, 140, 40, 4, top);
+    const id = `sg${gid++}`;
+    svg.innerHTML = `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--data-3)" stop-opacity=".26"/><stop offset="1" stop-color="var(--data-3)" stop-opacity="0"/></linearGradient></defs>
+      <path d="${ap(p, 40, 4)}" fill="url(#${id})"/>
+      <path d="${lp(p)}" fill="none" stroke="var(--data-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${p[p.length - 1][0].toFixed(1)}" cy="${p[p.length - 1][1].toFixed(1)}" r="3" fill="var(--data-3)"/>`;
+  });
+
+  const plot = document.getElementById('vseries');
+  const plotSvg = plot.querySelector('svg');
+  const xlab = document.getElementById('vxlab');
+  const W = 320, PH = 150, PAD = 6;
+  let state = 'a';
+  let cur = null;
+  function renderPlot() {
+    const d = plot.dataset;
+    const labels = d[`labels${state.toUpperCase()}`].split(',');
+    const s1 = d[`${state}1`].split(',').map(Number);
+    const s2 = d[`${state}2`].split(',').map(Number);
+    const [refV, refLabel] = d[state === 'a' ? 'refa' : 'refb'].split('|');
+    const top = Math.max(...s1, ...s2, +refV);
+    const p1 = lpts(s1, W, PH, PAD, top);
+    const p2 = lpts(s2, W, PH, PAD, top);
+    const refY = PAD + (PH - PAD * 2) * (1 - refV / top);
+    cur = { labels, s1, s2, p1, p2 };
+    plotSvg.setAttribute('viewBox', `0 0 ${W} ${PH}`);
+    plotSvg.innerHTML = `<defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--data-3)" stop-opacity=".22"/><stop offset="1" stop-color="var(--data-3)" stop-opacity="0"/></linearGradient></defs>
+      <line class="refline" x1="${PAD}" y1="${refY.toFixed(1)}" x2="${W - PAD}" y2="${refY.toFixed(1)}"/>
+      <path d="${ap(p1, PH, PAD)}" fill="url(#vg)"/>
+      <path d="${lp(p1)}" fill="none" stroke="var(--data-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${lp(p2)}" fill="none" stroke="var(--data-alt)" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${p1[p1.length - 1][0].toFixed(1)}" cy="${p1[p1.length - 1][1].toFixed(1)}" r="3" fill="var(--data-3)"/>
+      <circle cx="${p2[p2.length - 1][0].toFixed(1)}" cy="${p2[p2.length - 1][1].toFixed(1)}" r="3" fill="var(--data-alt)"/>
+      <g id="vcross" hidden></g>`;
+    let tag = plot.querySelector('.reftag');
+    if (!tag) { tag = document.createElement('span'); tag.className = 'reftag'; plot.append(tag); }
+    tag.textContent = refLabel;
+    tag.style.top = `${(refY / PH) * 100}%`;
+    xlab.innerHTML = `<span>${labels[0]}</span><span>${labels[labels.length - 1]}</span>`;
+    const tip = plot.querySelector('.viztip');
+    if (tip) tip.remove();
+  }
+  plotSvg.addEventListener('pointermove', (e) => {
+    if (!cur) return;
+    const box = plotSvg.getBoundingClientRect();
+    const x = ((e.clientX - box.left) / box.width) * W;
+    const i = Math.max(0, Math.min(cur.labels.length - 1, Math.round(((x - PAD) / (W - PAD * 2)) * (cur.labels.length - 1))));
+    const cross = plotSvg.querySelector('#vcross');
+    cross.hidden = false;
+    cross.innerHTML = `<line x1="${cur.p1[i][0]}" y1="${PAD}" x2="${cur.p1[i][0]}" y2="${PH - PAD}" stroke="var(--text-3)" stroke-width="1" opacity=".5"/>
+      <circle cx="${cur.p1[i][0]}" cy="${cur.p1[i][1]}" r="4" fill="var(--data-3)" stroke="var(--surface)" stroke-width="2"/>
+      <circle cx="${cur.p2[i][0]}" cy="${cur.p2[i][1]}" r="4" fill="var(--data-alt)" stroke="var(--surface)" stroke-width="2"/>`;
+    let tip = plot.querySelector('.viztip');
+    if (!tip) { tip = document.createElement('div'); tip.className = 'viztip'; plot.append(tip); }
+    const names = plot.dataset.names.split(',');
+    tip.innerHTML = `<b>${cur.labels[i]}</b><span>${names[0]} ${cur.s1[i]}</span><span>${names[1]} ${cur.s2[i]}</span>`;
+  });
+  plotSvg.addEventListener('pointerleave', () => {
+    plotSvg.querySelector('#vcross').hidden = true;
+    const tip = plot.querySelector('.viztip');
+    if (tip) tip.remove();
+  });
+  document.querySelectorAll('#vrange button').forEach((b, i) => b.addEventListener('click', () => {
+    document.querySelectorAll('#vrange button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+    state = i === 0 ? 'a' : 'b';
+    renderPlot();
+  }));
+  renderPlot();
+
+  document.querySelectorAll('.comp').forEach((comp) => {
+    const demo = comp.querySelector('.demo');
+    const cw = comp.querySelector('.codewrap');
+    if (!demo || !cw) return;
+    cw.hidden = true;
+    const bar = document.createElement('div');
+    bar.className = 'codetoggle';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-ghost sm';
+    btn.textContent = 'Show code';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.addEventListener('click', () => {
+      const show = cw.hidden;
+      cw.hidden = !show;
+      bar.classList.toggle('opened', show);
+      btn.textContent = show ? 'Hide code' : 'Show code';
+      btn.setAttribute('aria-expanded', String(show));
+    });
+    bar.append(btn);
+    demo.after(bar);
+    bar.after(cw);
+  });
+
+  const dedent = (html) => {
+    const lines = html.replace(/^\n+|\s+$/g, '').split('\n');
+    const indents = lines.filter((l) => l.trim()).map((l) => l.match(/^\s*/)[0].length);
+    const min = Math.min(...indents);
+    return lines.map((l) => l.slice(min)).join('\n');
+  };
+  document.querySelectorAll('.comp').forEach((comp) => {
+    const spec = comp.querySelector('.specimen');
+    const code = comp.querySelector('.codewrap code');
+    if (spec && code && !code.textContent.trim()) code.textContent = dedent(spec.innerHTML);
+  });
+  document.querySelectorAll('.copybtn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const code = btn.parentElement.querySelector('code');
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+        btn.textContent = 'Copied';
+      } catch (e) {
+        btn.textContent = 'Select + copy';
+      }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+    });
+  });
+
+  const navLinks = [...document.querySelectorAll('.docnav a')];
+  const sections = [...document.querySelectorAll('.comp')];
+  const spy = () => {
+    const line = innerHeight * 0.16;
+    let current = sections[0];
+    for (const s of sections) {
+      if (s.getBoundingClientRect().top <= line) current = s;
+    }
+    navLinks.forEach((a) => a.classList.toggle('on', a.getAttribute('href') === `#${current.id}`));
+  };
+  let lastSpyY = -1;
+  const spyLoop = () => {
+    if (scrollY !== lastSpyY) { lastSpyY = scrollY; spy(); }
+    requestAnimationFrame(spyLoop);
+  };
+  spy();
+  requestAnimationFrame(spyLoop);
+  addEventListener('hashchange', spy);
 </script>
 </body>
 </html>

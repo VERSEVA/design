@@ -45,6 +45,8 @@ const PAIRS = [
   ['danger', ['danger-bg', 'surface'], 4.5],
   ['text-1', ['accent*0.14', 'surface'], 4.5],
   ['text-1', ['accent*0.14', 'bg'], 4.5],
+  ['data-alt', ['bg'], 3],
+  ['data-alt', ['surface'], 3],
 ];
 
 function parseArgs(argv) {

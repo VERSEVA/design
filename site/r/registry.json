@@ -148,6 +148,15 @@
         "cx"
       ],
       "description": "Hover/focus label on the inverse ground"
+    },
+    {
+      "name": "viz",
+      "file": "react/viz.tsx",
+      "kind": "component",
+      "deps": [
+        "cx"
+      ],
+      "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning"
     }
   ],
   "themes": [
@@ -196,6 +205,12 @@
       "file": "blocks/three-hero.html",
       "assets": false,
       "description": "Three.js hero reading the tokens at runtime"
+    },
+    {
+      "name": "pulse",
+      "file": "blocks/pulse.html",
+      "assets": false,
+      "description": "Analytics console: the whole viz kit assembled, crosshair hover, range toggle"
     },
     {
       "name": "store",

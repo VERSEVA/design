@@ -12,4 +12,5 @@
   --success: #2C6E4B; --success-bg: rgb(44 110 75 / 10%);
   --warn: #8A6512; --warn-bg: rgba(138, 101, 18, 0.1);
   --danger: #A33D2E; --danger-bg: hsla(8, 56%, 41%, 0.1);
+  --data-alt: #1D6FD8;
 }
