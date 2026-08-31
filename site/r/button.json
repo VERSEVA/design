@@ -1,0 +1,14 @@
+{
+  "name": "button",
+  "kind": "component",
+  "description": "Primary/secondary/ghost/destructive, sm-lg, loading; press sits it down 1px",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/button.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\ntype Variant = 'primary' | 'secondary' | 'ghost' | 'destructive';\ntype Size = 'sm' | 'md' | 'lg';\n\nexport interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {\n  variant?: Variant;\n  size?: Size;\n  loading?: boolean;\n}\n\n/** Law 8: equal-sized pairs; the fill says which leads. Press sits the control down 1px (contract). */\nexport const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(\n  ({ variant = 'primary', size = 'md', loading = false, disabled, className, children, type, ...rest }, ref) => (\n    <button\n      ref={ref}\n      type={type ?? 'button'}\n      className={cx('btn', `btn-${variant}`, size !== 'md' && size, className)}\n      disabled={disabled || loading}\n      aria-busy={loading || undefined}\n      {...rest}\n    >\n      {loading && <span className=\"spinner\" aria-hidden=\"true\" />}\n      {children}\n    </button>\n  )\n);\nButton.displayName = 'Button';\n"
+    }
+  ]
+}

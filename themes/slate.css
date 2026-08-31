@@ -1,0 +1,14 @@
+/* @verseva/design theme preset: slate, the quiet one. One accent, matte (law 3).
+   Gate-proven: verseva-contrast-gate --tokens tokens.css --tokens themes/slate.css */
+[data-brand="slate"] {
+  --accent: #9FB0C3;
+  --accent-hover: #B4C2D2;
+  --accent-ink: #0A0E14;
+  --focus: #9FB0C3;
+}
+[data-brand="slate"][data-theme="light"] {
+  --accent: #49566B;
+  --accent-hover: #3A4557;
+  --accent-ink: #FFFFFF;
+  --focus: #49566B;
+}

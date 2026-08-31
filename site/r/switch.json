@@ -1,0 +1,14 @@
+{
+  "name": "switch",
+  "kind": "component",
+  "description": "Switch + Checkbox; the word carries the state",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/switch.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {\n  /** The word carries the state; the color only agrees with it (law 10). */\n  label: string;\n}\n\nexport const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(\n  ({ label, className, ...rest }, ref) => (\n    <label className={cx('sel', 'switch-wrap', className)}>\n      <input ref={ref} className=\"sw\" type=\"checkbox\" {...rest} />\n      <span className=\"switch\" aria-hidden=\"true\" />\n      {label}\n    </label>\n  )\n);\nSwitch.displayName = 'Switch';\n\nexport const Checkbox = React.forwardRef<HTMLInputElement, SwitchProps>(\n  ({ label, className, ...rest }, ref) => (\n    <label className={cx('sel', className)}>\n      <input ref={ref} type=\"checkbox\" {...rest} />\n      {label}\n    </label>\n  )\n);\nCheckbox.displayName = 'Checkbox';\n"
+    }
+  ]
+}

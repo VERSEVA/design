@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Distribute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../tokens.css?v=red1">
+<link rel="stylesheet" href="../components.css?v=red1">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">VERSEVA Design<span class="stop">.</span></a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="web-ui.html">Web app UI</a>
+      <a href="components.html">Components</a>
+      <a href="decks.html">Decks</a>
+      <a href="docs-pdf.html">Docs + PDF</a>
+      <a href="data-viz.html">Data viz</a>
+      <a href="motion.html">Motion</a>
+      <a class="on" href="distribute.html">Distribute</a>
+      <a href="examples.html">Gallery</a>
+    </nav>
+    <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
+  </header>
+
+  <section class="hero">
+    <h1>Distribute<span class="stop">.</span></h1>
+    <div class="chips">
+      <span class="chip">source you own</span>
+      <span class="chip">registries you can host</span>
+      <span class="chip">agents that prove their work</span>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Source distribution</h2>
+    <pre class="cmd">npx verseva init
+npx verseva add button field toast console-nav
+npx verseva block add quote-tool
+npx verseva theme add cobalt
+npx verseva list</pre>
+    <ul class="rules">
+      <li><b>Components land as source.</b> Typed, dependency-free React files in your project; edit freely, reset with --force.</li>
+      <li><b>Blocks land as full working pages,</b> css hrefs already pointed at node_modules; byte-locked to the live gallery by test.</li>
+      <li><b>Nothing ships unproven:</b> init wires the gate script; run it before every ship.</li>
+    </ul>
+  </section>
+
+  <section class="ch">
+    <h2>Registries</h2>
+    <pre class="cmd">npx verseva build
+verseva build: 25 items + registry.json -&gt; site/r</pre>
+    <ul class="rules">
+      <li><b>Host your own.</b> `verseva build` flattens the registry into per-item JSON with content embedded; serve the directory anywhere static.</li>
+      <li><b>Namespaces.</b> Consumers map them in verseva.json: <span style="font-family: var(--font-mono); font-size: 12px">{"registries": {"@you": "https://your.host/r/{name}.json"}}</span> then <span style="font-family: var(--font-mono); font-size: 12px">npx verseva add @you/thing</span>.</li>
+      <li><b>URLs and files too.</b> `add` takes bare names, @ns/name, a full https URL, or a local .json item.</li>
+      <li><b>Contained by construction:</b> written names flatten to basenames, symlink destinations are refused, only source extensions install, fetched items must embed content, deps stay on their item's origin, and registries are https-only.</li>
+      <li><b>This registry is hosted here:</b> once verseva.design is live, every item resolves at <span style="font-family: var(--font-mono); font-size: 12px">verseva.design/r/{name}.json</span>.</li>
+    </ul>
+  </section>
+
+  <section class="ch">
+    <h2>Agents</h2>
+    <pre class="cmd">npx verseva mcp init --client claude</pre>
+    <div class="tscroll pad-top">
+      <table class="ttable">
+        <thead><tr><th>Tool</th><th>What the agent gets</th></tr></thead>
+        <tbody>
+          <tr><td>list_registry</td><td>Everything installable</td></tr>
+          <tr><td>get_component / get_block</td><td>Real source, read before imitating</td></tr>
+          <tr><td>get_tokens / get_laws</td><td>Every allowed value; the fourteen laws</td></tr>
+          <tr><td>add_component</td><td>Installs source into the project, deps resolved</td></tr>
+          <tr><td>run_gate</td><td>Runs all four gates and returns the verdict: done means proven</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="rules">
+      <li><b>The tool nobody else ships:</b> run_gate lets the agent PROVE its output stayed on-signature before claiming it's done.</li>
+      <li><b>Zero dependencies.</b> The server is one file over stdio; cursor and vscode wiring included.</li>
+    </ul>
+  </section>
+
+  <section class="ch">
+    <h2>Theme presets</h2>
+    <div class="spec">
+      <span class="badge ok">cobalt · 64 pairs proven</span>
+      <span class="badge ok">forest · 64 pairs proven</span>
+      <span class="badge ok">violet · 64 pairs proven</span>
+      <span class="badge ok">slate · 64 pairs proven</span>
+    </div>
+    <ul class="rules">
+      <li><b>One accent, matte (law 3):</b> a preset re-values the accent axis only; structure never changes.</li>
+      <li><b>Every preset ships gate-proven</b> across all four theme axes (base and brand, dark and light), and stays provable in your build.</li>
+      <li><b>Wire it:</b> link after tokens.css, set <span style="font-family: var(--font-mono); font-size: 12px">&lt;html data-brand="cobalt"&gt;</span>.</li>
+    </ul>
+  </section>
+
+  <footer class="site">
+    <span>VERSEVA · open source · MIT</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+<script>
+  document.getElementById('themeflip').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  });
+</script>
+</body>
+</html>

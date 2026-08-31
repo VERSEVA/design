@@ -1,0 +1,14 @@
+{
+  "name": "chips",
+  "kind": "component",
+  "description": "Filter chips with counts, single or multi",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/chips.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface ChipOption {\n  value: string;\n  label: string;\n  count?: number;\n}\n\nexport interface FilterChipsProps {\n  options: ChipOption[];\n  /** Selected values. Single-select: pass at most one and handle replacement in onChange. */\n  selected: string[];\n  onChange: (selected: string[]) => void;\n  multi?: boolean;\n  className?: string;\n}\n\n/** Filter chips; aria-pressed carries the state, counts are mono machine artifacts. */\nexport function FilterChips({ options, selected, onChange, multi = false, className }: FilterChipsProps) {\n  const toggle = (value: string) => {\n    if (!multi) return onChange([value]);\n    onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);\n  };\n  return (\n    <div className={cx('chiprow', className)}>\n      {options.map((opt) => (\n        <button\n          key={opt.value}\n          type=\"button\"\n          className=\"fchip\"\n          aria-pressed={selected.includes(opt.value)}\n          onClick={() => toggle(opt.value)}\n        >\n          {opt.label}\n          {opt.count !== undefined && <span className=\"cnt\">{opt.count}</span>}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    }
+  ]
+}

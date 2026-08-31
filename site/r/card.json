@@ -1,0 +1,14 @@
+{
+  "name": "card",
+  "kind": "component",
+  "description": "Card + header/body/footer at the r-md posture",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/card.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\n/** Product card at --r-md (law 7). Header divides; footer holds the actions, right-aligned. */\nexport function Card({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {\n  return <div className={cx('card', className)} {...rest} />;\n}\n\nexport function CardHeader({ className, children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {\n  return (\n    <div className={cx('hd', className)} {...rest}>\n      {typeof children === 'string' ? <h4>{children}</h4> : children}\n    </div>\n  );\n}\n\nexport function CardBody({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {\n  return <div className={cx('bd', className)} {...rest} />;\n}\n\nexport function CardFooter({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {\n  return <div className={cx('ft', className)} {...rest} />;\n}\n"
+    }
+  ]
+}

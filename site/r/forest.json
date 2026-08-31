@@ -1,0 +1,12 @@
+{
+  "name": "forest",
+  "kind": "theme",
+  "description": "Green accent preset, contrast-gate proven both themes",
+  "deps": [],
+  "files": [
+    {
+      "path": "forest.css",
+      "content": "/* @verseva/design theme preset: forest. One accent, matte (law 3).\n   Gate-proven: verseva-contrast-gate --tokens tokens.css --tokens themes/forest.css */\n[data-brand=\"forest\"] {\n  --accent: #3ECF8E;\n  --accent-hover: #5FD9A2;\n  --accent-ink: #05130C;\n  --focus: #3ECF8E;\n}\n[data-brand=\"forest\"][data-theme=\"light\"] {\n  --accent: #0E7A46;\n  --accent-hover: #0B6338;\n  --accent-ink: #FFFFFF;\n  --focus: #0E7A46;\n}\n"
+    }
+  ]
+}

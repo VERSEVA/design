@@ -1,0 +1,12 @@
+{
+  "name": "cobalt",
+  "kind": "theme",
+  "description": "Blue accent preset, contrast-gate proven both themes",
+  "deps": [],
+  "files": [
+    {
+      "path": "cobalt.css",
+      "content": "/* @verseva/design theme preset: cobalt. One accent, matte (law 3); saturation\n   is a theme axis. Every pair below is contrast-gate proven:\n   verseva-contrast-gate --tokens tokens.css --tokens themes/cobalt.css */\n[data-brand=\"cobalt\"] {\n  --accent: #4D9FFF;\n  --accent-hover: #6FB1FF;\n  --accent-ink: #06101C;\n  --focus: #4D9FFF;\n}\n[data-brand=\"cobalt\"][data-theme=\"light\"] {\n  --accent: #1D4ED8;\n  --accent-hover: #1A3FB0;\n  --accent-ink: #FFFFFF;\n  --focus: #1D4ED8;\n}\n"
+    }
+  ]
+}

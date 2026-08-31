@@ -235,6 +235,76 @@
 .heatlegend{display:flex;align-items:center;gap:5px;margin-top:10px;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
 .heatlegend span{width:12px;height:12px;border-radius:4px;display:inline-block}
 
+/* ---- Field extensions: select + textarea (same contract as input) ---- */
+.field select,.field textarea{padding:0 var(--s-3);border-radius:var(--r-sm);border:1px solid var(--hairline);background:var(--surface);color:var(--text-1);font:inherit;font-size:.9375rem;transition:border-color var(--dur-1) var(--ease-standard),box-shadow var(--dur-1) var(--ease-standard)}
+.field select{height:40px}
+.field textarea{min-height:96px;padding:var(--s-3);resize:vertical;line-height:1.5}
+.field select:focus-visible,.field textarea:focus-visible{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 25%,transparent)}
+.field.error select,.field.error textarea{border-color:var(--danger)}
+
+/* ---- Tab bar (in-page sections; the underline is accent, never a hairline) ---- */
+.tabbar{display:flex;gap:var(--s-4);border-bottom:1px solid var(--hairline)}
+.tabbar button{border:0;background:none;color:var(--text-2);font:inherit;font-size:13.5px;font-weight:500;padding:var(--s-2) 2px;cursor:pointer;transition:color var(--dur-1) var(--ease-standard)}
+.tabbar button:hover{color:var(--text-1)}
+.tabbar [aria-selected="true"]{color:var(--text-1);font-weight:600;box-shadow:inset 0 -2px 0 var(--accent)}
+.tabbar button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+
+/* ---- Menu (dropdown) ---- */
+.menu{position:relative;display:inline-block}
+.menu-list{position:absolute;top:calc(100% + 6px);left:0;min-width:180px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);box-shadow:var(--e-2);padding:6px;display:grid;gap:2px;z-index:15}
+.menu-list[hidden]{display:none}
+.menu-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:var(--r-sm);border:0;background:none;color:var(--text-1);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
+.menu-item:hover{background:var(--surface-2)}
+.menu-item:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.menu-item.danger{color:var(--danger)}
+.menu-sep{height:1px;background:var(--hairline);margin:4px 6px}
+
+/* ---- Tooltip (inverse ground; keep the text short, it is not a doc).
+   WCAG 1.4.13: hoverable (pointer-events restored while shown), dismissible
+   (Escape via the react binding's .tiphide). ---- */
+.tip{position:relative;display:inline-flex}
+.tip .tipbox{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--text-1);color:var(--bg);padding:5px 10px;border-radius:var(--r-sm);font-size:12px;line-height:1.4;width:max-content;max-width:220px;text-align:center;opacity:0;pointer-events:none;transition:opacity var(--dur-1) var(--ease-standard);z-index:15}
+.tip:hover .tipbox,.tip:focus-within .tipbox{opacity:1;pointer-events:auto}
+.tip .tipbox.tiphide{opacity:0;pointer-events:none}
+
+/* ---- Breadcrumbs ---- */
+.crumbs{display:flex;align-items:center;gap:var(--s-2);font-size:12.5px;color:var(--text-3)}
+.crumbs a{color:var(--text-2);text-decoration:none}
+.crumbs a:hover{color:var(--text-1)}
+.crumbs [aria-current="page"]{color:var(--text-1);font-weight:600}
+
+/* ---- Pagination ---- */
+.pager{display:inline-flex;gap:4px;align-items:center}
+.pager button{min-width:32px;height:32px;padding:0 6px;border-radius:var(--r-sm);border:0;background:none;color:var(--text-2);font:inherit;font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums}
+.pager button:hover{background:var(--surface-2)}
+.pager [aria-current="page"]{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--text-1);font-weight:600}
+.pager button:disabled{opacity:.4;cursor:default;background:none}
+
+/* ---- Progress (pair with a real number; never color-alone) ---- */
+.progress{height:6px;border-radius:var(--r-pill);background:var(--surface-2);border:1px solid var(--hairline-soft);overflow:hidden}
+.progress .fill{height:100%;background:var(--accent);border-radius:4px;transition:width var(--dur-3) var(--ease-standard)}
+
+/* ---- Callout (status text on tints clears 4.5:1; the word leads) ---- */
+.callout{display:flex;gap:var(--s-3);padding:var(--s-4) var(--s-5);border-radius:var(--r-md);font-size:13.5px;background:var(--surface);border:1px solid var(--hairline);color:var(--text-2)}
+.callout b{color:var(--text-1);font-weight:600}
+.callout.ok{background:var(--success-bg);border-color:transparent;color:var(--success)}
+.callout.warn{background:var(--warn-bg);border-color:transparent;color:var(--warn)}
+.callout.err{background:var(--danger-bg);border-color:transparent;color:var(--danger)}
+.callout.ok b,.callout.warn b,.callout.err b{color:inherit}
+
+/* ---- Empty state ---- */
+.empty{display:grid;justify-items:center;gap:var(--s-3);padding:var(--s-7) var(--s-5);text-align:center;border:1px dashed var(--hairline-strong);border-radius:var(--r-lg);color:var(--text-2);font-size:13.5px}
+.empty b{color:var(--text-1);font-family:var(--font-display);font-weight:var(--heading-weight);font-size:16px}
+
+/* ---- Content accordion (native details; promoted from the storefront) ---- */
+.acc{border:1px solid var(--hairline);border-radius:var(--r-md);background:var(--surface);overflow:hidden}
+.acc details + details{border-top:1px solid var(--hairline)}
+.acc summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:var(--s-3);padding:var(--s-3) var(--s-4);font-weight:600;font-size:14px}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:"+";color:var(--text-3)}
+.acc details[open] summary::after{content:"\2013"}
+.acc .accbody{padding:0 var(--s-4) var(--s-4);color:var(--text-2);font-size:13.5px}
+
 /* ---- Reduced motion (functional non-animated equivalents) ---- */
 @media (prefers-reduced-motion:reduce){
   .skel::after{animation:none}

@@ -1,0 +1,14 @@
+/* @verseva/design theme preset: forest. One accent, matte (law 3).
+   Gate-proven: verseva-contrast-gate --tokens tokens.css --tokens themes/forest.css */
+[data-brand="forest"] {
+  --accent: #3ECF8E;
+  --accent-hover: #5FD9A2;
+  --accent-ink: #05130C;
+  --focus: #3ECF8E;
+}
+[data-brand="forest"][data-theme="light"] {
+  --accent: #0E7A46;
+  --accent-hover: #0B6338;
+  --accent-ink: #FFFFFF;
+  --focus: #0E7A46;
+}

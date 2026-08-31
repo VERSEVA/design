@@ -1,0 +1,14 @@
+{
+  "name": "skeleton",
+  "kind": "component",
+  "description": "Skeleton bars that mirror the real layout",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/skeleton.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\n/** Loading is a state of the real layout (states floor): skeleton bars mirror what will load. */\nexport function Skeleton({ width, className, ...rest }: React.HTMLAttributes<HTMLSpanElement> & { width?: string }) {\n  return <span className={cx('skel', className)} style={width ? { width } : undefined} {...rest} aria-hidden=\"true\" />;\n}\n\n/** A ready-made identity-row skeleton matching the lrow pattern. */\nexport function SkeletonRow() {\n  return (\n    <div className=\"lrow\" aria-hidden=\"true\">\n      <span className=\"avc\" />\n      <span className=\"tx skelstack\">\n        <Skeleton width=\"62%\" />\n        <Skeleton width=\"38%\" />\n      </span>\n    </div>\n  );\n}\n\n/* .skelstack { display: grid; gap: var(--s-2); } ships in the site css; add it at class level. */\n"
+    }
+  ]
+}

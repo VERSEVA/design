@@ -1,0 +1,14 @@
+{
+  "name": "modal",
+  "kind": "component",
+  "description": "Dialog at r-lg with escape/overlay close",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/modal.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface ModalProps {\n  open: boolean;\n  onClose: () => void;\n  title: string;\n  children: React.ReactNode;\n  /** Footer actions; Cancel never sits primary. */\n  footer?: React.ReactNode;\n  className?: string;\n}\n\n/** Modal at --r-lg (law 7). Escape and overlay-click close; focus moves in on open. */\nexport function Modal({ open, onClose, title, children, footer, className }: ModalProps) {\n  const ref = React.useRef<HTMLDivElement>(null);\n\n  React.useEffect(() => {\n    if (!open) return;\n    ref.current?.focus();\n    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };\n    addEventListener('keydown', onKey);\n    return () => removeEventListener('keydown', onKey);\n  }, [open, onClose]);\n\n  if (!open) return null;\n  return (\n    <div className=\"ovl open\" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>\n      <div className={cx('modal', className)} role=\"dialog\" aria-modal=\"true\" aria-label={title} ref={ref} tabIndex={-1}>\n        <div className=\"bd\">\n          <h4>{title}</h4>\n          {children}\n        </div>\n        {footer && <div className=\"ft\">{footer}</div>}\n      </div>\n    </div>\n  );\n}\n\n/* The overlay is the consumer's, at class level:\n   .ovl { position: fixed; inset: 0; display: none; align-items: center; justify-content: center;\n          background: color-mix(in srgb, var(--text-1) 18%, transparent); z-index: 9; padding: var(--s-5); }\n   .ovl.open { display: flex; } */\n"
+    }
+  ]
+}

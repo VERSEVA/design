@@ -32,6 +32,20 @@ The open release. VERSEVA Design goes MIT and public.
   console model) and an accordion whose collapse is the `hidden` attribute with
   chevron-only motion and whose active group refuses to collapse (the Spectre
   model, mechanics ported 1:1).
+- **Distribution rails.** `npx verseva build` flattens the registry into hostable
+  per-item JSON; `add` resolves bare names, `@namespace/item` (via `verseva.json`
+  registries), URLs, and local item files, with dependency resolution and
+  traversal-proof basename writes.
+- **`verseva-mcp`.** A zero-dependency stdio MCP server (`npx verseva mcp init`
+  wires Claude, Cursor, or VS Code): agents list the registry, read component
+  source, read tokens and laws, install components, and run the full gate suite
+  via `run_gate` to prove their output — the tool no other design system ships.
+- **Theme presets.** `cobalt`, `forest`, `violet`, `slate`: accent-axis presets,
+  each contrast-gate proven across all four theme axes (64 pairs), installed via
+  `npx verseva theme add <name>`.
+- **Component breadth.** Ten new contract components (select + textarea fields,
+  tabs, menu, tooltip, breadcrumbs, pagination, progress, callout, empty state,
+  content accordion) with React counterparts for the interactive ones.
 - **Templates.** `templates/starter.html`: a single-file starting point on the tokens.
 - **Docs site.** Guidelines, component documentation with copyable snippets extracted
   from live specimens, and a gallery of interactive example sites (`site/` in the

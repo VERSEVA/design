@@ -1,0 +1,14 @@
+{
+  "name": "segmented",
+  "kind": "component",
+  "description": "Segmented control; aria-selected carries it",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/segmented.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface SegmentedProps {\n  options: string[];\n  value: string;\n  onChange: (value: string) => void;\n  className?: string;\n  'aria-label'?: string;\n}\n\n/** One selected at all times; aria-selected carries it. */\nexport function Segmented({ options, value, onChange, className, ...rest }: SegmentedProps) {\n  return (\n    <div className={cx('seg', className)} role=\"tablist\" {...rest}>\n      {options.map((opt) => (\n        <button\n          key={opt}\n          type=\"button\"\n          role=\"tab\"\n          aria-selected={opt === value}\n          onClick={() => onChange(opt)}\n        >\n          {opt}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    }
+  ]
+}

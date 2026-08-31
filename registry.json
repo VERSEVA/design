@@ -14,7 +14,17 @@
     { "name": "modal", "file": "react/modal.tsx", "kind": "component", "deps": ["cx"], "description": "Dialog at r-lg with escape/overlay close" },
     { "name": "stat", "file": "react/stat.tsx", "kind": "component", "deps": ["cx"], "description": "Display-face numeral over a quiet label" },
     { "name": "skeleton", "file": "react/skeleton.tsx", "kind": "component", "deps": ["cx"], "description": "Skeleton bars that mirror the real layout" },
-    { "name": "console-nav", "file": "react/console-nav.tsx", "kind": "component", "deps": [], "description": "Console navigation, flat or accordion; active group refuses to collapse" }
+    { "name": "console-nav", "file": "react/console-nav.tsx", "kind": "component", "deps": [], "description": "Console navigation, flat or accordion; active group refuses to collapse" },
+    { "name": "tabs", "file": "react/tabs.tsx", "kind": "component", "deps": ["cx"], "description": "In-page section tabs; accent underline, never a hairline" },
+    { "name": "menu", "file": "react/menu.tsx", "kind": "component", "deps": ["cx"], "description": "Dropdown menu; closes on select, Escape, outside click" },
+    { "name": "accordion", "file": "react/accordion.tsx", "kind": "component", "deps": ["cx"], "description": "Content accordion on native details/summary" },
+    { "name": "tooltip", "file": "react/tooltip.tsx", "kind": "component", "deps": ["cx"], "description": "Hover/focus label on the inverse ground" }
+  ],
+  "themes": [
+    { "name": "cobalt", "file": "themes/cobalt.css", "description": "Blue accent preset, contrast-gate proven both themes" },
+    { "name": "forest", "file": "themes/forest.css", "description": "Green accent preset, contrast-gate proven both themes" },
+    { "name": "violet", "file": "themes/violet.css", "description": "Violet accent preset, contrast-gate proven both themes" },
+    { "name": "slate", "file": "themes/slate.css", "description": "Neutral accent preset, contrast-gate proven both themes" }
   ],
   "blocks": [
     { "name": "console", "file": "blocks/console.html", "assets": false, "description": "Ops console: sidebar, stats, chart, sortable table, live search" },

@@ -36,6 +36,7 @@
       <a href="docs-pdf.html">Docs + PDF</a>
       <a href="data-viz.html">Data viz</a>
       <a href="motion.html">Motion</a>
+      <a href="distribute.html">Distribute</a>
       <a href="examples.html">Gallery</a>
     </nav>
     <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
@@ -49,7 +50,7 @@
       <span class="chip">every contract state ships</span>
     </div>
     <div class="toc">
-      <a class="fchip" href="#install">Install</a><a class="fchip" href="#button">Button</a><a class="fchip" href="#field">Field</a><a class="fchip" href="#switch">Switch</a><a class="fchip" href="#card">Card</a><a class="fchip" href="#badge">Badge</a><a class="fchip" href="#toast">Toast</a><a class="fchip" href="#modal">Modal</a><a class="fchip" href="#table">Table</a><a class="fchip" href="#stat">Stat</a><a class="fchip" href="#chart">Chart</a><a class="fchip" href="#seg">Segmented</a><a class="fchip" href="#fchip">Filter chips</a><a class="fchip" href="#search">Search</a><a class="fchip" href="#rows">List rows</a><a class="fchip" href="#skeleton">Skeleton</a><a class="fchip" href="#topnav">Top nav</a><a class="fchip" href="#sidenav">Console nav</a><a class="fchip" href="#accordion-nav">Accordion nav</a><a class="fchip" href="#sheet">Sheet</a><a class="fchip" href="#navshell">Navshell</a>
+      <a class="fchip" href="#install">Install</a><a class="fchip" href="#button">Button</a><a class="fchip" href="#field">Field</a><a class="fchip" href="#select">Select</a><a class="fchip" href="#switch">Switch</a><a class="fchip" href="#card">Card</a><a class="fchip" href="#badge">Badge</a><a class="fchip" href="#toast">Toast</a><a class="fchip" href="#modal">Modal</a><a class="fchip" href="#table">Table</a><a class="fchip" href="#stat">Stat</a><a class="fchip" href="#chart">Chart</a><a class="fchip" href="#seg">Segmented</a><a class="fchip" href="#tabs">Tabs</a><a class="fchip" href="#menu">Menu</a><a class="fchip" href="#tooltip">Tooltip</a><a class="fchip" href="#fchip">Filter chips</a><a class="fchip" href="#search">Search</a><a class="fchip" href="#crumbsdoc">Breadcrumbs</a><a class="fchip" href="#pagerdoc">Pagination</a><a class="fchip" href="#progressdoc">Progress</a><a class="fchip" href="#calloutdoc">Callout</a><a class="fchip" href="#emptydoc">Empty</a><a class="fchip" href="#accdoc">Accordion</a><a class="fchip" href="#rows">List rows</a><a class="fchip" href="#skeleton">Skeleton</a><a class="fchip" href="#topnav">Top nav</a><a class="fchip" href="#sidenav">Console nav</a><a class="fchip" href="#accordion-nav">Accordion nav</a><a class="fchip" href="#sheet">Sheet</a><a class="fchip" href="#navshell">Navshell</a>
     </div>
   </section>
 
@@ -269,6 +270,137 @@ npx verseva block add quote-tool</code></pre></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
+  <section class="comp" id="select">
+    <h2>Select + textarea</h2>
+    <p class="note">Same contract as the input: 40px, quiet borders, the focus ring, the fix-it error state.</p>
+    <div class="demo"><div class="specimen">
+      <div class="field">
+        <label for="doc-machine">Machine</label>
+        <select id="doc-machine"><option>Line 12 · 500ml</option><option>Line 14 · 1L</option></select>
+        <div class="help">Assignment can change until the run starts.</div>
+      </div>
+      <div class="field">
+        <label for="doc-notes">Run notes</label>
+        <textarea id="doc-notes" placeholder="Anything the operator should know"></textarea>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="tabs">
+    <h2>Tabs</h2>
+    <p class="note">In-page section tabs. The active underline is the accent, never a hairline (law 11). React: npx verseva add tabs.</p>
+    <div class="demo"><div class="specimen">
+      <div class="tabbar" role="tablist">
+        <button type="button" role="tab" aria-selected="true">Overview</button>
+        <button type="button" role="tab" aria-selected="false">Provenance</button>
+        <button type="button" role="tab" aria-selected="false">History</button>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="menu">
+    <h2>Menu</h2>
+    <p class="note">Dropdown off a secondary trigger; closes on select, Escape, outside click. Danger items carry the word AND the color. React: npx verseva add menu.</p>
+    <div class="demo"><div class="specimen">
+      <div class="menu">
+        <button type="button" class="btn btn-secondary sm" aria-haspopup="menu" aria-expanded="false">Actions</button>
+        <div class="menu-list" role="menu" hidden>
+          <button type="button" role="menuitem" class="menu-item">Duplicate quote</button>
+          <button type="button" role="menuitem" class="menu-item">Export PDF</button>
+          <div class="menu-sep" role="separator"></div>
+          <button type="button" role="menuitem" class="menu-item danger">Delete draft</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="tooltip">
+    <h2>Tooltip</h2>
+    <p class="note">Inverse ground, hover or focus, one short label. Never load-bearing content. React: npx verseva add tooltip.</p>
+    <div class="demo"><div class="specimen">
+      <span class="tip"><button class="btn btn-secondary sm" type="button">Provenance</button><span class="tipbox" role="tooltip">4 sources attached</span></span>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="crumbsdoc">
+    <h2>Breadcrumbs</h2>
+    <p class="note">Quiet trail; the current page carries weight and aria-current.</p>
+    <div class="demo"><div class="specimen">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="#clients">Clients</a><span class="sep">/</span>
+        <a href="#northline">Northline Foods</a><span class="sep">/</span>
+        <span aria-current="page">Quote 2081</span>
+      </nav>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="pagerdoc">
+    <h2>Pagination</h2>
+    <p class="note">Tabular numerals, the current page on the accent tint, dead ends disabled.</p>
+    <div class="demo"><div class="specimen">
+      <nav class="pager" aria-label="Pagination">
+        <button type="button" disabled>‹</button>
+        <button type="button" aria-current="page">1</button>
+        <button type="button">2</button>
+        <button type="button">3</button>
+        <button type="button">›</button>
+      </nav>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="progressdoc">
+    <h2>Progress</h2>
+    <p class="note">Single-hue fill on the surface track; always paired with the real number (never color-alone).</p>
+    <div class="demo"><div class="specimen">
+      <div class="field">
+        <label for="doc-progress">Sourcing · 8 of 12 vendors confirmed</label>
+        <div class="progress" id="doc-progress" role="progressbar" aria-valuenow="67" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:67%"></div></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="calloutdoc">
+    <h2>Callout</h2>
+    <p class="note">A paragraph-weight status. The bold lead names the situation; the tint agrees with it.</p>
+    <div class="demo"><div class="specimen">
+      <div class="callout"><b>Heads up.</b>&nbsp;The rate card moved to v18; open quotes keep their issued rates.</div>
+      <div class="callout warn"><b>Rush window.</b>&nbsp;This date is inside the 10-day floor and needs a ruling.</div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="emptydoc">
+    <h2>Empty state</h2>
+    <p class="note">Says what belongs here and hands over the first action. Never a blank region.</p>
+    <div class="demo"><div class="specimen">
+      <div class="empty">
+        <b>No quotes yet</b>
+        <span>The first one takes about four minutes.</span>
+        <button class="btn btn-primary" type="button">New quote</button>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="accdoc">
+    <h2>Content accordion</h2>
+    <p class="note">Native details/summary: works with zero JS, full keyboard support for free. React: npx verseva add accordion.</p>
+    <div class="demo"><div class="specimen">
+      <div class="acc">
+        <details open><summary>Every batch, assayed</summary><div class="accbody">Stated dose vs measured dose, to two decimals, on every lot.</div></details>
+        <details><summary>Dosing</summary><div class="accbody">Consistency beats timing; the streak matters more than the clock.</div></details>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
   <section class="comp" id="topnav">
     <h2>Top navigation</h2>
     <p class="note">The active link carries weight and a 2px accent underline; everything else stays quiet.</p>
@@ -380,6 +512,26 @@ npx verseva block add quote-tool</code></pre></div>
     const code = comp.querySelector('.codewrap code');
     if (spec && code && !code.textContent.trim()) code.textContent = dedent(spec.innerHTML);
   });
+  document.querySelectorAll('.tabbar').forEach((bar) => {
+    bar.addEventListener('click', (e) => {
+      const tab = e.target.closest('[role="tab"]');
+      if (!tab) return;
+      bar.querySelectorAll('[role="tab"]').forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+    });
+  });
+  document.querySelectorAll('.menu').forEach((menu) => {
+    const trigger = menu.querySelector('[aria-haspopup]');
+    const list = menu.querySelector('.menu-list');
+    trigger.addEventListener('click', () => {
+      const open = list.hidden;
+      list.hidden = !open;
+      trigger.setAttribute('aria-expanded', String(open));
+    });
+    addEventListener('pointerdown', (e) => {
+      if (!menu.contains(e.target)) { list.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+    });
+  });
+
   document.querySelectorAll('.sgroup-head').forEach((head) => {
     head.addEventListener('click', () => {
       const group = head.closest('.sgroup');

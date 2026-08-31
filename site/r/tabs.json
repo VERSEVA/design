@@ -1,0 +1,14 @@
+{
+  "name": "tabs",
+  "kind": "component",
+  "description": "In-page section tabs; accent underline, never a hairline",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/tabs.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface TabItem {\n  value: string;\n  label: string;\n}\n\nexport interface TabsProps {\n  items: TabItem[];\n  value: string;\n  onChange: (value: string) => void;\n  /** id of the panel each tab controls, as `${panelId}-${value}`; wire your panels with role=\"tabpanel\". */\n  panelId?: string;\n  className?: string;\n  'aria-label'?: string;\n}\n\n/**\n * In-page section tabs. The active underline is the accent, never a hairline\n * (law 11). Keyboard per the APG tabs pattern: roving tabindex, arrows move\n * and select, Home/End jump.\n */\nexport function Tabs({ items, value, onChange, panelId, className, ...rest }: TabsProps) {\n  const refs = React.useRef<(HTMLButtonElement | null)[]>([]);\n\n  const onKeyDown = (e: React.KeyboardEvent) => {\n    const current = items.findIndex((i) => i.value === value);\n    let next = -1;\n    if (e.key === 'ArrowRight') next = (current + 1) % items.length;\n    else if (e.key === 'ArrowLeft') next = (current - 1 + items.length) % items.length;\n    else if (e.key === 'Home') next = 0;\n    else if (e.key === 'End') next = items.length - 1;\n    if (next === -1) return;\n    e.preventDefault();\n    onChange(items[next].value);\n    refs.current[next]?.focus();\n  };\n\n  return (\n    <div className={cx('tabbar', className)} role=\"tablist\" onKeyDown={onKeyDown} {...rest}>\n      {items.map((item, i) => (\n        <button\n          key={item.value}\n          ref={(el) => { refs.current[i] = el; }}\n          type=\"button\"\n          role=\"tab\"\n          aria-selected={item.value === value}\n          aria-controls={panelId ? `${panelId}-${item.value}` : undefined}\n          tabIndex={item.value === value ? 0 : -1}\n          onClick={() => onChange(item.value)}\n        >\n          {item.label}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    }
+  ]
+}

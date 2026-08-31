@@ -33,6 +33,35 @@ npx verseva list
 full working page with its css hrefs pointed at `node_modules`. The registry is
 `registry.json` in this package; every listed file ships in the tarball.
 
+`add` also takes `@namespace/item` (mapped in `verseva.json` under `registries`),
+full URLs, and local `.json` item files — and `npx verseva build` flattens YOUR
+registry into hostable per-item JSON so anyone can distribute on the same rails.
+Written filenames flatten to basenames: a registry can never traverse outside the
+target directory.
+
+## Agents
+
+```sh
+npx verseva mcp init --client claude   # cursor | vscode
+```
+
+One zero-dependency stdio server. The agent can list the registry, read any
+component's source, read the tokens and the laws, install components — and run
+the full gate suite with `run_gate` to PROVE its output stayed on-signature
+before calling anything done. No other design system gives an agent proof.
+
+## Themes
+
+Four accent presets ship gate-proven across all four theme axes (base and brand,
+dark and light): `cobalt`, `forest`, `violet`, `slate`.
+
+```sh
+npx verseva theme add cobalt
+```
+
+Link it after `tokens.css`, set `<html data-brand="cobalt">`. One accent, matte
+(law 3): a preset re-values the accent axis only.
+
 ## What's in the box
 
 | Path | What |

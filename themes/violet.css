@@ -1,0 +1,14 @@
+/* @verseva/design theme preset: violet. One accent, matte (law 3).
+   Gate-proven: verseva-contrast-gate --tokens tokens.css --tokens themes/violet.css */
+[data-brand="violet"] {
+  --accent: #A78BFA;
+  --accent-hover: #BCA5FC;
+  --accent-ink: #120A26;
+  --focus: #A78BFA;
+}
+[data-brand="violet"][data-theme="light"] {
+  --accent: #6D28D9;
+  --accent-hover: #5B21B6;
+  --accent-ink: #FFFFFF;
+  --focus: #6D28D9;
+}

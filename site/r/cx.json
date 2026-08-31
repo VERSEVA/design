@@ -1,0 +1,12 @@
+{
+  "name": "cx",
+  "kind": "util",
+  "description": "Class-join helper; the only utility the kit needs",
+  "deps": [],
+  "files": [
+    {
+      "path": "react/cx.ts",
+      "content": "/** Joins class names, skipping falsy values. The only utility the kit needs. */\nexport function cx(...parts: Array<string | false | null | undefined>): string {\n  return parts.filter(Boolean).join(' ');\n}\n"
+    }
+  ]
+}

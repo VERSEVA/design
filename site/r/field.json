@@ -1,0 +1,14 @@
+{
+  "name": "field",
+  "kind": "component",
+  "description": "Label + input + help with a fix-it error state, wired for a11y",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/field.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface FieldProps extends React.InputHTMLAttributes<HTMLInputElement> {\n  label: string;\n  /** Quiet guidance under the input. Replaced by `error` when present. */\n  help?: string;\n  /** The error state says what went wrong and how to fix it; no apologies, no vagueness. */\n  error?: string;\n}\n\nexport const Field = React.forwardRef<HTMLInputElement, FieldProps>(\n  ({ label, help, error, id, className, ...rest }, ref) => {\n    const autoId = React.useId();\n    const inputId = id ?? autoId;\n    const helpId = `${inputId}-help`;\n    const text = error ?? help;\n    return (\n      <div className={cx('field', error && 'error', className)}>\n        <label htmlFor={inputId}>{label}</label>\n        <input ref={ref} id={inputId} aria-invalid={!!error || undefined} aria-describedby={text ? helpId : undefined} {...rest} />\n        {text && <div className=\"help\" id={helpId}>{text}</div>}\n      </div>\n    );\n  }\n);\nField.displayName = 'Field';\n"
+    }
+  ]
+}

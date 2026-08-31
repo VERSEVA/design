@@ -43,6 +43,8 @@ const PAIRS = [
   ['success', ['success-bg', 'surface'], 4.5],
   ['warn', ['warn-bg', 'surface'], 4.5],
   ['danger', ['danger-bg', 'surface'], 4.5],
+  ['text-1', ['accent*0.14', 'surface'], 4.5],
+  ['text-1', ['accent*0.14', 'bg'], 4.5],
 ];
 
 function parseArgs(argv) {
@@ -203,9 +205,11 @@ for (const [themeName, theme] of Object.entries(themes)) {
     let backdrop = canvas;
     let resolvable = true;
     for (const layerName of [...bgChain].reverse()) {
-      const layer = resolve(layerName, theme);
+      const [tokenName, alphaFactor] = layerName.split('*');
+      const layer = resolve(tokenName, theme);
       if (!layer) { resolvable = false; break; }
-      backdrop = compose(layer, backdrop);
+      const scaled = alphaFactor ? { ...layer, a: layer.a * parseFloat(alphaFactor) } : layer;
+      backdrop = compose(scaled, backdrop);
     }
     if (!fg || !resolvable) {
       failures.push(`[${themeName}] ${fgName} on ${bgChain.join('+')}  UNRESOLVABLE (required pair; the gate must measure it)`);

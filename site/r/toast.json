@@ -1,0 +1,12 @@
+{
+  "name": "toast",
+  "kind": "component",
+  "description": "ToastProvider + useToast; one at a time, bottom-right",
+  "deps": [],
+  "files": [
+    {
+      "path": "react/toast.tsx",
+      "content": "import * as React from 'react';\n\nexport interface ToastItem {\n  id: number;\n  text: string;\n  tone: 'ok' | 'err';\n}\n\nconst ToastContext = React.createContext<(text: string, tone?: 'ok' | 'err') => void>(() => {});\n\n/** One toast at a time, bottom-right, gone in ~2.4s. The word does the work; the dot just nods. */\nexport function ToastProvider({ children }: { children: React.ReactNode }) {\n  const [toast, setToast] = React.useState<ToastItem | null>(null);\n  const timer = React.useRef<ReturnType<typeof setTimeout>>();\n\n  const show = React.useCallback((text: string, tone: 'ok' | 'err' = 'ok') => {\n    clearTimeout(timer.current);\n    setToast({ id: Date.now(), text, tone });\n    timer.current = setTimeout(() => setToast(null), 2400);\n  }, []);\n\n  React.useEffect(() => () => clearTimeout(timer.current), []);\n\n  return (\n    <ToastContext.Provider value={show}>\n      {children}\n      {toast && (\n        <div className=\"toastwrap\" role=\"status\" aria-live=\"polite\">\n          <div className={`toast ${toast.tone}`}>\n            <span className=\"dot\" aria-hidden=\"true\" />\n            {toast.text}\n            <button type=\"button\" aria-label=\"Dismiss\" onClick={() => setToast(null)}>×</button>\n          </div>\n        </div>\n      )}\n    </ToastContext.Provider>\n  );\n}\n\n/** const toast = useToast(); toast('Quote issued.'); toast('Blocked: ruling open.', 'err'); */\nexport function useToast() {\n  return React.useContext(ToastContext);\n}\n\n/* Position the wrap once, at class level (seam law):\n   .toastwrap { position: fixed; right: var(--s-5); bottom: var(--s-5); z-index: 9; } */\n"
+    }
+  ]
+}

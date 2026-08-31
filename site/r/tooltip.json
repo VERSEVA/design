@@ -1,0 +1,14 @@
+{
+  "name": "tooltip",
+  "kind": "component",
+  "description": "Hover/focus label on the inverse ground",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/tooltip.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface TooltipProps {\n  /** Keep it short; a tooltip is a label, not a doc. */\n  text: string;\n  children: React.ReactNode;\n  className?: string;\n}\n\n/**\n * Hover/focus tooltip on the inverse ground. Never put load-bearing content\n * here. The description lands on the interactive child (aria-describedby),\n * Escape dismisses while shown (WCAG 1.4.13), and the box stays hoverable.\n */\nexport function Tooltip({ text, children, className }: TooltipProps) {\n  const id = React.useId();\n  const [dismissed, setDismissed] = React.useState(false);\n\n  const child = React.isValidElement(children)\n    ? React.cloneElement(children as React.ReactElement<{ 'aria-describedby'?: string }>, { 'aria-describedby': id })\n    : children;\n\n  return (\n    <span\n      className={cx('tip', className)}\n      onKeyDown={(e) => { if (e.key === 'Escape') setDismissed(true); }}\n      onMouseLeave={() => setDismissed(false)}\n      onBlur={() => setDismissed(false)}\n    >\n      {child}\n      <span className={cx('tipbox', dismissed && 'tiphide')} role=\"tooltip\" id={id}>{text}</span>\n    </span>\n  );\n}\n"
+    }
+  ]
+}

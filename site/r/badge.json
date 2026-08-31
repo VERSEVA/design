@@ -1,0 +1,14 @@
+{
+  "name": "badge",
+  "kind": "component",
+  "description": "Status word on a tint; never a dot alone",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/badge.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {\n  tone?: 'ok' | 'warn' | 'err' | 'neutral';\n}\n\n/** Law 10: status is a word on a tint, never a dot alone. Give it real words and counts. */\nexport function Badge({ tone = 'neutral', className, ...rest }: BadgeProps) {\n  return <span className={cx('badge', tone, className)} {...rest} />;\n}\n"
+    }
+  ]
+}

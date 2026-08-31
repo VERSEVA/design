@@ -1,0 +1,14 @@
+{
+  "name": "accordion",
+  "kind": "component",
+  "description": "Content accordion on native details/summary",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/accordion.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface AccordionItem {\n  title: string;\n  content: React.ReactNode;\n  defaultOpen?: boolean;\n}\n\n/** Content accordion on native details/summary: zero JS to work, full keyboard support for free. */\nexport function Accordion({ items, className }: { items: AccordionItem[]; className?: string }) {\n  return (\n    <div className={cx('acc', className)}>\n      {items.map((item, i) => (\n        <details key={`${i}-${item.title}`} open={item.defaultOpen}>\n          <summary>{item.title}</summary>\n          <div className=\"accbody\">{item.content}</div>\n        </details>\n      ))}\n    </div>\n  );\n}\n"
+    }
+  ]
+}

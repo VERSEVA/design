@@ -1,0 +1,14 @@
+{
+  "name": "stat",
+  "kind": "component",
+  "description": "Display-face numeral over a quiet label",
+  "deps": [
+    "cx"
+  ],
+  "files": [
+    {
+      "path": "react/stat.tsx",
+      "content": "import * as React from 'react';\nimport { cx } from './cx';\n\nexport interface StatProps extends React.HTMLAttributes<HTMLDivElement> {\n  value: React.ReactNode;\n  /** Rendered in the accent italic: a unit, never emphasis. */\n  unit?: string;\n  label: string;\n}\n\n/** Display-face numerals over a quiet label. Wrap a set in <div className=\"statrow\">. */\nexport function Stat({ value, unit, label, className, children, ...rest }: StatProps) {\n  return (\n    <div className={cx('stat', className)} {...rest}>\n      <div className=\"num\">{value}{unit && <i>{unit}</i>}</div>\n      <div className=\"lbl\">{label}</div>\n      {children && <div className=\"delta\">{children}</div>}\n    </div>\n  );\n}\n"
+    }
+  ]
+}

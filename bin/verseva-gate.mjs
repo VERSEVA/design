@@ -21,6 +21,7 @@ function parseArgs(argv) {
   const allow = [];
   const paths = [];
   for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--') { paths.push(...argv.slice(i + 1)); break; }
     if (argv[i] === '--tokens') tokens.push(argv[++i]);
     else if (argv[i] === '--allow') allow.push(argv[++i]);
     else paths.push(argv[i]);

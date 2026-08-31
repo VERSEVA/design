@@ -20,6 +20,7 @@
   },
   "bin": {
     "verseva": "bin/verseva.mjs",
+    "verseva-mcp": "bin/verseva-mcp.mjs",
     "verseva-hex-gate": "bin/hex-gate.mjs",
     "verseva-contrast-gate": "bin/contrast-gate.mjs",
     "verseva-spacing-gate": "bin/spacing-gate.mjs",
@@ -36,13 +37,14 @@
     "templates",
     "react",
     "blocks",
+    "themes",
     "registry.json",
     "LICENSE",
     "CHANGELOG.md"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "gate": "node bin/verseva-gate.mjs --tokens tokens.css --allow test --allow board .",
+    "gate": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow test --allow board .",
     "board": "node board/pull-themes.mjs && python3 -m http.server 4390 --directory ."
   }
 }

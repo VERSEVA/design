@@ -1,0 +1,12 @@
+{
+  "name": "violet",
+  "kind": "theme",
+  "description": "Violet accent preset, contrast-gate proven both themes",
+  "deps": [],
+  "files": [
+    {
+      "path": "violet.css",
+      "content": "/* @verseva/design theme preset: violet. One accent, matte (law 3).\n   Gate-proven: verseva-contrast-gate --tokens tokens.css --tokens themes/violet.css */\n[data-brand=\"violet\"] {\n  --accent: #A78BFA;\n  --accent-hover: #BCA5FC;\n  --accent-ink: #120A26;\n  --focus: #A78BFA;\n}\n[data-brand=\"violet\"][data-theme=\"light\"] {\n  --accent: #6D28D9;\n  --accent-hover: #5B21B6;\n  --accent-ink: #FFFFFF;\n  --focus: #6D28D9;\n}\n"
+    }
+  ]
+}
