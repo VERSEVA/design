@@ -6,8 +6,8 @@
 <title>VERSEVA Design · Example: quote tool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
-<link rel="stylesheet" href="../../tokens.css">
-<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../tokens.css?v=red1">
+<link rel="stylesheet" href="../../components.css?v=red1">
 <style>
   * { margin: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.5; }
@@ -47,27 +47,77 @@
           <div class="field"><label for="q-cap">Closure</label><input id="q-cap" value="38 mm tamper-evident"></div>
           <div class="field error"><label for="q-date">Needed by</label><input id="q-date" value="2026-09-08"><div class="help">Inside the 10-day floor: needs a rush ruling.</div></div>
         </div>
-        <label class="sel switch-wrap"><input class="sw" type="checkbox" checked><span class="switch"></span>Include freight estimate</label>
+        <label class="sel switch-wrap"><input class="sw" type="checkbox" checked id="freight-toggle"><span class="switch"></span>Include freight estimate</label>
       </div>
-      <div class="ft"><button class="btn btn-ghost" type="button">Save draft</button><button class="btn btn-primary" type="button">Price it</button></div>
+      <div class="ft"><button class="btn btn-ghost" type="button" id="save-draft">Save draft</button><button class="btn btn-primary" type="button" id="price-it">Price it</button></div>
     </div>
     <div class="card">
       <div class="hd"><h4>Quote summary</h4></div>
       <div class="bd">
         <div class="lrows">
-          <div class="lrow"><span class="tx"><b>Run setup</b><span class="metaline">machine 12 · changeover</span></span><span class="val mono">1,840.00</span></div>
-          <div class="lrow"><span class="tx"><b>Fill + cap, 24,000 u</b><span class="metaline">rate card v18</span></span><span class="val mono">9,360.00</span></div>
-          <div class="lrow"><span class="tx"><b>Materials</b><span class="metaline">sourced · 3 vendors</span></span><span class="val mono">6,120.00</span></div>
-          <div class="lrow"><span class="tx"><b>Freight estimate</b><span class="metaline">to Columbus OH</span></span><span class="val mono">740.00</span></div>
+          <div class="lrow"><span class="tx"><b>Run setup</b><span class="metaline">machine 12 · changeover</span></span><span class="val mono" id="v-setup">1,840.00</span></div>
+          <div class="lrow"><span class="tx"><b id="fill-label">Fill + cap, 24,000 u</b><span class="metaline">rate card v18</span></span><span class="val mono" id="v-fill">9,360.00</span></div>
+          <div class="lrow"><span class="tx"><b>Materials</b><span class="metaline">sourced · 3 vendors</span></span><span class="val mono" id="v-mat">6,120.00</span></div>
+          <div class="lrow" id="row-freight"><span class="tx"><b>Freight estimate</b><span class="metaline">to Columbus OH</span></span><span class="val mono" id="v-freight">740.00</span></div>
         </div>
         <div class="sumfoot">
-          <span class="total"><b class="mono">18,060.00</b><span>every line carries provenance</span></span>
-          <span class="badge warn">Rush ruling needed</span>
+          <span class="total"><b class="mono" id="v-total">18,060.00</b><span>every line carries provenance</span></span>
+          <span class="badge warn" id="rush-badge">Rush ruling needed</span>
         </div>
       </div>
-      <div class="ft"><button class="btn btn-secondary" type="button">Provenance</button><button class="btn btn-primary" type="button">Issue quote</button></div>
+      <div class="ft"><button class="btn btn-secondary" type="button" id="provenance">Provenance</button><button class="btn btn-primary" type="button" id="issue">Issue quote</button></div>
     </div>
   </div>
 </div>
+<div id="toastwrap"></div>
+<style>
+  #toastwrap .toast { position: fixed; right: var(--s-5); bottom: var(--s-5); z-index: 9; }
+</style>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const SETUP = 1840, FILL_RATE = 0.39, MAT_RATE = 0.255, FREIGHT = 740, RUSH_FLOOR = '2026-09-15';
+  const fmt = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const units = () => {
+    const n = parseInt(($('q-units').value || '').replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  };
+  function toast(text, cls) {
+    const wrap = $('toastwrap');
+    wrap.replaceChildren();
+    const t = document.createElement('div');
+    t.className = 'toast ' + (cls || 'ok');
+    t.innerHTML = '<span class="dot"></span>' + text;
+    wrap.append(t);
+    setTimeout(() => t.remove(), 2400);
+  }
+  function recalc() {
+    const u = units();
+    const freightOn = $('freight-toggle').checked;
+    const fill = u * FILL_RATE, mat = u * MAT_RATE, freight = freightOn ? FREIGHT : 0;
+    $('fill-label').textContent = 'Fill + cap, ' + u.toLocaleString('en-US') + ' u';
+    $('v-fill').textContent = fmt(fill);
+    $('v-mat').textContent = fmt(mat);
+    $('row-freight').hidden = !freightOn;
+    $('v-total').textContent = fmt(SETUP + fill + mat + freight);
+    const dateField = $('q-date').closest('.field');
+    const rush = $('q-date').value.trim() < RUSH_FLOOR;
+    dateField.classList.toggle('error', rush);
+    dateField.querySelector('.help').textContent = rush ? 'Inside the 10-day floor: needs a rush ruling.' : 'Inside the standard window.';
+    $('rush-badge').hidden = !rush;
+  }
+  ['q-units', 'q-date'].forEach((id) => $(id).addEventListener('input', recalc));
+  $('freight-toggle').addEventListener('change', recalc);
+  $('price-it').addEventListener('click', () => { recalc(); toast('Priced: every line carries provenance.'); });
+  $('save-draft').addEventListener('click', () => toast('Draft saved to the desk.'));
+  $('provenance').addEventListener('click', () => toast('4 sources attached · rate card v18, 3 vendor quotes.'));
+  $('issue').addEventListener('click', () => {
+    if ($('q-date').value.trim() < RUSH_FLOOR) { toast('Blocked: rush ruling still open.', 'err'); return; }
+    toast('Quote issued to ' + ($('q-client').value || 'the client') + '.');
+  });
+  document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-selected', x === b ? 'true' : 'false'));
+  }));
+  recalc();
+</script>
 </body>
 </html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Example: studio site</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../../tokens.css?v=red1">
+<link rel="stylesheet" href="../../components.css?v=red1">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.6; }
+  .crumb { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); font-size: 12.5px; color: var(--text-3); }
+  .crumb a { color: var(--text-2); text-decoration: none; font-family: var(--font-display); font-weight: var(--display-weight); }
+  .stop { color: var(--accent); }
+  .wrap { max-width: var(--container-content); margin: 0 auto; padding: 0 var(--s-5) var(--s-8); }
+  .hero { position: relative; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--hairline); min-height: 420px; display: flex; align-items: flex-end; }
+  .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero .veil { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, var(--bg) 100%); }
+  .hero .txt { position: relative; z-index: 2; padding: var(--s-6); }
+  .hero h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(34px, 5.5vw, 58px); letter-spacing: -0.025em; line-height: 1.05; max-width: 16ch; }
+  .hero p { color: var(--text-2); max-width: 46ch; padding-top: var(--s-3); }
+  section.blk { padding-top: var(--s-7); }
+  section.blk > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 22px; letter-spacing: -0.015em; padding-bottom: var(--s-4); }
+  .work { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-4); }
+  .proj { display: block; text-decoration: none; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--e-1); transition: transform var(--dur-1) var(--ease-standard); }
+  .proj:active { transform: translateY(1px); }
+  .proj img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .proj .cap { padding: var(--s-3) var(--s-4); display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
+  .proj .cap b { color: var(--text-1); font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 15px; }
+  .proj .cap span { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
+  .proj.hidden { display: none; }
+  .contact { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); flex-wrap: wrap; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-lg); padding: var(--s-5) var(--s-6); }
+  .contact b { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 20px; letter-spacing: -0.015em; }
+  footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); padding-top: var(--s-7); color: var(--text-3); font-size: 12.5px; }
+  .badge-line { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 13px; color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="crumb"><a href="../index.html">VERSEVA Design<span class="stop">.</span></a><span>examples</span><span>studio site</span></div>
+<div class="wrap">
+  <header class="hero">
+    <img src="assets/studio-hero.png" alt="Dark studio workspace lit by a red-accented interface">
+    <div class="veil"></div>
+    <div class="txt">
+      <h1>Foundry Nine builds quiet software<span class="stop">.</span></h1>
+      <p>A three-person studio shipping consoles, tools, and the occasional impossible request. Work below; the filter is real.</p>
+    </div>
+  </header>
+
+  <section class="blk">
+    <h2>Selected work</h2>
+    <div class="chiprow" id="tags">
+      <button class="fchip" type="button" aria-pressed="true" data-tag="all">All <span class="cnt">3</span></button>
+      <button class="fchip" type="button" aria-pressed="false" data-tag="motion">Motion</button>
+      <button class="fchip" type="button" aria-pressed="false" data-tag="glass">Glass</button>
+      <button class="fchip" type="button" aria-pressed="false" data-tag="particles">Particles</button>
+    </div>
+    <div class="work" id="work">
+      <a class="proj" href="#ribbon" data-tag="motion"><img src="assets/cover-ribbons.png" alt="Flowing dark glass ribbons with a red edge glow"><span class="cap"><b>Ribbonline</b><span>MOTION IDENT</span></span></a>
+      <a class="proj" href="#panels" data-tag="glass"><img src="assets/cover-panels.png" alt="Layered translucent panels with a red light seam"><span class="cap"><b>Seamwork</b><span>GLASS SYSTEM</span></span></a>
+      <a class="proj" href="#sphere" data-tag="particles"><img src="assets/cover-particles.png" alt="Particle sphere dissolving into red at one edge"><span class="cap"><b>Dissolve</b><span>PARTICLE STUDY</span></span></a>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="contact">
+      <b>One project a quarter. Yours?<span class="stop"></span></b>
+      <button class="btn btn-primary" type="button" id="contactbtn">Start the conversation</button>
+    </div>
+  </section>
+
+  <footer>
+    <span>Foundry Nine is fictional; this page is a VERSEVA Design example.</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+
+<div id="toastwrap"></div>
+<script>
+  document.getElementById('tags').addEventListener('click', (e) => {
+    const chip = e.target.closest('.fchip');
+    if (!chip) return;
+    document.querySelectorAll('#tags .fchip').forEach((c) => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+    const tag = chip.dataset.tag;
+    document.querySelectorAll('#work .proj').forEach((p) => {
+      p.classList.toggle('hidden', tag !== 'all' && p.dataset.tag !== tag);
+    });
+  });
+  document.getElementById('contactbtn').addEventListener('click', () => {
+    const wrap = document.getElementById('toastwrap');
+    wrap.replaceChildren();
+    const toast = document.createElement('div');
+    toast.className = 'toast ok';
+    toast.style.position = 'fixed';
+    toast.style.right = 'var(--s-5)';
+    toast.style.bottom = 'var(--s-5)';
+    toast.style.zIndex = '9';
+    toast.innerHTML = '<span class="dot"></span>Nine reads everything. Reply inside two days.';
+    wrap.append(toast);
+    setTimeout(() => toast.remove(), 2400);
+  });
+</script>
+</body>
+</html>

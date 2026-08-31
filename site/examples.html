@@ -3,12 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VERSEVA Design · Examples</title>
+<title>VERSEVA Design · Gallery</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
-<link rel="stylesheet" href="../tokens.css">
-<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="../tokens.css?v=red1">
+<link rel="stylesheet" href="../components.css?v=red1">
 <link rel="stylesheet" href="site.css">
+<style>
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--s-4); padding-top: var(--s-4); }
+  .skelstack { display: grid; gap: var(--s-2); }
+  .skel.w62 { width: 62%; }
+  .skel.w38 { width: 38%; }
+  .tapstat { cursor: pointer; }
+  .taprow { cursor: pointer; min-width: 210px; }
+  .gcard { display: block; text-decoration: none; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--e-1); transition: transform var(--dur-1) var(--ease-standard); }
+  .gcard:active { transform: translateY(1px); }
+  .gcard.hidden { display: none; }
+  .prevbox { display: block; aspect-ratio: 16 / 10; overflow: hidden; position: relative; background: var(--surface-2); border-bottom: 1px solid var(--hairline-soft); }
+  .gcap { display: block; }
+  .gcap .row, .gtags { display: flex; }
+  .prevbox iframe { width: 1280px; height: 800px; border: 0; pointer-events: none; transform-origin: 0 0; position: absolute; left: 0; top: 0; }
+  .gcap { padding: var(--s-3) var(--s-4); }
+  .gcap .row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
+  .gcap b { color: var(--text-1); font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 15px; }
+  .gcap .open { font-size: 12px; color: var(--accent); font-weight: 600; }
+  .gtags { display: flex; gap: 6px; flex-wrap: wrap; padding-top: var(--s-2); }
+  .gtag { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); background: var(--surface-2); border-radius: var(--r-pill); padding: 2px 8px; }
+  .spells { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--s-4); }
+  .spell { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-4); box-shadow: var(--e-1); display: grid; gap: var(--s-3); align-content: start; }
+  .spell .demo { background: var(--surface-2); border: 1px solid var(--hairline-soft); border-radius: var(--r-sm); padding: var(--s-4); display: flex; align-items: center; justify-content: center; gap: var(--s-3); min-height: 84px; flex-wrap: wrap; }
+  .bloomtab { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); border-radius: 16px; padding: var(--s-2) var(--s-4); cursor: pointer; font-size: 13px; font-weight: 600; transition: color var(--dur-2) var(--ease-standard); }
+  .bloomtab.on { color: var(--accent-on); background: var(--accent-bloom); box-shadow: var(--accent-active-glow); }
+</style>
 </head>
 <body>
 <div class="shell">
@@ -22,35 +48,79 @@
       <a href="docs-pdf.html">Docs + PDF</a>
       <a href="data-viz.html">Data viz</a>
       <a href="motion.html">Motion</a>
-      <a class="on" href="examples.html">Examples</a>
+      <a class="on" href="examples.html">Gallery</a>
     </nav>
     <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
   </header>
 
   <section class="hero">
-    <h1>Examples<span class="stop">.</span></h1>
+    <h1>The gallery<span class="stop">.</span></h1>
     <div class="chips">
-      <span class="chip">coded · pass all 4 gates</span>
-      <span class="chip">renders · illustrative only</span>
+      <span class="chip">6 live mock sites · every one interactive</span>
+      <span class="chip">all pass the 4-gate suite</span>
+      <span class="chip">assets generated on the palette</span>
     </div>
   </section>
 
   <section class="ch">
-    <h2>Coded interfaces</h2>
-    <div class="cardgrid">
-      <a class="chapcard" href="examples/console.html"><b>Ops console</b><span>Sidebar, stats, chart, table · dark</span></a>
-      <a class="chapcard" href="examples/landing.html"><b>Landing page</b><span>Hero, proof, stat band · light</span></a>
-      <a class="chapcard" href="examples/quote-tool.html"><b>Quote tool</b><span>Form, summary, states · dark</span></a>
+    <h2>Mock sites</h2>
+    <div class="chiprow" id="gfilter">
+      <button class="fchip" type="button" aria-pressed="true" data-f="all">All <span class="cnt">6</span></button>
+      <button class="fchip" type="button" aria-pressed="false" data-f="dark">Dark</button>
+      <button class="fchip" type="button" aria-pressed="false" data-f="light">Light</button>
+      <button class="fchip" type="button" aria-pressed="false" data-f="console">Console</button>
+      <button class="fchip" type="button" aria-pressed="false" data-f="tool">Tool</button>
+      <button class="fchip" type="button" aria-pressed="false" data-f="commerce">Commerce</button>
+      <button class="fchip" type="button" aria-pressed="false" data-f="portfolio">Portfolio</button>
+      <button class="fchip" type="button" aria-pressed="false" data-f="3d">3D</button>
+    </div>
+    <div class="gallery">
+      <a class="gcard" href="examples/three-hero.html" data-tags="dark 3d">
+        <span class="prevbox"><iframe src="examples/three-hero.html" loading="lazy" title="3D hero preview" tabindex="-1"></iframe></span>
+        <span class="gcap"><span class="row"><b>Signal Foundry · 3D hero</b><span class="open">Open</span></span><span class="gtags"><span class="gtag">three.js</span><span class="gtag">dark</span><span class="gtag">tokens at runtime</span></span></span>
+      </a>
+      <a class="gcard" href="examples/console.html" data-tags="dark console">
+        <span class="prevbox"><iframe src="examples/console.html" loading="lazy" title="Ops console preview" tabindex="-1"></iframe></span>
+        <span class="gcap"><span class="row"><b>Ops console</b><span class="open">Open</span></span><span class="gtags"><span class="gtag">live search</span><span class="gtag">sortable table</span><span class="gtag">dark</span></span></span>
+      </a>
+      <a class="gcard" href="examples/quote-tool.html" data-tags="dark tool">
+        <span class="prevbox"><iframe src="examples/quote-tool.html" loading="lazy" title="Quote tool preview" tabindex="-1"></iframe></span>
+        <span class="gcap"><span class="row"><b>Quote tool</b><span class="open">Open</span></span><span class="gtags"><span class="gtag">live recompute</span><span class="gtag">state machine</span><span class="gtag">dark</span></span></span>
+      </a>
+      <a class="gcard" href="examples/store.html" data-tags="light commerce">
+        <span class="prevbox"><iframe src="examples/store.html" loading="lazy" title="Storefront preview" tabindex="-1"></iframe></span>
+        <span class="gcap"><span class="row"><b>Redline Supply · storefront</b><span class="open">Open</span></span><span class="gtags"><span class="gtag">generated asset</span><span class="gtag">working cart</span><span class="gtag">light</span></span></span>
+      </a>
+      <a class="gcard" href="examples/studio.html" data-tags="dark portfolio">
+        <span class="prevbox"><iframe src="examples/studio.html" loading="lazy" title="Studio site preview" tabindex="-1"></iframe></span>
+        <span class="gcap"><span class="row"><b>Foundry Nine · studio</b><span class="open">Open</span></span><span class="gtags"><span class="gtag">generated covers</span><span class="gtag">tag filter</span><span class="gtag">dark</span></span></span>
+      </a>
+      <a class="gcard" href="examples/landing.html" data-tags="light landing">
+        <span class="prevbox"><iframe src="examples/landing.html" loading="lazy" title="Landing page preview" tabindex="-1"></iframe></span>
+        <span class="gcap"><span class="row"><b>Ledgerline · landing</b><span class="open">Open</span></span><span class="gtags"><span class="gtag">working modal</span><span class="gtag">validation</span><span class="gtag">light</span></span></span>
+      </a>
     </div>
   </section>
 
   <section class="ch">
-    <h2>Concept renders</h2>
+    <h2>Details</h2>
+    <div class="spells">
+      <div class="spell"><span class="speclabel">press physics · law 8</span><div class="demo"><button class="btn btn-primary" type="button">Hold me down</button><button class="btn btn-secondary" type="button">Me too</button></div></div>
+      <div class="spell"><span class="speclabel">accent bloom · named device</span><div class="demo"><span class="bloomtab" id="bloom-a">Overview</span><span class="bloomtab on" id="bloom-b">Quotes</span></div></div>
+      <div class="spell"><span class="speclabel">count-up stat · tap to rerun</span><div class="demo"><div class="stat tapstat" id="countstat"><div class="num" id="countnum">2,481</div><div class="lbl">Quotes priced</div></div></div></div>
+      <div class="spell"><span class="speclabel">skeleton to loaded · tap to reload</span><div class="demo"><div class="lrows taprow" id="skelrow"><div class="lrow"><span class="avc">KW</span><span class="tx"><b>Quote 2081 verified</b><span class="metaline">2 minutes ago</span></span></div></div></div></div>
+      <div class="spell"><span class="speclabel">toast choreography</span><div class="demo"><button class="btn btn-secondary" type="button" id="toastdemo">Trigger a toast</button></div></div>
+      <div class="spell"><span class="speclabel">switch · state color carries a word</span><div class="demo"><label class="sel switch-wrap"><input class="sw" type="checkbox" checked id="switchdemo"><span class="switch"></span><span id="switchword">Provenance on</span></label></div></div>
+    </div>
+  </section>
+
+  <section class="ch">
+    <h2>Inspiration shots</h2>
     <div class="rendergrid">
-      <figure class="render"><img src="examples/renders/console-dark.png" alt="Concept render: dark ops console on the signature" loading="lazy"><figcaption>Ops console</figcaption></figure>
-      <figure class="render"><img src="examples/renders/landing-light.png" alt="Concept render: light landing page on the signature" loading="lazy"><figcaption>Landing page</figcaption></figure>
-      <figure class="render"><img src="examples/renders/quote-tool-dark.png" alt="Concept render: dark quoting tool on the signature" loading="lazy"><figcaption>Quote tool</figcaption></figure>
-      <figure class="render"><img src="examples/renders/mobile-dark.png" alt="Concept render: mobile app screens with the navshell" loading="lazy"><figcaption>Mobile app</figcaption></figure>
+      <figure class="render"><img src="examples/renders/console-dark.png" alt="Concept render: dark ops console" loading="lazy"><figcaption>concept · not code</figcaption></figure>
+      <figure class="render"><img src="examples/renders/landing-light.png" alt="Concept render: light landing page" loading="lazy"><figcaption>concept · not code</figcaption></figure>
+      <figure class="render"><img src="examples/renders/quote-tool-dark.png" alt="Concept render: dark quoting tool" loading="lazy"><figcaption>concept · not code</figcaption></figure>
+      <figure class="render"><img src="examples/renders/mobile-dark.png" alt="Concept render: mobile app screens" loading="lazy"><figcaption>concept · not code</figcaption></figure>
     </div>
   </section>
 
@@ -63,6 +133,82 @@
   document.getElementById('themeflip').addEventListener('click', () => {
     const r = document.documentElement;
     r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  });
+
+  const scalePreviews = () => {
+    document.querySelectorAll('.prevbox iframe').forEach((f) => {
+      f.style.transform = 'scale(' + f.parentElement.clientWidth / 1280 + ')';
+    });
+  };
+  addEventListener('resize', scalePreviews);
+  scalePreviews();
+
+  document.getElementById('gfilter').addEventListener('click', (e) => {
+    const chip = e.target.closest('.fchip');
+    if (!chip) return;
+    document.querySelectorAll('#gfilter .fchip').forEach((c) => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+    const f = chip.dataset.f;
+    document.querySelectorAll('.gallery .gcard').forEach((card) => {
+      card.classList.toggle('hidden', f !== 'all' && !card.dataset.tags.split(' ').includes(f));
+    });
+    scalePreviews();
+  });
+
+  [['bloom-a', 'bloom-b'], ['bloom-b', 'bloom-a']].forEach(([self, other]) => {
+    document.getElementById(self).addEventListener('click', () => {
+      document.getElementById(self).classList.add('on');
+      document.getElementById(other).classList.remove('on');
+    });
+  });
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const countTo = (el, n) => {
+    if (reduced) { el.textContent = n.toLocaleString('en-US'); return; }
+    let cur = 0;
+    const step = Math.max(1, Math.round(n / 30));
+    const tick = () => {
+      cur = Math.min(n, cur + step);
+      el.textContent = cur.toLocaleString('en-US');
+      if (cur < n) requestAnimationFrame(tick);
+    };
+    tick();
+  };
+  const countnum = document.getElementById('countnum');
+  document.getElementById('countstat').addEventListener('click', () => countTo(countnum, 2481));
+  countTo(countnum, 2481);
+
+  const skelrow = document.getElementById('skelrow');
+  const realRow = skelrow.innerHTML;
+  const showSkeleton = () => {
+    skelrow.innerHTML = '<div class="lrow"><span class="avc"></span><span class="tx skelstack"><span class="skel w62"></span><span class="skel w38"></span></span></div>';
+    setTimeout(() => { skelrow.innerHTML = realRow; }, 1100);
+  };
+  skelrow.addEventListener('click', showSkeleton);
+  showSkeleton();
+
+  document.getElementById('toastdemo').addEventListener('click', () => {
+    let wrap = document.getElementById('toastwrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'toastwrap';
+      document.body.append(wrap);
+    }
+    wrap.replaceChildren();
+    const t = document.createElement('div');
+    t.className = 'toast ok';
+    t.style.position = 'fixed';
+    t.style.right = 'var(--s-5)';
+    t.style.bottom = 'var(--s-5)';
+    t.style.zIndex = '9';
+    t.innerHTML = '<span class="dot"></span>Saved. The word does the work; the dot just nods.';
+    wrap.append(t);
+    setTimeout(() => t.remove(), 2200);
+  });
+
+  const switchdemo = document.getElementById('switchdemo');
+  const switchword = document.getElementById('switchword');
+  switchdemo.addEventListener('change', () => {
+    switchword.textContent = switchdemo.checked ? 'Provenance on' : 'Provenance off';
   });
 </script>
 </body>
