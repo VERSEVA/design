@@ -3,3 +3,5 @@ board/_themes/
 board/theme-manifest.json
 .claude/
 .DS_Store
+.vercel
+.env*
