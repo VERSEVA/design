@@ -64,7 +64,9 @@
     fetch(file, { cache: 'no-store' })
       .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
       .then((t) => { code.textContent = t; })
-      .catch(() => { code.textContent = 'Could not load ' + file + '.'; });
+      .catch(() => {
+        code.textContent = 'Could not load ' + file + '. The source viewer needs the site served over http (it fetches the file); opening code.html straight from disk, or with the dev server down, lands here. The live page itself still opens from the button above.';
+      });
   }
   document.getElementById('copysrc').addEventListener('click', async (e) => {
     try {
