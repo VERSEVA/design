@@ -6,7 +6,7 @@ only as tools for pre-release drafts.
 
 The site is static: `site/*.html` consuming `../tokens.css` and `../components.css` by
 relative link (the board's no-drift pattern). Deploy the REPO ROOT as the static output so
-those links resolve; `/` rewrites to `/site/index.html`.
+those links resolve; `/` rewrites to `/site` (extensionless: cleanUrls strips `.html` routes, so a rewrite aimed at `index.html` dead-ends in a 404).
 
 ## Steps (Xhunn: 1 and 4 are yours; they need the domain purchase and Vercel auth)
 
@@ -18,7 +18,7 @@ those links resolve; `/` rewrites to `/site/index.html`.
 ```json
 {
   "cleanUrls": true,
-  "rewrites": [{ "source": "/", "destination": "/site/index.html" }]
+  "rewrites": [{ "source": "/", "destination": "/site" }]
 }
 ```
 
