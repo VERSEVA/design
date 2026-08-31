@@ -1,15 +1,11 @@
-# Publishes @verseva/design to GitHub Packages on every published release.
+# Publishes @verseva/design to the PUBLIC npm registry on every published
+# release (open-source ruling, 2026-08-31; v1.0.0 is the first public cut).
 #
-# The npm scope must match the repo owner on GitHub Packages; this repo lives
-# under the VERSEVA org (logins are case-insensitive; the scope is @verseva),
-# so publishing is live. The guard below is a safety net that skips cleanly if
-# the repo is ever forked or moved to a non-matching owner.
+# Requires the NPM_TOKEN repo secret: an npmjs automation token with publish
+# rights on the @verseva org.
 #
-# Consumers, once live:
-#   .npmrc      @verseva:registry=https://npm.pkg.github.com
-#               //npm.pkg.github.com/:_authToken=${NPM_TOKEN}
-#   package.json  "@verseva/design": "^0.1.1"
-#   Vercel: set NPM_TOKEN (a read:packages token) in project env.
+# Consumers:
+#   npm i @verseva/design
 name: publish
 on:
   release:
@@ -17,28 +13,17 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  packages: write
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Guard, scope must match owner
-        id: guard
-        run: |
-          owner=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
-          if [ "$owner" != "verseva" ]; then
-            echo "repo owner is ${GITHUB_REPOSITORY_OWNER}, scope is @verseva: skipping publish"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
       - uses: actions/setup-node@v4
-        if: steps.guard.outputs.skip != 'true'
         with:
           node-version: 22
-          registry-url: https://npm.pkg.github.com
+          registry-url: https://registry.npmjs.org
       - run: npm test
-        if: steps.guard.outputs.skip != 'true'
-      - run: npm publish
-        if: steps.guard.outputs.skip != 'true'
+      - run: npm run gate
+      - run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -21,8 +21,21 @@ section.ch { padding-top: var(--s-7); }
 section.ch > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 22px; letter-spacing: -0.015em; padding-bottom: var(--s-4); }
 
 .cardgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-4); }
-.chapcard { display: block; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-5); text-decoration: none; box-shadow: var(--e-1); transition: transform var(--dur-1) var(--ease-standard); }
+.chapcard { display: block; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-5); text-decoration: none; box-shadow: var(--e-1); transition: transform var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard); }
+.chapcard:hover { transform: translateY(-2px); box-shadow: var(--e-2); border-color: var(--hairline-strong); }
 .chapcard:active { transform: translateY(1px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero h1, .hero .chips { animation: rise 0.55s var(--ease-entrance) backwards; }
+  .hero .chips { animation-delay: 0.08s; }
+  .cardgrid > *, .gallery > *, .spells > * { animation: rise 0.5s var(--ease-entrance) backwards; }
+  .cardgrid > *:nth-child(2), .gallery > *:nth-child(2), .spells > *:nth-child(2) { animation-delay: 0.05s; }
+  .cardgrid > *:nth-child(3), .gallery > *:nth-child(3), .spells > *:nth-child(3) { animation-delay: 0.1s; }
+  .cardgrid > *:nth-child(4), .gallery > *:nth-child(4), .spells > *:nth-child(4) { animation-delay: 0.15s; }
+  .cardgrid > *:nth-child(5), .gallery > *:nth-child(5), .spells > *:nth-child(5) { animation-delay: 0.2s; }
+  .cardgrid > *:nth-child(6), .gallery > *:nth-child(6), .spells > *:nth-child(6) { animation-delay: 0.25s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+}
 .chapcard b { display: block; font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 16px; letter-spacing: -0.01em; color: var(--text-1); }
 .chapcard span { display: block; font-size: 12.5px; color: var(--text-3); padding-top: var(--s-1); }
 
@@ -73,6 +86,10 @@ pre.cmd { font-family: var(--font-mono); font-size: 12.5px; background: var(--su
 
 .gap-tight { display: grid; gap: var(--s-3); }
 .pad-top { padding-top: var(--s-4); }
+
+.skelstack { display: grid; gap: var(--s-2); }
+.skel.w62 { width: 62%; }
+.skel.w38 { width: 38%; }
 
 .rendergrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--s-4); }
 .render { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--e-1); }

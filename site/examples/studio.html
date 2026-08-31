@@ -23,6 +23,11 @@
   .hero p { color: var(--text-2); max-width: 46ch; padding-top: var(--s-3); }
   section.blk { padding-top: var(--s-7); }
   section.blk > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 22px; letter-spacing: -0.015em; padding-bottom: var(--s-4); }
+  .blk .chiprow { padding-bottom: var(--s-4); }
+  @media (prefers-reduced-motion: no-preference) {
+    .proj img { transition: transform var(--dur-3) var(--ease-standard); }
+    .proj:hover img { transform: scale(1.03); }
+  }
   .work { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-4); }
   .proj { display: block; text-decoration: none; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--e-1); transition: transform var(--dur-1) var(--ease-standard); }
   .proj:active { transform: translateY(1px); }

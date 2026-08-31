@@ -1,14 +1,14 @@
 {
   "name": "@verseva/design",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "VERSEVA Design: the signature tokens, component contract, Tailwind bridge, and the four-gate enforcement suite (hex, contrast, spacing, type).",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/verseva/design.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "type": "module",
   "exports": {
@@ -31,7 +31,10 @@
     "tailwind.css",
     "tailwind.preset.cjs",
     "bin",
-    "docs"
+    "docs",
+    "templates",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs",

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design · Components</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../tokens.css?v=red1">
+<link rel="stylesheet" href="../components.css?v=red1">
+<link rel="stylesheet" href="site.css">
+<style>
+  .comp { padding-top: var(--s-7); }
+  .comp > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; padding-bottom: var(--s-3); }
+  .comp .note { font-size: 13px; color: var(--text-3); padding-bottom: var(--s-3); max-width: 62ch; }
+  .demo { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s-5); display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: flex-start; }
+  .codewrap { position: relative; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); }
+  .codewrap pre { margin: 0; padding: var(--s-4) var(--s-5); overflow-x: auto; }
+  .codewrap code { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-2); }
+  .copybtn { position: absolute; top: var(--s-2); right: var(--s-2); }
+  .phoneframe { position: relative; width: 320px; height: 300px; background: var(--bg); border: 1px solid var(--hairline-strong); border-radius: 26px; overflow: hidden; }
+  .phoneframe .navshell { display: flex; position: absolute; }
+  .toc { display: flex; flex-wrap: wrap; gap: var(--s-2); padding-top: var(--s-4); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">VERSEVA Design<span class="stop">.</span></a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="web-ui.html">Web app UI</a>
+      <a class="on" href="components.html">Components</a>
+      <a href="decks.html">Decks</a>
+      <a href="docs-pdf.html">Docs + PDF</a>
+      <a href="data-viz.html">Data viz</a>
+      <a href="motion.html">Motion</a>
+      <a href="examples.html">Gallery</a>
+    </nav>
+    <button class="btn btn-ghost sm" id="themeflip" type="button">Theme</button>
+  </header>
+
+  <section class="hero">
+    <h1>Components<span class="stop">.</span></h1>
+    <div class="chips">
+      <span class="chip">live specimen + copy the code</span>
+      <span class="chip">snippets extracted from the specimens</span>
+      <span class="chip">every contract state ships</span>
+    </div>
+    <div class="toc">
+      <a class="fchip" href="#install">Install</a><a class="fchip" href="#button">Button</a><a class="fchip" href="#field">Field</a><a class="fchip" href="#switch">Switch</a><a class="fchip" href="#card">Card</a><a class="fchip" href="#badge">Badge</a><a class="fchip" href="#toast">Toast</a><a class="fchip" href="#modal">Modal</a><a class="fchip" href="#table">Table</a><a class="fchip" href="#stat">Stat</a><a class="fchip" href="#chart">Chart</a><a class="fchip" href="#seg">Segmented</a><a class="fchip" href="#fchip">Filter chips</a><a class="fchip" href="#search">Search</a><a class="fchip" href="#rows">List rows</a><a class="fchip" href="#skeleton">Skeleton</a><a class="fchip" href="#topnav">Top nav</a><a class="fchip" href="#sidenav">Console nav</a><a class="fchip" href="#sheet">Sheet</a><a class="fchip" href="#navshell">Navshell</a>
+    </div>
+  </section>
+
+  <section class="comp" id="install">
+    <h2>Install</h2>
+    <p class="note">Two files, no build step. Tailwind users take the bridge instead; either way the gate suite runs on your build.</p>
+    <div class="demo"><span class="badge ok">npm i @verseva/design</span><span class="badge neutral">or vendor the two css files</span></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code id="install-code">&lt;link rel="stylesheet" href="node_modules/@verseva/design/tokens.css"&gt;
+&lt;link rel="stylesheet" href="node_modules/@verseva/design/components.css"&gt;
+
+&lt;!-- consumer surfaces boot light (law 9): --&gt;
+&lt;html data-theme="light"&gt;
+
+&lt;!-- enforce before you ship: --&gt;
+npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src</code></pre></div>
+  </section>
+
+  <section class="comp" id="button">
+    <h2>Button</h2>
+    <p class="note">Equal-sized pairs; the fill says which leads (law 8). Press sits the control down 1px. All states ship or it's unfinished.</p>
+    <div class="demo"><div class="specimen">
+      <button class="btn btn-primary" type="button">Primary</button>
+      <button class="btn btn-secondary" type="button">Secondary</button>
+      <button class="btn btn-ghost" type="button">Ghost</button>
+      <button class="btn btn-destructive" type="button">Delete</button>
+      <button class="btn btn-primary sm" type="button">Small</button>
+      <button class="btn btn-primary lg" type="button">Large</button>
+      <button class="btn btn-primary" type="button" disabled>Disabled</button>
+      <button class="btn btn-secondary" type="button"><span class="spinner"></span>Working</button>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="field">
+    <h2>Field</h2>
+    <p class="note">Label, input, quiet help line. The error state recolors the border and the help, and says how to fix it.</p>
+    <div class="demo"><div class="specimen">
+      <div class="field">
+        <label for="doc-client">Client</label>
+        <input id="doc-client" placeholder="Acme Bottling">
+        <div class="help">As it appears on the quote.</div>
+      </div>
+      <div class="field error">
+        <label for="doc-email">Work email</label>
+        <input id="doc-email" value="not-an-email">
+        <div class="help">Enter a work email first.</div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="switch">
+    <h2>Checkbox + switch</h2>
+    <p class="note">The word carries the state; the color only agrees with it (law 10).</p>
+    <div class="demo"><div class="specimen">
+      <label class="sel"><input type="checkbox" checked>Include freight</label>
+      <label class="sel switch-wrap"><input class="sw" type="checkbox" checked><span class="switch"></span>Provenance on</label>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="card">
+    <h2>Card</h2>
+    <p class="note">Product card at --r-md (law 7). Header divides, footer holds the actions, right-aligned.</p>
+    <div class="demo"><div class="specimen">
+      <div class="card">
+        <div class="hd"><h4>Quote 2081</h4></div>
+        <div class="bd">Provenance complete. Ready for review.</div>
+        <div class="ft"><button class="btn btn-secondary sm" type="button">Open</button><button class="btn btn-primary sm" type="button">Approve</button></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="badge">
+    <h2>Badge</h2>
+    <p class="note">Always a word, never a dot alone. Small text on tints still clears 4.5:1.</p>
+    <div class="demo"><div class="specimen">
+      <span class="badge ok">Verified</span>
+      <span class="badge warn">2 pending</span>
+      <span class="badge err">1 failing</span>
+      <span class="badge neutral">Draft</span>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="toast">
+    <h2>Toast</h2>
+    <p class="note">One at a time, bottom-right, gone in about two seconds. The word does the work; the dot just nods.</p>
+    <div class="demo"><div class="specimen">
+      <div class="toast ok"><span class="dot"></span>Quote issued to Northline Foods.<button type="button">×</button></div>
+      <div class="toast err"><span class="dot"></span>Blocked: rush ruling still open.<button type="button">×</button></div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="modal">
+    <h2>Modal</h2>
+    <p class="note">At --r-lg (law 7). The overlay is yours; the modal is the contract's. Cancel never sits primary.</p>
+    <div class="demo"><div class="specimen">
+      <div class="modal">
+        <div class="bd">
+          <h4>Issue quote 2081?</h4>
+          <p>Every line carries provenance. This sends it to the client.</p>
+        </div>
+        <div class="ft"><button class="btn btn-ghost" type="button">Cancel</button><button class="btn btn-primary" type="button">Issue quote</button></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="table">
+    <h2>Table</h2>
+    <p class="note">Mono uppercase headers, hairline row splits, .num for tabular right-aligned figures.</p>
+    <div class="demo"><div class="specimen">
+      <table class="table">
+        <thead><tr><th>Quote</th><th>Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Q-2081</td><td>Northline Foods</td><td><span class="badge ok">Verified</span></td><td class="num">48,220.00</td></tr>
+          <tr><td>Q-2080</td><td>Harbor Botanics</td><td><span class="badge warn">Pending</span></td><td class="num">12,940.00</td></tr>
+        </tbody>
+      </table>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="stat">
+    <h2>Stat tile</h2>
+    <p class="note">Display-face numerals, quiet label under. The accent italic carries a unit, not emphasis.</p>
+    <div class="demo"><div class="specimen">
+      <div class="statrow">
+        <div class="stat"><div class="num">18</div><div class="lbl">Open quotes</div></div>
+        <div class="stat"><div class="num">4.4<i>ms</i></div><div class="lbl">p95 response</div></div>
+        <div class="stat"><div class="num">97<i>%</i></div><div class="lbl">Provenance complete</div></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="chart">
+    <h2>Chart card</h2>
+    <p class="note">Single-hue magnitude, mono microlabels, and the takeaway caption is mandatory: label the meaning, not the axis.</p>
+    <div class="demo"><div class="specimen">
+      <div class="chartcard">
+        <h4>Quotes closed</h4>
+        <div class="sub">Last 4 weeks</div>
+        <div class="bars">
+          <div class="bar"><div class="fill" style="height:40%"></div><span class="mlab">W1</span></div>
+          <div class="bar"><div class="fill" style="height:55%"></div><span class="mlab">W2</span></div>
+          <div class="bar"><div class="fill" style="height:78%"></div><span class="mlab">W3</span></div>
+          <div class="bar"><div class="fill" style="height:100%"></div><span class="mlab">W4</span></div>
+        </div>
+        <div class="takeaway">Throughput doubled after the provenance sweep.</div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="seg">
+    <h2>Segmented control</h2>
+    <p class="note">One selected at all times; aria-selected carries it.</p>
+    <div class="demo"><div class="specimen">
+      <div class="seg"><button type="button" aria-selected="true">Week</button><button type="button" aria-selected="false">Month</button><button type="button" aria-selected="false">Quarter</button></div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="fchip">
+    <h2>Filter chips</h2>
+    <p class="note">Multi-select filters with counts; aria-pressed carries the state.</p>
+    <div class="demo"><div class="specimen">
+      <div class="chiprow">
+        <button class="fchip" type="button" aria-pressed="true">All <span class="cnt">6</span></button>
+        <button class="fchip" type="button" aria-pressed="false">Dark</button>
+        <button class="fchip" type="button" aria-pressed="false">Light</button>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="search">
+    <h2>Search</h2>
+    <p class="note">The kbd hint is a machine artifact, so it's mono.</p>
+    <div class="demo"><div class="specimen">
+      <div class="searchbox"><input placeholder="Search quotes, clients"><kbd>/</kbd></div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="rows">
+    <h2>List rows + identity</h2>
+    <p class="note">The identity pattern: initials avatar, bold name over quiet meta, value right in tabular figures.</p>
+    <div class="demo"><div class="specimen">
+      <div class="lrows">
+        <div class="lrow"><span class="avc">KW</span><span class="tx"><b>Quote 2081 verified</b><span class="metaline">2 minutes ago</span></span><span class="val">48,220.00</span></div>
+        <div class="lrow"><span class="avc">MR</span><span class="tx"><b>Machine 12 recalibrated</b><span class="metaline">1 hour ago</span></span><span class="badge neutral">Logged</span></div>
+      </div>
+      <div class="avstack"><span class="avc">KW</span><span class="avc">MR</span><span class="avc">+3</span></div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="skeleton">
+    <h2>Skeleton</h2>
+    <p class="note">Loading is a state of the real layout, not a spinner page. Skeleton bars mirror what will load.</p>
+    <div class="demo"><div class="specimen">
+      <div class="lrows" aria-hidden="true">
+        <div class="lrow"><span class="avc"></span><span class="tx skelstack"><span class="skel w62"></span><span class="skel w38"></span></span></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="topnav">
+    <h2>Top navigation</h2>
+    <p class="note">The active link carries weight and a 2px accent underline; everything else stays quiet.</p>
+    <div class="demo"><div class="specimen">
+      <div class="topnav">
+        <nav><a class="active" href="#overview">Overview</a><a href="#quotes">Quotes</a><a href="#clients">Clients</a></nav>
+        <button class="btn btn-primary sm" type="button">New quote</button>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="sidenav">
+    <h2>Console navigation</h2>
+    <p class="note">Org chip, mono group labels, rows with count chips. The active row takes the accent tint, not a hairline.</p>
+    <div class="demo"><div class="specimen">
+      <div class="orgchip"><span class="sq">AC</span><span><b>Acme Console</b><small>production</small></span></div>
+      <div>
+        <div class="grouplabel">Operate</div>
+        <nav class="snav">
+          <a class="active" href="#overview">Overview <span class="cnt">4</span></a>
+          <a href="#quotes">Quotes <span class="cnt">18</span></a>
+        </nav>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="sheet">
+    <h2>Sheet</h2>
+    <p class="note">Mobile bottom sheet: 26px top corners, grab handle, full-width paired actions.</p>
+    <div class="demo"><div class="specimen">
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="bd"><h4>Issue quote 2081?</h4><p>Every line carries provenance.</p></div>
+        <div class="ft"><button class="btn btn-secondary" type="button">Cancel</button><button class="btn btn-primary" type="button">Issue</button></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="navshell">
+    <h2>Navshell</h2>
+    <p class="note">The signature's most particular component: copy it verbatim, substitute only theme values (law 12). Ships position: fixed and mobile-only; this demo pins it inside a frame.</p>
+    <div class="demo">
+      <div class="phoneframe"><div class="specimen">
+      <div class="navshell">
+        <div class="navmain">
+          <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/></svg><span>Overview</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="3"/></svg><span>Quotes</span></div>
+          <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18 L10 10 L14 14 L20 6"/></svg><span>Trends</span></div>
+        </div>
+      </div>
+      </div></div>
+    </div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <footer class="site">
+    <span>VERSEVA · open source · MIT</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</div>
+<script>
+  document.getElementById('themeflip').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'light' ? '' : 'light';
+  });
+
+  const dedent = (html) => {
+    const lines = html.replace(/^\n+|\s+$/g, '').split('\n');
+    const indents = lines.filter((l) => l.trim()).map((l) => l.match(/^\s*/)[0].length);
+    const min = Math.min(...indents);
+    return lines.map((l) => l.slice(min)).join('\n');
+  };
+  document.querySelectorAll('.comp').forEach((comp) => {
+    const spec = comp.querySelector('.specimen');
+    const code = comp.querySelector('.codewrap code');
+    if (spec && code && !code.textContent.trim()) code.textContent = dedent(spec.innerHTML);
+  });
+  document.querySelectorAll('.copybtn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const code = btn.parentElement.querySelector('code');
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+        btn.textContent = 'Copied';
+      } catch (e) {
+        btn.textContent = 'Select + copy';
+      }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+    });
+  });
+</script>
+</body>
+</html>

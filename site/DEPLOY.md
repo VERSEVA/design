@@ -1,4 +1,8 @@
-# verseva.design · deploy + gating
+# verseva.design · deploy
+
+**Ruled OPEN 2026-08-31** (supersedes the same-day gated ruling): the package is MIT and
+public, and this docs + gallery site ships public with it. The gating options below stay
+only as tools for pre-release drafts.
 
 The site is static: `site/*.html` consuming `../tokens.css` and `../components.css` by
 relative link (the board's no-drift pattern). Deploy the REPO ROOT as the static output so

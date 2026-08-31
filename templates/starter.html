@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starter</title>
+<!-- From npm, swap the two hrefs for:
+     node_modules/@verseva/design/tokens.css
+     node_modules/@verseva/design/components.css
+     Consumer surfaces boot light (law 9); delete data-theme="light" for dark. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.6; }
+  .page { max-width: var(--container-content); margin: 0 auto; padding: var(--s-8) var(--s-5) var(--s-9); }
+  h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(32px, 5vw, 48px); letter-spacing: -0.025em; line-height: 1.08; }
+  .stop { color: var(--accent); }
+  .lede { color: var(--text-2); max-width: 56ch; padding-top: var(--s-4); }
+  .actions { display: flex; gap: var(--s-3); padding-top: var(--s-5); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-4); padding-top: var(--s-7); }
+  footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); padding-top: var(--s-8); color: var(--text-3); font-size: 12.5px; }
+  .badge-line { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 13px; color: var(--text-2); }
+</style>
+</head>
+<body>
+<main class="page">
+  <span class="badge ok">You're on the signature</span>
+  <h1>Say the one true thing<span class="stop">.</span></h1>
+  <p class="lede">Delete this copy, keep the bones: one accent spent on the primary action, body type for humans, space from the scale, and the gate run before you ship.</p>
+  <div class="actions">
+    <button class="btn btn-primary" type="button">Primary action</button>
+    <button class="btn btn-secondary" type="button">Second path</button>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="hd"><h4>First card</h4></div><div class="bd">Product cards sit at 14px radius. Header divides; footer acts.</div></div>
+    <div class="card"><div class="hd"><h4>Second card</h4></div><div class="bd">Status is a word on a tint, never a dot alone.</div></div>
+    <div class="card"><div class="hd"><h4>Third card</h4></div><div class="bd">Run <code style="font-family: var(--font-mono); font-size: 12.5px">npx verseva-gate</code> before anything ships.</div></div>
+  </div>
+  <footer>
+    <span>Your name here</span>
+    <span class="badge-line">Built on VERSEVA Design<span class="stop">.</span></span>
+  </footer>
+</main>
+</body>
+</html>
