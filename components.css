@@ -340,14 +340,16 @@
 .actstrip i[data-l="3"],.actcal i[data-l="3"]{background:var(--data-3)}
 .actstrip i.today,.actcal i.today{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 28%,transparent)}
 
-/* Ring (the UFITRA pattern): rotate the svg, overlay the number */
-.ring{position:relative;display:inline-grid;place-items:center}
-.ring svg{transform:rotate(-90deg)}
+/* Ring (the UFITRA pattern): rotate the svg, number inside the dial, label BELOW it
+   (the label can be wider than the dial's clear center, so it never lives inside) */
+.ring{display:inline-flex;flex-direction:column;align-items:center;gap:6px}
+.ring .rdial{position:relative;display:inline-grid;place-items:center}
+.ring .rdial svg{display:block;transform:rotate(-90deg)}
 .ring .ringtrack{fill:none;stroke:var(--data-0);stroke-width:6}
 .ring .ringfill{fill:none;stroke:var(--data-3);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset var(--dur-4) var(--ease-standard)}
 .ring .rv{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
 .ring .rv b{font-family:var(--font-display);font-weight:var(--display-weight);font-variant-numeric:tabular-nums;font-size:18px;line-height:1}
-.ring .rv small{font-family:var(--font-mono);font-size:9.5px;color:var(--text-3);letter-spacing:.04em}
+.ring .rlbl{font-family:var(--font-mono);font-size:9.5px;color:var(--text-3);letter-spacing:.04em}
 
 /* Mini state strip (the gate-squares pattern): word+glyph carried in title/aria */
 .markstrip{display:inline-flex;gap:3px}

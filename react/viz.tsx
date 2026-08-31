@@ -217,12 +217,15 @@ export function Ring({ value, center, sub, size = 74, className }: RingProps) {
   const c = 2 * Math.PI * r;
   return (
     <span className={cx('ring', className)} role="img" aria-label={`${center}${sub ? ` ${sub}` : ''}: ${value}%`}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle className="ringtrack" cx={size / 2} cy={size / 2} r={r} />
-        <circle className="ringfill" cx={size / 2} cy={size / 2} r={r}
-          strokeDasharray={c.toFixed(1)} strokeDashoffset={(c * (1 - value / 100)).toFixed(1)} />
-      </svg>
-      <span className="rv"><b>{center}</b>{sub && <small>{sub}</small>}</span>
+      <span className="rdial">
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <circle className="ringtrack" cx={size / 2} cy={size / 2} r={r} />
+          <circle className="ringfill" cx={size / 2} cy={size / 2} r={r}
+            strokeDasharray={c.toFixed(1)} strokeDashoffset={(c * (1 - value / 100)).toFixed(1)} />
+        </svg>
+        <span className="rv"><b>{center}</b></span>
+      </span>
+      {sub && <small className="rlbl">{sub}</small>}
     </span>
   );
 }
