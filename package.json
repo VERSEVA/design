@@ -34,6 +34,7 @@
     "tailwind.preset.cjs",
     "bin",
     "docs",
+    "!docs/media",
     "templates",
     "react",
     "blocks",
