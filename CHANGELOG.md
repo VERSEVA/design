@@ -60,7 +60,7 @@ The open release. VERSEVA Design goes MIT and public.
 - **`verseva-mcp`.** A zero-dependency stdio MCP server (`npx verseva mcp init`
   wires Claude, Cursor, or VS Code): agents list the registry, read component
   source, read tokens and laws, install components, and run the full gate suite
-  via `run_gate` to prove their output — the tool no other design system ships.
+  via `run_gate` to prove their output, the tool no other design system ships.
 - **Theme presets.** `cobalt`, `forest`, `violet`, `slate`: accent-axis presets,
   each contrast-gate proven across all four theme axes (64 pairs), installed via
   `npx verseva theme add <name>`.

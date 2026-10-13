@@ -11,7 +11,7 @@ those links resolve; the whole site answers at the ROOT of the domain (a catch-a
 ## Steps (Xhunn: 1 and 4 are yours; they need the domain purchase and Vercel auth)
 
 1. **Domain**: `design.verseva.com` is a subdomain of verseva.com, which VERSEVA already
-   owns — nothing to buy, just the DNS record in step 4.
+   owns, nothing to buy, just the DNS record in step 4.
 2. **Vercel project**: `vercel link` in the repo, framework preset "Other", no build step,
    output directory `.` (repo root). Add `vercel.json`:
 

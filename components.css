@@ -162,8 +162,7 @@
    DARK inverted. Sub-sections of a tab NEVER stack a second tier on the
    shell: they live at the top of the tab's own content as a .seg or .fchip
    row. Deployment: position:fixed, insets 14px sides / 18px bottom.
-   (v1's two-tier .navsub + active flex-growth are retired; the historical
-   port source remains ufitra-experience.html, superseded by this ruling.) ---- */
+   (v1's two-tier .navsub + active flex-growth are retired.) ---- */
 .navshell{position:fixed;left:14px;right:14px;bottom:18px;z-index:14;display:flex;flex-direction:column;
   padding:var(--nav-gap);
   background:linear-gradient(var(--nav-frame),var(--nav-frame)), var(--glass-fill-3);
@@ -308,7 +307,7 @@
 .acc .accbody{padding:0 var(--s-4) var(--s-4);color:var(--text-2);font-size:13.5px}
 
 /* ---- Data-viz kit (synthesized 2026-08-31 from the portfolio's shipped
-   viz: Spectre, the NEMIXO console, the UFITRA reference mockups).
+   viz: Spectre and the NEMIXO console).
    Doctrine carried in the classes: numbers ON the marks (no gridline
    forests; an axis is one hairline at most), denominator-first stats,
    deltas colored by MEANING not sign, one magnitude hue + the fixed
@@ -342,7 +341,7 @@
 .actstrip i[data-l="3"],.actcal i[data-l="3"]{background:var(--data-3)}
 .actstrip i.today,.actcal i.today{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 28%,transparent)}
 
-/* Ring (the UFITRA pattern): rotate the svg, number inside the dial, label BELOW it
+/* Ring: rotate the svg, number inside the dial, label BELOW it
    (the label can be wider than the dial's clear center, so it never lives inside) */
 .ring{display:inline-flex;flex-direction:column;align-items:center;gap:6px}
 .ring .rdial{position:relative;display:inline-grid;place-items:center}

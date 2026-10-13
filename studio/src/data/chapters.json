@@ -154,18 +154,6 @@
       {
         "id": "contract-specimens",
         "label": "Contract specimens"
-      },
-      {
-        "id": "states-floor",
-        "label": "States floor"
-      },
-      {
-        "id": "navshell",
-        "label": "Navshell"
-      },
-      {
-        "id": "do-don-t",
-        "label": "Do / don't"
       }
     ]
   },
@@ -174,10 +162,6 @@
     "file": "data-viz.html",
     "label": "Data viz",
     "sections": [
-      {
-        "id": "doctrine",
-        "label": "Doctrine"
-      },
       {
         "id": "stat",
         "label": "Stat tiles"
@@ -217,10 +201,6 @@
       {
         "id": "meaning",
         "label": "Meaning + provenance"
-      },
-      {
-        "id": "anti",
-        "label": "Anti-patterns"
       }
     ]
   },
@@ -229,10 +209,6 @@
     "file": "motion.html",
     "label": "Motion",
     "sections": [
-      {
-        "id": "doctrine",
-        "label": "Doctrine"
-      },
       {
         "id": "tokens",
         "label": "Tokens"
@@ -284,10 +260,6 @@
       {
         "id": "wipe",
         "label": "Theme wipe"
-      },
-      {
-        "id": "anti",
-        "label": "Anti-patterns"
       }
     ]
   },
@@ -301,16 +273,8 @@
         "label": "Slide anatomy"
       },
       {
-        "id": "stage-rules",
-        "label": "Stage rules"
-      },
-      {
         "id": "structure",
         "label": "Structure"
-      },
-      {
-        "id": "carriage",
-        "label": "Carriage"
       }
     ]
   },
@@ -322,14 +286,6 @@
       {
         "id": "memo-anatomy",
         "label": "Memo anatomy"
-      },
-      {
-        "id": "grammar",
-        "label": "Grammar"
-      },
-      {
-        "id": "print-pdf",
-        "label": "Print + PDF"
       }
     ]
   },

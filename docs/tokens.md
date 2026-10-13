@@ -5,8 +5,8 @@ values, brand themes override values via `[data-brand]` blocks (see `theming.md`
 fixed portfolio-wide; a brand that needs a new role proposes it here first, for every brand,
 or it does not exist.
 
-Rendered at `board/index.html` (sync rule: any change here or in `tokens.css` updates the
-board in the same change; the markdown and CSS are the source, the board is the render).
+Rendered at `design.verseva.com/foundations` (sync rule: any change here or in `tokens.css` updates the
+studio in the same change; the markdown and CSS are the source, the studio is the render).
 
 ## 1. Color roles
 

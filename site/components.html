@@ -45,53 +45,15 @@
 
   <section class="hero">
     <h1>Components</h1>
-    <div class="chips">
-      <span class="chip">live specimen + copy the code</span>
-      <span class="chip">snippets extracted from the specimens</span>
-      <span class="chip">every contract state ships</span>
-    </div>
   </section>
 
   <div class="docgrid">
   <aside class="docnav" aria-label="On this page">
-    <a href="#install">Install</a>
-    <a href="#spacing">Spacing utilities</a>
-    <a href="#button">Button</a>
-    <a href="#field">Field</a>
-    <a href="#switch">Checkbox + switch</a>
-    <a href="#card">Card</a>
-    <a href="#badge">Badge</a>
-    <a href="#toast">Toast</a>
-    <a href="#modal">Modal</a>
-    <a href="#table">Table</a>
-    <a href="#stat">Stat</a>
-    <a href="#chart">Chart</a>
-    <a href="#seg">Segmented</a>
-    <a href="#fchip">Filter chips</a>
-    <a href="#search">Search</a>
-    <a href="#rows">List rows</a>
-    <a href="#skeleton">Skeleton</a>
-    <a href="#select">Select + textarea</a>
-    <a href="#tabs">Tabs</a>
-    <a href="#menu">Menu</a>
-    <a href="#tooltip">Tooltip</a>
-    <a href="#crumbsdoc">Breadcrumbs</a>
-    <a href="#pagerdoc">Pagination</a>
-    <a href="#progressdoc">Progress</a>
-    <a href="#calloutdoc">Callout</a>
-    <a href="#emptydoc">Empty state</a>
-    <a href="#accdoc">Accordion</a>
-    <a href="#topnav">Top nav</a>
-    <a href="#sidenav">Console nav · flat</a>
-    <a href="#accordion-nav">Console nav · accordion</a>
-    <a href="#sheet">Sheet</a>
-    <a href="#navshell">Navshell</a>
   </aside>
   <div class="doccol">
 
   <section class="comp" id="install">
     <h2>Install</h2>
-    <p class="note">Two files, no build step. Tailwind users take the bridge instead; either way the gate suite runs on your build.</p>
     <div class="demo"><span class="badge ok">npm i @verseva/design</span><span class="badge neutral">or vendor the two css files</span></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code id="install-code">&lt;link rel="stylesheet" href="node_modules/@verseva/design/tokens.css"&gt;
 &lt;link rel="stylesheet" href="node_modules/@verseva/design/components.css"&gt;
@@ -111,7 +73,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="spacing">
     <h2>Spacing utilities</h2>
-    <p class="note">The seam law's handrail: margin, padding, and gap straight off the scale as classes (mt-5 = var(--s-5) = 24px), so a seam between a control row and its content is never left to memory. Vertical and gap only; horizontal rhythm comes from layout.</p>
     <div class="demo"><div class="specimen">
       <div>
         <div class="chiprow"><button class="fchip" type="button" aria-pressed="true">All</button><button class="fchip" type="button" aria-pressed="false">Open</button></div>
@@ -125,7 +86,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="button">
     <h2>Button</h2>
-    <p class="note">Equal-sized pairs; the fill says which leads (law 8). Press sits the control down 1px. All states ship or it's unfinished.</p>
     <div class="demo"><div class="specimen">
       <button class="btn btn-primary" type="button">Primary</button>
       <button class="btn btn-secondary" type="button">Secondary</button>
@@ -141,7 +101,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="field">
     <h2>Field</h2>
-    <p class="note">Label, input, quiet help line. The error state recolors the border and the help, and says how to fix it.</p>
     <div class="demo"><div class="specimen">
       <div class="field">
         <label for="doc-client">Client</label>
@@ -159,7 +118,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="switch">
     <h2>Checkbox + switch</h2>
-    <p class="note">The word carries the state; the color only agrees with it (law 10).</p>
     <div class="demo"><div class="specimen">
       <label class="sel"><input type="checkbox" checked>Include freight</label>
       <label class="sel switch-wrap"><input class="sw" type="checkbox" checked><span class="switch"></span>Provenance on</label>
@@ -169,7 +127,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="card">
     <h2>Card</h2>
-    <p class="note">Product card at --r-md (law 7). Header divides, footer holds the actions, right-aligned.</p>
     <div class="demo"><div class="specimen">
       <div class="card">
         <div class="hd"><h4>Quote 2081</h4></div>
@@ -182,7 +139,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="badge">
     <h2>Badge</h2>
-    <p class="note">Always a word, never a dot alone. Small text on tints still clears 4.5:1.</p>
     <div class="demo"><div class="specimen">
       <span class="badge ok">Verified</span>
       <span class="badge warn">2 pending</span>
@@ -194,7 +150,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="toast">
     <h2>Toast</h2>
-    <p class="note">One at a time, bottom-right, gone in about two seconds. The word does the work; the dot just nods.</p>
     <div class="demo"><div class="specimen">
       <div class="toast ok"><span class="dot"></span>Quote issued to Northline Foods.<button type="button">×</button></div>
       <div class="toast err"><span class="dot"></span>Blocked: rush ruling still open.<button type="button">×</button></div>
@@ -204,7 +159,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="modal">
     <h2>Modal</h2>
-    <p class="note">At --r-lg (law 7). The overlay is yours; the modal is the contract's. Cancel never sits primary.</p>
     <div class="demo"><div class="specimen">
       <div class="modal">
         <div class="bd">
@@ -219,7 +173,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="table">
     <h2>Table</h2>
-    <p class="note">Mono uppercase headers, hairline row splits, .num for tabular right-aligned figures.</p>
     <div class="demo"><div class="specimen">
       <table class="table">
         <thead><tr><th>Quote</th><th>Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
@@ -234,7 +187,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="stat">
     <h2>Stat tile</h2>
-    <p class="note">Display-face numerals, quiet label under. The accent italic carries a unit, not emphasis.</p>
     <div class="demo"><div class="specimen">
       <div class="statrow">
         <div class="stat"><div class="num">18</div><div class="lbl">Open quotes</div></div>
@@ -247,7 +199,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="chart">
     <h2>Chart card</h2>
-    <p class="note">Single-hue magnitude, mono microlabels, and the takeaway caption is mandatory: label the meaning, not the axis.</p>
     <div class="demo"><div class="specimen">
       <div class="chartcard">
         <h4>Quotes closed</h4>
@@ -266,7 +217,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="seg">
     <h2>Segmented control</h2>
-    <p class="note">One selected at all times; aria-selected carries it.</p>
     <div class="demo"><div class="specimen">
       <div class="seg"><button type="button" aria-selected="true">Week</button><button type="button" aria-selected="false">Month</button><button type="button" aria-selected="false">Quarter</button></div>
     </div></div>
@@ -275,7 +225,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="fchip">
     <h2>Filter chips</h2>
-    <p class="note">Multi-select filters with counts; aria-pressed carries the state.</p>
     <div class="demo"><div class="specimen">
       <div class="chiprow">
         <button class="fchip" type="button" aria-pressed="true">All <span class="cnt">6</span></button>
@@ -288,7 +237,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="search">
     <h2>Search</h2>
-    <p class="note">The kbd hint is a machine artifact, so it's mono.</p>
     <div class="demo"><div class="specimen">
       <div class="searchbox"><input placeholder="Search quotes, clients"><kbd>/</kbd></div>
     </div></div>
@@ -297,7 +245,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="rows">
     <h2>List rows + identity</h2>
-    <p class="note">The identity pattern: initials avatar, bold name over quiet meta, value right in tabular figures.</p>
     <div class="demo"><div class="specimen">
       <div class="lrows">
         <div class="lrow"><span class="avc">KW</span><span class="tx"><b>Quote 2081 verified</b><span class="metaline">2 minutes ago</span></span><span class="val">48,220.00</span></div>
@@ -310,7 +257,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="skeleton">
     <h2>Skeleton</h2>
-    <p class="note">Loading is a state of the real layout, not a spinner page. Skeleton bars mirror what will load.</p>
     <div class="demo"><div class="specimen">
       <div class="lrows" aria-hidden="true">
         <div class="lrow"><span class="avc"></span><span class="tx skelstack"><span class="skel w62"></span><span class="skel w38"></span></span></div>
@@ -321,7 +267,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="select">
     <h2>Select + textarea</h2>
-    <p class="note">Same contract as the input: 40px, quiet borders, the focus ring, the fix-it error state.</p>
     <div class="demo"><div class="specimen">
       <div class="field">
         <label for="doc-machine">Machine</label>
@@ -338,7 +283,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="tabs">
     <h2>Tabs</h2>
-    <p class="note">In-page section tabs. The active underline is the accent, never a hairline (law 11). React: npx verseva add tabs.</p>
     <div class="demo"><div class="specimen">
       <div class="tabbar" role="tablist">
         <button type="button" role="tab" aria-selected="true">Overview</button>
@@ -351,7 +295,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="menu">
     <h2>Menu</h2>
-    <p class="note">Dropdown off a secondary trigger; closes on select, Escape, outside click. Danger items carry the word AND the color. React: npx verseva add menu.</p>
     <div class="demo"><div class="specimen">
       <div class="menu">
         <button type="button" class="btn btn-secondary sm" aria-haspopup="menu" aria-expanded="false">Actions</button>
@@ -368,7 +311,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="tooltip">
     <h2>Tooltip</h2>
-    <p class="note">Inverse ground, hover or focus, one short label. Never load-bearing content. React: npx verseva add tooltip.</p>
     <div class="demo"><div class="specimen">
       <span class="tip"><button class="btn btn-secondary sm" type="button">Provenance</button><span class="tipbox" role="tooltip">4 sources attached</span></span>
     </div></div>
@@ -377,11 +319,10 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="crumbsdoc">
     <h2>Breadcrumbs</h2>
-    <p class="note">Quiet trail; the current page carries weight and aria-current.</p>
     <div class="demo"><div class="specimen">
       <nav class="crumbs" aria-label="Breadcrumb">
-        <a href="#clients">Clients</a><span class="sep">/</span>
-        <a href="#northline">Northline Foods</a><span class="sep">/</span>
+<span class="sep">/</span>
+<span class="sep">/</span>
         <span aria-current="page">Quote 2081</span>
       </nav>
     </div></div>
@@ -390,7 +331,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="pagerdoc">
     <h2>Pagination</h2>
-    <p class="note">Tabular numerals, the current page on the accent tint, dead ends disabled.</p>
     <div class="demo"><div class="specimen">
       <nav class="pager" aria-label="Pagination">
         <button type="button" disabled>‹</button>
@@ -405,7 +345,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="progressdoc">
     <h2>Progress</h2>
-    <p class="note">Single-hue fill on the surface track; always paired with the real number (never color-alone).</p>
     <div class="demo"><div class="specimen">
       <div class="field">
         <label for="doc-progress">Sourcing · 8 of 12 vendors confirmed</label>
@@ -417,7 +356,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="calloutdoc">
     <h2>Callout</h2>
-    <p class="note">A paragraph-weight status. The bold lead names the situation; the tint agrees with it.</p>
     <div class="demo"><div class="specimen">
       <div class="callout"><b>Heads up.</b>&nbsp;The rate card moved to v18; open quotes keep their issued rates.</div>
       <div class="callout warn"><b>Rush window.</b>&nbsp;This date is inside the 10-day floor and needs a ruling.</div>
@@ -427,7 +365,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="emptydoc">
     <h2>Empty state</h2>
-    <p class="note">Says what belongs here and hands over the first action. Never a blank region.</p>
     <div class="demo"><div class="specimen">
       <div class="empty">
         <b>No quotes yet</b>
@@ -440,7 +377,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="accdoc">
     <h2>Content accordion</h2>
-    <p class="note">Native details/summary: works with zero JS, full keyboard support for free. React: npx verseva add accordion.</p>
     <div class="demo"><div class="specimen">
       <div class="acc">
         <details open><summary>Every batch, assayed</summary><div class="accbody">Stated dose vs measured dose, to two decimals, on every lot.</div></details>
@@ -452,10 +388,9 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="topnav">
     <h2>Top navigation</h2>
-    <p class="note">The active link carries weight and a 2px accent underline; everything else stays quiet.</p>
     <div class="demo"><div class="specimen">
       <div class="topnav">
-        <nav><a class="active" href="#overview">Overview</a><a href="#quotes">Quotes</a><a href="#clients">Clients</a></nav>
+        <nav><a class="active" href="#overview">Overview</a></nav>
         <button class="btn btn-primary sm" type="button">New quote</button>
       </div>
     </div></div>
@@ -464,7 +399,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="sidenav">
     <h2>Console navigation · flat</h2>
-    <p class="note">The NEMIXO console model: flat grouped rows under non-interactive eyebrows, exactly one item active by URL, the active row on the accent tint, never a hairline. React: npx verseva add console-nav.</p>
     <div class="demo"><div class="specimen">
       <div class="orgchip"><span class="sq">AC</span><span><b>Acme Console</b><small>production</small></span></div>
       <div>
@@ -480,7 +414,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="sheet">
     <h2>Sheet</h2>
-    <p class="note">Mobile bottom sheet: 26px top corners, grab handle, full-width paired actions.</p>
     <div class="demo"><div class="specimen">
       <div class="sheet">
         <div class="grab"></div>
@@ -493,7 +426,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="navshell">
     <h2>Navshell</h2>
-    <p class="note">The signature's most particular component: copy it verbatim, substitute only theme values (law 12, amended 2026-08-31). Single tier, equal-width tabs, labels always on, constant height: the nav is the most stable object on screen. A tab's sub-sections live at the top of its own content as a segmented control or chip row. Ships position: fixed and mobile-only; this demo pins it inside a frame.</p>
     <div class="demo">
       <div class="phoneframe"><div class="specimen">
       <div class="navshell">
@@ -511,7 +443,6 @@ npx verseva block add quote-tool</code></pre></div>
 
   <section class="comp" id="accordion-nav">
     <h2>Console navigation · accordion</h2>
-    <p class="note">The second console variant (law 12): collapse is the HTML hidden attribute, never a height animation; the only motion is the chevron; and the group holding the active item refuses to collapse, so you can never fold away where you are. Try it: Manage collapses, Operate will not. React: npx verseva add console-nav.</p>
     <div class="demo"><div class="specimen">
       <div>
         <div class="sgroup" data-open="true">
@@ -530,8 +461,6 @@ npx verseva block add quote-tool</code></pre></div>
             <svg class="sgroup-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <nav class="snav" id="acc-manage" aria-label="Manage">
-            <a href="#team">Team</a>
-            <a href="#workspace">Workspace</a>
           </nav>
         </div>
       </div>

@@ -88,6 +88,11 @@
       "source": "/examples.html",
       "destination": "/gallery",
       "permanent": true
+    },
+    {
+      "source": "/board/:path*",
+      "destination": "/foundations",
+      "permanent": true
     }
   ],
   "trailingSlash": false

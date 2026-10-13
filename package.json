@@ -45,8 +45,7 @@
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "gate": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow test --allow board . studio/src studio/index.html",
-    "board": "node board/pull-themes.mjs && python3 -m http.server 4390 --directory .",
+    "gate": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow test . studio/src studio/index.html",
     "studio:build": "npm --prefix studio ci --no-audit --no-fund && npm --prefix studio run build && npm run -s gate:studio",
     "assemble": "node scripts/assemble.mjs",
     "test:served": "node --test test/served/served-paths.test.mjs",

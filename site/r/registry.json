@@ -225,7 +225,7 @@
       "name": "launch",
       "file": "blocks/launch.html",
       "assets": false,
-      "description": "Launch landing: the motion kit assembled — line reveal, spotlight, magnetic CTA, rolling stats, theme wipe"
+      "description": "Launch landing: the motion kit assembled: line reveal, spotlight, magnetic CTA, rolling stats, theme wipe"
     },
     {
       "name": "store",

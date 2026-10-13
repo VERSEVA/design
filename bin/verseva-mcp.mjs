@@ -2,8 +2,8 @@
 /**
  * verseva-mcp: the design system as an MCP server, zero dependencies.
  * Agents can list the registry, read any component's source, install it into
- * the project, read the tokens and the laws, and — the part no other design
- * system offers — RUN THE GATE SUITE to prove their output stayed on-signature.
+ * the project, read the tokens and the laws, and (the part no other design
+ * system offers) RUN THE GATE SUITE to prove their output stayed on-signature.
  *
  * Wire it: npx verseva mcp init --client claude|cursor|vscode
  * Transport: stdio, newline-delimited JSON-RPC 2.0 (the MCP stdio framing).
@@ -69,11 +69,11 @@ const errText = (s) => ({ content: [{ type: 'text', text: s }], isError: true })
 function callTool(name, args = {}) {
   if (name === 'list_registry') {
     const lines = ['components:'];
-    for (const c of registry.components) lines.push(`  ${c.name} — ${c.description}`);
+    for (const c of registry.components) lines.push(`  ${c.name}: ${c.description}`);
     lines.push('blocks:');
-    for (const b of registry.blocks) lines.push(`  ${b.name} — ${b.description}${b.source === 'repo' ? ' [repo-only: image assets]' : ''}`);
+    for (const b of registry.blocks) lines.push(`  ${b.name}: ${b.description}${b.source === 'repo' ? ' [repo-only: image assets]' : ''}`);
     lines.push('themes:');
-    for (const t of registry.themes) lines.push(`  ${t.name} — ${t.description}`);
+    for (const t of registry.themes) lines.push(`  ${t.name}: ${t.description}`);
     return text(lines.join('\n'));
   }
   if (name === 'get_component') {
@@ -148,7 +148,7 @@ function callTool(name, args = {}) {
       return text(`ON-SIGNATURE, proven.\n\n${out}`);
     } catch (e) {
       if (e.status === undefined) return errText(`GATE ERRORED (did not run): ${e.message}`);
-      return errText(`GATE FAILED — fix before shipping.\n\n${e.stdout ?? ''}${e.stderr ?? ''}`);
+      return errText(`GATE FAILED: fix before shipping.\n\n${e.stdout ?? ''}${e.stderr ?? ''}`);
     }
   }
   return errText(`unknown tool: ${name}`);
@@ -173,7 +173,7 @@ rl.on('line', (line) => {
         protocolVersion: '2024-11-05',
         capabilities: { tools: {} },
         serverInfo: { name: 'verseva', version: pkg.version },
-        instructions: 'VERSEVA Design as a server. Read get_laws + get_tokens before building; add_component for source; ALWAYS finish surface work with run_gate — done means proven.',
+        instructions: 'VERSEVA Design as a server. Read get_laws + get_tokens before building; add_component for source; ALWAYS finish surface work with run_gate: done means proven.',
       },
     });
     return;

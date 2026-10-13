@@ -204,7 +204,7 @@ export function HBars({ data, format = String, className }: HBarsProps) {
 export interface RingProps {
   /** 0..100 */
   value: number;
-  /** The actionable center number (UFITRA law: "1,059 left", not the total). */
+  /** The actionable center number ("1,059 left", not the total). */
   center: string;
   sub?: string;
   size?: number;

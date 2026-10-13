@@ -37,7 +37,7 @@ extracted from the specimens themselves so the docs cannot drift.
       <p align="center"><b>Components</b> · the contract, every state, copy the code</p>
     </td>
     <td width="50%">
-      <a href="https://design.verseva.com/data-viz.html"><img src="https://raw.githubusercontent.com/verseva/design/main/docs/media/site-dataviz.png" alt="Data viz: numbers on marks, live two-series chart"></a>
+      <a href="https://design.verseva.com/data-viz"><img src="https://raw.githubusercontent.com/verseva/design/main/docs/media/site-dataviz.png" alt="Data viz: numbers on marks, live two-series chart"></a>
       <p align="center"><b>Data viz</b> · numbers on the marks, axes are a luxury</p>
     </td>
   </tr>

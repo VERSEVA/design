@@ -34,7 +34,7 @@
     { "name": "landing", "file": "blocks/landing.html", "assets": false, "description": "Light marketing landing with a validating signup modal" },
     { "name": "three-hero", "file": "blocks/three-hero.html", "assets": false, "description": "Three.js hero reading the tokens at runtime" },
     { "name": "pulse", "file": "blocks/pulse.html", "assets": false, "description": "Analytics console: the whole viz kit assembled, crosshair hover, range toggle" },
-    { "name": "launch", "file": "blocks/launch.html", "assets": false, "description": "Launch landing: the motion kit assembled — line reveal, spotlight, magnetic CTA, rolling stats, theme wipe" },
+    { "name": "launch", "file": "blocks/launch.html", "assets": false, "description": "Launch landing: the motion kit assembled: line reveal, spotlight, magnetic CTA, rolling stats, theme wipe" },
     { "name": "store", "source": "repo", "assets": true, "description": "Storefront with working cart; image assets live in the repo (site/examples)" },
     { "name": "studio", "source": "repo", "assets": true, "description": "Studio portfolio with tag filter; image assets live in the repo (site/examples)" }
   ]

@@ -29,16 +29,13 @@ Partner theme files stay under partner org paths. Never conflate ownership.
    the register (posture, material, faces). Silence means inherited unchanged; say so with an
    "inherited roles" table so an unmentioned role is distinguishable from an overlooked one.
 
-## Onboarding checklist (a theme is not live until all five)
+## Onboarding checklist (a theme is not live until all four)
 
 1. `theme.css` at the brand's home, scoped as above.
 2. `design-register.md` beside it (posture, values, component notes, bans, PROPOSED list).
-3. A row in the machine-local `board/theme-manifest.json` pointing at the file (copy
-   `theme-manifest.example.json`; the board pulls copies via `npm run board`; the brand home
-   stays canonical).
-4. The board renders it: switcher entry works in both modes, live contrast pairs pass, bans
-   actually null (click the brand and look).
-5. The brand's state file records the theme location.
+3. The theme passes `verseva-gate`: switcher entry works in both modes, contrast pairs pass,
+   bans actually null (render it and look).
+4. The brand's state file records the theme location.
 
 ## Consuming
 

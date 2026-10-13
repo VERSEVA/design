@@ -1,7 +1,7 @@
 {
   "name": "launch",
   "kind": "block",
-  "description": "Launch landing: the motion kit assembled — line reveal, spotlight, magnetic CTA, rolling stats, theme wipe",
+  "description": "Launch landing: the motion kit assembled: line reveal, spotlight, magnetic CTA, rolling stats, theme wipe",
   "deps": [],
   "files": [
     {

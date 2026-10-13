@@ -59,61 +59,16 @@
 
   <section class="hero">
     <h1>Data viz</h1>
-    <div class="chips">
-      <span class="chip">numbers on the marks · axes are a luxury</span>
-      <span class="chip">series pair validator-proven, both modes</span>
-      <span class="chip">deltas colored by meaning, never by sign</span>
-      <span class="chip">React kit: npx verseva add viz</span>
-    </div>
   </section>
 
   <div class="docgrid">
   <aside class="docnav" aria-label="On this page">
-    <a href="#doctrine">Doctrine</a>
-    <a href="#stat">Stat tiles</a>
-    <a href="#spark">Sparklines</a>
-    <a href="#lines">Line + area</a>
-    <a href="#bars">Bars</a>
-    <a href="#stacked">Stacked segments</a>
-    <a href="#hbars">Horizontal bars</a>
-    <a href="#heat">Intensity + calendar</a>
-    <a href="#rings">Rings</a>
-    <a href="#gates">State strips</a>
-    <a href="#meaning">Meaning + provenance</a>
-    <a href="#anti">Anti-patterns</a>
   </aside>
   <div class="doccol">
 
-  <section class="comp" id="doctrine">
-    <h2>Doctrine</h2>
-    <p class="note">Synthesized from the portfolio's shipped viz (Spectre, the NEMIXO console, the UFITRA reference mockups) and held to the dataviz six checks.</p>
-    <div class="demo"><div class="specimen">
-      <div class="tscroll">
-        <table class="ttable">
-          <thead><tr><th>Rule</th><th>It looks like</th></tr></thead>
-          <tbody>
-            <tr><td>numbers on marks</td><td>Bars carry their count; hover is backup, never required</td></tr>
-            <tr><td>axes are a luxury</td><td>No gridline forests; one hairline axis or a dashed reference line at most</td></tr>
-            <tr><td>magnitude = one hue</td><td>--data-0..3, the accent ladder; intensity, never category</td></tr>
-            <tr><td>two series max</td><td>--data-3 then --data-alt (+ dash); a third folds to small multiples</td></tr>
-            <tr><td>denominator first</td><td>"14 of 31 decided", never a naked 45%</td></tr>
-            <tr><td>meaning colors deltas</td><td>A falling 5K time renders green</td></tr>
-            <tr><td>identity never color-alone</td><td>Word + glyph ride along; sr data behind every chart</td></tr>
-            <tr><td>takeaway captions</td><td>Label the meaning, not the axis</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="vizlegend mt-4">
-        <span><i></i> --data-3 · series one (the accent)</span>
-        <span><i class="alt"></i> --data-alt · series two, CVD-proven vs the accent in both modes</span>
-      </div>
-    </div></div>
-    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
-  </section>
 
   <section class="comp" id="stat">
     <h2>Stat tiles</h2>
-    <p class="note">Denominator-first: the number carries where it came from. The micro-bar shows share; the trend is judged, not just signed.</p>
     <div class="demo"><div class="specimen">
       <div class="statrow">
         <div class="stat">
@@ -138,7 +93,6 @@
 
   <section class="comp" id="spark">
     <h2>Sparklines</h2>
-    <p class="note">The vital-card anatomy: name, source, the big number, a judged delta, and the trend beneath. The last point gets the dot.</p>
     <div class="demo"><div class="specimen">
       <div class="vcard">
         <div class="vh"><b>Quotes priced</b><span class="src">DESK · LIVE</span></div>
@@ -156,7 +110,6 @@
 
   <section class="comp" id="lines">
     <h2>Line + area</h2>
-    <p class="note">Two series at most: the accent leads, --data-alt follows with a dash so identity survives print and CVD. The dashed reference line carries a positioned mono tag; hover gives a crosshair readout; the range control re-renders in place.</p>
     <div class="demo"><div class="specimen" style="flex:1;min-width:280px">
       <div class="seg mb-4" id="vrange"><button type="button" aria-selected="true">12 weeks</button><button type="button" aria-selected="false">30 days</button></div>
       <div class="vizplot" id="vseries" style="height:150px"
@@ -174,7 +127,6 @@
 
   <section class="comp" id="bars">
     <h2>Bars</h2>
-    <p class="note">Numbers ride the marks, the goal is drawn on the chart, and today's bar takes the full-strength hue.</p>
     <div class="demo"><div class="specimen">
       <div class="goal" style="width:280px">
         <div class="goalline" style="top:28%"></div>
@@ -194,7 +146,6 @@
 
   <section class="comp" id="stacked">
     <h2>Stacked segments</h2>
-    <p class="note">Each segment prints its own count when it fits; the stack total sits on top. A 2px surface gap separates fills.</p>
     <div class="demo"><div class="specimen">
       <div class="stackrow">
         <div><span class="xlabels" style="justify-content:center">31</span><div class="stackcol"><i style="flex:14;background:var(--data-1)">14</i><i style="flex:9;background:var(--data-2)">9</i><i style="flex:8;background:var(--data-3)">8</i></div><span class="mlab">W1</span></div>
@@ -208,7 +159,6 @@
 
   <section class="comp" id="hbars">
     <h2>Horizontal bars</h2>
-    <p class="note">Label, track, mono count: the axis-free distribution. The second hue only when the row IS the second series.</p>
     <div class="demo"><div class="specimen" style="min-width:300px;flex:1">
       <div class="hbars">
         <div class="hbar"><span class="hlabel">Bottling</span><span class="htrack"><i style="width:100%"></i></span><span class="hcount">48</span></div>
@@ -223,7 +173,6 @@
 
   <section class="comp" id="heat">
     <h2>Intensity + calendar</h2>
-    <p class="note">ONE activity language: the same four ladder steps drive the strip, the calendar, and the streak grid, so intensity reads identically everywhere. Today is ringed.</p>
     <div class="demo"><div class="specimen">
       <div>
         <span class="speclabel">12-week strip</span>
@@ -247,7 +196,6 @@
 
   <section class="comp" id="rings">
     <h2>Rings</h2>
-    <p class="note">The center reads the ACTIONABLE number, not the total. Track on --data-0, fill on the accent, rotated to twelve o'clock, round caps.</p>
     <div class="demo"><div class="specimen">
       <span class="ring" role="img" aria-label="Readiness 72 of 100">
         <span class="rdial"><svg width="74" height="74" viewBox="0 0 74 74"><circle class="ringtrack" cx="37" cy="37" r="30"/><circle class="ringfill" cx="37" cy="37" r="30" stroke-dasharray="188.5" stroke-dashoffset="52.8"/></svg><span class="rv"><b>72</b></span></span>
@@ -267,7 +215,6 @@
 
   <section class="comp" id="gates">
     <h2>State strips</h2>
-    <p class="note">Seven-pixel truth: a process at a glance, triple-encoded (color + the words in the title and aria label). Never color-alone.</p>
     <div class="demo"><div class="specimen">
       <div class="lrows" style="min-width:300px">
         <div class="lrow"><span class="tx"><b>Q-2081 · Northline</b><span class="metaline">gate 6 of 9 · verifying</span></span><span class="markstrip" title="6 of 9 cleared, now verifying" aria-label="6 of 9 gates cleared, current stage verifying"><i class="cleared"></i><i class="cleared"></i><i class="cleared"></i><i class="cleared"></i><i class="cleared"></i><i class="cleared"></i><i class="current"></i><i></i><i></i></span></div>
@@ -279,7 +226,6 @@
 
   <section class="comp" id="meaning">
     <h2>Meaning + provenance</h2>
-    <p class="note">Deltas are judged, not signed: a falling run time is green. Every datum can carry its source; charts are never anonymous.</p>
     <div class="demo"><div class="specimen">
       <div class="lrows" style="min-width:300px">
         <div class="lrow"><span class="tx"><b>5K time</b><span class="metaline">was 24:10</span></span><span class="trend good">↓ −52 s</span></div>
@@ -291,21 +237,6 @@
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
-  <section class="comp" id="anti">
-    <h2>Anti-patterns</h2>
-    <p class="note">If a chart matches one of these, it is wrong.</p>
-    <div class="demo"><div class="specimen" style="flex:1">
-      <div class="dodont">
-        <div class="dd dont"><span class="tag">Never</span>A dual-axis chart. Two measures of different scale get two charts or an index.</div>
-        <div class="dd dont"><span class="tag">Never</span>A gridline forest. Numbers on the marks; one reference line at most.</div>
-        <div class="dd dont"><span class="tag">Never</span>A rainbow. Magnitude is one hue; a third series folds to small multiples.</div>
-        <div class="dd dont"><span class="tag">Never</span>Color-alone identity. A word or glyph always rides along.</div>
-        <div class="dd dont"><span class="tag">Never</span>A naked percentage. Carry the denominator: "14 of 31 decided".</div>
-        <div class="dd dont"><span class="tag">Never</span>An axis caption as the takeaway. Label the meaning.</div>
-      </div>
-    </div></div>
-    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
-  </section>
 
   </div>
   </div>

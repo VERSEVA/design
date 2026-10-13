@@ -75,60 +75,16 @@
 
   <section class="hero">
     <h1>Motion</h1>
-    <div class="chips">
-      <span class="chip">enter decelerating · exit accelerating</span>
-      <span class="chip">transitions over keyframes: interruptible</span>
-      <span class="chip">attention is finite · ambient never on data</span>
-      <span class="chip">React kit: npx verseva add motion</span>
-    </div>
   </section>
 
   <div class="docgrid">
   <aside class="docnav" aria-label="On this page">
-    <a href="#doctrine">Doctrine</a>
-    <a href="#tokens">Tokens</a>
-    <a href="#press">Press</a>
-    <a href="#entrances">Entrances</a>
-    <a href="#lines">Line reveal</a>
-    <a href="#spotlight">Spotlight</a>
-    <a href="#magnetic">Magnetic</a>
-    <a href="#numbers">Numbers</a>
-    <a href="#swap">Text swap</a>
-    <a href="#attention">Attention</a>
-    <a href="#loading">Loading</a>
-    <a href="#grow">Height + width</a>
-    <a href="#ambient">Ambient</a>
-    <a href="#wipe">Theme wipe</a>
-    <a href="#anti">Anti-patterns</a>
   </aside>
   <div class="doccol">
 
-  <section class="comp" id="doctrine">
-    <h2>Doctrine</h2>
-    <p class="note">Synthesized from the portfolio's shipped motion (Spectre, the NEMIXO console, this site) and the systems worth studying: Apple's springs, Material's easing pairs, Carbon's two registers, the sonner and vaul playbooks.</p>
-    <div class="demo"><div class="specimen">
-      <div class="tscroll">
-        <table class="ttable">
-          <thead><tr><th>Rule</th><th>It means</th></tr></thead>
-          <tbody>
-            <tr><td>motion shows behavior</td><td>Every animation answers "what just happened"; a heading earns nothing</td></tr>
-            <tr><td>enter ≠ exit</td><td>Arrivals decelerate (--ease-entrance); permanent departures accelerate (--ease-exit); panels that will return leave on --ease-standard</td></tr>
-            <tr><td>two registers</td><td>Task UI is fast and quiet (--dur-1/2); brand moments get --dur-3/4, and one page gets ONE of them</td></tr>
-            <tr><td>interruptible</td><td>State motion is a transition flipped by class, never a one-shot keyframe; mid-flight reversals animate from where they are</td></tr>
-            <tr><td>attention is finite</td><td>Pulse twice, hold, fade. Only progress may loop forever, at the 1.4s house period</td></tr>
-            <tr><td>compositor first</td><td>transform + opacity; the earned exceptions are outline (.attn), fr tracks (.grow-*), and alpha-only masks</td></tr>
-            <tr><td>JS writes numbers</td><td>Handlers set --mx/--my or a transform; every visual decision stays in CSS where the theme owns it</td></tr>
-            <tr><td>frequency discounts delight</td><td>Never decorate an action performed a hundred times a day; hover may delight, focus never</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div></div>
-    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
-  </section>
 
   <section class="comp" id="tokens">
     <h2>Tokens</h2>
-    <p class="note">Four beats, six curves. Fire them: the difference between the curves IS the doctrine. --ease-exit leaves for good; --ease-back settles direct manipulation.</p>
     <div class="demo"><div class="specimen curverow" id="curves">
       <div class="curve c-standard"><span class="cl">--ease-standard</span><span class="track"><span class="ball"></span></span></div>
       <div class="curve c-entrance"><span class="cl">--ease-entrance</span><span class="track"><span class="ball"></span></span></div>
@@ -159,7 +115,6 @@
 
   <section class="comp" id="press">
     <h2>Press</h2>
-    <p class="note">Acknowledged within 120ms, always. Bar and inline controls sit down 1px; floating and icon controls compress to .94-.97; a disabled control never animates. Amended 2026-08-31.</p>
     <div class="demo"><div class="specimen">
       <button class="btn btn-primary" type="button">Sits down 1px</button>
       <button class="btn btn-secondary" type="button">Same idiom</button>
@@ -170,7 +125,6 @@
 
   <section class="comp" id="entrances">
     <h2>Entrances</h2>
-    <p class="note">Fade + 10px rise on --ease-entrance, children 60ms apart, capped at six. Travel scales with the surface: 10px for cards, 24px for drawers and sheets, and the responsive trick is swapping animation-name, not the class.</p>
     <div class="demo">
       <div class="specimen mo-st" id="stagdemo">
         <div class="mcard"><b>First</b><span class="mnote">0ms</span></div>
@@ -185,7 +139,6 @@
 
   <section class="comp" id="lines">
     <h2>Line reveal</h2>
-    <p class="note">Each line travels up out of its own mask, 70ms apart, on a transition so it stays interruptible. For display headings only: one per page.</p>
     <div class="demo">
       <div class="specimen">
         <span class="mo-lines heroline" id="linedemo">
@@ -200,7 +153,6 @@
 
   <section class="comp" id="spotlight">
     <h2>Spotlight</h2>
-    <p class="note">The light follows the pointer; the group tracks on the container so neighbors warm before arrival. One handler writes --mx/--my, the CSS owns every visual decision. Touch gets no dead effect.</p>
     <div class="demo"><div class="specimen sprow gap-5" data-spot>
       <div class="mcard spot"><b>Move across these</b><span class="mnote">the halo tracks the pointer</span></div>
       <div class="mcard spot"><b>Neighbors warm early</b><span class="mnote">tracking is on the group</span></div>
@@ -211,7 +163,6 @@
 
   <section class="comp" id="magnetic">
     <h2>Magnetic</h2>
-    <p class="note">Follows at a third of the pointer's offset with no transition, then settles home on --ease-back. Direct manipulation is the only place overshoot is honest.</p>
     <div class="demo"><div class="specimen">
       <span class="magnet" data-magnet><button class="btn btn-primary" type="button">Come closer</button></span>
     </div></div>
@@ -220,7 +171,6 @@
 
   <section class="comp" id="numbers">
     <h2>Numbers</h2>
-    <p class="note">Digits are columns travelling on transform behind an edge mask; tabular-nums so the width never jitters; every column rolls the SAME direction so the trend stays legible. The live number keeps its meaning in a sr-only twin.</p>
     <div class="demo">
       <div class="specimen">
         <span class="statline"><span class="ticker" id="tickdemo"></span><span class="unit">/wk</span></span>
@@ -232,7 +182,6 @@
 
   <section class="comp" id="swap">
     <h2>Text swap</h2>
-    <p class="note">Two strings cross-dissolved read as garbage. The house idiom sequences them by flipping transition-delay: the outgoing string fully leaves, THEN the incoming one lands. Fenced behind hover-capable pointers.</p>
     <div class="demo"><div class="specimen">
       <span class="swver xswap"><span class="xa">v1.0.0 · stable</span><span class="xb" aria-hidden="true">8243358 · signed</span></span>
     </div></div>
@@ -241,7 +190,6 @@
 
   <section class="comp" id="attention">
     <h2>Attention</h2>
-    <p class="note">The guide ring: pulse twice, hold five seconds, fade to nothing. Attention that persists is nagging; the reduced-motion cut keeps the ring and the fade, drops the pulse. From the console's error guide.</p>
     <div class="demo">
       <div class="specimen">
         <div class="mcard" id="attndemo"><b>Batch size</b><span class="mnote">the field the error points at</span></div>
@@ -253,7 +201,6 @@
 
   <section class="comp" id="loading">
     <h2>Loading</h2>
-    <p class="note">Skeletons mirror the real layout and sweep at the 1.4s house period, an overlay on transform, never background-position. Content replaces them with one rise beat, and the swap happens once: loading never flickers back.</p>
     <div class="demo">
       <div class="specimen skdemo" id="skdemo">
         <span class="skel" style="width:60%"></span>
@@ -267,7 +214,6 @@
 
   <section class="comp" id="grow">
     <h2>Height + width</h2>
-    <p class="note">Intrinsic size animates through fr tracks: 0fr to 1fr, the one sanctioned route. Disclosure chrome still snaps, chevron-only. Width adds opacity so the string never squishes visibly.</p>
     <div class="demo">
       <div class="specimen growdemo">
         <div class="grow-y" id="growdemo"><div><div class="inner"><div class="pad">Auto height, travelling. The wrapper animates grid-template-rows; the child clips. No measured pixels, no max-height guesses.</div></div></div></div>
@@ -279,7 +225,6 @@
 
   <section class="comp" id="ambient">
     <h2>Ambient</h2>
-    <p class="note">The beam and the marquee live on marketing surfaces only, never near data. Ambient loops randomize or pause; a uniform loop reads cheap in a minute. Hover pauses the marquee.</p>
     <div class="demo"><div class="specimen ambcol gap-5">
       <div class="mcard beam beamcard"><b>Border beam</b><span class="mnote">conic accent on a ring mask · 4s</span></div>
       <div class="marq" aria-hidden="true">
@@ -292,28 +237,12 @@
 
   <section class="comp" id="wipe">
     <h2>Theme wipe</h2>
-    <p class="note">Every page's theme toggle does it: the new theme sweeps out of the control as a circle, one View Transition, 480ms. The one orchestrated moment a page spends. No support, no motion preference: instant flip, same result.</p>
     <div class="demo"><div class="specimen">
       <button class="btn btn-primary" id="wipedemo" type="button">Flip the theme</button>
     </div></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
-  <section class="comp" id="anti">
-    <h2>Anti-patterns</h2>
-    <p class="note">If a surface matches a row, the motion is wrong.</p>
-    <div class="demo"><div class="specimen anti">
-      <div class="row"><span class="no">NEVER</span><span>Animating height, width, margin, or top directly. fr tracks or a transform proxy, always.</span></div>
-      <div class="row"><span class="no">NEVER</span><span>A one-shot keyframe on state that can reverse. Mid-flight reversal jump-cuts; transitions don't.</span></div>
-      <div class="row"><span class="no">NEVER</span><span>Exit slower than enter. Leaving is not an event; it accelerates and gets out of the way.</span></div>
-      <div class="row"><span class="no">NEVER</span><span>Attention that loops until clicked. Pulse twice, hold, fade; nagging is not urgency.</span></div>
-      <div class="row"><span class="no">NEVER</span><span>Ambient motion on a data surface. A beam next to a number is a lie about which one changed.</span></div>
-      <div class="row"><span class="no">NEVER</span><span>Meaning carried by motion alone. Kill every animation and the interface must still say everything.</span></div>
-      <div class="row"><span class="no">NEVER</span><span>A literal ms in a surface. Durations come from the tokens; only the contract itself holds the named above-the-ladder beats (the 1.4s loop, the attention choreography, the ambient periods).</span></div>
-      <div class="row"><span class="no">NEVER</span><span>Staggering past six children or 600ms total. A queue is choreography's failure mode.</span></div>
-    </div></div>
-    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
-  </section>
 
   </div>
   </div>

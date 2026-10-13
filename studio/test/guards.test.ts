@@ -20,12 +20,15 @@ function walk(dir: string): string[] {
 const files = [...DIRS.flatMap((d) => walk(path.join(root, d))), ...FILES.map((f) => path.join(root, f))]
   .filter((f) => !f.endsWith('guards.test.ts'));
 
+/* Partner-private identifiers, stored encoded so this file does not carry them. */
+const PARTNER = new RegExp(['dWZpdHJh', 'Y2FuZHljZXV0aWNhbHM=', 'XGJhY2JcYg==', 'XGJ1Zi0=', 'YXRsYXMt'].map((b) => Buffer.from(b, 'base64').toString()).join('|'), 'i');
+
 export function scan(list: string[]) {
   const hits: string[] = [];
   for (const f of list) {
     const text = fs.readFileSync(f, 'utf8');
     if (text.includes('\u2014')) hits.push(`${path.relative(root, f)}: em dash`);
-    if (/ufitra|\buf-|atlas-/i.test(text)) hits.push(`${path.relative(root, f)}: partner identifier`);
+    if (PARTNER.test(text)) hits.push(`${path.relative(root, f)}: partner identifier`);
   }
   return hits;
 }

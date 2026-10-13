@@ -1,7 +1,7 @@
 # Component contract
 
 What every interactive component owes the user, regardless of brand. Themes style these; they may
-not remove states or shrink the accessibility floor. Rendered as specimens on `board/index.html`;
+not remove states or shrink the accessibility floor. Rendered as specimens in the studio (`design.verseva.com/components`);
 shipped as CSS in `components.css`.
 
 ## Global floor (every component)
@@ -103,7 +103,7 @@ scrolls inside fixed chrome. Desktop: side drawer 360–480px. Navigation never 
 
 ## NAVSHELL: `.navshell` (the signature's most particular component)
 
-**Copy it, never approximate it.** `components.css` carries the 1:1 port; the board renders it
+**Copy it, never approximate it.** `components.css` carries the 1:1 port; the studio renders it
 interactively.
 
 - Frosted CONTAINER (blur `--glass-blur` + saturate `--glass-sat`, r30, glass border +
@@ -141,5 +141,5 @@ color-alone).
 
 ## Specimen rule
 
-Every component appears on the board in every contract state, per theme. A theme that styles a
-component updates its board specimen in the same change (sync rule).
+Every component appears in the studio in every contract state, per theme. A theme that styles a
+component updates its studio specimen in the same change (sync rule).
