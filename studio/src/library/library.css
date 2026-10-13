@@ -1,0 +1,36 @@
+/* Asset Library: layout only. Values come from tokens.css + components.css. */
+.lib-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); margin-bottom: var(--s-5); }
+.lib-grid { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); }
+.lib-grid-lg { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+
+.lib-tile { display: flex; flex-direction: column; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.lib-tile img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; background: var(--surface-2); }
+.lib-tile:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.lib-meta { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); padding: var(--s-3) var(--s-4); font-size: .875rem; }
+.lib-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: capitalize; }
+.lib-dls { display: flex; flex-wrap: wrap; gap: var(--s-2); padding: 0 var(--s-4) var(--s-4); }
+
+.lib-loop .vsv-stage { background: var(--surface-2); }
+
+.lib-tag { background: var(--surface); color: var(--text-1); border: 1px solid var(--hairline); }
+.lib-tags { display: flex; flex-wrap: wrap; gap: var(--s-2); margin: 0; }
+.lib-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-4); margin: var(--s-4) 0 0; }
+.lib-facts dd { margin: var(--s-1) 0 0; }
+.lib-grow { flex: 1; align-self: center; }
+
+/* Detail surface: overlay is the consumer's (kit contract). */
+.lib-ovl { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: var(--s-5); background: color-mix(in srgb, var(--text-1) 18%, transparent); }
+.lib-ovl.is-phone { align-items: flex-end; padding: 0; }
+.lib-dialog { max-height: calc(100dvh - 2 * var(--s-5)); overflow-y: auto; }
+.lib-dialog:focus { outline: none; }
+.lib-dialog-lg.modal { width: min(100%, 760px); }
+.lib-ovl.is-phone .lib-dialog.sheet { width: 100%; max-height: 92dvh; }
+.lib-dhead { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3); }
+.lib-dhead h4 { text-transform: capitalize; }
+.lib-detail-stage { width: 100%; max-height: 52dvh; border-radius: var(--r-md); background: var(--surface-2); }
+.lib-dialog .ft { flex-wrap: wrap; }
+
+@media (max-width: 760px) {
+  .lib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+  .lib-grid-lg,   .lib-dls .btn, .lib-dialog .ft .btn { min-height: 44px; }
+}
