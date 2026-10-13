@@ -59,9 +59,11 @@ function EditionSeg({ options, value, onChange }: { options: string[]; value: st
 
 function ObjectDetail({ o, onClose }: { o: LibObject; onClose: () => void }) {
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   const exportNow = async () => {
     setBusy(true);
-    try { await downloadThemed(o, getTheme()); } finally { setBusy(false); }
+    setFailed(false);
+    try { await downloadThemed(o, getTheme()); } catch { setFailed(true); } finally { setBusy(false); }
   };
   return (
     <Dialog
@@ -74,6 +76,7 @@ function ObjectDetail({ o, onClose }: { o: LibObject; onClose: () => void }) {
         <button type="button" className="btn btn-secondary sm" aria-busy={busy || undefined} disabled={busy} onClick={exportNow}>
           {busy && <span className="spinner" aria-hidden="true" />}GLB in this theme
         </button>
+        <span role="status" aria-live="polite">{failed && <span className="badge err">Export failed</span>}</span>
       </>}
     >
       <ThreeStage className="lib-detail-stage" src={o.glb} label={o.title} thumb={o.thumb} />

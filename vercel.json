@@ -2,10 +2,21 @@
   "buildCommand": "npm run studio:build && npm run assemble",
   "outputDirectory": "out",
   "rewrites": [
-    { "source": "/foundations", "destination": "/index.html" },
-    { "source": "/assets", "destination": "/index.html" }
+    {
+      "source": "/foundations",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/assets",
+      "destination": "/index.html"
+    }
   ],
   "redirects": [
-    { "source": "/index.html", "destination": "/", "permanent": true }
-  ]
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "trailingSlash": false
 }

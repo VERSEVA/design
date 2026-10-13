@@ -1,0 +1,4 @@
+out
+studio/dist
+**/node_modules
+.claude

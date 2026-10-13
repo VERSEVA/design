@@ -6,8 +6,9 @@
 // Every path in test/fixtures/served-paths.json must survive (npm run test:served).
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'out');
 const studio = path.join(root, 'studio/dist');
 
@@ -53,6 +54,9 @@ for (const rel of tree.filter((r) => r.startsWith('site/'))) {
   flat++;
 }
 const built = walk(studio);
+/* The studio owns / (index.html); any other overlap would silently replace a served file. */
+const clash = built.filter((rel) => rel !== 'index.html' && fs.existsSync(path.join(out, rel)));
+if (clash.length) throw new Error(`assemble: studio build would overwrite served files: ${clash.join(', ')}`);
 for (const rel of built) copy(path.join(studio, rel), path.join(out, rel));
 fs.writeFileSync(path.join(out, '.assembled'), new Date().toISOString() + '\n');
 console.log(`assemble: ${tree.length} repo files, ${flat} site files at root, ${built.length} studio files -> out/`);
