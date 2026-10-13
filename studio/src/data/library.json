@@ -1,0 +1,635 @@
+{
+  "tag": "library-2026.10",
+  "objects": [
+    {
+      "id": "VSV-001",
+      "name": "stone-portal",
+      "title": "stone portal",
+      "family": "Momentum",
+      "edition": "01",
+      "uses": [
+        "Threshold",
+        "entry",
+        "new chapter"
+      ],
+      "glb": "/library/glb/VSV-001.glb",
+      "thumb": "/library/thumb/VSV-001.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-001_stone-portal.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-001_stone-portal.glb"
+      }
+    },
+    {
+      "id": "VSV-002",
+      "name": "interlock",
+      "title": "interlock",
+      "family": "Connection",
+      "edition": "01",
+      "uses": [
+        "Partnership",
+        "integration",
+        "joined capabilities"
+      ],
+      "glb": "/library/glb/VSV-002.glb",
+      "thumb": "/library/thumb/VSV-002.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-002_interlock.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-002_interlock.glb"
+      }
+    },
+    {
+      "id": "VSV-003",
+      "name": "convergence",
+      "title": "convergence",
+      "family": "Connection",
+      "edition": "01",
+      "uses": [
+        "Convergence",
+        "shared direction",
+        "coordination"
+      ],
+      "glb": "/library/glb/VSV-003.glb",
+      "thumb": "/library/thumb/VSV-003.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-003_convergence.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-003_convergence.glb"
+      }
+    },
+    {
+      "id": "VSV-004",
+      "name": "terraces",
+      "title": "terraces",
+      "family": "Momentum",
+      "edition": "01",
+      "uses": [
+        "Progression",
+        "growth",
+        "successive stages"
+      ],
+      "glb": "/library/glb/VSV-004.glb",
+      "thumb": "/library/thumb/VSV-004.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-004_terraces.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-004_terraces.glb"
+      }
+    },
+    {
+      "id": "VSV-005",
+      "name": "balance",
+      "title": "balance",
+      "family": "Intelligence",
+      "edition": "01",
+      "uses": [
+        "Judgment",
+        "allocation",
+        "tradeoffs"
+      ],
+      "glb": "/library/glb/VSV-005.glb",
+      "thumb": "/library/thumb/VSV-005.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-005_balance.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-005_balance.glb"
+      }
+    },
+    {
+      "id": "VSV-006",
+      "name": "editorial-plinth",
+      "title": "editorial plinth",
+      "family": "Composition",
+      "edition": "01",
+      "uses": [
+        "Editorial product staging",
+        "presentation pedestal"
+      ],
+      "glb": "/library/glb/VSV-006.glb",
+      "thumb": "/library/thumb/VSV-006.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-006_editorial-plinth.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-006_editorial-plinth.glb"
+      }
+    },
+    {
+      "id": "VSV-007",
+      "name": "colonnade",
+      "title": "colonnade",
+      "family": "Protection",
+      "edition": "01",
+      "uses": [
+        "Institution",
+        "collective strength",
+        "continuity"
+      ],
+      "glb": "/library/glb/VSV-007.glb",
+      "thumb": "/library/thumb/VSV-007.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-007_colonnade.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-007_colonnade.glb"
+      }
+    },
+    {
+      "id": "VSV-008",
+      "name": "ribbon-loop",
+      "title": "ribbon loop",
+      "family": "Signature forms",
+      "edition": "01",
+      "uses": [
+        "Continuity",
+        "transformation",
+        "recurring systems"
+      ],
+      "glb": "/library/glb/VSV-008.glb",
+      "thumb": "/library/thumb/VSV-008.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-008_ribbon-loop.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-008_ribbon-loop.glb"
+      }
+    },
+    {
+      "id": "VSV-009",
+      "name": "bridge",
+      "title": "bridge",
+      "family": "Momentum",
+      "edition": "01",
+      "uses": [
+        "Transition",
+        "connection",
+        "spanning a gap"
+      ],
+      "glb": "/library/glb/VSV-009.glb",
+      "thumb": "/library/thumb/VSV-009.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-009_bridge.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-009_bridge.glb"
+      }
+    },
+    {
+      "id": "VSV-010",
+      "name": "nested-frames",
+      "title": "nested frames",
+      "family": "Intelligence",
+      "edition": "01",
+      "uses": [
+        "Perspective",
+        "depth",
+        "strategic framing"
+      ],
+      "glb": "/library/glb/VSV-010.glb",
+      "thumb": "/library/thumb/VSV-010.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-010_nested-frames.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-010_nested-frames.glb"
+      }
+    },
+    {
+      "id": "VSV-011",
+      "name": "keystone",
+      "title": "keystone",
+      "family": "Protection",
+      "edition": "01",
+      "uses": [
+        "Critical contribution",
+        "structural dependency"
+      ],
+      "glb": "/library/glb/VSV-011.glb",
+      "thumb": "/library/thumb/VSV-011.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-011_keystone.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-011_keystone.glb"
+      }
+    },
+    {
+      "id": "VSV-012",
+      "name": "alignment",
+      "title": "alignment",
+      "family": "Composition",
+      "edition": "01",
+      "uses": [
+        "Alignment",
+        "standards",
+        "operating rhythm"
+      ],
+      "glb": "/library/glb/VSV-012.glb",
+      "thumb": "/library/thumb/VSV-012.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-012_alignment.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-012_alignment.glb"
+      }
+    },
+    {
+      "id": "VSV-013",
+      "name": "knowledge-folio",
+      "title": "knowledge folio",
+      "family": "Intelligence",
+      "edition": "02",
+      "uses": [
+        "Knowledge",
+        "learning",
+        "editorial cover"
+      ],
+      "glb": "/library/glb/VSV-013.glb",
+      "thumb": "/library/thumb/VSV-013.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-013_knowledge-folio.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-013_knowledge-folio.glb"
+      }
+    },
+    {
+      "id": "VSV-014",
+      "name": "insight-lens",
+      "title": "insight lens",
+      "family": "Intelligence",
+      "edition": "02",
+      "uses": [
+        "Insight",
+        "discovery",
+        "assessment"
+      ],
+      "glb": "/library/glb/VSV-014.glb",
+      "thumb": "/library/thumb/VSV-014.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-014_insight-lens.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-014_insight-lens.glb"
+      }
+    },
+    {
+      "id": "VSV-015",
+      "name": "index-tower",
+      "title": "index tower",
+      "family": "Intelligence",
+      "edition": "02",
+      "uses": [
+        "Knowledge systems",
+        "organized thinking",
+        "archives"
+      ],
+      "glb": "/library/glb/VSV-015.glb",
+      "thumb": "/library/thumb/VSV-015.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-015_index-tower.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-015_index-tower.glb"
+      }
+    },
+    {
+      "id": "VSV-016",
+      "name": "partnership-links",
+      "title": "partnership links",
+      "family": "Connection",
+      "edition": "02",
+      "uses": [
+        "Partnership",
+        "linked capabilities",
+        "collaboration"
+      ],
+      "glb": "/library/glb/VSV-016.glb",
+      "thumb": "/library/thumb/VSV-016.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-016_partnership-links.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-016_partnership-links.glb"
+      }
+    },
+    {
+      "id": "VSV-017",
+      "name": "roundtable",
+      "title": "roundtable",
+      "family": "Connection",
+      "edition": "02",
+      "uses": [
+        "Advisory",
+        "decisions",
+        "shared perspective"
+      ],
+      "glb": "/library/glb/VSV-017.glb",
+      "thumb": "/library/thumb/VSV-017.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-017_roundtable.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-017_roundtable.glb"
+      }
+    },
+    {
+      "id": "VSV-018",
+      "name": "woven-grid",
+      "title": "woven grid",
+      "family": "Connection",
+      "edition": "02",
+      "uses": [
+        "Coordination",
+        "integrated work",
+        "interdependence"
+      ],
+      "glb": "/library/glb/VSV-018.glb",
+      "thumb": "/library/thumb/VSV-018.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-018_woven-grid.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-018_woven-grid.glb"
+      }
+    },
+    {
+      "id": "VSV-019",
+      "name": "rising-arc",
+      "title": "rising arc",
+      "family": "Momentum",
+      "edition": "02",
+      "uses": [
+        "Growth",
+        "aspiration",
+        "opening opportunity"
+      ],
+      "glb": "/library/glb/VSV-019.glb",
+      "thumb": "/library/thumb/VSV-019.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-019_rising-arc.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-019_rising-arc.glb"
+      }
+    },
+    {
+      "id": "VSV-020",
+      "name": "milestone-path",
+      "title": "milestone path",
+      "family": "Momentum",
+      "edition": "02",
+      "uses": [
+        "Roadmap",
+        "progress",
+        "staged delivery"
+      ],
+      "glb": "/library/glb/VSV-020.glb",
+      "thumb": "/library/thumb/VSV-020.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-020_milestone-path.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-020_milestone-path.glb"
+      }
+    },
+    {
+      "id": "VSV-021",
+      "name": "unfolding-fan",
+      "title": "unfolding fan",
+      "family": "Momentum",
+      "edition": "02",
+      "uses": [
+        "Options",
+        "exploration",
+        "expanding possibility"
+      ],
+      "glb": "/library/glb/VSV-021.glb",
+      "thumb": "/library/thumb/VSV-021.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-021_unfolding-fan.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-021_unfolding-fan.glb"
+      }
+    },
+    {
+      "id": "VSV-022",
+      "name": "shelter",
+      "title": "shelter",
+      "family": "Protection",
+      "edition": "02",
+      "uses": [
+        "Support",
+        "stewardship",
+        "institutional trust"
+      ],
+      "glb": "/library/glb/VSV-022.glb",
+      "thumb": "/library/thumb/VSV-022.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-022_shelter.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-022_shelter.glb"
+      }
+    },
+    {
+      "id": "VSV-023",
+      "name": "boundary-wall",
+      "title": "boundary wall",
+      "family": "Protection",
+      "edition": "02",
+      "uses": [
+        "Focus",
+        "boundaries",
+        "curated space"
+      ],
+      "glb": "/library/glb/VSV-023.glb",
+      "thumb": "/library/thumb/VSV-023.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-023_boundary-wall.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-023_boundary-wall.glb"
+      }
+    },
+    {
+      "id": "VSV-024",
+      "name": "seal-medallion",
+      "title": "seal medallion",
+      "family": "Protection",
+      "edition": "02",
+      "uses": [
+        "Craft",
+        "assurance",
+        "completion"
+      ],
+      "glb": "/library/glb/VSV-024.glb",
+      "thumb": "/library/thumb/VSV-024.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-024_seal-medallion.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-024_seal-medallion.glb"
+      }
+    },
+    {
+      "id": "VSV-025",
+      "name": "bookend",
+      "title": "bookend",
+      "family": "Composition",
+      "edition": "02",
+      "uses": [
+        "Framing",
+        "editorial layouts",
+        "organized knowledge"
+      ],
+      "glb": "/library/glb/VSV-025.glb",
+      "thumb": "/library/thumb/VSV-025.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-025_bookend.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-025_bookend.glb"
+      }
+    },
+    {
+      "id": "VSV-026",
+      "name": "stepped-dais",
+      "title": "stepped dais",
+      "family": "Composition",
+      "edition": "02",
+      "uses": [
+        "Presentation",
+        "product staging",
+        "elevation"
+      ],
+      "glb": "/library/glb/VSV-026.glb",
+      "thumb": "/library/thumb/VSV-026.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-026_stepped-dais.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-026_stepped-dais.glb"
+      }
+    },
+    {
+      "id": "VSV-027",
+      "name": "sculptural-vessel",
+      "title": "sculptural vessel",
+      "family": "Composition",
+      "edition": "02",
+      "uses": [
+        "Craft",
+        "space",
+        "considered form"
+      ],
+      "glb": "/library/glb/VSV-027.glb",
+      "thumb": "/library/thumb/VSV-027.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-027_sculptural-vessel.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-027_sculptural-vessel.glb"
+      }
+    },
+    {
+      "id": "VSV-028",
+      "name": "folded-sheet",
+      "title": "folded sheet",
+      "family": "Signature forms",
+      "edition": "02",
+      "uses": [
+        "Transformation",
+        "flexibility",
+        "creative process"
+      ],
+      "glb": "/library/glb/VSV-028.glb",
+      "thumb": "/library/thumb/VSV-028.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-028_folded-sheet.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-028_folded-sheet.glb"
+      }
+    },
+    {
+      "id": "VSV-029",
+      "name": "crescent",
+      "title": "crescent",
+      "family": "Signature forms",
+      "edition": "02",
+      "uses": [
+        "Perspective",
+        "balance",
+        "partial reveal"
+      ],
+      "glb": "/library/glb/VSV-029.glb",
+      "thumb": "/library/thumb/VSV-029.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-029_crescent.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-029_crescent.glb"
+      }
+    },
+    {
+      "id": "VSV-030",
+      "name": "stacked-pebbles",
+      "title": "stacked pebbles",
+      "family": "Signature forms",
+      "edition": "02",
+      "uses": [
+        "Balance",
+        "priorities",
+        "deliberate growth"
+      ],
+      "glb": "/library/glb/VSV-030.glb",
+      "thumb": "/library/thumb/VSV-030.webp",
+      "downloads": {
+        "png": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-030_stacked-pebbles.png",
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-030_stacked-pebbles.glb"
+      }
+    }
+  ],
+  "loops": [
+    {
+      "id": "VSV-008",
+      "name": "ribbon-loop",
+      "motion": "ribbon-revolve",
+      "title": "ribbon loop, ribbon revolve",
+      "seconds": 4,
+      "glb": "/library/glb/VSV-008_ribbon-loop__ribbon-revolve.glb",
+      "thumb": "/library/thumb/VSV-008_ribbon-loop__ribbon-revolve.webp",
+      "downloads": {
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-008_ribbon-loop__ribbon-revolve.glb",
+        "webm": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-008_ribbon-loop__ribbon-revolve.webm",
+        "mp4": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-008_ribbon-loop__ribbon-revolve.mp4",
+        "poster": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-008_ribbon-loop__ribbon-revolve.png"
+      }
+    },
+    {
+      "id": "VSV-014",
+      "name": "insight-lens",
+      "motion": "lens-tilt",
+      "title": "insight lens, lens tilt",
+      "seconds": 4,
+      "glb": "/library/glb/VSV-014_insight-lens__lens-tilt.glb",
+      "thumb": "/library/thumb/VSV-014_insight-lens__lens-tilt.webp",
+      "downloads": {
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-014_insight-lens__lens-tilt.glb",
+        "webm": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-014_insight-lens__lens-tilt.webm",
+        "mp4": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-014_insight-lens__lens-tilt.mp4",
+        "poster": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-014_insight-lens__lens-tilt.png"
+      }
+    },
+    {
+      "id": "VSV-015",
+      "name": "index-tower",
+      "motion": "index-slide",
+      "title": "index tower, index slide",
+      "seconds": 4,
+      "glb": "/library/glb/VSV-015_index-tower__index-slide.glb",
+      "thumb": "/library/thumb/VSV-015_index-tower__index-slide.webp",
+      "downloads": {
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-015_index-tower__index-slide.glb",
+        "webm": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-015_index-tower__index-slide.webm",
+        "mp4": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-015_index-tower__index-slide.mp4",
+        "poster": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-015_index-tower__index-slide.png"
+      }
+    },
+    {
+      "id": "VSV-016",
+      "name": "partnership-links",
+      "motion": "linked-sway",
+      "title": "partnership links, linked sway",
+      "seconds": 4,
+      "glb": "/library/glb/VSV-016_partnership-links__linked-sway.glb",
+      "thumb": "/library/thumb/VSV-016_partnership-links__linked-sway.webp",
+      "downloads": {
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-016_partnership-links__linked-sway.glb",
+        "webm": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-016_partnership-links__linked-sway.webm",
+        "mp4": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-016_partnership-links__linked-sway.mp4",
+        "poster": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-016_partnership-links__linked-sway.png"
+      }
+    },
+    {
+      "id": "VSV-020",
+      "name": "milestone-path",
+      "motion": "path-revolve",
+      "title": "milestone path, path revolve",
+      "seconds": 4,
+      "glb": "/library/glb/VSV-020_milestone-path__path-revolve.glb",
+      "thumb": "/library/thumb/VSV-020_milestone-path__path-revolve.webp",
+      "downloads": {
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-020_milestone-path__path-revolve.glb",
+        "webm": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-020_milestone-path__path-revolve.webm",
+        "mp4": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-020_milestone-path__path-revolve.mp4",
+        "poster": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-020_milestone-path__path-revolve.png"
+      }
+    },
+    {
+      "id": "VSV-021",
+      "name": "unfolding-fan",
+      "motion": "fan-sweep",
+      "title": "unfolding fan, fan sweep",
+      "seconds": 4,
+      "glb": "/library/glb/VSV-021_unfolding-fan__fan-sweep.glb",
+      "thumb": "/library/thumb/VSV-021_unfolding-fan__fan-sweep.webp",
+      "downloads": {
+        "glb": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-021_unfolding-fan__fan-sweep.glb",
+        "webm": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-021_unfolding-fan__fan-sweep.webm",
+        "mp4": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-021_unfolding-fan__fan-sweep.mp4",
+        "poster": "https://github.com/verseva/design/releases/download/library-2026.10/VSV-021_unfolding-fan__fan-sweep.png"
+      }
+    }
+  ]
+}
