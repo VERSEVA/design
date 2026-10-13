@@ -1,0 +1,7 @@
+/* Chapter fold: layout only. */
+.chapter-stage { position: relative; margin: 0 calc(var(--s-7) * -1); }
+.chapter-frame { display: block; width: 100%; min-height: 100dvh; border: 0; background: transparent; }
+.chapter-markers { position: absolute; inset: 0; pointer-events: none; }
+.chapter-marker { position: absolute; left: 0; height: 1px; width: 1px; scroll-margin-top: 80px; }
+@media (max-width: 1100px) { .chapter-stage { margin: 0 calc(var(--s-5) * -1); } }
+@media (max-width: 760px) { .chapter-stage { margin: 0 calc(var(--s-4) * -1); } }

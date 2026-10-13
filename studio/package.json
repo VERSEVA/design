@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/tokens-model.mjs && vite",
-    "prebuild": "node scripts/tokens-model.mjs",
+    "dev": "node scripts/tokens-model.mjs && node scripts/chapters-model.mjs && vite",
+    "prebuild": "node scripts/tokens-model.mjs && node scripts/chapters-model.mjs",
     "build": "vite build",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --pool=forks"

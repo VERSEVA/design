@@ -9,12 +9,84 @@
     {
       "source": "/assets",
       "destination": "/index.html"
+    },
+    {
+      "source": "/components",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/web-ui",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/data-viz",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/motion",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/decks",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/docs-pdf",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/distribute",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/gallery",
+      "destination": "/index.html"
     }
   ],
   "redirects": [
     {
       "source": "/index.html",
       "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/components.html",
+      "destination": "/components",
+      "permanent": true
+    },
+    {
+      "source": "/web-ui.html",
+      "destination": "/web-ui",
+      "permanent": true
+    },
+    {
+      "source": "/data-viz.html",
+      "destination": "/data-viz",
+      "permanent": true
+    },
+    {
+      "source": "/motion.html",
+      "destination": "/motion",
+      "permanent": true
+    },
+    {
+      "source": "/decks.html",
+      "destination": "/decks",
+      "permanent": true
+    },
+    {
+      "source": "/docs-pdf.html",
+      "destination": "/docs-pdf",
+      "permanent": true
+    },
+    {
+      "source": "/distribute.html",
+      "destination": "/distribute",
+      "permanent": true
+    },
+    {
+      "source": "/examples.html",
+      "destination": "/gallery",
       "permanent": true
     }
   ],

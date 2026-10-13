@@ -1,0 +1,378 @@
+[
+  {
+    "slug": "components",
+    "file": "components.html",
+    "label": "Components",
+    "sections": [
+      {
+        "id": "install",
+        "label": "Install"
+      },
+      {
+        "id": "spacing",
+        "label": "Spacing utilities"
+      },
+      {
+        "id": "button",
+        "label": "Button"
+      },
+      {
+        "id": "field",
+        "label": "Field"
+      },
+      {
+        "id": "switch",
+        "label": "Checkbox + switch"
+      },
+      {
+        "id": "card",
+        "label": "Card"
+      },
+      {
+        "id": "badge",
+        "label": "Badge"
+      },
+      {
+        "id": "toast",
+        "label": "Toast"
+      },
+      {
+        "id": "modal",
+        "label": "Modal"
+      },
+      {
+        "id": "table",
+        "label": "Table"
+      },
+      {
+        "id": "stat",
+        "label": "Stat tile"
+      },
+      {
+        "id": "chart",
+        "label": "Chart card"
+      },
+      {
+        "id": "seg",
+        "label": "Segmented control"
+      },
+      {
+        "id": "fchip",
+        "label": "Filter chips"
+      },
+      {
+        "id": "search",
+        "label": "Search"
+      },
+      {
+        "id": "rows",
+        "label": "List rows + identity"
+      },
+      {
+        "id": "skeleton",
+        "label": "Skeleton"
+      },
+      {
+        "id": "select",
+        "label": "Select + textarea"
+      },
+      {
+        "id": "tabs",
+        "label": "Tabs"
+      },
+      {
+        "id": "menu",
+        "label": "Menu"
+      },
+      {
+        "id": "tooltip",
+        "label": "Tooltip"
+      },
+      {
+        "id": "crumbsdoc",
+        "label": "Breadcrumbs"
+      },
+      {
+        "id": "pagerdoc",
+        "label": "Pagination"
+      },
+      {
+        "id": "progressdoc",
+        "label": "Progress"
+      },
+      {
+        "id": "calloutdoc",
+        "label": "Callout"
+      },
+      {
+        "id": "emptydoc",
+        "label": "Empty state"
+      },
+      {
+        "id": "accdoc",
+        "label": "Content accordion"
+      },
+      {
+        "id": "topnav",
+        "label": "Top navigation"
+      },
+      {
+        "id": "sidenav",
+        "label": "Console navigation"
+      },
+      {
+        "id": "sheet",
+        "label": "Sheet"
+      },
+      {
+        "id": "navshell",
+        "label": "Navshell"
+      },
+      {
+        "id": "accordion-nav",
+        "label": "Console navigation"
+      }
+    ]
+  },
+  {
+    "slug": "web-ui",
+    "file": "web-ui.html",
+    "label": "Web UI",
+    "sections": [
+      {
+        "id": "the-ladders",
+        "label": "The ladders"
+      },
+      {
+        "id": "type-trio",
+        "label": "Type trio"
+      },
+      {
+        "id": "radius-press",
+        "label": "Radius + press"
+      },
+      {
+        "id": "contract-specimens",
+        "label": "Contract specimens"
+      },
+      {
+        "id": "states-floor",
+        "label": "States floor"
+      },
+      {
+        "id": "navshell",
+        "label": "Navshell"
+      },
+      {
+        "id": "do-don-t",
+        "label": "Do / don't"
+      }
+    ]
+  },
+  {
+    "slug": "data-viz",
+    "file": "data-viz.html",
+    "label": "Data viz",
+    "sections": [
+      {
+        "id": "doctrine",
+        "label": "Doctrine"
+      },
+      {
+        "id": "stat",
+        "label": "Stat tiles"
+      },
+      {
+        "id": "spark",
+        "label": "Sparklines"
+      },
+      {
+        "id": "lines",
+        "label": "Line + area"
+      },
+      {
+        "id": "bars",
+        "label": "Bars"
+      },
+      {
+        "id": "stacked",
+        "label": "Stacked segments"
+      },
+      {
+        "id": "hbars",
+        "label": "Horizontal bars"
+      },
+      {
+        "id": "heat",
+        "label": "Intensity + calendar"
+      },
+      {
+        "id": "rings",
+        "label": "Rings"
+      },
+      {
+        "id": "gates",
+        "label": "State strips"
+      },
+      {
+        "id": "meaning",
+        "label": "Meaning + provenance"
+      },
+      {
+        "id": "anti",
+        "label": "Anti-patterns"
+      }
+    ]
+  },
+  {
+    "slug": "motion",
+    "file": "motion.html",
+    "label": "Motion",
+    "sections": [
+      {
+        "id": "doctrine",
+        "label": "Doctrine"
+      },
+      {
+        "id": "tokens",
+        "label": "Tokens"
+      },
+      {
+        "id": "press",
+        "label": "Press"
+      },
+      {
+        "id": "entrances",
+        "label": "Entrances"
+      },
+      {
+        "id": "lines",
+        "label": "Line reveal"
+      },
+      {
+        "id": "spotlight",
+        "label": "Spotlight"
+      },
+      {
+        "id": "magnetic",
+        "label": "Magnetic"
+      },
+      {
+        "id": "numbers",
+        "label": "Numbers"
+      },
+      {
+        "id": "swap",
+        "label": "Text swap"
+      },
+      {
+        "id": "attention",
+        "label": "Attention"
+      },
+      {
+        "id": "loading",
+        "label": "Loading"
+      },
+      {
+        "id": "grow",
+        "label": "Height + width"
+      },
+      {
+        "id": "ambient",
+        "label": "Ambient"
+      },
+      {
+        "id": "wipe",
+        "label": "Theme wipe"
+      },
+      {
+        "id": "anti",
+        "label": "Anti-patterns"
+      }
+    ]
+  },
+  {
+    "slug": "decks",
+    "file": "decks.html",
+    "label": "Decks",
+    "sections": [
+      {
+        "id": "slide-anatomy",
+        "label": "Slide anatomy"
+      },
+      {
+        "id": "stage-rules",
+        "label": "Stage rules"
+      },
+      {
+        "id": "structure",
+        "label": "Structure"
+      },
+      {
+        "id": "carriage",
+        "label": "Carriage"
+      }
+    ]
+  },
+  {
+    "slug": "docs-pdf",
+    "file": "docs-pdf.html",
+    "label": "Docs and PDF",
+    "sections": [
+      {
+        "id": "memo-anatomy",
+        "label": "Memo anatomy"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar"
+      },
+      {
+        "id": "print-pdf",
+        "label": "Print + PDF"
+      }
+    ]
+  },
+  {
+    "slug": "distribute",
+    "file": "distribute.html",
+    "label": "Distribute",
+    "sections": [
+      {
+        "id": "source-distribution",
+        "label": "Source distribution"
+      },
+      {
+        "id": "registries",
+        "label": "Registries"
+      },
+      {
+        "id": "agents",
+        "label": "Agents"
+      },
+      {
+        "id": "theme-presets",
+        "label": "Theme presets"
+      }
+    ]
+  },
+  {
+    "slug": "gallery",
+    "file": "examples.html",
+    "label": "Gallery",
+    "sections": [
+      {
+        "id": "mock-sites",
+        "label": "Mock sites"
+      },
+      {
+        "id": "details",
+        "label": "Details"
+      },
+      {
+        "id": "inspiration-shots",
+        "label": "Inspiration shots"
+      }
+    ]
+  }
+]

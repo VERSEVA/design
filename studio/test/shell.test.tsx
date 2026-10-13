@@ -32,7 +32,8 @@ describe('studio shell', () => {
     const values = [...sel.options].map((o) => o.value);
     expect(values).toContain('/foundations');
     expect(values).toContain('/assets');
-    expect(values).toContain('/components.html');
+    expect(values).toContain('/components');
+    expect(values).toContain('/gallery');
   });
 
   it('focuses the page heading and sets the title after navigating', async () => {
