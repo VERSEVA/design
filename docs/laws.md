@@ -17,15 +17,21 @@ enforce, binding by engagement contract rather than by gate.
 3. **One accent, matte.** A single accent; its saturation is the brand's choice, its
    treatment is not. Accent-filled controls sit MATTE: flat low-contrast gradient body,
    whisper-thin top catch-light, NO colored outer glow, label held at AA. Named accent
-   devices: the radial bloom behind the active nav item, the accent full stop on display
-   headings, the single-hue data-intensity ladder. (Amended 2026-08-31: "desaturated"
-   dropped; the signature accent is an energetic red, and saturation is a theme axis.)
+   devices: the radial bloom behind the active nav item, the single-hue data-intensity
+   ladder. (Amended 2026-08-31: "desaturated" dropped; the signature accent is an
+   energetic red, and saturation is a theme axis.) (Amended 2026-09-12, operator ruling:
+   the ACCENT FULL STOP IS RETIRED as a named device and must not be authored on new
+   surfaces. A distinctive asset stops being distinctive once everyone owns it, and the
+   accented terminal period is now the default move across the web, so it reads as
+   template rather than as signature. Surfaces still carrying it are retrofitted at next
+   touch, not swept.)
 4. **TYPE LAW: mono is for machines.** Mono only for machine artifacts (IDs, codes, SKUs,
    payloads, code inputs), live timers/stage displays, chart-internal microlabels ≤10px, and
    pure-number identity chips. Everything a human reads is body. Never uppercase tracked-out
    mono footnotes; footnotes are quiet sentence-case body.
-5. **Display voice.** Tight negative tracking (-.01 to -.03em), heavy weight, short statements,
-   accent full stop. Product type runs fine-grained (body 13–14px, meta 11–12.5px).
+5. **Display voice.** Tight negative tracking (-.01 to -.03em), heavy weight, short
+   statements. Product type runs fine-grained (body 13–14px, meta 11–12.5px). (Amended
+   2026-09-12: the accent full stop left this law with law 3.)
 6. **SEAM LAW: sections must breathe.** Section→section ≥18px (32 standard, 20 tight); stacked
    cards in one pad ≥12px; a full-width button after a list ≥14px. Rhythm at class level, never
    per-screen inline margins.

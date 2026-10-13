@@ -192,8 +192,7 @@ independent axes.
 
 ## Credit
 
-Finished work built on the system may carry the line, in the display face with the
-accent full stop:
+Finished work built on the system may carry the line, in the display face:
 
 **Built on VERSEVA Design.**
 
