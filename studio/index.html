@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VERSEVA Design</title>
+<meta name="description" content="VERSEVA Design: tokens, components, gates and an open asset library.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<script>
+(() => {
+  const r = document.documentElement;
+  try {
+    const b = localStorage.getItem('verseva-brand');
+    const m = localStorage.getItem('verseva-theme');
+    if (b && ['cobalt', 'forest', 'slate', 'violet'].includes(b)) r.dataset.brand = b;
+    const light = m === 'light' || ((m === 'system' || m === null) && matchMedia('(prefers-color-scheme: light)').matches);
+    if (light) r.dataset.theme = 'light';
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<div id="studio-root"></div>
+<script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

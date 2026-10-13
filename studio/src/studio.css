@@ -1,0 +1,78 @@
+/* VERSEVA Design studio: layout only. Every color, radius, space, type and
+   motion value comes from the package (tokens.css + components.css + themes). */
+@import '../../tokens.css';
+@import '../../components.css';
+@import '../../themes/cobalt.css';
+@import '../../themes/forest.css';
+@import '../../themes/slate.css';
+@import '../../themes/violet.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4, p { margin: 0; }
+a { color: inherit; }
+img, video, canvas { display: block; max-width: 100%; }
+
+/* ---- shell ---- */
+.studio-head {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  background: var(--bg);
+  border-bottom: 1px solid var(--hairline);
+}
+.lockup { display: flex; align-items: center; gap: var(--s-2); text-decoration: none; font-family: var(--font-display); letter-spacing: -.01em; }
+.lockup b { font-weight: var(--display-weight); }
+.lockup .sub { font-family: var(--font-sans); color: var(--text-2); font-size: .875rem; }
+.lockup .mark { display: inline-flex; color: var(--text-1); }
+.lockup .mark svg { width: 24px; height: 24px; }
+.lockup:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: var(--r-sm); }
+.grow { flex: 1; }
+.studio-head .btn.icon { width: 40px; height: 40px; }
+.swatch { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex: none; }
+.picker-lg .fchip { height: 44px; padding: 0 var(--s-4) 0 var(--s-2); font-size: .9375rem; }
+.picker-lg .swatch { width: 28px; height: 28px; }
+
+.studio-select { display: none; padding: var(--s-2) var(--s-4); border-bottom: 1px solid var(--hairline); background: var(--bg); }
+.studio-select select { width: 100%; height: 44px; padding: 0 var(--s-3); border-radius: var(--r-sm); border: 1px solid var(--hairline-strong); background: var(--surface); color: var(--text-1); font: inherit; }
+.studio-select select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.studio-body { display: grid; grid-template-columns: 232px minmax(0, 1fr); max-width: 1440px; margin: 0 auto; }
+.studio-side { position: sticky; top: 65px; align-self: start; height: calc(100dvh - 65px); overflow-y: auto; padding: var(--s-5) var(--s-4); border-right: 1px solid var(--hairline-soft); }
+.studio-side .sgroup + .sgroup { margin-top: var(--s-6); }
+.snav .anchors { margin: 2px 0 var(--s-2) var(--s-3); gap: 0; }
+.snav .anchors a { padding: 5px 9px; font-size: .78125rem; color: var(--text-3); }
+.snav .anchors a.on { color: var(--text-1); }
+.snav a:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.studio-main { min-width: 0; padding: 0 var(--s-7) var(--s-9); }
+.studio-main h1:focus { outline: none; }
+
+/* ---- page rhythm (SEAM LAW: sections breathe) ---- */
+.page { padding-top: var(--s-8); }
+.display { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: -.03em; line-height: .98; font-size: clamp(2.4rem, 5.6vw, 4.6rem); max-width: 16ch; }
+.section { padding-top: var(--s-8); scroll-margin-top: 80px; }
+.section > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 1.5rem; letter-spacing: -.02em; margin-bottom: var(--s-5); display: flex; align-items: baseline; gap: var(--s-3); }
+.section > h2 .cnt { font-family: var(--font-mono); font-size: .75rem; color: var(--text-3); font-weight: 400; letter-spacing: 0; }
+.grid { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.mono { font-family: var(--font-mono); font-size: .75rem; }
+.muted { color: var(--text-2); }
+
+@media (max-width: 1100px) {
+  .studio-body { grid-template-columns: 200px minmax(0, 1fr); }
+  .studio-main { padding: 0 var(--s-5) var(--s-8); }
+}
+@media (max-width: 760px) {
+  .studio-body { grid-template-columns: minmax(0, 1fr); }
+  .studio-side { display: none; }
+  .studio-select { display: block; position: sticky; top: 57px; z-index: 15; }
+  .studio-head { padding: var(--s-2) var(--s-4); gap: var(--s-2); flex-wrap: wrap; }
+  .studio-head .picker { order: 5; width: 100%; }
+  .studio-main { padding: 0 var(--s-4) var(--s-8); }
+  .seg button { min-height: 44px; }
+  .page { padding-top: var(--s-6); }
+  .section { padding-top: var(--s-7); }
+}
+@media (max-width: 420px) {
+  .lockup .badge { display: none; }
+}

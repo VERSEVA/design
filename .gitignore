@@ -5,3 +5,6 @@ board/theme-manifest.json
 .DS_Store
 .vercel
 .env*
+out/
+studio/dist/
+studio/node_modules/
