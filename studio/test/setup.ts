@@ -1,4 +1,6 @@
 // Node 25 ships a global localStorage that shadows jsdom's; give tests a working one.
+// Node-environment test files (no window) skip the DOM shims.
+if (typeof window !== 'undefined') {
 class MemoryStorage implements Storage {
   private m = new Map<string, string>();
   get length() { return this.m.size; }
@@ -21,3 +23,4 @@ if (!window.matchMedia) {
 if (!window.requestAnimationFrame) window.requestAnimationFrame = (cb) => setTimeout(() => cb(performance.now()), 0) as unknown as number;
 window.scrollTo = (() => {}) as typeof window.scrollTo;
 Element.prototype.scrollIntoView = function () {};
+}

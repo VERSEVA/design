@@ -23,7 +23,7 @@ describe('studio shell', () => {
     render(<App />);
     const side = screen.getByRole('navigation', { name: 'Studio' });
     const anchors = [...side.querySelectorAll('a[href^="/assets#"]')].map((a) => a.getAttribute('href'));
-    expect(anchors).toEqual(['/assets#objects', '/assets#loops', '/assets#photography', '/assets#video']);
+    expect(anchors).toEqual(['/assets#objects', '/assets#loops']);
   });
 
   it('offers a select navigator carrying pages and chapters', () => {

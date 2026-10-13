@@ -18,7 +18,8 @@
     "isolatedModules": true,
     "types": [
       "vite/client",
-      "vitest/globals"
+      "vitest/globals",
+      "node"
     ],
     "baseUrl": ".",
     "paths": {

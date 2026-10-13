@@ -8,7 +8,7 @@ import library from '../data/library.json';
 export interface Section { id: string; label: string }
 export interface Route { path: string; label: string; title: string; sections: ReadonlyArray<Section>; count: number | null; Page: () => React.ReactElement }
 
-const libCount = library.objects.length + library.loops.length + library.photos.length + library.clips.length;
+const libCount = library.objects.length + library.loops.length;
 
 export const ROUTES: ReadonlyArray<Route> = [
   { path: '/', label: 'Overview', title: 'VERSEVA Design', sections: FRONT, count: null, Page: FrontDoorPage },

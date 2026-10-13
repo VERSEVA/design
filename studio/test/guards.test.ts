@@ -24,13 +24,13 @@ export function scan(list: string[]) {
   const hits: string[] = [];
   for (const f of list) {
     const text = fs.readFileSync(f, 'utf8');
-    if (text.includes('—')) hits.push(`${path.relative(root, f)}: em dash`);
+    if (text.includes('\u2014')) hits.push(`${path.relative(root, f)}: em dash`);
     if (/ufitra|\buf-|atlas-/i.test(text)) hits.push(`${path.relative(root, f)}: partner identifier`);
   }
   return hits;
 }
 
-describe('public repo guards', () => {
+describe('public repo guards', { timeout: 180_000 }, () => {
   it('finds no em dash or partner identifier in studio source', () => {
     expect(scan(files)).toEqual([]);
   });

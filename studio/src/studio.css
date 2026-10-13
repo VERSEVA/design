@@ -65,9 +65,13 @@ img, video, canvas { display: block; max-width: 100%; }
 @media (max-width: 760px) {
   .studio-body { grid-template-columns: minmax(0, 1fr); }
   .studio-side { display: none; }
-  .studio-select { display: block; position: sticky; top: 57px; z-index: 15; }
+  .studio-select { display: block; position: sticky; z-index: 15; }
   .studio-head { padding: var(--s-2) var(--s-4); gap: var(--s-2); flex-wrap: wrap; }
-  .studio-head .picker { order: 5; width: 100%; }
+  .studio-head .modeswitch { order: 5; width: 100%; }
+  .studio-head .modeswitch .seg { display: flex; width: 100%; }
+  .studio-head .modeswitch .seg button { flex: 1; }
+  .studio-head .picker { order: 6; width: 100%; }
+  .studio-select { top: 113px; }
   .studio-main { padding: 0 var(--s-4) var(--s-8); }
   .seg button { min-height: 44px; }
   .page { padding-top: var(--s-6); }

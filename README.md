@@ -190,6 +190,15 @@ changes, and the contrast gate measures every brand block as its own theme. Reci
 [`docs/theming.md`](docs/theming.md). Appearance (`data-theme`) and brand accent are
 independent axes.
 
+## Assets
+
+The studio at [design.verseva.com/assets](https://design.verseva.com/assets) carries the
+VERSEVA 3D library: 30 objects and 6 animated loops as GLB, each with its accent material
+bound to the active theme, downloadable in any theme. Full files ship on the
+[`library-2026.10` release](https://github.com/verseva/design/releases/tag/library-2026.10).
+The 3D assets are licensed CC BY 4.0 ([LICENSE-ASSETS](LICENSE-ASSETS)); code stays MIT.
+The VERSEVA name, wordmark and emblem are not licensed.
+
 ## Credit
 
 Finished work built on the system may carry the line, in the display face:
