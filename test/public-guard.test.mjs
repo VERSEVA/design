@@ -19,7 +19,7 @@ test('no partner names or em dashes in tracked text files', () => {
     const abs = path.join(root, f);
     if (!fs.existsSync(abs)) continue;
     const text = fs.readFileSync(abs, 'utf8');
-    if (text.includes('—')) hits.push(`${f}: em dash`);
+    if (text.includes('\u2014')) hits.push(`${f}: em dash`);
     if (NAME.test(text)) hits.push(`${f}: partner name`);
     if (NAME.test(f)) hits.push(`${f}: partner name in path`);
   }
