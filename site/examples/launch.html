@@ -10,7 +10,8 @@
 <link rel="stylesheet" href="../../components.css?v=red1">
 <style>
   * { margin: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.5; overflow-x: hidden; }
+  html { overflow-x: clip; }
+  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.5; position: relative; overflow-x: clip; }
   .crumb { position: sticky; top: 0; z-index: 10; background: var(--bg); display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--hairline); font-size: 12.5px; color: var(--text-3); position: relative; z-index: 2; }
   .crumb a { color: var(--text-2); text-decoration: none; font-family: var(--font-display); font-weight: var(--display-weight); }
   
