@@ -70,7 +70,32 @@ link: one overlay `<a>`, inner interactives reachable. Hover: hairline strengthe
 ## Table: `.table`
 
 Header `label` type + `--hairline` underline, rows ≥44px, hover `--surface-2`, numerics
-right-aligned tabular-nums, sticky header on long tables, states trio applies.
+right-aligned tabular-nums, pinned header on long tables (`.pin`, below), states trio applies.
+
+## Pinned list header: `.pin` (long lists only)
+
+A list that grows with its data (an index, a registry, an inbox, a log, an import) pins its
+header row, so every column, dot and badge stays named while the reader scrolls. A list whose
+length is fixed by design (a quote's cost lines, a spec sheet, a table inside a card, sheet or
+modal, a band of the latest few) does NOT pin: a pinned header over five rows is chrome for
+nothing. Pinning is decided per list when the list is built; a list that turns long later gains
+`.pin` in the change that made it long.
+
+- **Mechanism:** `.pin` on the list's wrapper. The header is `thead th` in a `.table`, or the row
+  marked `.pin-head` in a non-table list (`.lrows`, grid lists).
+- **Under the sticky chrome:** the header pins at `--sticky-top`, which the surface sets to its
+  sticky bar's height (unset = 0). Header cells carry an opaque fill and draw the underline as
+  an inset shadow: a translucent pinned row shows rows sliding under it, and a collapsed table
+  border stays behind when the cell moves.
+- **The overflow trap:** an ancestor with `overflow: hidden | auto | scroll` becomes the sticky
+  container and the header silently stops pinning. `.pin` clips with `overflow: clip`, which
+  keeps rounded corners without creating a scroller; nothing between `.pin` and the page may
+  scroll.
+- **Wide lists:** a list cannot pin to the page and scroll sideways at once. Below 1024px, and
+  always with `.pin.box`, the wrapper becomes the scroll box in both axes, capped at the
+  viewport under the chrome (`100dvh - --sticky-top - --sticky-bottom - --s-4`;
+  `--sticky-bottom` is a floating bottom bar's height), and the header pins to the box's top.
+  Use `.pin.box` for any list that can outgrow its column on a desktop.
 
 ## Badge: `.badge` · Toast: `.toast` · Modal: `.modal`
 

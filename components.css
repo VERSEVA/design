@@ -86,6 +86,20 @@
 .table .num{text-align:right;font-variant-numeric:tabular-nums}
 .table th.num{text-align:right}
 
+/* ---- Pinned list header (contract: long lists only, opt-in on the wrapper) ----
+   Pins under the surface's sticky chrome (--sticky-top). overflow:clip, never hidden:
+   hidden makes a scroller and the header silently stops pinning. Below 1024px, or
+   with .box, the wrapper is the capped scroll box and the header pins to its top. */
+.pin{overflow:clip}
+.pin thead th,.pin .pin-head{position:sticky;top:var(--sticky-top,0px);z-index:2;background:var(--surface)}
+.pin thead th{border-bottom:0;box-shadow:inset 0 -1px 0 var(--hairline)}
+.pin.box{overflow:auto;max-height:calc(100dvh - var(--sticky-top,0px) - var(--sticky-bottom,0px) - var(--s-4))}
+.pin.box thead th,.pin.box .pin-head{top:0}
+@media (max-width:1023px){
+  .pin{overflow:auto;max-height:calc(100dvh - var(--sticky-top,0px) - var(--sticky-bottom,0px) - var(--s-4))}
+  .pin thead th,.pin .pin-head{top:0}
+}
+
 /* ---- Badge / status chip (always paired with text, never a dot alone) ---- */
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:500;letter-spacing:.01em;padding:3px 10px;border-radius:var(--r-pill)}
 .badge svg{width:10px;height:10px}

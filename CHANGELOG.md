@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- **Pinned list headers.** Contract: long lists (an index, registry, inbox, log or
+  import) pin their header row; lists fixed by design do not. New `.pin` wrapper
+  pins `thead th` or a `.pin-head` row under the surface's sticky chrome
+  (`--sticky-top`), clipping with `overflow: clip` so no ancestor silently becomes
+  the sticky container. Below 1024px, or with `.pin.box`, the wrapper is a capped
+  scroll box in both axes (`--sticky-bottom` reserves a floating bottom bar).
+  Studio specimen: `#table-pin`.
+
 ## 1.1.0 · 2026-09-01
 
 - **The data-viz kit.** `--data-alt` joins the tokens as the fixed second-series
