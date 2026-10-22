@@ -6,8 +6,8 @@
 <title>VERSEVA Design · Example: ops console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
-<link rel="stylesheet" href="../../tokens.css?v=red1">
-<link rel="stylesheet" href="../../components.css?v=red1">
+<link rel="stylesheet" href="../../tokens.css?v=1p2">
+<link rel="stylesheet" href="../../components.css?v=1p2">
 <style>
   * { margin: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.5; }
@@ -19,7 +19,16 @@
   .mainhead { display: flex; align-items: center; gap: var(--s-4); }
   .mainhead h1 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; flex: 1; }
   .duo { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s-4); }
-  @media (max-width: 900px) { .app { grid-template-columns: 1fr; } aside { display: none; } .duo { grid-template-columns: 1fr; } }
+  main { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  .quotes td { white-space: nowrap; }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr); } aside { display: none; } .duo { grid-template-columns: minmax(0, 1fr); }
+    main { padding: var(--s-4); }
+    .mainhead { flex-wrap: wrap; }
+    .mainhead h1 { flex: 1 1 100%; }
+    .mainhead .searchbox { flex: 1 1 100%; max-width: none; }
+  }
+  @media (max-width: 600px) { .quotes .client { display: none; } .quotes .table th, .quotes .table td { padding-inline: var(--s-3); } }
   .crumb a { display: inline-flex; align-items: center; gap: 8px; }
   .crumb .vmark { width: 16px; height: 16px; flex: none; }
   .crumb .codelink { margin-left: auto; }
@@ -33,7 +42,7 @@
     <div>
       <div class="grouplabel">Operate</div>
       <nav class="snav">
-        <a class="active" href="#overview">Overview <span class="cnt">4</span></a>
+        <a href="#overview" aria-current="page">Overview <span class="cnt">4</span></a>
         <a href="#quotes">Quotes <span class="cnt">18</span></a>
         <a href="#machines">Machines <span class="cnt">17</span></a>
       </nav>
@@ -54,13 +63,13 @@
       <button class="btn btn-primary sm" type="button">New quote</button>
     </div>
     <div class="statrow">
-      <div class="stat"><div class="num">18</div><div class="lbl">Open quotes</div><div class="delta"><span class="badge ok">3 verified today</span></div></div>
-      <div class="stat"><div class="num">4.4<i>ms</i></div><div class="lbl">p95 response</div></div>
-      <div class="stat"><div class="num">97<i>%</i></div><div class="lbl">Provenance complete</div></div>
-      <div class="stat"><div class="num">2</div><div class="lbl">Awaiting ruling</div><div class="delta"><span class="badge warn">Blocked on client</span></div></div>
+      <div class="stat glass"><div class="num">18</div><div class="lbl">Open quotes</div><div class="delta"><span class="badge ok">3 verified today</span></div></div>
+      <div class="stat glass"><div class="num">4.4<i>ms</i></div><div class="lbl">p95 response</div></div>
+      <div class="stat glass"><div class="num">97<i>%</i></div><div class="lbl">Provenance complete</div></div>
+      <div class="stat glass"><div class="num">2</div><div class="lbl">Awaiting ruling</div><div class="delta"><span class="badge warn">Blocked on client</span></div></div>
     </div>
     <div class="duo">
-      <div class="chartcard">
+      <div class="chartcard glass">
         <h4>Quotes closed</h4>
         <div class="sub">Last 6 weeks</div>
         <div class="bars">
@@ -73,62 +82,131 @@
         </div>
         <div class="takeaway">Throughput doubled after the provenance sweep landed in W4.</div>
       </div>
-      <div class="card">
-        <div class="hd"><h4>Recent activity</h4></div>
-        <div class="bd">
-          <div class="lrows">
-            <div class="lrow"><span class="avc">KW</span><span class="tx"><b>Quote 2081 verified</b><span class="metaline">2 minutes ago</span></span><span class="badge ok">Verified</span></div>
-            <div class="lrow"><span class="avc">MR</span><span class="tx"><b>Machine 12 recalibrated</b><span class="metaline">1 hour ago</span></span><span class="badge neutral">Logged</span></div>
-            <div class="lrow"><span class="avc">KW</span><span class="tx"><b>Ruling v18 filed</b><span class="metaline">Yesterday</span></span><span class="badge warn">2 conflicts</span></div>
-          </div>
-        </div>
-      </div>
+      <section class="glass">
+        <div class="hd"><h4>Recent activity</h4><span class="badge neutral">3</span></div>
+        <ol class="lrows tline">
+          <li class="lrow"><span class="avc" title="Verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span><span class="tx"><b>Quote 2081 verified</b><span class="metaline">K. Webb · <time datetime="PT2M">2 minutes ago</time></span></span><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></li>
+          <li class="lrow"><span class="avc" title="Machine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span><span class="tx"><b>Machine 12 recalibrated</b><span class="metaline">M. Reyes · <time datetime="PT1H">1 hour ago</time></span></span><span class="badge neutral">Logged</span></li>
+          <li class="lrow"><span class="avc" title="Ruling"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h4"/></svg></span><span class="tx"><b>Ruling v18 filed</b><span class="metaline">K. Webb · <time datetime="P1D">Yesterday</time></span></span><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>2 conflicts</span></li>
+        </ol>
+      </section>
     </div>
-    <table class="table">
-      <thead><tr><th>Quote</th><th>Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
-      <tbody>
-        <tr><td>Q-2081</td><td>Northline Foods</td><td><span class="badge ok">Verified</span></td><td class="num">48,220.00</td></tr>
-        <tr><td>Q-2080</td><td>Harbor Botanics</td><td><span class="badge warn">Pending sourcing</span></td><td class="num">12,940.00</td></tr>
-        <tr><td>Q-2079</td><td>Crestpoint Labs</td><td><span class="badge ok">Verified</span></td><td class="num">86,410.00</td></tr>
-        <tr><td>Q-2078</td><td>Meridian Goods</td><td><span class="badge err">Rejected</span></td><td class="num">7,300.00</td></tr>
-      </tbody>
-    </table>
+    <section class="glass quotes">
+      <div class="hd"><h4>Quotes</h4><span class="badge neutral">4</span></div>
+      <table class="table">
+        <thead><tr><th class="pick"><label><input type="checkbox" aria-label="Select all quotes"></label></th><th>Quote</th><th class="client">Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2081"></label></td><td>Q-2081</td><td class="client">Northline Foods</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2081"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></button></div></td><td class="num">48,220.00</td></tr>
+          <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2080"></label></td><td>Q-2080</td><td class="client">Harbor Botanics</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2080"><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>Pending</span></button></div></td><td class="num">12,940.00</td></tr>
+          <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2079"></label></td><td>Q-2079</td><td class="client">Crestpoint Labs</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2079"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></button></div></td><td class="num">86,410.00</td></tr>
+          <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2078"></label></td><td>Q-2078</td><td class="client">Meridian Goods</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2078"><span class="badge err"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m3 3 4 4M7 3 3 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Rejected</span></button></div></td><td class="num">7,300.00</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <div class="bulkbar" role="toolbar" aria-label="Bulk actions" hidden>
+      <span class="count" aria-live="polite">0 selected</span>
+      <button class="btn btn-ghost sm" type="button" data-bulk="Exported">Export</button>
+      <button class="btn btn-destructive sm" type="button" data-bulk="Rejected">Reject</button>
+      <button class="btn btn-ghost sm icon" type="button" aria-label="Clear selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </div>
   </main>
 </div>
 <div id="toastwrap"></div>
 <script>
-  const table = document.querySelector('.table tbody');
+  const table = document.querySelector('.quotes tbody');
+  const MENU = '<div class="menu-list" role="menu" aria-label="Status"><button type="button" role="menuitemradio" aria-checked="false" class="menu-item" data-k="ok"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button><button type="button" role="menuitemradio" aria-checked="false" class="menu-item" data-k="warn"><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>Pending</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button><button type="button" role="menuitemradio" aria-checked="false" class="menu-item" data-k="err"><span class="badge err"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m3 3 4 4M7 3 3 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Rejected</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button></div>';
   const search = document.querySelector('.searchbox input');
   search.addEventListener('input', () => {
     const q = search.value.trim().toLowerCase();
     [...table.rows].forEach((r) => { r.hidden = q !== '' && !r.textContent.toLowerCase().includes(q); });
   });
-  const amountTh = document.querySelector('.table th.num');
+  const amountTh = document.querySelector('.quotes th.num');
   amountTh.style.cursor = 'pointer';
   let asc = false;
   amountTh.addEventListener('click', () => {
     asc = !asc;
     [...table.rows]
       .sort((a, b) => {
-        const num = (r) => parseFloat(r.cells[3].textContent.replace(/,/g, ''));
+        const num = (r) => parseFloat(r.cells[4].textContent.replace(/,/g, ''));
         return asc ? num(a) - num(b) : num(b) - num(a);
       })
       .forEach((r) => table.append(r));
   });
-  document.querySelectorAll('.mainhead .btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const wrap = document.getElementById('toastwrap');
-      wrap.replaceChildren();
-      const toast = document.createElement('div');
-      toast.className = 'toast ok';
-      toast.style.position = 'fixed';
-      toast.style.right = 'var(--s-5)';
-      toast.style.bottom = 'var(--s-5)';
-      toast.style.zIndex = '9';
-      toast.innerHTML = '<span class="dot"></span>' + (btn.textContent.includes('Export') ? 'Export queued: 18 quotes.' : 'Draft quote Q-2082 opened.');
-      wrap.append(toast);
-      setTimeout(() => toast.remove(), 2200);
+  const toast = (text) => {
+    const wrap = document.getElementById('toastwrap');
+    wrap.replaceChildren();
+    const t = document.createElement('div');
+    t.className = 'toast ok';
+    t.setAttribute('role', 'status');
+    t.style.position = 'fixed';
+    t.style.right = 'var(--s-5)';
+    t.style.bottom = 'var(--s-5)';
+    t.style.zIndex = '13';
+    t.innerHTML = '<span class="dot"></span>' + text;
+    wrap.append(t);
+    setTimeout(() => t.remove(), 2200);
+  };
+
+  /* Row menu: the status badge is the trigger; the checked item carries a tick */
+  const closeMenus = () => document.querySelectorAll('.menu.inline').forEach((m) => {
+    m.querySelector('.menu-list')?.remove();
+    m.querySelector('[aria-haspopup]').setAttribute('aria-expanded', 'false');
+  });
+  table.addEventListener('click', (e) => {
+    const trigger = e.target.closest('.menu.inline > [aria-haspopup]');
+    const item = e.target.closest('[role="menuitemradio"]');
+    if (item) {
+      const menu = item.closest('.menu');
+      const btn = menu.querySelector('[aria-haspopup]');
+      const value = item.cloneNode(true);
+      value.querySelector('.tick').remove();
+      btn.innerHTML = value.innerHTML;
+      closeMenus();
+      btn.focus();
+      toast(menu.closest('tr').cells[1].textContent + ' set to ' + value.textContent + '.');
+      return;
+    }
+    if (!trigger) return;
+    const open = trigger.getAttribute('aria-expanded') === 'true';
+    closeMenus();
+    if (open) return;
+    trigger.insertAdjacentHTML('afterend', MENU);
+    const current = trigger.textContent.trim();
+    trigger.nextElementSibling.querySelectorAll('[role="menuitemradio"]').forEach((i) => i.setAttribute('aria-checked', String(i.textContent.trim() === current)));
+    trigger.setAttribute('aria-expanded', 'true');
+    trigger.nextElementSibling.querySelector('[aria-checked="true"]').focus();
+  });
+  addEventListener('pointerdown', (e) => { if (!e.target.closest('.menu.inline')) closeMenus(); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenus(); });
+
+  /* Bulk selection: picked rows tint, the bar counts them */
+  const all = document.querySelector('.quotes thead .pick input');
+  const boxes = [...table.querySelectorAll('.pick input')];
+  const bar = document.querySelector('.bulkbar');
+  const sync = () => {
+    const n = boxes.filter((b) => b.checked).length;
+    boxes.forEach((b) => {
+      const tr = b.closest('tr');
+      if (b.checked) tr.setAttribute('aria-selected', 'true'); else tr.removeAttribute('aria-selected');
     });
+    all.checked = n === boxes.length;
+    all.indeterminate = n > 0 && n < boxes.length;
+    bar.hidden = n === 0;
+    bar.querySelector('.count').textContent = n + ' selected';
+  };
+  const clear = () => { boxes.forEach((b) => { b.checked = false; }); sync(); };
+  boxes.forEach((b) => b.addEventListener('change', sync));
+  all.addEventListener('change', () => { boxes.forEach((b) => { b.checked = all.checked; }); sync(); });
+  bar.querySelector('[aria-label="Clear selection"]').addEventListener('click', () => { clear(); all.focus(); });
+  bar.querySelectorAll('[data-bulk]').forEach((btn) => btn.addEventListener('click', () => {
+    const n = boxes.filter((b) => b.checked).length;
+    toast(btn.dataset.bulk + ': ' + n + (n === 1 ? ' quote.' : ' quotes.'));
+    clear();
+  }));
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && !bar.hidden) clear(); });
+
+  document.querySelectorAll('.mainhead .btn').forEach((btn) => {
+    btn.addEventListener('click', () => toast(btn.textContent.includes('Export') ? 'Export queued: 18 quotes.' : 'Draft quote Q-2082 opened.'));
   });
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.querySelectorAll('.stat .num').forEach((el) => {

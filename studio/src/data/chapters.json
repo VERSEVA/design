@@ -29,6 +29,10 @@
         "label": "Card"
       },
       {
+        "id": "glass",
+        "label": "Glass panel"
+      },
+      {
         "id": "badge",
         "label": "Badge"
       },
@@ -41,8 +45,20 @@
         "label": "Modal"
       },
       {
+        "id": "erase",
+        "label": "Confirm to erase"
+      },
+      {
         "id": "table",
         "label": "Table"
+      },
+      {
+        "id": "table-pin",
+        "label": "Pinned table header"
+      },
+      {
+        "id": "bulk",
+        "label": "Bulk selection"
       },
       {
         "id": "stat",
@@ -69,6 +85,14 @@
         "label": "List rows + identity"
       },
       {
+        "id": "kv",
+        "label": "Read-only field list"
+      },
+      {
+        "id": "tline",
+        "label": "Timeline"
+      },
+      {
         "id": "skeleton",
         "label": "Skeleton"
       },
@@ -83,6 +107,10 @@
       {
         "id": "menu",
         "label": "Menu"
+      },
+      {
+        "id": "rowmenu",
+        "label": "Row menu"
       },
       {
         "id": "tooltip",

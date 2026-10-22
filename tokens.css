@@ -35,7 +35,7 @@
   --hairline-strong: rgba(255, 255, 255, .16);
   --text-1: #F4F5F7;
   --text-2: #9CA3AF;
-  --text-3: #6B7280;
+  --text-3: #7A818E;
 
   /* ---- CRAFT · accent roles (one accent per brand; themes re-value) ---- */
   --accent: #E8352E;
@@ -134,7 +134,7 @@
   --hairline-strong: rgba(15, 18, 30, .20);
   --text-1: #0E1116;
   --text-2: #5E6573;
-  --text-3: #7A828F;
+  --text-3: #686F7D;
 
   --accent: #C42B21;
   --accent-hover: #A62119;

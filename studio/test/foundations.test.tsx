@@ -69,11 +69,11 @@ describe('foundations page', () => {
   it('tables every contrast pair with ratio, floor and a status badge', async () => {
     const { container } = render(<FoundationsPage />);
     const rows = container.querySelectorAll('#contrast tbody tr');
-    expect(rows).toHaveLength(20);
+    expect(rows).toHaveLength(22);
     const first = rows[0].textContent!;
     expect(first).toContain('17.84');
     expect(first).toContain('4.5');
-    expect(container.querySelectorAll('#contrast .badge.ok')).toHaveLength(20);
+    expect(container.querySelectorAll('#contrast .badge.ok')).toHaveLength(22);
     document.documentElement.style.setProperty('--text-3', 'var(--bg)');
     await flipTheme();
     expect(container.querySelectorAll('#contrast .badge.err').length).toBeGreaterThan(0);

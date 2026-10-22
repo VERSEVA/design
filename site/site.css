@@ -49,7 +49,7 @@ ul.rules li { background: var(--surface); border: 1px solid var(--hairline); bor
 ul.rules b { color: var(--text-1); font-weight: 600; }
 
 .ttable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.ttable th { text-align: left; font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--hairline); }
+.ttable th { text-align: left; font-family: var(--font-sans); font-size: 12px; font-weight: 600; color: var(--text-2); padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--hairline); }
 .ttable td { padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--hairline); color: var(--text-2); }
 .ttable td:first-child { font-family: var(--font-mono); font-size: 12px; color: var(--text-1); }
 .tscroll { overflow-x: auto; }
@@ -62,7 +62,7 @@ ul.rules b { color: var(--text-1); font-weight: 600; }
 
 .spec { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg); padding: var(--s-5); display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: center; }
 .spec.col { flex-direction: column; align-items: stretch; }
-.speclabel { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); padding-bottom: var(--s-2); }
+.speclabel { font-size: 12px; color: var(--text-2); padding-bottom: var(--s-2); }
 .specstack { display: grid; gap: var(--s-4); }
 
 .dodont { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-4); }
@@ -94,7 +94,7 @@ pre.cmd { font-family: var(--font-mono); font-size: 12.5px; background: var(--su
 .rendergrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--s-4); }
 .render { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--e-1); }
 .render img { display: block; width: 100%; height: auto; }
-.render figcaption { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); padding: var(--s-2) var(--s-3); }
+.render figcaption { font-size: 12px; color: var(--text-2); padding: var(--s-2) var(--s-3); }
 
 .docgrid { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: var(--s-7); align-items: start; }
 .docnav { position: sticky; top: var(--s-5); display: grid; gap: 2px; max-height: calc(100vh - var(--s-7)); overflow-y: auto; scrollbar-width: thin; padding-top: var(--s-7); }

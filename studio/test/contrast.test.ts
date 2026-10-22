@@ -16,9 +16,10 @@ function applyDark() {
 
 describe('shared contrast pairs', () => {
   it('exports the gate pair list', () => {
-    expect(PAIRS).toHaveLength(20);
+    expect(PAIRS).toHaveLength(22);
     expect(PAIRS[0]).toEqual(['text-1', ['bg'], 4.5]);
     expect(PAIRS).toContainEqual(['text-1', ['surface'], 4.5]);
+    expect(PAIRS).toContainEqual(['text-3', ['surface-2'], 4.5]);
   });
 });
 
@@ -39,13 +40,14 @@ describe('live pairs, Signature dark (pinned to verseva-contrast-gate output)', 
 
   it('measures every pair and matches the gate to 2 dp', () => {
     const rows = evaluatePairs(document.documentElement);
-    expect(rows).toHaveLength(20);
+    expect(rows).toHaveLength(22);
     const find = (fg: string, bg: string) => rows.find((r) => r.fg === fg && r.bg === bg)!;
     expect(find('text-1', 'bg').ratio.toFixed(2)).toBe('17.84');
     expect(find('accent-ink', 'accent').ratio.toFixed(2)).toBe('4.64');
     expect(find('success', 'success-bg+surface').ratio.toFixed(2)).toBe('8.61');
     expect(find('text-1', 'accent*0.14+surface').ratio.toFixed(2)).toBe('15.21');
     expect(find('data-alt', 'bg').ratio.toFixed(2)).toBe('4.80');
+    expect(find('text-3', 'surface-2').ratio.toFixed(2)).toBe('4.52');
     expect(rows.every((r) => r.pass)).toBe(true);
   });
 
@@ -53,7 +55,7 @@ describe('live pairs, Signature dark (pinned to verseva-contrast-gate output)', 
     document.documentElement.style.setProperty('--text-3', 'var(--bg)');
     const row = evaluatePairs(document.documentElement).find((r) => r.fg === 'text-3' && r.bg === 'bg')!;
     expect(row.ratio).toBe(1);
-    expect(row.floor).toBe(3);
+    expect(row.floor).toBe(4.5);
     expect(row.pass).toBe(false);
   });
 });

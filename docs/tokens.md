@@ -17,7 +17,7 @@ Values: see `tokens.css` (dark default, `[data-theme="light"]` flip block).
 | `--bg` | Page floor |
 | `--surface` / `--surface-2` | Card / raised or nested surface |
 | `--hairline-soft` / `--hairline` / `--hairline-strong` | Divider ladder: recessive / default / emphasis-hover |
-| `--text-1` / `--text-2` / `--text-3` | Text ladder; `--text-3` labels/captions only, never body |
+| `--text-1` / `--text-2` / `--text-3` | Text ladder; `--text-3` meta, captions and hints only, never body |
 | `--accent` / `--accent-hover` / `--accent-ink` | THE brand action color (one per brand), its shift, ink on it |
 | `--focus` | Focus ring |
 | `--success` / `--warn` / `--danger` (+ `-bg` tints) | Status fg / tint pairs |
@@ -29,9 +29,14 @@ Values: see `tokens.css` (dark default, `[data-theme="light"]` flip block).
 - **Dark foundations are the default.** A theme may declare itself light-native with a stated reason.
 - **Accent budget:** primary actions, key emphasis, signature moments. Rough ceiling: one
   accent-colored cluster per viewport. One accent per view.
-- **Contrast floors (contract):** `--text-1`/`--text-2` on `--bg` and `--surface` ≥ 4.5:1;
-  `--accent-ink` on `--accent` ≥ 4.5:1; `--text-3` and large display ≥ 3:1; non-text meaningful
-  parts ≥ 3:1.
+- **Contrast floors (contract):** every rung of the text ladder (`--text-1`, `--text-2`,
+  `--text-3`) on `--bg`, `--surface` and `--surface-2` ≥ 4.5:1, because each rung sets reading
+  text (`--text-3` carries meta lines, captions, help text and chart labels at 11–13px);
+  `--accent-ink` on `--accent` ≥ 4.5:1; status text on its tint and `--danger` on `--surface`
+  ≥ 4.5:1; large display and non-text meaningful parts ≥ 3:1. Signature values: `--text-3`
+  dark `#7A818E` (4.96 / 4.74 / 4.52 on bg / surface / surface-2), light `#686F7D`
+  (4.63 / 5.05 / 4.51). Raised in 1.2.0 from `#6B7280` / `#7A828F`, which measured 3.5–4.0:1
+  while the gate checked them at 3:1. `verseva-contrast-gate` enforces every pair.
 - **Muted and earned:** no saturated-for-attention values.
 - **Status is never color-alone:** pair with icon or text.
 - **Ladder discipline:** grays come from the canvas/hairline/text ladders, never ad-hoc values.
@@ -52,13 +57,14 @@ on customer-facing surfaces.
 | `h3` | 1.56rem | 1.25 | 600 | 0 |
 | `body-lg` / `body` | 1.125rem / 1rem | 1.55 / 1.6 | 400 | 0 |
 | `small` / `caption` | 0.875rem / 0.75rem | 1.5 / 1.4 | 400 / 500 | 0 / +0.01em |
-| `label` | 0.6875rem | 1.2 | 500 | +0.08em, UPPERCASE, mono |
+| `label` | 0.75rem | 1.3 | 600 | 0, sentence case, sans (table headers, nav group labels) |
 
-- Max 2 families per brand + optional mono for labels. One `h1` and at most one `display` per page.
+- Max 2 families per brand + mono for machine artifacts only (law 4). One `h1` and at most one `display` per page.
 - **TYPE LAW (mono-is-for-machines):** mono only for machine artifacts (IDs, codes, SKUs,
   payloads, code inputs), live timers/stage displays, chart-internal microlabels ≤10px, and
   pure-number identity chips. Everything a human reads is body. Never uppercase tracked-out mono
-  footnotes.
+  footnotes or labels: table headers and nav group labels are the `label` role, quiet
+  sentence-case sans (fixed in 1.2.0; 1.1.0 shipped both as uppercase tracked mono).
 - Line length 45–75ch body, 65ch target (`--container-prose`).
 
 ## 3. Spacing

@@ -1,6 +1,40 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 · 2026-10-22
+
+### Fixed
+
+- **Law 4: human labels are body, not mono.** `.table th` and `.grouplabel` shipped as
+  uppercase, letter-spaced mono, which law 4 (mono is for machines) forbids for anything a
+  human reads. Both are now the `label` role: 12px/600 sentence-case sans in `--text-2`, no
+  tracking. Same fix on the site's `.ttable` headers and spec labels and the launch block's
+  kicker; `docs/tokens.md` redefines the `label` role to match. Visible change for every
+  consumer of the table and console nav.
+- **`--text-3` contrast and its gate.** `--text-3` sets reading text (meta lines, captions,
+  help, chart labels) but measured 3.5 to 4.0:1 while `verseva-contrast-gate` checked it at
+  3:1. Lifted to the smallest values that clear 4.5:1 on bg, surface and surface-2: dark
+  `#6B7280` to `#7A818E` (4.96 / 4.74 / 4.52), light `#7A828F` to `#686F7D` (4.63 / 5.05 /
+  4.51). No preset theme re-values it. The gate now holds every reading-text role at 4.5:1:
+  `text-3` on bg, surface and surface-2 (surface-2 is new), plus `danger` on surface (error
+  help, danger menu items). A new test fails on the 1.1.0 values, so the gate would have
+  caught this. The studio's live contrast table reads the same pairs.
+
+### Added
+
+Seven console recipes, promoted from the NEMIXO Studio CRM, each with every contract state
+and a studio specimen:
+
+- **Glass panel** `.glass` (+ `.hd`, `.bd`): law 1 material on content panels, no blur.
+- **Sidebar active bloom**: `.snav a.active` / `aria-current="page"` now carries the accent
+  bloom and glow from `.tab.on` (replaces the flat accent tint); `.snav a` gains
+  focus-visible, press and `aria-disabled` states.
+- **Row menu with a checked item**: `.menu.inline` trigger, `menuitemradio` /
+  `menuitemcheckbox` items with a trailing `.tick`; `.menu.end`, disabled and busy items.
+- **Read-only field list** `.kv` (`<dl>`), with `.unset` and skeleton states.
+- **Timeline** `.tline` on `.lrows`, icon in the identity slot, `.new` entrance; `a.lrow`
+  gains a focus ring.
+- **Confirm to erase** `.modal.erase`: typed confirmation, armed only on an exact match.
+- **Bulk selection** `.pick` checkbox column, selected-row wash, and the `.bulkbar` toolbar.
 
 - **Pinned list headers.** Contract: long lists (an index, registry, inbox, log or
   import) pin their header row; lists fixed by design do not. New `.pin` wrapper
@@ -9,6 +43,8 @@
   the sticky container. Below 1024px, or with `.pin.box`, the wrapper is a capped
   scroll box in both axes (`--sticky-bottom` reserves a floating bottom bar).
   Studio specimen: `#table-pin`.
+
+The console example and block now run on these recipes.
 
 ## 1.1.0 · 2026-09-01
 

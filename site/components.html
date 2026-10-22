@@ -6,9 +6,9 @@
 <title>VERSEVA Design · Components</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
-<link rel="stylesheet" href="../tokens.css?v=red1">
-<link rel="stylesheet" href="../components.css?v=red1">
-<link rel="stylesheet" href="site.css?v=1p1">
+<link rel="stylesheet" href="../tokens.css?v=1p2">
+<link rel="stylesheet" href="../components.css?v=1p2">
+<link rel="stylesheet" href="site.css?v=1p2">
 <script src="theme.js?v=1p1"></script>
 <style>
   .comp { padding-top: var(--s-7); }
@@ -22,6 +22,13 @@
   .phoneframe { position: relative; width: 320px; height: 300px; background: var(--bg); border: 1px solid var(--hairline-strong); border-radius: 26px; overflow: hidden; }
   .phoneframe .navshell { display: flex; position: absolute; }
   .toc { display: flex; flex-wrap: wrap; gap: var(--s-2); padding-top: var(--s-4); }
+  .rowmenu-demo { min-height: 320px; }
+  .rowmenu-demo .specimen { min-width: 220px; }
+  .bulk-demo .bulkbar { position: static; margin-block: var(--s-4); }
+  .bulk-demo td { white-space: nowrap; }
+  #glass .specimen, #kv .specimen { flex: 1 1 280px; }
+  #erase .specimen { flex: 0 1 420px; }
+  @media (max-width: 600px) { .bulk-demo .client { display: none; } .bulk-demo .table th, .bulk-demo .table td { padding-inline: var(--s-3); } }
 </style>
 </head>
 <body>
@@ -137,6 +144,36 @@ npx verseva block add quote-tool</code></pre></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
+  <section class="comp" id="glass">
+    <h2>Glass panel</h2>
+    <div class="demo"><div class="specimen" style="flex:1 1 100%">
+      <section class="glass">
+        <div class="hd"><h4>Requests</h4><span class="badge neutral">3</span></div>
+        <div class="lrows">
+          <a class="lrow" href="#glass"><span class="avc">SR</span><span class="tx"><b>WS-02248</b><span class="metaline">Wholesale accounts · Sofia Reyes · 14d</span></span><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Qualified</span></a>
+          <a class="lrow" href="#glass"><span class="avc">BO</span><span class="tx"><b>WS-02215</b><span class="metaline">Wholesale accounts · Ben Okafor · 6d</span></span><span class="badge neutral"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 7.5 7.5 2.5M4 2.5h3.5V6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Contacted</span></a>
+          <a class="lrow" href="#glass"><span class="avc">JP</span><span class="tx"><b>CP-02254</b><span class="metaline">Cafe partners · Unassigned · 18h</span></span><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>New</span></a>
+        </div>
+      </section>
+    </div>
+    <div class="specimen">
+      <section class="glass">
+        <div class="hd"><h4>Requests</h4></div>
+        <div class="lrows">
+          <div class="lrow"><span class="avc"></span><div class="tx"><div class="skel"></div><div class="skel mt-2"></div></div></div>
+          <div class="lrow"><span class="avc"></span><div class="tx"><div class="skel"></div><div class="skel mt-2"></div></div></div>
+        </div>
+      </section>
+    </div>
+    <div class="specimen">
+      <section class="glass">
+        <div class="hd"><h4>Requests</h4><span class="badge neutral">0</span></div>
+        <div class="empty"><b>No requests yet</b><button class="btn btn-secondary sm" type="button">Share the form</button></div>
+      </section>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
   <section class="comp" id="badge">
     <h2>Badge</h2>
     <div class="demo"><div class="specimen">
@@ -166,6 +203,42 @@ npx verseva block add quote-tool</code></pre></div>
           <p>Every line carries provenance. This sends it to the client.</p>
         </div>
         <div class="ft"><button class="btn btn-ghost" type="button">Cancel</button><button class="btn btn-primary" type="button">Issue quote</button></div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="erase">
+    <h2>Confirm to erase</h2>
+    <div class="demo"><div class="specimen">
+      <div class="modal erase" role="alertdialog" aria-labelledby="erase-t" aria-describedby="erase-d">
+        <div class="bd">
+          <h4 id="erase-t">Erase Marisol Vega?</h4>
+          <p id="erase-d">Removes the contact, 10 activity items and 2 requests. This cannot be undone.</p>
+          <div class="field"><label for="erase-in">Type <span class="phrase">Marisol Vega</span> to confirm</label><input id="erase-in" data-phrase="Marisol Vega" autocomplete="off" spellcheck="false"></div>
+        </div>
+        <div class="ft"><button class="btn btn-ghost" type="button">Cancel</button><button class="btn btn-destructive" type="button" disabled>Erase contact</button></div>
+      </div>
+    </div>
+    <div class="specimen">
+      <div class="modal erase" role="alertdialog" aria-label="Erase Marisol Vega, armed">
+        <div class="bd">
+          <h4>Erase Marisol Vega?</h4>
+          <p>Removes the contact, 10 activity items and 2 requests. This cannot be undone.</p>
+          <div class="field"><label for="erase-in2">Type <span class="phrase">Marisol Vega</span> to confirm</label><input id="erase-in2" value="Marisol Vega" autocomplete="off" spellcheck="false"></div>
+        </div>
+        <div class="ft"><button class="btn btn-ghost" type="button">Cancel</button><button class="btn btn-destructive" type="button">Erase contact</button></div>
+      </div>
+    </div>
+    <div class="specimen">
+      <div class="modal erase" role="alertdialog" aria-label="Erase Marisol Vega, failed">
+        <div class="bd">
+          <h4>Erase Marisol Vega?</h4>
+          <p>Removes the contact, 10 activity items and 2 requests. This cannot be undone.</p>
+          <div class="field"><label for="erase-in3">Type <span class="phrase">Marisol Vega</span> to confirm</label><input id="erase-in3" value="Marisol Vega" autocomplete="off" spellcheck="false"></div>
+          <div class="callout err" role="alert"><span><b>Not erased.</b> The connection dropped. Try again.</span></div>
+        </div>
+        <div class="ft"><button class="btn btn-ghost" type="button">Cancel</button><button class="btn btn-destructive" type="button">Erase contact</button></div>
       </div>
     </div></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
@@ -202,6 +275,39 @@ npx verseva block add quote-tool</code></pre></div>
             <tr><td>Q-2074</td><td>Ridgeway Labs</td><td><span class="badge ok">Verified</span></td><td class="num">31,020.00</td></tr>
           </tbody>
         </table>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="bulk">
+    <h2>Bulk selection</h2>
+    <div class="demo"><div class="specimen" style="flex:1 1 100%">
+      <div class="glass bulk-demo">
+        <table class="table">
+          <thead><tr><th class="pick"><label><input type="checkbox" aria-label="Select all" data-indeterminate></label></th><th>Quote</th><th class="client">Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
+          <tbody>
+            <tr aria-selected="true"><td class="pick"><label><input type="checkbox" aria-label="Select Q-2081" checked></label></td><td>Q-2081</td><td class="client">Northline Foods</td><td><span class="badge ok">Verified</span></td><td class="num">48,220.00</td></tr>
+            <tr aria-selected="true"><td class="pick"><label><input type="checkbox" aria-label="Select Q-2080" checked></label></td><td>Q-2080</td><td class="client">Harbor Botanics</td><td><span class="badge warn">Pending</span></td><td class="num">12,940.00</td></tr>
+            <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2079"></label></td><td>Q-2079</td><td class="client">Cedar &amp; Pine</td><td><span class="badge ok">Verified</span></td><td class="num">7,310.00</td></tr>
+            <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2078"></label></td><td>Q-2078</td><td class="client">Ridgeway Labs</td><td><span class="badge warn">Pending</span></td><td class="num">22,105.00</td></tr>
+          </tbody>
+        </table>
+        <div class="bulkbar" role="toolbar" aria-label="Bulk actions">
+          <span class="count" aria-live="polite">2 selected</span>
+          <button class="btn btn-ghost sm" type="button">Assign</button>
+          <button class="btn btn-ghost sm" type="button">Export</button>
+          <button class="btn btn-destructive sm" type="button">Archive</button>
+          <button class="btn btn-ghost sm icon" type="button" aria-label="Clear selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="specimen">
+      <div class="bulkbar" role="toolbar" aria-label="Bulk actions, working" aria-busy="true">
+        <span class="count">2 selected</span>
+        <button class="btn btn-ghost sm" type="button" disabled>Assign</button>
+        <button class="btn btn-ghost sm" type="button"><span class="spinner" aria-hidden="true"></span>Exporting</button>
+        <button class="btn btn-destructive sm" type="button" disabled>Archive</button>
       </div>
     </div></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
@@ -277,6 +383,46 @@ npx verseva block add quote-tool</code></pre></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
+  <section class="comp" id="kv">
+    <h2>Read-only field list</h2>
+    <div class="demo"><div class="specimen">
+      <section class="glass">
+        <div class="hd"><h4>Details</h4><button class="btn btn-ghost sm" type="button">Edit</button></div>
+        <dl class="kv">
+          <div><dt>Email</dt><dd><a href="mailto:marisol@driftwoodcafe.example.test">marisol@driftwoodcafe.example.test</a></dd></div>
+          <div><dt>Phone</dt><dd>+1 555 0101</dd></div>
+          <div><dt>Company</dt><dd>Driftwood Cafe</dd></div>
+          <div><dt>Website</dt><dd><span class="unset">Not set</span></dd></div>
+        </dl>
+      </section>
+    </div>
+    <div class="specimen">
+      <div class="card">
+        <dl class="kv">
+          <div><dt>Email</dt><dd><span class="skel"></span></dd></div>
+          <div><dt>Phone</dt><dd><span class="skel"></span></dd></div>
+        </dl>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="tline">
+    <h2>Timeline</h2>
+    <div class="demo"><div class="specimen" style="flex:1 1 100%">
+      <section class="glass">
+        <div class="hd"><h4>Activity</h4><span class="badge neutral">4</span></div>
+        <ol class="lrows tline">
+          <li class="lrow new"><span class="avc" title="Note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h14v12l-4 4H5z"/><path d="M9 9h6M9 13h4"/></svg></span><span class="tx"><b>Second location opens in March.</b><span class="metaline">Ben Okafor · <time datetime="2026-10-20T09:18">Oct 20, 9:18 AM</time></span></span></li>
+          <li class="lrow"><span class="avc" title="Request"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 13l3-8h10l3 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/></svg></span><span class="tx"><b>WS-02203 submitted</b><span class="metaline">Wholesale accounts form · <time datetime="2026-10-19T08:18">Oct 19, 8:18 AM</time></span></span><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>New</span></li>
+          <li class="lrow"><span class="avc" title="Stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span class="tx"><b>New to Qualified</b><span class="metaline">Sofia Reyes · WS-02248 · <time datetime="2026-10-07T18:18">Oct 7, 6:18 PM</time></span></span><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Qualified</span></li>
+          <li class="lrow"><span class="avc" title="Note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h14v12l-4 4H5z"/><path d="M9 9h6M9 13h4"/></svg></span><span class="tx"><b>Tasting booked for Thursday at the roastery.</b><span class="metaline">Sofia Reyes · WS-02248 · <time datetime="2026-10-15T09:18">Oct 15, 9:18 AM</time></span></span></li>
+        </ol>
+      </section>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
   <section class="comp" id="skeleton">
     <h2>Skeleton</h2>
     <div class="demo"><div class="specimen">
@@ -325,6 +471,34 @@ npx verseva block add quote-tool</code></pre></div>
           <button type="button" role="menuitem" class="menu-item">Export PDF</button>
           <div class="menu-sep" role="separator"></div>
           <button type="button" role="menuitem" class="menu-item danger">Delete draft</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="rowmenu">
+    <h2>Row menu</h2>
+    <div class="demo rowmenu-demo"><div class="specimen">
+      <div class="menu inline">
+        <button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="true"><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>New</span></button>
+        <div class="menu-list" role="menu" aria-label="Stage">
+          <button type="button" role="menuitemradio" aria-checked="true" class="menu-item"><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>New</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+          <button type="button" role="menuitemradio" aria-checked="false" class="menu-item"><span class="badge neutral"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 7.5 7.5 2.5M4 2.5h3.5V6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Contacted</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+          <button type="button" role="menuitemradio" aria-checked="false" class="menu-item"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Qualified</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+          <div class="menu-sep" role="separator"></div>
+          <button type="button" role="menuitemradio" aria-checked="false" class="menu-item"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Won</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+          <button type="button" role="menuitemradio" aria-checked="false" class="menu-item" aria-disabled="true"><span class="badge err"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m3 3 4 4M7 3 3 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Lost</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="specimen">
+      <div class="menu inline">
+        <button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false"><span class="avc">SR</span>Sofia Reyes</button>
+        <div class="menu-list" role="menu" aria-label="Owner" hidden>
+          <button type="button" role="menuitemradio" aria-checked="true" class="menu-item"><span class="avc">SR</span>Sofia Reyes<svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+          <button type="button" role="menuitemradio" aria-checked="false" class="menu-item"><span class="avc">BO</span>Ben Okafor<svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+          <button type="button" role="menuitemradio" aria-checked="false" class="menu-item" aria-busy="true"><span class="avc">HI</span>Hana Ito<span class="spinner" aria-hidden="true"></span></button>
         </div>
       </div>
     </div></div>
@@ -425,9 +599,17 @@ npx verseva block add quote-tool</code></pre></div>
       <div class="orgchip"><span class="sq">AC</span><span><b>Acme Console</b><small>production</small></span></div>
       <div>
         <div class="grouplabel">Operate</div>
-        <nav class="snav">
-          <a class="active" href="#overview">Overview <span class="cnt">4</span></a>
+        <nav class="snav" aria-label="Operate">
+          <a href="#overview" aria-current="page">Overview <span class="cnt">4</span></a>
           <a href="#quotes">Quotes <span class="cnt">18</span></a>
+          <a href="#machines">Machines <span class="cnt">17</span></a>
+        </nav>
+      </div>
+      <div>
+        <div class="grouplabel">Manage</div>
+        <nav class="snav" aria-label="Manage">
+          <a href="#clients">Clients</a>
+          <a href="#billing" aria-disabled="true">Billing</a>
         </nav>
       </div>
     </div></div>
@@ -575,6 +757,49 @@ npx verseva block add quote-tool</code></pre></div>
     addEventListener('pointerdown', (e) => {
       if (!menu.contains(e.target)) { list.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
     });
+  });
+
+  document.querySelectorAll('.menu.inline').forEach((menu) => {
+    const trigger = menu.querySelector('[aria-haspopup]');
+    menu.querySelectorAll('[role="menuitemradio"]').forEach((item) => {
+      item.addEventListener('click', () => {
+        if (item.getAttribute('aria-disabled') === 'true' || item.getAttribute('aria-busy') === 'true') return;
+        menu.querySelectorAll('[role="menuitemradio"]').forEach((o) => o.setAttribute('aria-checked', String(o === item)));
+        const value = item.cloneNode(true);
+        value.querySelectorAll('.tick,.spinner').forEach((n) => n.remove());
+        trigger.innerHTML = value.innerHTML;
+        menu.querySelector('.menu-list').hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      });
+    });
+  });
+
+  document.querySelectorAll('.modal.erase input[data-phrase]').forEach((input) => {
+    const go = input.closest('.modal').querySelector('.btn-destructive');
+    input.addEventListener('input', () => { go.disabled = input.value.trim() !== input.dataset.phrase; });
+  });
+
+  document.querySelectorAll('.bulk-demo').forEach((panel) => {
+    const all = panel.querySelector('thead .pick input');
+    const boxes = [...panel.querySelectorAll('tbody .pick input')];
+    const bar = panel.querySelector('.bulkbar');
+    const sync = () => {
+      const n = boxes.filter((b) => b.checked).length;
+      boxes.forEach((b) => {
+        const tr = b.closest('tr');
+        if (b.checked) tr.setAttribute('aria-selected', 'true'); else tr.removeAttribute('aria-selected');
+      });
+      all.checked = n === boxes.length;
+      all.indeterminate = n > 0 && n < boxes.length;
+      bar.hidden = n === 0;
+      bar.querySelector('.count').textContent = `${n} selected`;
+    };
+    boxes.forEach((b) => b.addEventListener('change', sync));
+    all.addEventListener('change', () => { boxes.forEach((b) => { b.checked = all.checked; }); sync(); });
+    bar.querySelector('[aria-label="Clear selection"]').addEventListener('click', () => { boxes.forEach((b) => { b.checked = false; }); sync(); all.focus(); });
+    panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { boxes.forEach((b) => { b.checked = false; }); sync(); } });
+    sync();
   });
 
   document.querySelectorAll('.sgroup-head').forEach((head) => {

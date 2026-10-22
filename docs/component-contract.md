@@ -69,8 +69,10 @@ link: one overlay `<a>`, inner interactives reachable. Hover: hairline strengthe
 
 ## Table: `.table`
 
-Header `label` type + `--hairline` underline, rows ≥44px, hover `--surface-2`, numerics
-right-aligned tabular-nums, pinned header on long tables (`.pin`, below), states trio applies.
+Header `label` type (12px/600 sentence-case sans in `--text-2`; never uppercase tracked mono,
+law 4) + `--hairline` underline, rows ≥44px, hover `--surface-2`, numerics right-aligned
+tabular-nums, pinned header on long tables (`.pin`, below), states trio applies. Selectable rows
+and the bulk bar: see Bulk selection.
 
 ## Pinned list header: `.pin` (long lists only)
 
@@ -119,7 +121,8 @@ placeholder-as-hint is the one label exemption (`aria-label` required); shortcut
 ## List row: `.lrow` + `.metaline`
 
 Row ≥44px: leading avatar/icon, primary line body/600, metaline 12px sentence-case `--text-3`
-(never mono), right slot tabular-nums or chevron. Whole row tappable, inner actions reachable.
+(never mono; `--text-2` inside `.glass`), right slot tabular-nums or chevron. Whole row tappable
+(`a.lrow`, focus ring inset), inner actions reachable.
 
 ## Sheet: `.sheet`
 
@@ -143,8 +146,94 @@ interactively.
 
 ## Console navigation: `.snav`, `.orgchip`, `.grouplabel`
 
-Sidebar: org switcher top, grouped tree with `label` headers, ONE active item (accent-tinted pill
-+ soft glow), counts as badges. Topbar: search + chips + icon actions; a header divides content.
+Sidebar: org switcher top, grouped tree with `label` headers (`.grouplabel`: 12px/600
+sentence-case sans in `--text-2`, never uppercase tracked mono), ONE active item, counts as badges.
+Topbar: search + chips + icon actions; a header divides content.
+
+- **Active (the sidebar bloom):** `.active` or `aria-current="page"` puts the accent bloom behind
+  the item, `.tab.on`'s `--accent-bloom` + `--accent-active-glow` verbatim (law 3 named device);
+  label `--text-1`/600 for AA, icon `--accent-on`. Prefer `aria-current="page"` so the state is
+  read, not only seen.
+- **States:** hover `--surface-2` + `--text-1`; focus-visible 2px `--focus` ring at 2px offset;
+  press sits down 1px (law 8); disabled `aria-disabled="true"` at .45, not focusable by pointer.
+  Reduced motion drops the transitions and the press.
+
+## Glass panel: `.glass`
+
+Law 1 on a content panel: `.navshell`'s container material verbatim (`--glass-fill-3`,
+`--glass-border`, `--glass-shadow` + `--glass-glow` + `--glass-inset`) under `--surface-body`,
+at `--r-md`. NO blur: panels scroll, and blur is reserved for fixed chrome.
+
+- **Parts:** `.hd` header row (title left, counts or actions right, hairline under), `.bd`
+  padded body, or a `.table` / `.lrows` / `.kv` / `.tline` placed directly so rows run edge to
+  edge. Inside, tables pad 16px at the sides with 52px rows and lose the last hairline.
+- **States:** row hover is a 4% `--text-1` wash (not `--surface-2`, which reads as a hole in
+  glass); loading = `.skel` rows; empty = `.empty`, borderless inside the panel.
+- **Contrast:** the catch-light brightens the top rows (dark `--text-3` drops to about 4.0:1
+  under it), so meta text inside (`.metaline`, `.lbl`, `.sub`, `.help`, `.kv dt`) lifts to
+  `--text-2`. `.glass` also dresses a `.stat` or `.chartcard` on the same element.
+- `overflow` stays visible so row menus escape the panel; the last row rounds its own corners.
+- One material per surface region: panels are glass or `.card`, never mixed in one column.
+
+## Row menu: `.menu.inline` + checkable `.menu-item`
+
+A ghost `.btn.sm` trigger wraps the cell's own value (a status badge, an owner) so the value IS
+the control. It pulls left by `--s-2` so the value keeps its column edge.
+
+- **Checked item:** `role="menuitemradio"` (one of a set) or `menuitemcheckbox`, with
+  `aria-checked`; the checked item carries weight 600 + a trailing `.tick` icon (state never by
+  color alone). Status options render as the same badges the cell shows.
+- **States:** trigger hover `--surface-2`, `aria-expanded="true"` holds the fill; item hover /
+  focus-visible per `.menu-item`; disabled item `:disabled` or `aria-disabled` at .45; saving =
+  `aria-busy="true"` + `.spinner` in the item. `.menu.end` right-aligns the list.
+- **Keyboard:** Enter/Space opens, arrows move, Enter picks and closes, Escape closes and returns
+  focus to the trigger. Picking applies at once (no Save); undo comes from the toast.
+
+## Read-only field list: `.kv`
+
+The reading state of view-first-edit-on-intent. A `<dl>`: each `<div>` holds `<dt>` (12px
+`--text-3`) above `<dd>` (14px/600 `--text-1`, long values wrap anywhere). An empty value is a
+quiet `.unset` word ("Not set"), never a blank row. Links underline on a hairline and fill on
+hover. Loading: a `.skel` in the `dd`. Edit swaps the whole list for a `.field` form with Save
+and Cancel; the list is never a disabled form.
+
+## Timeline: `.tline`
+
+A record's activity, newest first: `<ol class="lrows tline">` of `.lrow` items. The event type
+is an icon inside the `.avc` slot (13px, quiet; no pill per row), the primary line says what
+happened, the metaline says who · reference · `<time datetime>`. An optional right-slot badge
+carries an outcome. A newly arrived item takes `.new` (one rise, reduced motion skips it). Empty
+= `.empty` with the creating action; loading = skeleton rows.
+
+## Confirm-to-erase: `.modal.erase`
+
+For irreversible deletes of a named record (a contact, an org, a workspace). A
+`role="alertdialog"` `.modal` whose body names exactly what goes (counts as data), then a field:
+"Type `.phrase` to confirm". The phrase is the record's name as shown on the page.
+
+- **Armed only on an exact match:** the erase `.btn-destructive` stays `disabled` until the
+  input equals the phrase (trimmed, case-sensitive, paste allowed); armed, it fills solid
+  `--danger` with `--bg` ink.
+- **Focus:** Cancel takes default focus (destructive never default-focused); Escape cancels;
+  Enter submits only while armed.
+- **States:** erasing = the button gets `.spinner` + `aria-busy`, the input disables; failure =
+  `.callout.err` in the body, the typed phrase kept.
+- Use it for erasure only. Reversible deletes use undo, not a typed gate.
+
+## Bulk selection: `.pick` + `.bulkbar`
+
+- **Rows:** a leading `th.pick` / `td.pick` column of checkboxes, each inside a `<label>` that
+  gives a 44px target, each with an `aria-label` naming its row. The header box selects all and
+  shows `indeterminate` when some are picked. A picked row sets `aria-selected="true"` on its
+  `tr` and takes an 8% accent wash.
+- **Bar:** `.bulkbar` (`role="toolbar"`) appears while one or more rows are picked: count first
+  (`.count`, live region, "3 selected"), then at most three actions, destructive last, then a
+  clear (×) icon button. It is fixed chrome: sticky at the viewport bottom above any floating
+  nav (`--sticky-bottom`), glass material WITH blur. It enters with one rise; reduced motion
+  skips it.
+- **States:** hidden at zero; disabled action when it cannot apply to every picked row; working
+  = `aria-busy="true"` on the bar + `.spinner` in the acting button; result reported in a toast,
+  selection cleared on success, kept on failure. Escape clears the selection.
 
 ## Stat tile: `.stat`
 

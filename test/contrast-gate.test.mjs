@@ -70,3 +70,20 @@ test('no --tokens is a usage error', () => {
   const r = run([]);
   assert.equal(r.code, 2);
 });
+
+test('reading text holds 4.5:1: text-3 is gated at body floor on bg, surface and surface-2', async () => {
+  const { PAIRS } = await import('../bin/contrast-pairs.mjs');
+  for (const bg of ['bg', 'surface', 'surface-2']) {
+    assert.ok(
+      PAIRS.some(([fg, chain, floor]) => fg === 'text-3' && chain.join('+') === bg && floor === 4.5),
+      `text-3 on ${bg} must be gated at 4.5`
+    );
+  }
+});
+
+test('the 1.1.0 text-3 values (dark #6B7280, light #7A828F) fail the reading-text floor', () => {
+  const r = run(['--tokens', fx('tokens-text3-v110.css')]);
+  assert.equal(r.code, 1);
+  assert.match(r.out, /text-3 on surface-2/);
+  assert.match(r.out, /floor 4\.5/);
+});

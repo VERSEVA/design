@@ -80,7 +80,8 @@
 
 /* ---- Table (board name: .table-demo) ---- */
 .table{width:100%;border-collapse:collapse;font-size:.9375rem}
-.table th{text-align:left;font-family:var(--font-mono);font-size:.6875rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:var(--s-3) var(--s-3);border-bottom:1px solid var(--hairline)}
+/* Header labels are human words: quiet sentence-case body, never tracked mono (law 4) */
+.table th{text-align:left;font-family:var(--font-sans);font-size:.75rem;font-weight:600;color:var(--text-2);padding:var(--s-3) var(--s-3);border-bottom:1px solid var(--hairline)}
 .table td{padding:var(--s-3);border-bottom:1px solid var(--hairline)}
 .table tr:hover td{background:var(--surface-2)}
 .table .num{text-align:right;font-variant-numeric:tabular-nums}
@@ -201,7 +202,7 @@
 .orgchip .sq{width:26px;height:26px;border-radius:8px;background:var(--accent-fill,var(--accent));color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none}
 .orgchip b{display:block;font-size:.8125rem;line-height:1.2}
 .orgchip small{display:block;font-size:10px;color:var(--text-3)}
-.grouplabel{font-family:var(--font-mono);font-size:.625rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:2px 0 6px}
+.grouplabel{font-family:var(--font-sans);font-size:.75rem;font-weight:600;color:var(--text-2);margin:2px 0 6px}
 /* Accordion console-nav variant (mechanics ported 1:1 from Spectre's rail):
    collapse = the HTML hidden attribute on .snav, never a height animation;
    the ONLY motion is the chevron. Doctrine: the group holding the active
@@ -210,17 +211,22 @@
 .sgroup{margin-top:var(--s-3)}
 .sgroup-head{display:flex;align-items:center;gap:6px;width:100%;padding:0;margin:0 0 6px;border:0;background:none;cursor:pointer;text-align:left;color:inherit}
 .sgroup-head .grouplabel{flex:1;margin:0}
-.sgroup-head:hover .grouplabel{color:var(--text-2)}
+.sgroup-head:hover .grouplabel{color:var(--text-1)}
 .sgroup-head:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--r-sm)}
 .sgroup-chev{flex:none;color:var(--text-3);transition:transform var(--dur-1) var(--ease-standard)}
 .sgroup[data-open="false"] .sgroup-chev{transform:rotate(-90deg)}
 @media (prefers-reduced-motion:reduce){.sgroup-chev{transition:none}}
 .snav{display:grid;gap:2px}
-.snav a{position:relative;display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:10px;font-size:.8125rem;color:var(--text-2);text-decoration:none;transition:background var(--dur-1) var(--ease-standard)}
-.snav a:hover{background:var(--surface-2)}
+.snav a{position:relative;display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:10px;font-size:.8125rem;color:var(--text-2);text-decoration:none;transition:background var(--dur-1) var(--ease-standard),color var(--dur-1) var(--ease-standard),transform var(--dur-1) var(--ease-standard)}
+.snav a:hover{background:var(--surface-2);color:var(--text-1)}
+.snav a:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.snav a:active{transform:translateY(1px)}
 .snav a svg{width:15px;height:15px;color:var(--text-3);flex:none}
-.snav a.active{color:var(--text-1);background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:600;box-shadow:0 0 18px -6px color-mix(in srgb,var(--accent) 45%,transparent)}
-.snav a.active svg{color:var(--accent)}
+/* Active = the accent bloom behind the item (law 3 device; .tab.on's bloom + glow
+   verbatim), label held at --text-1 for AA. aria-current="page" is the same state. */
+.snav a.active,.snav a[aria-current="page"]{color:var(--text-1);background:var(--accent-bloom);box-shadow:var(--accent-active-glow);font-weight:600}
+.snav a.active svg,.snav a[aria-current="page"] svg{color:var(--accent-on)}
+.snav a[aria-disabled="true"]{opacity:.45;cursor:not-allowed;pointer-events:none}
 .snav .cnt{margin-left:auto;font-size:10px;font-family:var(--font-mono);background:var(--surface-2);border:1px solid var(--hairline);border-radius:999px;padding:1px 6px;color:var(--text-2)}
 
 /* ---- Stat tile / KPI ---- */
@@ -273,6 +279,21 @@
 .menu-item:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .menu-item.danger{color:var(--danger)}
 .menu-sep{height:1px;background:var(--hairline);margin:4px 6px}
+.menu.end .menu-list{left:auto;right:0}
+.menu-item:disabled,.menu-item[aria-disabled="true"]{opacity:.45;cursor:not-allowed;background:none}
+.menu-item[aria-busy="true"]{cursor:progress}
+.menu-item[aria-busy="true"] .spinner{margin-left:auto;width:12px;height:12px;flex:none;color:var(--text-2)}
+/* Checkable items (menuitemradio / menuitemcheckbox): the trailing tick carries the
+   state with the weight, never color alone */
+.menu-item .tick{margin-left:auto;width:14px;height:14px;flex:none;color:var(--text-1);opacity:0}
+.menu-item>.badge{flex:none;white-space:nowrap}
+.menu-item[aria-checked="true"]{font-weight:600}
+.menu-item[aria-checked="true"] .tick{opacity:1}
+/* Inline row menu: a ghost trigger wrapping the cell's own value (a status badge, an
+   owner) so the value IS the control; pulled left so the value keeps its column edge */
+.menu.inline>.btn{margin-left:calc(var(--s-2) * -1);padding:0 var(--s-2);font-size:13.5px;font-weight:500}
+.menu.inline>.btn .avc{width:22px;height:22px}
+.menu.inline>.btn[aria-expanded="true"]{background:var(--surface-2)}
 
 /* ---- Tooltip (inverse ground; keep the text short, it is not a doc).
    WCAG 1.4.13: hoverable (pointer-events restored while shown), dismissible
@@ -387,6 +408,79 @@
 .viztip b{font-family:var(--font-mono);font-size:10px;color:var(--text-3);font-weight:600}
 .viztip span{font-variant-numeric:tabular-nums;color:var(--text-1)}
 
+/* ---- Console recipes (1.2.0, promoted from the Studio CRM) ---- */
+
+/* Glass panel (law 1 soft-glass on a content panel): .navshell's container material
+   verbatim (fill + border + shadow/glow/inset) under .navmain's catch-light body, at
+   the card radius. No blur: panels scroll, blur is for fixed chrome only. Overflow
+   stays visible so row menus escape the panel; the last row rounds itself. Meta text
+   inside lifts to --text-2: the catch-light brightens the panel's top rows. Pairs with
+   .stat and .chartcard on the same element (.stat.glass). */
+.glass{background:var(--surface-body),var(--glass-fill-3);border:1px solid var(--glass-border);border-radius:var(--r-md);box-shadow:var(--glass-shadow),var(--glass-glow),var(--glass-inset);overflow:visible}
+.glass>.hd{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);flex-wrap:wrap;padding:var(--s-3) var(--s-4);border-bottom:1px solid var(--hairline)}
+.glass>.hd h4{font-size:.875rem;font-weight:600}
+.glass>.bd{padding:var(--s-4)}
+.glass .metaline,.glass .lbl,.glass .sub,.glass .help{color:var(--text-2)}
+.glass .field.error .help{color:var(--danger)}
+.glass .lrows{border:0;border-radius:0;background:transparent}
+.glass .lrow:hover,.glass .table tr:hover td{background:color-mix(in srgb,var(--text-1) 4%,transparent)}
+.glass .table th{padding:var(--s-3) var(--s-4)}
+.glass .table td{padding:var(--s-2) var(--s-4);height:52px}
+.glass .table tr:last-child td{border-bottom:0}
+.glass .table tbody tr:last-child td:first-child,.glass>.lrows:last-child{border-bottom-left-radius:var(--r-md)}
+.glass .table tbody tr:last-child td:last-child,.glass>.lrows:last-child{border-bottom-right-radius:var(--r-md)}
+.glass .empty{border:0;border-radius:0}
+
+/* List rows as links: whole row is the target */
+a.lrow{color:inherit;text-decoration:none}
+a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+
+/* Read-only field list (view first, edit on intent): a <dl>, label above value.
+   An empty value is a quiet .unset word, never a blank row. */
+.kv{display:grid;margin:0}
+.kv>div{display:grid;gap:2px;min-width:0;padding:var(--s-2) var(--s-4);border-bottom:1px solid var(--hairline)}
+.kv>div:last-child{border-bottom:0}
+.kv dt{font-size:12px;color:var(--text-3)}
+.glass .kv dt{color:var(--text-2)}
+.kv dd{margin:0;font-size:.875rem;font-weight:600;color:var(--text-1);overflow-wrap:anywhere}
+.kv dd .unset{font-weight:400;color:var(--text-2)}
+.kv dd a{color:inherit;text-decoration:underline;text-decoration-color:var(--hairline-strong);text-underline-offset:3px;transition:text-decoration-color var(--dur-1) var(--ease-standard)}
+.kv dd a:hover{text-decoration-color:currentColor}
+.kv dd a:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+.kv dd .skel{display:block;width:60%;height:12px;margin-top:4px}
+
+/* Timeline (a record's activity, newest first): .lrows rows on an <ol>, the event
+   type as an icon in the identity slot (quiet; no pill per row), time in <time> */
+.tline{list-style:none;margin:0;padding:0}
+.tline .avc svg{width:13px;height:13px}
+.tline time{font-variant-numeric:tabular-nums}
+.tline .lrow.new{animation:dc-rise var(--dur-3) var(--ease-entrance) backwards}
+
+/* Confirm-to-erase (typed confirmation): the erase stays disabled until the exact
+   phrase is typed, then arms as a solid danger fill (hierarchy from fill, law 8).
+   Cancel holds default focus; Escape cancels. */
+.modal.erase .field{margin-top:var(--s-4)}
+.modal.erase .callout{margin-top:var(--s-4)}
+.modal.erase .phrase{font-weight:600;color:var(--text-1);-webkit-user-select:all;user-select:all}
+.modal.erase .ft .btn-destructive:not(:disabled){background:var(--danger);color:var(--bg)}
+.modal.erase .ft .btn-destructive:not(:disabled):hover{background:color-mix(in srgb,var(--danger) 86%,var(--text-1));border-color:transparent}
+.modal.erase .ft .btn-destructive:focus-visible{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--focus)}
+
+/* Bulk selection: a .pick column of row checkboxes, a tinted selected row, and the
+   bulk bar. The bar is fixed chrome (sticky to the viewport bottom, above any floating
+   nav via --sticky-bottom), so it carries the full glass material WITH blur. */
+.table th.pick,.table td.pick{width:44px;padding-right:0}
+.pick>label{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;margin:calc(var(--s-3) * -1) 0 calc(var(--s-3) * -1) calc(var(--s-3) * -1);cursor:pointer}
+.pick input{width:18px;height:18px;margin:0;accent-color:var(--accent);cursor:pointer}
+.pick input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.pick input:disabled{cursor:not-allowed;opacity:.45}
+.table tr[aria-selected="true"] td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.bulkbar{position:sticky;bottom:calc(var(--sticky-bottom,0px) + var(--s-4));z-index:12;display:flex;align-items:center;gap:var(--s-2);width:max-content;max-width:100%;margin-inline:auto;padding:var(--s-2) var(--s-2) var(--s-2) var(--s-4);border-radius:var(--r-lg);background:var(--surface-body),var(--glass-fill-3);-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));border:1px solid var(--glass-border);box-shadow:var(--glass-shadow),var(--glass-glow),var(--glass-inset);animation:dc-rise var(--dur-2) var(--ease-entrance) backwards}
+.bulkbar[hidden]{display:none}
+.bulkbar .count{font-size:.875rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-1);padding-right:var(--s-3);margin-right:var(--s-1);border-right:1px solid var(--hairline);white-space:nowrap}
+.bulkbar[aria-busy="true"] .btn{pointer-events:none}
+@media (max-width:767px){.bulkbar{width:auto;margin-inline:0;flex-wrap:wrap}.bulkbar .count{margin-right:auto;border-right:0}}
+
 /* ---- Spacing utilities (the seam law's handrail). Rhythm stays at class
    level, and these ARE classes: mt-5 means margin-top: var(--s-5), straight
    off the scale, so a seam is never left to memory. Vertical + gap only;
@@ -490,7 +584,9 @@
 @media (prefers-reduced-motion:reduce){
   .skel::after{animation:none}
   .spinner{animation-duration:1.4s}
-  .tab,.tab span,.btn,.switch,.switch::after{transition:none}
+  .tab,.tab span,.btn,.switch,.switch::after,.snav a,.kv dd a{transition:none}
+  .tline .lrow.new,.bulkbar{animation:none}
+  .snav a:active{transform:none}
   .mo-rise,.mo-st>*,.beam::before,.marq .mrow,.ovl.open,.modal{animation:none}
   .js .mo-lines>span>span{transition:none;transform:none}
   .ticker .td,.spot::after,.xswap>span,.grow-y,.grow-x{transition:none}
