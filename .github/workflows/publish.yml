@@ -1,8 +1,8 @@
 # Publishes @verseva/design to the PUBLIC npm registry on every published
 # release (open-source ruling, 2026-08-31; v1.0.0 is the first public cut).
 #
-# Requires the NPM_TOKEN repo secret: an npmjs automation token with publish
-# rights on the @verseva org.
+# Auth is npm trusted publishing (OIDC): npmjs.com trusts VERSEVA/design,
+# workflow publish.yml, so no token or secret is stored. Needs npm 11.5.1+.
 #
 # Consumers:
 #   npm i @verseva/design
@@ -13,6 +13,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  id-token: write
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -22,8 +23,7 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest
       - run: npm test
       - run: npm run gate
       - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
