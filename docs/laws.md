@@ -62,6 +62,10 @@ enforce, binding by engagement contract rather than by gate.
     own content as a segmented control or chip row, never as a second shell tier. Console
     navigation ships in two variants: flat grouped rows, and an accordion whose collapse is
     the hidden attribute with chevron-only motion and whose active group refuses to collapse.)
+    (Amended 2026-10-26: console navigation gains the shell anatomy, an org switcher on top,
+    grouped icon rows, a collapse row with the account capsule and the platform stamp in the
+    foot, and a top bar carrying search, notifications and guides; the sidebar collapses to a
+    72px icon rail whose labels show on hover and on keyboard focus.)
 13. **Laws are dated and live with the tokens.** Incidents become named laws written into this
     file and enforced at the pipeline (the gate suite: hex, contrast, spacing, type); when a
     law generalizes, it lands here, not in one brand's theme.

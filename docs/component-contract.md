@@ -144,19 +144,161 @@ interactively.
 - Sub-nav tier ONLY for tabs with real sub-sections (navigation-two-tier law; never invent one).
 - 3–5 destinations, targets ≥44px, floats inset 14px sides / 18px bottom, never scrolls away.
 
-## Console navigation: `.snav`, `.orgchip`, `.grouplabel`
+## Console navigation: `.snav`, `.grouplabel`, `.switcher` (`.orgchip` deprecated)
 
-Sidebar: org switcher top, grouped tree with `label` headers (`.grouplabel`: 12px/600
-sentence-case sans in `--text-2`, never uppercase tracked mono), ONE active item, counts as badges.
-Topbar: search + chips + icon actions; a header divides content.
+Sidebar: org switcher top (`.switcher`, see Console shell), grouped tree with `label` headers
+(`.grouplabel`: 12px/600 sentence-case sans in `--text-2`, never uppercase tracked mono), ONE
+active item, counts as badges. Topbar: breadcrumb, search, notifications and guides (`.tbar`, see
+Console shell); a header divides content.
 
+- **Rows:** an optional icon, the label in `.nl` (one line, ellipsis), then a count. `.cnt` is a
+  plain count; `.cnt.hot` is an urgent one: the accent bloom on an opaque `--surface-2` base with
+  a `--text-1`/600 numeral (the base holds it at 4.5:1 on every theme over glass). In the rail a
+  row with no icon shows its first letter in `.ni`; urgent counts become dots and plain counts
+  hide, their numbers still in the link's name.
 - **Active (the sidebar bloom):** `.active` or `aria-current="page"` puts the accent bloom behind
   the item, `.tab.on`'s `--accent-bloom` + `--accent-active-glow` verbatim (law 3 named device);
   label `--text-1`/600 for AA, icon `--accent-on`. Prefer `aria-current="page"` so the state is
   read, not only seen.
-- **States:** hover `--surface-2` + `--text-1`; focus-visible 2px `--focus` ring at 2px offset;
-  press sits down 1px (law 8); disabled `aria-disabled="true"` at .45, not focusable by pointer.
-  Reduced motion drops the transitions and the press.
+- **States:** hover `--surface-2` + `--text-1` (inside the glass sidebar the hover is a 6%
+  `--text-1` wash instead, since `--surface-2` on glass reads as a hole); focus-visible 2px
+  `--focus` ring at 2px offset; press sits down 1px (law 8); disabled `aria-disabled="true"` at
+  .45, not focusable by pointer. Reduced motion drops the transitions and the press.
+- **Deprecated:** `.orgchip`, the static org block, is deprecated in 1.3.0 for `.switcher` and is
+  removed in 2.0. It stays in `components.css` until then so existing copies keep rendering.
+
+## Console shell: `.cshell`, `.cside`, `.switcher`, `.capsule`, `.tbar`, `.drawer`
+
+The desktop console frame (1.3.0): a floating glass sidebar beside a main column with a top bar.
+Composable parts; the React copies (`npx verseva add console-shell ...`) render exactly this DOM.
+Under 900px the sidebar hides and `.navshell` stays the phone nav.
+
+**Anatomy**
+
+| Region | Classes | Holds |
+|---|---|---|
+| Shell | `.cshell` (grid), `.skip`, `.cmain`, `main.cbody#main` | Skip link first in the DOM, the sidebar, the main column, one `.railtip` |
+| Sidebar | `.cside` | Glass at `--r-lg`, inset `--s-3`, sticky under `--sticky-top`, 252px; head, `.cside-nav`, `.cside-ft`. Only `.cside-nav` scrolls, so head and foot stay put on short screens |
+| Head | `.switcher` (`.word` for a wordmark), `.otile` (`.init` for initials), `.oword`, `.oname` + `small` | Org logo or initials, org name, your role, chevron; menu `.menu-list.full`: orgs as `menuitemradio` with role hints and a tick, then Organization settings, Members and roles, Billing, Invite people, New organization |
+| Nav | `.cside-nav` > `.sgroup` > `.snav` | Grouped rows, see Console navigation |
+| Foot | `.collapse-row`, `.capsule` (`.acct` + `.ibtn`), `.platform` (`.pmark`, `.v`) | Collapse row (`[`), account capsule (avatar, name, email; menu `.menu-list.up.full`: Profile, Appearance, Sign out) with the settings gear, platform mark + version (opens What's new) |
+| Top bar | `.tbar`, `.crumbs`, `.searchbox`, `.tbar-end`, `.ibtn` + `.num` / `.dot` | Breadcrumb, search with the K chord, notifications bell with a count, guides button with an unread dot; menu: What's new (`.mhint` with `.ver` + `.newdot`), Guides, Keyboard shortcuts, Documentation, Contact support |
+| Notifications | `.menu-list.panel`, `.panel-hd`, `ul.notifs` > `.notif`, `.panel-empty`, `.panel-ft` | A non-modal dialog under the bell: title + Mark all read, rows (`.unread` + `.udot`), View all |
+| What's new | `.scrim` + `.drawer`, `.drawer-hd` (`h4`, `.vchip`, close `.ibtn`), `.drawer-bd` > `section.rel` (`.rel.seen`), `.relhead` (`h5`, `time`), `ul.chgs` > `.chg` | Right sheet, 400px: releases newest first, each change tagged New (`.badge.bloom`), Improved (`.badge.neutral`) or Fixed (`.badge.ok`) |
+| Rail | `.cside[data-collapsed]`, `.railtip` | 72px icon rail: org tile, row icons, collapse icon, avatar, gear, mark; labels in one fixed `.railtip` |
+
+**Material and contrast**
+
+- `.cside` restates `.glass`'s material (`--surface-body` over `--glass-fill-3`, `--glass-border`,
+  `--glass-shadow` + `--glass-glow` + `--glass-inset`) at `--r-lg`; it does not compose `.glass`,
+  whose descendant recolors and `--r-md` radius would fight the nav. No blur, and no `transform`,
+  `filter` or `backdrop-filter` on `.cside` or any ancestor of the rail tip: each would become the
+  containing block of the fixed `.railtip` and clip it.
+- **No `--text-3` directly on glass.** The catch-light drops dark `--text-3` to about 4.1:1.
+  `--text-3` sits only on opaque fills (the switcher role, the account email, kbd chips, the
+  notifications panel, the drawer); bare-glass text is `--text-2` at least (rows, group labels,
+  collapse row, version).
+- **Lifts:** the org role and the account email lift to `--text-2` on the hover and open wash (6%
+  `--text-1` over `--surface-2`, where `--text-3` falls below 4:1); unread notification meta lifts
+  to `--text-2` on the 5% accent wash; the urgent count's bloom sits on an opaque `--surface-2`.
+- **Measured (1.3.0, Chrome, computed styles, composited at the glyph box; lowest across the base
+  and the four presets):**
+
+| Text | Dark | Light |
+|---|---|---|
+| Nav row, group label | 6.66 | 5.76 |
+| Active row (bloom) | 5.08 | 11.58 |
+| Count / urgent count | 6.98 / 4.61 | 5.24 / 10.23 |
+| Org name / role / role (menu open) | 16.25 / 4.52 / 6.01 | 16.90 / 4.51 / 4.63 |
+| Collapse label / kbd | 7.54 / 4.52 | 5.72 / 4.51 |
+| Account name / email / email (menu open) | 16.25 / 4.52 / 6.01 | 16.90 / 4.51 / 4.63 |
+| Platform version | 7.55 | 5.72 |
+| Breadcrumb link / current | 7.66 / 17.84 | 5.37 / 17.35 |
+| Notification meta, unread / read | 6.80 / 4.74 | 5.40 / 5.05 |
+| Release date / seen change / New badge | 4.74 / 7.32 / 4.76 | 5.05 / 5.86 / 11.24 |
+
+**Sizes and stacking:** sidebar 252, rail 72, top bar 60, icon button 32 (44 on a coarse pointer,
+where nav rows, the collapse row, the account button and the platform stamp also reach 44),
+notifications panel 340, drawer 400, search 360. `.tbar` 12, `.cside` 13 (sticky makes a
+stacking context, so the sidebar sits above the bar), menus and `.railtip` 15, `.scrim` 16,
+`.drawer` 17, the focused skip link 18.
+
+**States**
+
+| Part | Hover | Focus-visible | Press | Disabled | Other |
+|---|---|---|---|---|---|
+| Switcher, account | 6% `--text-1` wash on `--surface-2`; `aria-expanded="true"` holds it | 2px `--focus` at 2px | sits down 1px | switcher `:disabled` at .45 | role and email lift to `--text-2` while washed |
+| Nav row | 6% `--text-1` wash on glass; the active row keeps its bloom | 2px ring | sits down 1px | `aria-disabled="true"` at .45 | active bloom; urgent count `.cnt.hot` |
+| Collapse row | wash + `--text-1` | 2px ring | sits down 1px | none | in the rail the icon flips, instantly |
+| Icon button | `--surface-2` + `--text-1` (in the capsule: wash on `--surface-2`) | 2px ring | scale .94 | `:disabled` or `aria-disabled` at .45 | `.num` count (99+ cap, `aria-hidden`; the label carries it), `.dot` unread |
+| Platform stamp | `--text-1` | 2px ring | sits down 1px | none | opens What's new |
+| Notification row | `--surface-2` (rows that act are buttons or links) | inset ring | none | none | unread: 5% accent wash + dot + visually hidden "Unread"; loading: three `.skel` rows; empty: `.panel-empty` "No notifications"; error: the app's message in `.panel-empty` with an optional Try again |
+| Mark all read | `--text-1` | 2px ring | none | disabled at 0 unread | |
+| What's new | close as icon button | close takes focus | | | releases newer than the last one seen render bright, older ones `.rel.seen` (neutral badges, `--text-2` text); loading: `.skel` rows; empty: `.empty` "No release notes"; error: the app's message in `.empty` with an optional Try again |
+| Rail | as expanded | as expanded | as expanded | as expanded | collapse is a snap (252 to 72, no width animation); names visually hidden, never `display:none` |
+
+Reduced motion drops every transition, every press transform, the scrim fade and the sheet slide.
+
+**Accessibility**
+
+| Part | Roles and names | Keyboard and focus | Rail |
+|---|---|---|---|
+| Shell | `.cside` `role="region"` + `aria-label="Sidebar"`; `main#main` `tabindex="-1"`; skip link first | Order: skip link, switcher, nav rows, collapse row, account, settings, platform, breadcrumb, search, bell, guides, page | Every name kept |
+| Collapse row | `aria-label` "Collapse sidebar" / "Expand sidebar"; `aria-controls` the sidebar; `aria-keyshortcuts="["`; kbd `aria-hidden` | Enter, Space or `[` toggles; focus stays on the row | Tip "Expand sidebar"; icon flips instantly |
+| Nav rows | `nav aria-label={group}` per group; active `aria-current="page"`; name = label + count | Tab through links; accordion heads (expanded only) keep `aria-expanded` / `aria-controls` | Label and plain counts visually hidden; urgent count a dot, its number still in the name; tip shows label and count on hover and on focus |
+| Org switcher | Trigger `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`; list `role="menu"` `aria-label="Organizations"`; orgs `menuitemradio` + `aria-checked`; actions `menuitem` | Enter, Space or ArrowDown opens on the checked org; arrows, Home, End move; Enter picks and closes; Escape closes and returns focus to the trigger; Tab and an outside pointer close | Tile only, name visually hidden; tip = org name; menu 260px |
+| Account capsule | `.acct` `aria-haspopup="menu"`, name = name + email; list `aria-label="Account"`; gear `aria-label="Settings"` | As the org switcher; the gear is its own tab stop | Stacked; tips = user name and "Settings"; menu opens upward, 220px |
+| Platform stamp | `button`, `aria-label` "{label} v{version}, What's new"; mark `aria-hidden` | Enter opens the drawer; focus returns here on close | Version visually hidden; tip "{label} v{version}" |
+| Top bar | `header`; breadcrumb `nav aria-label="Breadcrumb"`, current `aria-current="page"`; search `aria-label` + `aria-keyshortcuts` | Meta+K or Ctrl+K focuses and selects search | none |
+| Notifications | Bell `aria-label` "Notifications, N unread", `aria-haspopup="dialog"`, `aria-expanded`, `aria-controls`; panel `role="dialog"` `aria-labelledby` its `h4`; rows in a `ul`; unread rows carry a visually hidden "Unread" | Opening focuses Mark all read when enabled, else the first row, else the panel; Escape closes and returns focus to the bell; tabbing out or an outside pointer closes | Count and dot `aria-hidden`; state never by color alone (wash + dot + word) |
+| Guides | `aria-label` "Guides" or "Guides, What's new unread"; `role="menu"` `aria-label="Guides"`; What's new carries a visually hidden "Unread" | As a menu; picking What's new closes the menu, refocuses the guides button, then opens the drawer | Dot `aria-hidden` |
+| What's new drawer | `role="dialog"` `aria-modal="true"` `aria-labelledby` its `h4`; close `aria-label="Close"`; each release a `section` named by its version; dates in `<time datetime>` | Opening focuses Close; the body `.drawer-bd` is a named region with `tabindex="0"` ("Release notes"), so Tab reaches it and arrows scroll it; Tab and Shift+Tab stay inside; Meta+K, Ctrl+K and `[` do nothing while it is open; Escape, Close or a scrim click closes; focus returns to what opened it | Scrim fades in `--dur-1`, sheet slides 16px in `--dur-2`; both off under reduced motion |
+| Rail tip | `aria-hidden="true"` (the names live in the controls) | Shows on hover and on keyboard focus; Escape hides it; it stays while the pointer is on it; hides on blur, scroll and expand | No animation |
+
+Titles inside these parts are `h4` and release versions `h5`, never `h2`. Every decorative `svg`
+carries `aria-hidden="true"`.
+
+**Rules: storage, unread, shortcuts**
+
+- **Last seen:** `localStorage['verseva.whatsnew.seen']` holds the version last opened (as passed,
+  e.g. `0.3.0`); an app may rename the key.
+- **Unread:** while the last-seen version is missing, invalid or older than the platform version
+  by SemVer. Never unread when the platform version is invalid.
+- **Marked seen:** opening What's new, from the guides menu or the platform stamp, writes the
+  platform version at once; the dot, the menu dot and the "unread" words go in the same render.
+- **Bright and seen releases:** last-seen is read when the drawer opens. Newer releases render
+  bright, older ones `.rel.seen`; on a first visit only the newest is bright.
+- **Releases shown:** only versions at or below the platform version, newest first (notes staged
+  ahead of a deploy never show).
+- **Collapse:** `localStorage['verseva.shell.collapsed']` is `'1'` (rail) or `'0'`; absent means the
+  app's default.
+- **`[` toggles the rail.** Ignored while typing (inputs other than checkbox, radio and button
+  types, `textarea`, `select`, contenteditable, `role` textbox, searchbox, combobox or
+  spinbutton), with Meta, Ctrl or Alt held, on key repeat, during IME composition, or when the
+  event is already handled.
+- **Meta+K / Ctrl+K** focuses and selects search, also while typing elsewhere. The kbd chip reads
+  `⌘K` on Apple platforms and `Ctrl K` elsewhere.
+- **Storage failure** (private mode, blocked storage, server render) never throws; every read
+  falls back to the default.
+- The accordion's `verseva.nav.shut` key is unchanged.
+- **Counts:** the badge floors first, so `0.5` shows no badge and `99.5` shows `99`; above 99 it
+  reads `99+`.
+- **Dates:** an impossible ISO date such as `2026-02-30` renders as given, never rolled into the
+  next month.
+- **Version:** What's new needs a valid SemVer platform version; an invalid one shows no releases
+  and never the unread dot.
+- **Placement:** render What's new as a sibling of the shell, never inside a transformed or
+  filtered ancestor, which would trap the fixed drawer.
+- **Long feeds:** pass the latest page of notifications (about 50) and use View all for the rest;
+  the panel and the drawer render every item they are given.
+- **Strings:** every built-in label is a `labels` prop with English defaults; the collapse row's
+  name and rail tip follow `collapseLabel`.
+- **Platform mark:** one `currentColor` SVG, or a pair `.on-dark` and `.on-light` (raster marks)
+  swapped by `[data-theme="light"]`.
+- **Scope:** release internals (`.rel`, `.relhead`, `.chgs`, `.chg`) apply inside `.drawer` only,
+  and `.who` inside `.acct` only; the part roots (`.cshell`, `.cside`, `.switcher`, `.capsule`,
+  `.platform`, `.tbar`, `.drawer`, `.scrim` and the rest) are global class names.
+- **Direction:** the shell is left-to-right in 1.3.0; right-to-left layout is a stage 2 item.
 
 ## Glass panel: `.glass`
 
