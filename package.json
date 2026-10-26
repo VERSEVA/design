@@ -1,6 +1,6 @@
 {
   "name": "@verseva/design",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "VERSEVA Design: the signature tokens, component contract, Tailwind bridge, and the four-gate enforcement suite (hex, contrast, spacing, type).",
   "license": "MIT",
   "repository": {
@@ -49,6 +49,7 @@
     "studio:build": "npm --prefix studio ci --no-audit --no-fund && npm --prefix studio run build && npm run -s gate:studio",
     "assemble": "node scripts/assemble.mjs",
     "test:served": "node --test test/served/served-paths.test.mjs",
+    "typecheck": "node studio/node_modules/typescript/bin/tsc --noEmit -p studio/tsconfig.json",
     "gate:studio": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow GLTFExporter studio/dist"
   }
 }

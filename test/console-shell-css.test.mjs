@@ -276,3 +276,8 @@ test('deprecation and scrub: .orgchip marked deprecated, no parent-company name'
   assert.ok(SELECTORS.has('.orgchip'), '.orgchip stays until 2.0');
   assert.doesNotMatch(RAW, new RegExp(Buffer.from('bmVtaXhv', 'base64').toString(), 'i'));
 });
+
+test('menus with hints keep one line: rows never wrap and top bar menus clear the hint width', () => {
+  assert.match(bodyOf('.menu-item:has(>.mhint)'), /white-space:nowrap/);
+  assert.match(bodyOf('.tbar .menu-list:not(.panel)'), /min-width:240px/);
+});

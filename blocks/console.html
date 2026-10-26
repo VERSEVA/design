@@ -6,29 +6,24 @@
 <title>VERSEVA Design · Example: ops console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
-<link rel="stylesheet" href="../../tokens.css?v=1p2">
-<link rel="stylesheet" href="../../components.css?v=1p2">
+<link rel="stylesheet" href="../../tokens.css?v=1p3">
+<link rel="stylesheet" href="../../components.css?v=1p3">
 <style>
   * { margin: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.5; }
   .crumb { position: sticky; top: 0; z-index: 10; background: var(--bg); display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--hairline); font-size: 12.5px; color: var(--text-3); }
   .crumb a { color: var(--text-2); text-decoration: none; font-family: var(--font-display); font-weight: var(--display-weight); }
-  .app { display: grid; grid-template-columns: 232px 1fr; min-height: 92vh; }
-  aside { border-right: 1px solid var(--hairline); padding: var(--s-4); display: grid; gap: var(--s-4); align-content: start; }
-  main { padding: var(--s-5) var(--s-6); display: grid; gap: var(--s-5); align-content: start; }
+  .cshell { --sticky-top: 57px; }
   .mainhead { display: flex; align-items: center; gap: var(--s-4); }
   .mainhead h1 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; flex: 1; }
   .duo { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s-4); }
-  main { min-width: 0; grid-template-columns: minmax(0, 1fr); }
   .quotes td { white-space: nowrap; }
   @media (max-width: 900px) {
-    .app { grid-template-columns: minmax(0, 1fr); } aside { display: none; } .duo { grid-template-columns: minmax(0, 1fr); }
-    main { padding: var(--s-4); }
+    .duo { grid-template-columns: minmax(0, 1fr); }
     .mainhead { flex-wrap: wrap; }
     .mainhead h1 { flex: 1 1 100%; }
-    .mainhead .searchbox { flex: 1 1 100%; max-width: none; }
   }
-  @media (max-width: 600px) { .quotes .client { display: none; } .quotes .table th, .quotes .table td { padding-inline: var(--s-3); } }
+  @media (max-width: 600px) { .quotes .client { display: none; } .quotes .table th, .quotes .table td { padding-inline: var(--s-3); } .crumb > span:first-of-type { display: none; } }
   .crumb a { display: inline-flex; align-items: center; gap: 8px; }
   .crumb .vmark { width: 16px; height: 16px; flex: none; }
   .crumb .codelink { margin-left: auto; }
@@ -36,86 +31,163 @@
 </head>
 <body>
 <div class="crumb"><a href="../index.html"><svg class="vmark" viewBox="0 0 768 775.92" aria-hidden="true"><defs><clipPath id="vmk-a"><path d="M400 277h358v396.4H400z"/></clipPath><clipPath id="vmk-b"><path d="M10 97h550v576.4H10z"/></clipPath><clipPath id="vmk-c"><path d="M10 94.5h358V491H10z"/></clipPath><clipPath id="vmk-d"><path d="M208 94.5h550V671H208z"/></clipPath></defs><g clip-path="url(#vmk-a)"><path fill="currentColor" opacity=".55" d="M 558.605469 278.128906 C 555.410156 277.984375 552.164062 277.90625 548.96875 277.90625 C 466.261719 277.90625 407.433594 327.675781 401.222656 333.144531 L 400.800781 333.59375 C 400.800781 333.59375 587.386719 406.570312 718.046875 673.386719 C 718.046875 673.386719 767.757812 550.011719 756.207031 509.574219 C 740.042969 453 663.917969 362.328125 584.683594 279.359375 L 558.605469 278.128906"/></g><g clip-path="url(#vmk-b)"><path fill="currentColor" d="M 49.953125 673.386719 C 49.953125 673.386719 262.128906 253.59375 559.761719 253.59375 C 497.894531 190.457031 437.765625 134.679688 406.402344 106.136719 C 393.699219 94.574219 374.308594 94.574219 361.601562 106.136719 C 285.859375 175.0625 42.257812 402.917969 11.796875 509.574219 C 0.242188 550.011719 49.953125 673.386719 49.953125 673.386719"/></g><g clip-path="url(#vmk-c)"><path fill="currentColor" opacity=".55" d="M 209.394531 489.785156 C 212.589844 489.929688 215.835938 490.007812 219.03125 490.007812 C 301.738281 490.007812 360.566406 440.238281 366.777344 434.765625 L 367.199219 434.316406 C 367.199219 434.316406 180.613281 361.34375 49.953125 94.523438 C 49.953125 94.523438 0.242188 217.902344 11.792969 258.335938 C 27.957031 314.914062 104.082031 405.585938 183.316406 488.554688 L 209.394531 489.785156"/></g><g clip-path="url(#vmk-d)"><path fill="currentColor" d="M 718.046875 94.523438 C 718.046875 94.523438 505.871094 514.316406 208.238281 514.316406 C 270.105469 577.453125 330.234375 633.230469 361.597656 661.773438 C 374.300781 673.335938 393.691406 673.335938 406.398438 661.773438 C 482.140625 592.847656 725.742188 364.992188 756.203125 258.335938 C 767.757812 217.902344 718.046875 94.523438 718.046875 94.523438"/></g></svg><span>VERSEVA Design</span></a><span>examples</span><span>ops console</span><a class="btn btn-secondary sm codelink" href="../code.html?f=examples/console.html">Code</a></div>
-<div class="app">
-  <aside>
-    <div class="orgchip"><span class="sq">AC</span><span><b>Acme Console</b><small>production</small></span></div>
-    <div>
-      <div class="grouplabel">Operate</div>
-      <nav class="snav">
-        <a href="#overview" aria-current="page">Overview <span class="cnt">4</span></a>
-        <a href="#quotes">Quotes <span class="cnt">18</span></a>
-        <a href="#machines">Machines <span class="cnt">17</span></a>
-      </nav>
-    </div>
-    <div>
-      <div class="grouplabel">Manage</div>
-      <nav class="snav">
-        <a href="#clients">Clients</a>
-        <a href="#settings">Settings</a>
-      </nav>
-    </div>
-  </aside>
-  <main>
-    <div class="mainhead">
-      <h1>Overview</h1>
-      <div class="searchbox"><input placeholder="Search quotes, clients"><kbd>/</kbd></div>
-      <button class="btn btn-secondary sm" type="button">Export</button>
-      <button class="btn btn-primary sm" type="button">New quote</button>
-    </div>
-    <div class="statrow">
-      <div class="stat glass"><div class="num">18</div><div class="lbl">Open quotes</div><div class="delta"><span class="badge ok">3 verified today</span></div></div>
-      <div class="stat glass"><div class="num">4.4<i>ms</i></div><div class="lbl">p95 response</div></div>
-      <div class="stat glass"><div class="num">97<i>%</i></div><div class="lbl">Provenance complete</div></div>
-      <div class="stat glass"><div class="num">2</div><div class="lbl">Awaiting ruling</div><div class="delta"><span class="badge warn">Blocked on client</span></div></div>
-    </div>
-    <div class="duo">
-      <div class="chartcard glass">
-        <h4>Quotes closed</h4>
-        <div class="sub">Last 6 weeks</div>
-        <div class="bars">
-          <div class="bar"><div class="fill" style="height:34%"></div><span class="mlab">W1</span></div>
-          <div class="bar"><div class="fill" style="height:48%"></div><span class="mlab">W2</span></div>
-          <div class="bar"><div class="fill" style="height:41%"></div><span class="mlab">W3</span></div>
-          <div class="bar"><div class="fill" style="height:66%"></div><span class="mlab">W4</span></div>
-          <div class="bar"><div class="fill" style="height:82%"></div><span class="mlab">W5</span></div>
-          <div class="bar"><div class="fill" style="height:100%"></div><span class="mlab">W6</span></div>
-        </div>
-        <div class="takeaway">Throughput doubled after the provenance sweep landed in W4.</div>
+<div class="cshell">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="cside" id="cside" role="region" aria-label="Sidebar">
+    <div class="menu">
+      <button type="button" class="switcher" aria-haspopup="menu" aria-expanded="false" aria-controls="org-menu" data-tip="Northwind Labs"><span class="otile" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10h-7a3 3 0 0 1-3-3z"/></svg></span><span class="oname">Northwind Labs <small>Owner</small></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></button>
+      <div class="menu-list full" id="org-menu" role="menu" aria-label="Organizations" hidden>
+        <button type="button" class="menu-item" role="menuitemradio" aria-checked="true" tabindex="-1" data-org="northwind" data-name="Northwind Labs" data-role="Owner"><span class="otile" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10h-7a3 3 0 0 1-3-3z"/></svg></span>Northwind Labs<svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+        <button type="button" class="menu-item" role="menuitemradio" aria-checked="false" tabindex="-1" data-org="kestrel" data-name="Kestrel Co" data-role="Admin"><span class="otile init" aria-hidden="true">KC</span>Kestrel Co <span class="mhint">Admin</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+        <button type="button" class="menu-item" role="menuitemradio" aria-checked="false" tabindex="-1" data-org="orbit" data-name="Orbit Studio" data-role="Member"><span class="otile init" aria-hidden="true">OS</span>Orbit Studio <span class="mhint">Member</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button>
+        <div class="menu-sep" role="separator"></div>
+        <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Organization settings opened."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1M10 21v-3h4v3"/></svg>Organization settings</button>
+        <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Members and roles opened."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></svg>Members and roles</button>
+        <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Billing opened."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg>Billing</button>
+        <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Invite link copied."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg>Invite people</button>
+        <div class="menu-sep" role="separator"></div>
+        <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="New organization started."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New organization</button>
       </div>
-      <section class="glass">
-        <div class="hd"><h4>Recent activity</h4><span class="badge neutral">3</span></div>
-        <ol class="lrows tline">
-          <li class="lrow"><span class="avc" title="Verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span><span class="tx"><b>Quote 2081 verified</b><span class="metaline">K. Webb · <time datetime="PT2M">2 minutes ago</time></span></span><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></li>
-          <li class="lrow"><span class="avc" title="Machine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span><span class="tx"><b>Machine 12 recalibrated</b><span class="metaline">M. Reyes · <time datetime="PT1H">1 hour ago</time></span></span><span class="badge neutral">Logged</span></li>
-          <li class="lrow"><span class="avc" title="Ruling"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h4"/></svg></span><span class="tx"><b>Ruling v18 filed</b><span class="metaline">K. Webb · <time datetime="P1D">Yesterday</time></span></span><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>2 conflicts</span></li>
-        </ol>
+    </div>
+    <div class="cside-nav">
+      <div class="sgroup">
+        <div class="grouplabel">Operate</div>
+        <nav class="snav" aria-label="Operate">
+          <a href="#overview" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span class="nl">Overview</span></a>
+          <a href="#quotes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg><span class="nl">Quotes</span><span class="cnt">18</span></a>
+          <a href="#machines"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M4 21V11l5 3v-3l5 3V5h5v16"/></svg><span class="nl">Machines</span><span class="cnt">17</span></a>
+          <a href="#holds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg><span class="nl">Holds</span><span class="cnt hot">2</span></a>
+        </nav>
+      </div>
+      <div class="sgroup">
+        <div class="grouplabel">Relations</div>
+        <nav class="snav" aria-label="Relations">
+          <a href="#clients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></svg><span class="nl">Clients</span></a>
+          <a href="#inbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5.5 5h13L21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6z"/></svg><span class="nl">Inbox</span><span class="cnt hot">3</span></a>
+        </nav>
+      </div>
+      <div class="sgroup">
+        <div class="grouplabel">Insights</div>
+        <nav class="snav" aria-label="Insights">
+          <a href="#reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M6 17v-6M11 17V5M16 17v-9"/></svg><span class="nl">Reports</span></a>
+        </nav>
+      </div>
+    </div>
+    <div class="cside-ft">
+      <button type="button" class="collapse-row" aria-controls="cside" aria-keyshortcuts="[" aria-label="Collapse sidebar" data-tip="Expand sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></svg><span>Collapse</span><kbd aria-hidden="true">[</kbd></button>
+      <div class="menu">
+        <div class="capsule">
+          <button type="button" class="acct" aria-haspopup="menu" aria-expanded="false" aria-controls="acct-menu" data-tip="Kai Webb"><span class="avc" aria-hidden="true">KW</span><span class="who"><b>Kai Webb</b> <small>kai@northwind.example</small></span></button>
+          <button type="button" class="ibtn" aria-label="Settings" data-tip="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        </div>
+        <div class="menu-list up full" id="acct-menu" role="menu" aria-label="Account" hidden>
+          <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Profile opened."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profile</button>
+          <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-appearance><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></svg>Appearance</button>
+          <div class="menu-sep" role="separator"></div>
+          <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Signed out."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>
+        </div>
+      </div>
+      <button type="button" class="platform" aria-label="Quarry v0.3.0, What's new" data-tip="Quarry v0.3.0"><span class="pmark" aria-hidden="true"><svg viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="3.4" rx="1.7" fill="currentColor"/><rect x="3" y="5.3" width="16" height="3.4" rx="1.7" fill="currentColor"/><rect x="6" y="10.6" width="10" height="3.4" rx="1.7" fill="currentColor"/></svg></span><span class="v">v0.3.0</span></button>
+    </div>
+  </div>
+  <div class="cmain">
+    <header class="tbar">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#overview">Operate</a><span class="sep" aria-hidden="true">/</span><span aria-current="page">Overview</span></nav>
+      <div class="searchbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" aria-label="Search" placeholder="Search quotes, clients" aria-keyshortcuts="Meta+K Control+K"><kbd aria-hidden="true">⌘K</kbd></div>
+      <div class="tbar-end">
+        <div class="menu end">
+          <button type="button" class="ibtn" aria-label="Notifications, 3 unread" aria-haspopup="dialog" aria-expanded="false" aria-controls="notif-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="num" aria-hidden="true">3</span></button>
+          <div class="menu-list panel" id="notif-panel" role="dialog" aria-labelledby="notif-title" tabindex="-1" hidden>
+            <div class="panel-hd"><h4 id="notif-title">Notifications</h4><button type="button" data-markall>Mark all read</button></div>
+            <ul class="notifs">
+              <li><button type="button" class="notif unread"><span class="avc" aria-hidden="true">MR</span><span class="tx"><b>Q-2081</b> verified by M. Reyes <span class="metaline"><time datetime="PT2M">2 min ago</time></span></span> <span class="sr-only">Unread</span><span class="udot" aria-hidden="true"></span></button></li>
+              <li><button type="button" class="notif unread"><span class="avc" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg></span><span class="tx">Machine <b>M-14</b> placed on hold <span class="metaline"><time datetime="PT1H">1 hour ago</time></span></span> <span class="sr-only">Unread</span><span class="udot" aria-hidden="true"></span></button></li>
+              <li><button type="button" class="notif unread"><span class="avc" aria-hidden="true">HB</span><span class="tx">Harbor Botanics replied to <b>Q-2080</b> <span class="metaline"><time datetime="PT3H">3 hours ago</time></span></span> <span class="sr-only">Unread</span><span class="udot" aria-hidden="true"></span></button></li>
+              <li><button type="button" class="notif"><span class="avc" aria-hidden="true">KC</span><span class="tx">You were added to Kestrel Co <span class="metaline"><time datetime="P1D">Yesterday</time></span></span></button></li>
+            </ul>
+            <button type="button" class="panel-ft">View all</button>
+          </div>
+        </div>
+        <div class="menu end">
+          <button type="button" class="ibtn" aria-label="Guides, What's new unread" aria-haspopup="menu" aria-expanded="false" aria-controls="guides-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2.2-2.4 3.7M12 17h.01"/></svg><span class="dot" aria-hidden="true"></span></button>
+          <div class="menu-list" id="guides-menu" role="menu" aria-label="Guides" hidden>
+            <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-whatsnew><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>What's new <span class="mhint"><span class="ver">v0.3.0</span><span class="newdot" aria-hidden="true"></span> <span class="sr-only">Unread</span></span></button>
+            <div class="menu-sep" role="separator"></div>
+            <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Guides opened."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v15H6.5a2.5 2.5 0 0 0 0 5H20"/></svg>Guides</button>
+            <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-shortcuts><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Keyboard shortcuts <span class="mhint"><kbd>?</kbd></span></button>
+            <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Documentation opened."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>Documentation</button>
+            <button type="button" class="menu-item" role="menuitem" tabindex="-1" data-toast="Support chat opened."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Contact support</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="cbody" id="main" tabindex="-1">
+      <div class="mainhead">
+        <h1>Overview</h1>
+        <button class="btn btn-secondary sm" type="button">Export</button>
+        <button class="btn btn-primary sm" type="button">New quote</button>
+      </div>
+      <div class="statrow">
+        <div class="stat glass"><div class="num">18</div><div class="lbl">Open quotes</div><div class="delta"><span class="badge ok">3 verified today</span></div></div>
+        <div class="stat glass"><div class="num">4.4<i>ms</i></div><div class="lbl">p95 response</div></div>
+        <div class="stat glass"><div class="num">97<i>%</i></div><div class="lbl">Provenance complete</div></div>
+        <div class="stat glass"><div class="num">2</div><div class="lbl">Awaiting ruling</div><div class="delta"><span class="badge warn">Blocked on client</span></div></div>
+      </div>
+      <div class="duo">
+        <div class="chartcard glass">
+          <h4>Quotes closed</h4>
+          <div class="sub">Last 6 weeks</div>
+          <div class="bars">
+            <div class="bar"><div class="fill" style="height:34%"></div><span class="mlab">W1</span></div>
+            <div class="bar"><div class="fill" style="height:48%"></div><span class="mlab">W2</span></div>
+            <div class="bar"><div class="fill" style="height:41%"></div><span class="mlab">W3</span></div>
+            <div class="bar"><div class="fill" style="height:66%"></div><span class="mlab">W4</span></div>
+            <div class="bar"><div class="fill" style="height:82%"></div><span class="mlab">W5</span></div>
+            <div class="bar"><div class="fill" style="height:100%"></div><span class="mlab">W6</span></div>
+          </div>
+          <div class="takeaway">Throughput doubled after the provenance sweep landed in W4.</div>
+        </div>
+        <section class="glass">
+          <div class="hd"><h4>Recent activity</h4><span class="badge neutral">3</span></div>
+          <ol class="lrows tline">
+            <li class="lrow"><span class="avc" title="Verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span><span class="tx"><b>Quote 2081 verified</b><span class="metaline">K. Webb · <time datetime="PT2M">2 minutes ago</time></span></span><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></li>
+            <li class="lrow"><span class="avc" title="Machine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span><span class="tx"><b>Machine 12 recalibrated</b><span class="metaline">M. Reyes · <time datetime="PT1H">1 hour ago</time></span></span><span class="badge neutral">Logged</span></li>
+            <li class="lrow"><span class="avc" title="Ruling"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h4"/></svg></span><span class="tx"><b>Ruling v18 filed</b><span class="metaline">K. Webb · <time datetime="P1D">Yesterday</time></span></span><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>2 conflicts</span></li>
+          </ol>
+        </section>
+      </div>
+      <section class="glass quotes">
+        <div class="hd"><h4>Quotes</h4><span class="badge neutral">4</span></div>
+        <table class="table">
+          <thead><tr><th class="pick"><label><input type="checkbox" aria-label="Select all quotes"></label></th><th>Quote</th><th class="client">Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
+          <tbody>
+            <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2081"></label></td><td>Q-2081</td><td class="client">Northline Foods</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2081"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></button></div></td><td class="num">48,220.00</td></tr>
+            <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2080"></label></td><td>Q-2080</td><td class="client">Harbor Botanics</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2080"><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>Pending</span></button></div></td><td class="num">12,940.00</td></tr>
+            <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2079"></label></td><td>Q-2079</td><td class="client">Crestpoint Labs</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2079"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></button></div></td><td class="num">86,410.00</td></tr>
+            <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2078"></label></td><td>Q-2078</td><td class="client">Meridian Goods</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2078"><span class="badge err"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m3 3 4 4M7 3 3 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Rejected</span></button></div></td><td class="num">7,300.00</td></tr>
+          </tbody>
+        </table>
       </section>
-    </div>
-    <section class="glass quotes">
-      <div class="hd"><h4>Quotes</h4><span class="badge neutral">4</span></div>
-      <table class="table">
-        <thead><tr><th class="pick"><label><input type="checkbox" aria-label="Select all quotes"></label></th><th>Quote</th><th class="client">Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
-        <tbody>
-          <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2081"></label></td><td>Q-2081</td><td class="client">Northline Foods</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2081"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></button></div></td><td class="num">48,220.00</td></tr>
-          <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2080"></label></td><td>Q-2080</td><td class="client">Harbor Botanics</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2080"><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>Pending</span></button></div></td><td class="num">12,940.00</td></tr>
-          <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2079"></label></td><td>Q-2079</td><td class="client">Crestpoint Labs</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2079"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span></button></div></td><td class="num">86,410.00</td></tr>
-          <tr><td class="pick"><label><input type="checkbox" aria-label="Select Q-2078"></label></td><td>Q-2078</td><td class="client">Meridian Goods</td><td><div class="menu inline"><button type="button" class="btn btn-ghost sm" aria-haspopup="menu" aria-expanded="false" aria-label="Status of Q-2078"><span class="badge err"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m3 3 4 4M7 3 3 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Rejected</span></button></div></td><td class="num">7,300.00</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <div class="bulkbar" role="toolbar" aria-label="Bulk actions" hidden>
-      <span class="count" aria-live="polite">0 selected</span>
-      <button class="btn btn-ghost sm" type="button" data-bulk="Exported">Export</button>
-      <button class="btn btn-destructive sm" type="button" data-bulk="Rejected">Reject</button>
-      <button class="btn btn-ghost sm icon" type="button" aria-label="Clear selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-    </div>
-  </main>
+      <div class="bulkbar" role="toolbar" aria-label="Bulk actions" hidden>
+        <span class="count" aria-live="polite">0 selected</span>
+        <button class="btn btn-ghost sm" type="button" data-bulk="Exported">Export</button>
+        <button class="btn btn-destructive sm" type="button" data-bulk="Rejected">Reject</button>
+        <button class="btn btn-ghost sm icon" type="button" aria-label="Clear selection"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      </div>
+    </main>
+  </div>
+  <div class="railtip" aria-hidden="true" hidden></div>
+</div>
+<div class="scrim" hidden></div>
+<div class="drawer" role="dialog" aria-modal="true" aria-labelledby="wn-title" hidden>
+  <div class="drawer-hd"><h4 id="wn-title">What's new</h4><span class="vchip">v0.3.0</span><button type="button" class="ibtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="drawer-bd" tabindex="0" role="region" aria-label="Release notes"></div>
 </div>
 <div id="toastwrap"></div>
 <script>
   const table = document.querySelector('.quotes tbody');
   const MENU = '<div class="menu-list" role="menu" aria-label="Status"><button type="button" role="menuitemradio" aria-checked="false" class="menu-item" data-k="ok"><span class="badge ok"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 5.2 2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button><button type="button" role="menuitemradio" aria-checked="false" class="menu-item" data-k="warn"><span class="badge warn"><svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>Pending</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button><button type="button" role="menuitemradio" aria-checked="false" class="menu-item" data-k="err"><span class="badge err"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="m3 3 4 4M7 3 3 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Rejected</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button></div>';
-  const search = document.querySelector('.searchbox input');
+  const search = document.querySelector('.tbar .searchbox input');
   search.addEventListener('input', () => {
     const q = search.value.trim().toLowerCase();
     [...table.rows].forEach((r) => { r.hidden = q !== '' && !r.textContent.toLowerCase().includes(q); });
@@ -142,7 +214,8 @@
     t.style.right = 'var(--s-5)';
     t.style.bottom = 'var(--s-5)';
     t.style.zIndex = '13';
-    t.innerHTML = '<span class="dot"></span>' + text;
+    t.innerHTML = '<span class="dot"></span>';
+    t.append(String(text));
     wrap.append(t);
     setTimeout(() => t.remove(), 2200);
   };
@@ -224,6 +297,451 @@
       requestAnimationFrame(tick);
     });
   }
+</script>
+<script>
+  const notify = (text) => { if (typeof toast === 'function') toast(text); };
+/* ---- Console shell: org switcher, rail, notifications, guides, What's new.
+   Same storage keys and rules as react/console-state.ts; test/console-block.test.mjs checks parity. ---- */
+{
+  /* shell-rules:start */
+  const RULES = (() => {
+    const SEEN_KEY = 'verseva.whatsnew.seen';
+    const COLLAPSE_KEY = 'verseva.shell.collapsed';
+    const KIND_ORDER = ['new', 'improved', 'fixed'];
+    const KIND_LABEL = { new: 'New', improved: 'Improved', fixed: 'Fixed' };
+    const SEMVER = /^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([0-9a-z-]+(?:\.[0-9a-z-]+)*))?(?:\+[0-9a-z.-]+)?$/i;
+    const parseVersion = (v) => {
+      const m = SEMVER.exec(String(v ?? '').trim());
+      if (!m) return null;
+      const pre = m[4] ? m[4].split('.').map((p) => (/^\d+$/.test(p) ? Number(p) : p)) : [];
+      return { major: Number(m[1]), minor: Number(m[2] ?? 0), patch: Number(m[3] ?? 0), pre };
+    };
+    const comparePre = (a, b) => {
+      if (!a.length || !b.length) return a.length === b.length ? 0 : a.length ? -1 : 1;
+      for (let i = 0; i < Math.max(a.length, b.length); i++) {
+        if (i >= a.length) return -1;
+        if (i >= b.length) return 1;
+        const x = a[i];
+        const y = b[i];
+        if (x === y) continue;
+        if (typeof x === 'number' && typeof y === 'number') return x < y ? -1 : 1;
+        if (typeof x === 'number') return -1;
+        if (typeof y === 'number') return 1;
+        return x < y ? -1 : 1;
+      }
+      return 0;
+    };
+    const compareVersions = (a, b) => {
+      const x = parseVersion(a);
+      const y = parseVersion(b);
+      if (!x || !y) return !x && !y ? 0 : x ? 1 : -1;
+      for (const k of ['major', 'minor', 'patch']) if (x[k] !== y[k]) return x[k] < y[k] ? -1 : 1;
+      return comparePre(x.pre, y.pre);
+    };
+    const displayVersion = (v) => {
+      const t = String(v ?? '').trim();
+      return parseVersion(t) && !/^v/i.test(t) ? `v${t}` : t;
+    };
+    const isUnread = (lastSeen, current) => {
+      if (!parseVersion(current)) return false;
+      if (lastSeen == null || !parseVersion(lastSeen)) return true;
+      return compareVersions(lastSeen, current) < 0;
+    };
+    const safeStorage = () => {
+      try {
+        const s = globalThis.localStorage;
+        return s && typeof s.getItem === 'function' && typeof s.setItem === 'function' ? s : null;
+      } catch {
+        return null;
+      }
+    };
+    const readSeen = (store, key = SEEN_KEY) => {
+      if (!store) return null;
+      try { return store.getItem(key); } catch { return null; }
+    };
+    const writeSeen = (store, version, key = SEEN_KEY) => {
+      if (!store) return;
+      try { store.setItem(key, version); } catch { /* storage blocked: the in-memory seen flag still clears the dot */ }
+    };
+    const readCollapsed = (store, key = COLLAPSE_KEY, fallback = false) => {
+      if (!store) return fallback;
+      try {
+        const v = store.getItem(key);
+        return v === '1' ? true : v === '0' ? false : fallback;
+      } catch {
+        return fallback;
+      }
+    };
+    const writeCollapsed = (store, collapsed, key = COLLAPSE_KEY) => {
+      if (!store) return;
+      try { store.setItem(key, collapsed ? '1' : '0'); } catch { /* storage blocked: the rail still toggles */ }
+    };
+    const NON_TEXT = ['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file', 'image'];
+    const TEXT_ROLES = ['textbox', 'searchbox', 'combobox', 'spinbutton'];
+    const isTypingTarget = (t) => {
+      if (!t || typeof t !== 'object') return false;
+      if (t.isContentEditable === true) return true;
+      const role = typeof t.getAttribute === 'function' ? t.getAttribute('role') : null;
+      if (typeof role === 'string' && TEXT_ROLES.includes(role.toLowerCase())) return true;
+      const tag = String(t.tagName ?? '').toUpperCase();
+      if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
+      if (tag === 'INPUT') return !NON_TEXT.includes(String(t.type ?? 'text').toLowerCase());
+      return false;
+    };
+    const isCollapseShortcut = (e, shortcut = '[') =>
+      e.key === shortcut && !e.metaKey && !e.ctrlKey && !e.altKey && !e.repeat && !e.isComposing && !e.defaultPrevented && !isTypingTarget(e.target);
+    const isSearchShortcut = (e) => Boolean((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === 'k' && !e.altKey && !e.shiftKey);
+    const shortcutLabel = (isApple) => (isApple ? '⌘K' : 'Ctrl K');
+    const visibleReleases = (releases, current) =>
+      releases.filter((r) => parseVersion(r.version) && compareVersions(r.version, current) <= 0).sort((a, b) => compareVersions(b.version, a.version));
+    const isFresh = (version, lastSeen, newest) =>
+      lastSeen == null || !parseVersion(lastSeen) ? compareVersions(version, newest) === 0 : compareVersions(version, lastSeen) > 0;
+    const rank = (kind) => (KIND_ORDER.includes(kind) ? KIND_ORDER.indexOf(kind) : KIND_ORDER.length);
+    const sortChanges = (changes) => [...changes].sort((a, b) => rank(a.kind) - rank(b.kind));
+    const kindLabel = (kind) => (Object.hasOwn(KIND_LABEL, kind) ? KIND_LABEL[kind] : 'Changed');
+    const changeTone = (kind, fresh) => (!fresh ? 'neutral' : kind === 'new' ? 'bloom' : kind === 'fixed' ? 'ok' : 'neutral');
+    const formatReleaseDate = (iso, locale = 'en-US') => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+      if (!m) return iso;
+      const [year, month, day] = [Number(m[1]), Number(m[2]) - 1, Number(m[3])];
+      const d = new Date(Date.UTC(year, month, day));
+      if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month || d.getUTCDate() !== day) return iso;
+      return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(d);
+    };
+    const unreadCount = (list) => list.filter((n) => n.unread === true).length;
+    const badgeCount = (n) => {
+      if (!Number.isFinite(n)) return null;
+      const whole = Math.floor(n);
+      return whole <= 0 ? null : whole > 99 ? '99+' : String(whole);
+    };
+    const railTipPosition = (rect, gap = 12) => ({ x: rect.right + gap, y: rect.top + rect.height / 2 });
+    return {
+      SEEN_KEY, COLLAPSE_KEY, parseVersion, compareVersions, displayVersion, isUnread, safeStorage, readSeen, writeSeen,
+      readCollapsed, writeCollapsed, isTypingTarget, isCollapseShortcut, isSearchShortcut, shortcutLabel, visibleReleases,
+      isFresh, sortChanges, kindLabel, changeTone, formatReleaseDate, unreadCount, badgeCount, railTipPosition,
+    };
+  })();
+  /* shell-rules:end */
+
+  /* shell-data:start */
+  const VERSION = '0.3.0';
+  const RELEASES = [
+    {
+      version: '0.3.0',
+      date: '2026-10-23',
+      changes: [
+        { kind: 'new', text: 'Machine holds with a reason' },
+        { kind: 'new', text: 'Quote history on every client' },
+        { kind: 'new', text: 'Weekly summary email' },
+        { kind: 'improved', text: 'List headers stay pinned while scrolling' },
+        { kind: 'improved', text: 'Sidebar collapses to a rail' },
+        { kind: 'fixed', text: 'Duplicate contacts on client pages' },
+      ],
+    },
+    {
+      version: '0.2.0',
+      date: '2026-09-30',
+      changes: [
+        { kind: 'new', text: 'Client request portal' },
+        { kind: 'new', text: 'Quote desk' },
+        { kind: 'fixed', text: 'Rounding on quote totals' },
+      ],
+    },
+  ];
+  /* shell-data:end */
+  const store = RULES.safeStorage();
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const side = document.getElementById('cside');
+  const tip = document.querySelector('.railtip');
+  const collapseRow = side.querySelector('.collapse-row');
+  const switcher = side.querySelector('.switcher');
+  const crumbNav = document.querySelector('.tbar .crumbs');
+  const searchInput = document.querySelector('.tbar .searchbox input');
+  const bell = document.querySelector('[aria-controls="notif-panel"]');
+  const panel = document.getElementById('notif-panel');
+  const markAll = panel.querySelector('[data-markall]');
+  const guidesBtn = document.querySelector('[aria-controls="guides-menu"]');
+  const drawer = document.querySelector('.drawer');
+  const scrim = document.querySelector('.scrim');
+  const drawerBody = drawer.querySelector('.drawer-bd');
+  const isCollapsed = () => side.hasAttribute('data-collapsed');
+
+  /* ---- Rail tip: one fixed label beside the hovered or focused rail control ---- */
+  const tipAnchor = (t) => {
+    if (!isCollapsed() || !(t instanceof Element)) return null;
+    const a = t.closest('[data-tip], .snav a');
+    return a && side.contains(a) ? a : null;
+  };
+  const tipText = (el) => {
+    if (el.dataset.tip) return el.dataset.tip;
+    const label = el.querySelector('.nl')?.textContent.trim() ?? '';
+    const count = el.querySelector('.cnt')?.textContent.trim();
+    return count ? `${label} · ${count}` : label;
+  };
+  const hideTip = () => { tip.hidden = true; };
+  const showTip = (el) => {
+    const text = tipText(el);
+    if (!text) return hideTip();
+    const p = RULES.railTipPosition(el.getBoundingClientRect());
+    tip.textContent = text;
+    tip.style.setProperty('--rt-x', `${p.x}px`);
+    tip.style.setProperty('--rt-y', `${p.y}px`);
+    tip.hidden = false;
+  };
+
+  /* ---- Menus (org switcher, account, guides): role="menu", arrows, Home/End, Escape returns focus ---- */
+  let openMenu = null;
+  const menuItems = (list) => [...list.querySelectorAll('[role^="menuitem"]')].filter((i) => !i.disabled && i.getAttribute('aria-disabled') !== 'true');
+  const closeMenu = (refocus) => {
+    if (!openMenu) return;
+    const { trigger, list } = openMenu;
+    list.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    openMenu = null;
+    if (refocus) trigger.focus();
+  };
+  let panelOpen = false;
+  const closePanel = (refocus) => {
+    if (!panelOpen) return;
+    panel.hidden = true;
+    bell.setAttribute('aria-expanded', 'false');
+    panelOpen = false;
+    if (refocus) bell.focus();
+  };
+  const closeAll = () => { closeMenu(false); closePanel(false); };
+  const openMenuFor = (trigger, focusLast) => {
+    closeAll();
+    hideTip();
+    const list = document.getElementById(trigger.getAttribute('aria-controls'));
+    list.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    openMenu = { trigger, list };
+    const all = menuItems(list);
+    (focusLast ? all[all.length - 1] : list.querySelector('[aria-checked="true"]') ?? all[0])?.focus();
+  };
+  const onMenuKey = (e) => {
+    const all = menuItems(openMenu.list);
+    const i = all.indexOf(document.activeElement);
+    const go = (n) => { e.preventDefault(); all[(n + all.length) % all.length]?.focus(); };
+    if (e.key === 'ArrowDown') go(i + 1);
+    else if (e.key === 'ArrowUp') go(i < 0 ? all.length - 1 : i - 1);
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(all.length - 1);
+    else if (e.key === 'Tab') closeMenu(false);
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeMenu(true); }
+  };
+  document.querySelectorAll('.cshell [aria-haspopup="menu"][aria-controls]').forEach((t) => {
+    t.addEventListener('click', () => (openMenu?.trigger === t ? closeMenu(false) : openMenuFor(t, false)));
+    t.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+      openMenuFor(t, e.key === 'ArrowUp');
+    });
+  });
+
+  const switchOrg = (item) => {
+    if (item.getAttribute('aria-checked') === 'true') return;
+    const prev = document.querySelector('#org-menu [aria-checked="true"]');
+    prev.setAttribute('aria-checked', 'false');
+    prev.querySelector('.tick').insertAdjacentHTML('beforebegin', ` <span class="mhint">${esc(prev.dataset.role)}</span>`);
+    item.setAttribute('aria-checked', 'true');
+    item.querySelector('.mhint')?.remove();
+    switcher.querySelector('.otile').replaceWith(item.querySelector('.otile').cloneNode(true));
+    switcher.querySelector('.oname').innerHTML = `${esc(item.dataset.name)} <small>${esc(item.dataset.role)}</small>`;
+    switcher.dataset.tip = item.dataset.name;
+    notify(`Switched to ${item.dataset.name}.`);
+  };
+  document.getElementById('org-menu').addEventListener('click', (e) => {
+    const item = e.target.closest('[role^="menuitem"]');
+    if (!item) return;
+    closeMenu(true);
+    if (item.dataset.org) switchOrg(item);
+    else notify(item.dataset.toast);
+  });
+  document.getElementById('acct-menu').addEventListener('click', (e) => {
+    const item = e.target.closest('[role="menuitem"]');
+    if (!item) return;
+    closeMenu(true);
+    if (!item.hasAttribute('data-appearance')) return notify(item.dataset.toast);
+    const root = document.documentElement;
+    if (root.dataset.theme === 'light') root.removeAttribute('data-theme');
+    else root.dataset.theme = 'light';
+    notify(root.dataset.theme === 'light' ? 'Light appearance.' : 'Dark appearance.');
+  });
+  side.querySelector('.capsule .ibtn').addEventListener('click', () => notify('Settings opened.'));
+  /* ---- Notifications: a non-modal dialog under the bell ---- */
+  const syncNotifs = () => {
+    const n = panel.querySelectorAll('.notif.unread').length;
+    const label = RULES.badgeCount(n);
+    bell.setAttribute('aria-label', n ? `Notifications, ${n} unread` : 'Notifications');
+    if (label && !bell.querySelector('.num')) bell.insertAdjacentHTML('beforeend', '<span class="num" aria-hidden="true"></span>');
+    const num = bell.querySelector('.num');
+    if (num && label) num.textContent = label;
+    else num?.remove();
+    markAll.disabled = n === 0;
+  };
+  const markRead = (row) => {
+    row.classList.remove('unread');
+    row.querySelector('.sr-only')?.remove();
+    row.querySelector('.udot')?.remove();
+  };
+  const openPanel = () => {
+    closeAll();
+    hideTip();
+    panel.hidden = false;
+    bell.setAttribute('aria-expanded', 'true');
+    panelOpen = true;
+    (markAll.disabled ? panel.querySelector('button.notif') ?? panel : markAll).focus();
+  };
+  bell.addEventListener('click', () => (panelOpen ? closePanel(false) : openPanel()));
+  markAll.addEventListener('click', () => {
+    panel.querySelectorAll('.notif.unread').forEach(markRead);
+    panel.querySelector('button.notif')?.focus();
+    syncNotifs();
+  });
+  panel.querySelector('.notifs').addEventListener('click', (e) => {
+    const row = e.target.closest('.notif');
+    if (!row) return;
+    markRead(row);
+    syncNotifs();
+  });
+  panel.querySelector('.panel-ft').addEventListener('click', () => { closePanel(true); notify('All notifications opened.'); });
+  panel.addEventListener('focusout', (e) => {
+    if (panelOpen && !panel.contains(e.relatedTarget) && e.relatedTarget !== bell) closePanel(false);
+  });
+
+  /* ---- What's new: unread until opened; releases newer than the last visit render bright ---- */
+  let seenNow = false;
+  let drawerReturn = null;
+  const syncWhatsNew = () => {
+    if (seenNow || !RULES.isUnread(RULES.readSeen(store), VERSION)) {
+      guidesBtn.setAttribute('aria-label', 'Guides');
+      document.querySelectorAll('.cshell .tbar-end .dot, .cshell .newdot, #guides-menu .mhint .sr-only').forEach((n) => n.remove());
+    }
+  };
+  const renderReleases = (lastSeen) => {
+    const list = RULES.visibleReleases(RELEASES, VERSION);
+    const newest = list[0]?.version ?? VERSION;
+    drawerBody.innerHTML = list.length
+      ? list.map((r) => {
+        const fresh = RULES.isFresh(r.version, lastSeen, newest);
+        const v = esc(RULES.displayVersion(r.version));
+        const changes = RULES.sortChanges(r.changes).map((c) =>
+          `<li class="chg"><span class="k"><span class="badge ${RULES.changeTone(c.kind, fresh)}">${esc(RULES.kindLabel(c.kind))}</span></span><span>${esc(c.text)}</span></li>`).join('');
+        return `<section class="rel${fresh ? '' : ' seen'}" aria-label="${v}"><div class="relhead"><h5>${v}</h5><time datetime="${esc(r.date)}">${esc(RULES.formatReleaseDate(r.date))}</time></div><ul class="chgs">${changes}</ul></section>`;
+      }).join('')
+      : '<div class="empty">No release notes</div>';
+  };
+  const openDrawer = (opener) => {
+    closeAll();
+    hideTip();
+    drawerReturn = opener;
+    const lastSeen = RULES.readSeen(store);
+    RULES.writeSeen(store, VERSION);
+    seenNow = true;
+    syncWhatsNew();
+    renderReleases(lastSeen);
+    scrim.hidden = false;
+    drawer.hidden = false;
+    drawer.querySelector('[aria-label="Close"]').focus();
+  };
+  const closeDrawer = () => {
+    if (drawer.hidden) return;
+    drawer.hidden = true;
+    scrim.hidden = true;
+    if (drawerReturn?.isConnected) drawerReturn.focus();
+    drawerReturn = null;
+  };
+  const trapTab = (e) => {
+    const f = [...drawer.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])')].filter((el) => !el.disabled && el.getClientRects().length);
+    if (!f.length) return;
+    const first = f[0];
+    const last = f[f.length - 1];
+    if (!drawer.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+  document.getElementById('guides-menu').addEventListener('click', (e) => {
+    const item = e.target.closest('[role="menuitem"]');
+    if (!item) return;
+    closeMenu(true);
+    if (item.hasAttribute('data-whatsnew')) openDrawer(guidesBtn);
+    else if (item.hasAttribute('data-shortcuts')) notify(`[ toggles the sidebar. ${RULES.shortcutLabel(apple)} searches.`);
+    else notify(item.dataset.toast);
+  });
+  side.querySelector('.platform').addEventListener('click', (e) => openDrawer(e.currentTarget));
+  drawer.querySelector('[aria-label="Close"]').addEventListener('click', closeDrawer);
+  scrim.addEventListener('click', closeDrawer);
+
+  /* ---- Rail: 72px, [ toggles, remembered; labels on hover and keyboard focus ---- */
+  const setCollapsed = (on, persist) => {
+    side.toggleAttribute('data-collapsed', on);
+    collapseRow.setAttribute('aria-label', on ? 'Expand sidebar' : 'Collapse sidebar');
+    closeAll();
+    hideTip();
+    if (persist) RULES.writeCollapsed(store, on);
+    if (on && document.activeElement === collapseRow) showTip(collapseRow);
+  };
+  collapseRow.addEventListener('click', () => setCollapsed(!isCollapsed(), true));
+  side.addEventListener('pointerover', (e) => { const a = tipAnchor(e.target); if (a && !openMenu) showTip(a); });
+  side.addEventListener('pointerout', (e) => { if (e.relatedTarget !== tip && !tipAnchor(e.relatedTarget)) hideTip(); });
+  tip.addEventListener('pointerout', (e) => { if (!tipAnchor(e.relatedTarget)) hideTip(); });
+  side.addEventListener('focusin', (e) => { const a = tipAnchor(e.target); if (a && !openMenu) showTip(a); else hideTip(); });
+  side.addEventListener('focusout', (e) => { if (!tipAnchor(e.relatedTarget)) hideTip(); });
+  side.querySelector('.cside-nav').addEventListener('scroll', hideTip, { passive: true });
+
+  /* ---- Nav rows move the current page; the crumb and heading follow ---- */
+  side.querySelector('.cside-nav').addEventListener('click', (e) => {
+    const a = e.target.closest('.snav a');
+    if (!a) return;
+    e.preventDefault();
+    side.querySelectorAll('.snav a[aria-current]').forEach((x) => x.removeAttribute('aria-current'));
+    a.setAttribute('aria-current', 'page');
+    const label = a.querySelector('.nl').textContent;
+    crumbNav.querySelector('a').textContent = a.closest('.sgroup').querySelector('.grouplabel').textContent;
+    crumbNav.querySelector('[aria-current]').textContent = label;
+    document.querySelector('.mainhead h1').textContent = label;
+  });
+
+  /* ---- Keyboard: dialogs first, then menus, then the [ and Cmd/Ctrl+K shortcuts ---- */
+  const apple = /mac|iphone|ipad|ipod/i.test(navigator.userAgentData?.platform ?? navigator.platform ?? '');
+  document.querySelector('.tbar .searchbox kbd').textContent = RULES.shortcutLabel(apple);
+  document.addEventListener('keydown', (e) => {
+    if (!drawer.hidden) {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeDrawer(); }
+      else if (e.key === 'Tab') trapTab(e);
+      return;
+    }
+    if (openMenu && openMenu.list.contains(e.target)) return onMenuKey(e);
+    if (e.key === 'Escape' && (openMenu || panelOpen || !tip.hidden)) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (openMenu) closeMenu(true);
+      else if (panelOpen) closePanel(true);
+      else hideTip();
+      return;
+    }
+    if (RULES.isSearchShortcut(e)) {
+      e.preventDefault();
+      closeAll();
+      searchInput.focus();
+      searchInput.select();
+      return;
+    }
+    if (RULES.isCollapseShortcut(e) && side.getClientRects().length) {
+      e.preventDefault();
+      setCollapsed(!isCollapsed(), true);
+    }
+  });
+  addEventListener('pointerdown', (e) => {
+    if (openMenu && !openMenu.list.contains(e.target) && !openMenu.trigger.contains(e.target)) closeMenu(false);
+    if (panelOpen && !panel.contains(e.target) && !bell.contains(e.target)) closePanel(false);
+  });
+
+  syncNotifs();
+  syncWhatsNew();
+  setCollapsed(RULES.readCollapsed(store), false);
+}
 </script>
 </body>
 </html>

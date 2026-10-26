@@ -11,7 +11,7 @@ const ToastContext = React.createContext<(text: string, tone?: 'ok' | 'err') => 
 /** One toast at a time, bottom-right, gone in ~2.4s. The word does the work; the dot just nods. */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = React.useState<ToastItem | null>(null);
-  const timer = React.useRef<ReturnType<typeof setTimeout>>();
+  const timer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const show = React.useCallback((text: string, tone: 'ok' | 'err' = 'ok') => {
     clearTimeout(timer.current);

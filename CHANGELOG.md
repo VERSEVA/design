@@ -1,5 +1,62 @@
 # Changelog
 
+## 1.3.0 · 2026-10-26
+
+1.2.0 never reached npm. It ships inside 1.3.0: everything under 1.2.0 below is new on npm with this release.
+
+Upgrading copied parts: `npx verseva add` keeps files you already have, so re-add `menu` first
+(`npx verseva add menu --force`); the console shell parts need the 1.3.0 `Menu`.
+
+### Added
+
+- **Console shell.** The console frame as parts you adopt one at a time: a floating glass
+  sidebar (`.cshell`, `.cside`, `.cside-nav`, `.cside-ft`) with an org switcher on top
+  (`.switcher`: logo, wordmark or initials, your role, a checked org list and the org actions),
+  grouped icon rows, a collapse row (`[` toggles) above the account capsule (`.capsule`:
+  avatar, name, email, account menu, settings gear) and the platform stamp (`.platform`: mark
+  and version). A top bar (`.tbar`) carries the breadcrumb, search with the ⌘K / Ctrl K chord,
+  notifications (`.ibtn` with a count, `.notif` rows in a non-modal panel) and a guides menu.
+  What's new opens as a right sheet (`.drawer` over `.scrim`): releases newest first, each
+  change tagged New, Improved or Fixed (`.badge.bloom` is new), unread until opened. The
+  sidebar collapses to a 72px icon rail (`.cside[data-collapsed]`) whose labels show on hover
+  and on keyboard focus (`.railtip`); urgent counts become dots. Every part carries hover,
+  focus-visible, press, disabled and reduced-motion states. Contract: "Console shell".
+- **React parts** (`npx verseva add <name>`): `console-shell`, `org-switcher`,
+  `account-capsule`, `console-topbar`, `whats-new`, and `console-state` (the pure rules:
+  SemVer compare, the What's new unread rule, collapse persistence, shortcut guards). Storage
+  keys: `verseva.whatsnew.seen`, `verseva.shell.collapsed`.
+- **`templates/releases.json`**: the release-notes shape (`version`, `date`, `changes[]` of
+  `kind` and `text`) with example data.
+- **Specimens**: console shell, rail, org switcher, account capsule, top bar, notifications,
+  What's new, and the loading, empty and error states of the panel and the drawer.
+- **New global class names** in `components.css` (check your app for clashes before
+  upgrading): `.cshell`, `.cside`, `.cside-nav`, `.cside-ft`, `.cmain`, `.cbody`, `.switcher`,
+  `.otile`, `.oname`, `.oword`, `.capsule`, `.acct`, `.collapse-row`, `.ibtn`, `.platform`,
+  `.pmark`, `.tbar`, `.tbar-end`, `.panel-hd`, `.notifs`, `.notif`, `.udot`, `.panel-empty`,
+  `.panel-ft`, `.scrim`, `.drawer`, `.drawer-hd`, `.drawer-bd`, `.vchip`, `.railtip`, `.mhint`,
+  `.newdot`, `.nl`, `.ni`, `.badge.bloom`. Release internals (`.rel`, `.relhead`, `.chgs`, `.chg`)
+  apply inside `.drawer` only, and `.who` inside `.acct` only.
+- `npm run typecheck`: the React parts under the studio's strict TypeScript (needs
+  `studio/node_modules`).
+- The `console` block and gallery example rebuilt on the shell, with a fictional org and
+  platform.
+
+### Changed
+
+- `ConsoleNav` gains `collapsed` (rail rendering) and `icons`; labels render in `.nl`.
+  `Menu` gains checkable items (`checked`), hints, disabled items, `renderTrigger`, `label`,
+  `listClassName`, `align` and `onOpenChange`. Both stay backward compatible: 1.1.0 and 1.2.0
+  copies compile and render unchanged.
+
+### Deprecated
+
+- `.orgchip`: use `.switcher`. Kept for existing copies, removed in 2.0.
+
+### Fixed
+
+- `.snav .cnt.hot` had no rule although the React nav emitted the class. It now renders as
+  the accent bloom, and as a dot in the rail.
+
 ## 1.2.0 · 2026-10-22
 
 ### Fixed
@@ -21,7 +78,7 @@
 
 ### Added
 
-Seven console recipes, promoted from the NEMIXO Studio CRM, each with every contract state
+Seven console recipes, promoted from a production CRM, each with every contract state
 and a studio specimen:
 
 - **Glass panel** `.glass` (+ `.hd`, `.bd`): law 1 material on content panels, no blur.
@@ -95,7 +152,7 @@ The open release. VERSEVA Design goes MIT and public.
   test.
 - **Navshell v2** (operator ruling): single tier, equal-width tabs, labels always
   visible, constant height; a tab's sub-sections live at the top of its own
-  content. **Console navigation in two variants**: flat grouped rows (the NEMIXO
+  content. **Console navigation in two variants**: flat grouped rows (a production
   console model) and an accordion whose collapse is the `hidden` attribute with
   chevron-only motion and whose active group refuses to collapse (the Spectre
   model, mechanics ported 1:1).

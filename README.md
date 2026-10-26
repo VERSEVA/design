@@ -75,8 +75,8 @@ one is one command away: `npx verseva block add <name>`.
       <p align="center"><b>Signal Foundry</b> · a Three.js hero reading the tokens at runtime</p>
     </td>
     <td width="50%">
-      <a href="https://design.verseva.com/examples/console.html"><img src="https://raw.githubusercontent.com/verseva/design/main/docs/media/site-console.png" alt="Ops console with live search and sortable table"></a>
-      <p align="center"><b>Ops console</b> · live search, sortable table, count-up stats</p>
+      <a href="https://design.verseva.com/examples/console.html"><img src="https://raw.githubusercontent.com/verseva/design/main/docs/media/site-console.png" alt="Ops console with org switcher, rail, notifications and What's new"></a>
+      <p align="center"><b>Ops console</b> · org switcher, rail, notifications, What's new</p>
     </td>
   </tr>
   <tr>
@@ -99,10 +99,12 @@ on-signature, which is the part no other system does.
 
 ```sh
 npx verseva init
-npx verseva add button field toast console-nav viz motion
+npx verseva add button field toast console-shell console-nav org-switcher account-capsule console-topbar whats-new viz motion
 npx verseva block add pulse
 npx verseva list
 ```
+
+Upgrading from 1.1.0 or 1.2.0: re-add `menu` first (`npx verseva add menu --force`). `add` keeps files you already have, and the console shell parts need the 1.3.0 Menu.
 
 `add` resolves dependencies and refuses nothing you can't edit; `block add` copies a
 full working page with its css hrefs pointed at `node_modules`. The registry is

@@ -159,6 +159,42 @@
       {
         "id": "accordion-nav",
         "label": "Console navigation"
+      },
+      {
+        "id": "shell",
+        "label": "Console shell"
+      },
+      {
+        "id": "shell-rail",
+        "label": "Console shell"
+      },
+      {
+        "id": "switcher",
+        "label": "Org switcher"
+      },
+      {
+        "id": "capsule",
+        "label": "Account capsule"
+      },
+      {
+        "id": "topbar",
+        "label": "Top bar"
+      },
+      {
+        "id": "notifications",
+        "label": "Notifications"
+      },
+      {
+        "id": "whatsnew",
+        "label": "What's new"
+      },
+      {
+        "id": "panel-states",
+        "label": "Notification states"
+      },
+      {
+        "id": "drawer-states",
+        "label": "What's new states"
       }
     ]
   },

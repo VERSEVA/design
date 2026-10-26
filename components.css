@@ -281,6 +281,8 @@
 .menu-item .otile.init{background:var(--surface-2);color:var(--text-1)}
 .menu-item .mhint{margin-left:auto;display:inline-flex;align-items:center;gap:var(--s-2);font-size:11.5px;font-weight:500;color:var(--text-3)}
 .menu-item .mhint+.tick{margin-left:var(--s-2)}
+.menu-item:has(>.mhint){white-space:nowrap}
+.tbar .menu-list:not(.panel){min-width:240px}
 .mhint .ver{font-family:var(--font-mono);font-size:11px;color:var(--text-2)}
 .mhint .newdot{width:7px;height:7px;flex:none;border-radius:50%;background:var(--accent)}
 .collapse-row kbd,.mhint kbd{font-family:var(--font-mono);font-size:10px;border:1px solid var(--hairline);border-radius:calc(var(--r-sm) / 2);padding:1px 6px;background:var(--surface-2);color:var(--text-3)}

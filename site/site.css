@@ -128,3 +128,12 @@ footer.site { padding-top: var(--s-8); display: flex; justify-content: space-bet
 
 /* The wipe replaces the default crossfade sitewide */
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+
+/* Console shell specimens: a contained frame, so the sticky sidebar, the fixed rail tip, the panel and the drawer stay inside it */
+.shellframe { position: relative; width: 100%; height: 560px; overflow: hidden; contain: layout; border: 1px solid var(--hairline-strong); border-radius: var(--r-lg); background: var(--bg); }
+.shellframe .cshell { min-height: 100%; }
+.shellframe .cside { height: calc(100% - var(--s-3) * 2); }
+.shellframe.side { width: 276px; height: 520px; }
+.shellframe.short { height: auto; }
+.shellframe.short.tall { height: 500px; }
+.shellframe.states { height: 340px; padding: var(--s-3); }
