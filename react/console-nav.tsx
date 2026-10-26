@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { safeHref } from './console-state';
 
 export interface NavItem {
   label: string;
@@ -23,15 +24,22 @@ export interface ConsoleNavProps {
   storageKey?: string;
   /** Swap in your router's Link; defaults to a plain anchor. */
   renderLink?: (item: NavItem, children: React.ReactNode, active: boolean) => React.ReactNode;
+  /** Rail rendering: no accordion heads, every group open, items without an icon get a one-letter .ni. Default false. */
+  collapsed?: boolean;
+  /** false hides item icons in the expanded state; the rail always shows them. Default true. */
+  icons?: boolean;
 }
+
+const letter = (label: string) => (Array.from(label.trim())[0] ?? '').toUpperCase();
 
 /**
  * Console navigation, both variants (law 12). Accordion mechanics ported from
  * the Spectre rail: collapse is the HTML hidden attribute (never a height
  * animation), the only motion is the chevron, and the group holding the
- * active item always refuses to collapse.
+ * active item always refuses to collapse. collapsed renders the 72px rail
+ * rows: every group open, labels kept in .nl for the visually hidden name.
  */
-export function ConsoleNav({ groups, activeHref, accordion = false, storageKey = 'verseva.nav.shut', renderLink }: ConsoleNavProps) {
+export function ConsoleNav({ groups, activeHref, accordion = false, storageKey = 'verseva.nav.shut', renderLink, collapsed = false, icons = true }: ConsoleNavProps) {
   const [shut, setShut] = React.useState<ReadonlySet<string>>(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -58,29 +66,34 @@ export function ConsoleNav({ groups, activeHref, accordion = false, storageKey =
 
   const link = (item: NavItem) => {
     const active = item.href === best;
+    const glyph = collapsed
+      ? (item.icon ?? <span className="ni" aria-hidden="true">{letter(item.label)}</span>)
+      : icons ? item.icon : null;
     const children = (
       <>
-        {item.icon}
-        {item.label}
-        {item.count !== undefined && <span className={item.hot ? 'cnt hot' : 'cnt'}>{item.count}</span>}
+        {glyph}
+        <span className="nl">{item.label}</span>
+        {item.count !== undefined && <>{' '}<span className={item.hot ? 'cnt hot' : 'cnt'}>{item.count}</span></>}
       </>
     );
     if (renderLink) return <React.Fragment key={item.href}>{renderLink(item, children, active)}</React.Fragment>;
     return (
-      <a key={item.href} href={item.href} className={active ? 'active' : undefined} aria-current={active ? 'page' : undefined}>
+      <a key={item.href} href={safeHref(item.href)} className={active ? 'active' : undefined} aria-current={active ? 'page' : undefined}>
         {children}
       </a>
     );
   };
 
+  const heads = accordion && !collapsed;
+
   return (
     <>
       {groups.map((g) => {
-        const open = !accordion || !shut.has(g.label) || holdsActive(g);
+        const open = !heads || !shut.has(g.label) || holdsActive(g);
         const id = `snav-${g.label.replace(/\W+/g, '-').toLowerCase()}`;
         return (
           <div className="sgroup" key={g.label} data-open={open}>
-            {accordion ? (
+            {heads ? (
               <button type="button" className="sgroup-head" aria-expanded={open} aria-controls={id} onClick={() => toggle(g.label)}>
                 <span className="grouplabel">{g.label}</span>
                 <svg className="sgroup-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

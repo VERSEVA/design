@@ -110,8 +110,69 @@
       "name": "console-nav",
       "file": "react/console-nav.tsx",
       "kind": "component",
+      "deps": [
+        "console-state"
+      ],
+      "description": "Console navigation, flat or accordion, icons and a collapsed rail; active group refuses to collapse"
+    },
+    {
+      "name": "console-state",
+      "file": "react/console-state.ts",
+      "kind": "util",
       "deps": [],
-      "description": "Console navigation, flat or accordion; active group refuses to collapse"
+      "description": "Console shell logic: semver compare, What's new unread rule, collapse persistence, shortcut guards"
+    },
+    {
+      "name": "org-switcher",
+      "file": "react/org-switcher.tsx",
+      "kind": "component",
+      "deps": [
+        "menu",
+        "console-state",
+        "cx"
+      ],
+      "description": "Org switcher: logo or initials, your role, checked org, org actions"
+    },
+    {
+      "name": "account-capsule",
+      "file": "react/account-capsule.tsx",
+      "kind": "component",
+      "deps": [
+        "menu",
+        "console-state"
+      ],
+      "description": "Account capsule: avatar, name, email, account menu, settings gear"
+    },
+    {
+      "name": "console-topbar",
+      "file": "react/console-topbar.tsx",
+      "kind": "component",
+      "deps": [
+        "menu",
+        "console-state",
+        "cx"
+      ],
+      "description": "Console top bar: breadcrumb, search with the K chord, notifications with a count, guides menu"
+    },
+    {
+      "name": "whats-new",
+      "file": "react/whats-new.tsx",
+      "kind": "component",
+      "deps": [
+        "console-state",
+        "cx"
+      ],
+      "description": "What's new drawer and platform stamp: releases newest first, New, Improved, Fixed; unread until opened"
+    },
+    {
+      "name": "console-shell",
+      "file": "react/console-shell.tsx",
+      "kind": "component",
+      "deps": [
+        "console-state",
+        "cx"
+      ],
+      "description": "Console shell layout: glass sidebar, 72px rail on the [ key, rail labels on hover and focus"
     },
     {
       "name": "tabs",
@@ -129,7 +190,7 @@
       "deps": [
         "cx"
       ],
-      "description": "Dropdown menu; closes on select, Escape, outside click"
+      "description": "Dropdown menu; checkable items and custom triggers; closes on select, Escape, outside click"
     },
     {
       "name": "accordion",
@@ -195,7 +256,7 @@
       "name": "console",
       "file": "blocks/console.html",
       "assets": false,
-      "description": "Ops console: sidebar, stats, chart, sortable table, live search"
+      "description": "Ops console on the console shell: org switcher, rail, notifications, What's new, sortable table"
     },
     {
       "name": "quote-tool",
