@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.1 · 2026-10-27
+
+### Fixed
+
+- **Console sidebar foot.** `.cside-ft` gets a `minmax(0,1fr)` column, so a long account email
+  ellipsizes inside the capsule instead of pushing the capsule and the collapse row past the
+  sidebar's glass edge (measured 268.9px against a 264px sidebar on the console block).
+- **Console phone nav from 768px to 899px.** The sidebar hides below 900px but `.navshell` hid
+  from 768px, leaving no nav in that band. A `.navshell` placed after `.cshell` now stays through
+  899px; every other `.navshell` keeps the 768px rule.
+
 ## 1.3.0 · 2026-10-27
 
 1.2.0 never reached npm. It ships inside 1.3.0: everything under 1.2.0 below is new on npm with this release.

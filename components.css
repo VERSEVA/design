@@ -238,7 +238,7 @@
 .cside{position:sticky;top:calc(var(--sticky-top,0px) + var(--s-3));align-self:start;z-index:13;width:252px;height:calc(100dvh - var(--sticky-top,0px) - var(--s-3) * 2);margin:var(--s-3) 0 var(--s-3) var(--s-3);padding:var(--s-3);display:flex;flex-direction:column;gap:var(--s-3);background:var(--surface-body),var(--glass-fill-3);border:1px solid var(--glass-border);border-radius:var(--r-lg);box-shadow:var(--glass-shadow),var(--glass-glow),var(--glass-inset)}
 .cside-nav{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:calc(var(--s-1) * -1);padding:var(--s-1);scroll-padding:var(--s-1)}
 .cside-nav>.sgroup:first-child{margin-top:2px}
-.cside-ft{display:grid;gap:var(--s-2)}
+.cside-ft{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-2)}
 .cside .menu{display:block}
 .cside .menu-list.full{left:0;right:0;max-height:min(440px,calc(100dvh - 140px));overflow-y:auto}
 .menu-list.up{top:auto;bottom:calc(100% + 6px)}
@@ -246,6 +246,8 @@
 .cbody{flex:1;display:grid;gap:var(--s-5);align-content:start;grid-template-columns:minmax(0,1fr);padding:var(--s-5) var(--s-6)}
 /* Under 900px the sidebar hides; the navshell is the phone nav (mobile anatomy is stage 2); the top bar still fits 375px */
 @media (max-width:899.98px){.cshell{grid-template-columns:minmax(0,1fr)}.cside{display:none}.cbody{padding:var(--s-4)}header.tbar{padding:0 var(--s-4)}.tbar .searchbox{min-width:0}.tbar .searchbox kbd{display:none}.tbar .menu .menu-list.panel{position:fixed;top:calc(var(--sticky-top,0px) + 60px);left:var(--s-3);right:var(--s-3);width:auto}}
+/* The console hides its sidebar below 900px, so a .navshell placed after the shell stays the nav through 899px (the base rule hides it from 768px). */
+@media (min-width:768px) and (max-width:899.98px){.cshell~.navshell{display:flex}}
 @media (max-width:599.98px){.tbar .crumbs{display:none}}
 
 /* Nav rows inside the shell (.snav stays as shipped; these only add) */

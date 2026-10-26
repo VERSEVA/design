@@ -281,3 +281,9 @@ test('menus with hints keep one line: rows never wrap and top bar menus clear th
   assert.match(bodyOf('.menu-item:has(>.mhint)'), /white-space:nowrap/);
   assert.match(bodyOf('.tbar .menu-list:not(.panel)'), /min-width:240px/);
 });
+
+test('1.3.1: the sidebar foot holds a long account email inside the glass; the console phone nav holds through 899px', () => {
+  assert.match(bodyOf('.cside-ft'), /grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(RAW, /@media \(min-width:768px\) and \(max-width:899\.98px\)\{\.cshell~\.navshell\{display:flex\}\}/);
+  assert.match(RAW, /@media \(min-width:768px\)\{\.navshell\{display:none\}\}/, 'every other .navshell keeps the 768px rule');
+});
