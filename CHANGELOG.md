@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.0 · 2026-10-26
+## 1.3.0 · 2026-10-27
 
 1.2.0 never reached npm. It ships inside 1.3.0: everything under 1.2.0 below is new on npm with this release.
 
