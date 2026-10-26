@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/verseva/design.git"
+    "url": "git+https://github.com/VERSEVA/design.git"
   },
   "publishConfig": {
     "access": "public"
