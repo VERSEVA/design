@@ -64,7 +64,7 @@ is a colored outer glow on the active nav item and tab.
   `--danger` sit within a hue distance)? Default: add a board warning only.
 - Q2: Brand tile in the org switcher: keep the accent fill (identity, not action)? Default: keep; it is the brand's mark.
 
-## Addendum (PROPOSED, D4): two recipes for the same 1.4.0 release
+## Addendum (RATIFIED, D4): two recipes for the same 1.4.0 release
 
 Source: Michelangelo's lens on Studio Team v2 (2026-10-31). Studio needs both, and by the 10-31 ruling they ship here.
 
@@ -73,4 +73,4 @@ Source: Michelangelo's lens on Studio Team v2 (2026-10-31). Studio needs both, a
 | Two-line `.sel` | Native radio inside `label.sel`, label plus a `.metaline` second line, min height 44px | `.sel` has no second-line slot today; `.menu.inline` is a row-menu trigger and not a radio group |
 | Table identity cell | `b` name at 600 `--text-1`, `small` email at `--text-2`, `overflow-wrap: anywhere`, name clamped to one line | `.table` has no two-line identity cell; `.lrow .tx` uses `--text-3` |
 
-Status: awaiting Xhunn (D4 in Studio plan rev 3).
+Status: RATIFIED (Xhunn 2026-10-31, "Yes, close it out"): both recipes ship in 1.4.0 with P1 + P2.
