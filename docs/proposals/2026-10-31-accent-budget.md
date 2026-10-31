@@ -1,6 +1,6 @@
 # Proposal: accent budget (law 3), for 1.4.0
 
-Status: PROPOSED, awaiting Xhunn's ruling. Branch `proposal/accent-budget` from main bf9a42a (1.3.1). No CSS changed yet.
+Status: RATIFIED P1 + P2 (Xhunn 2026-10-31, "Approve defaults"); build after Studio R3 (2026-11-01). Branch `proposal/accent-budget` from main bf9a42a (1.3.1). No CSS changed yet.
 Source: NEMIXO Studio audit 2026-10-31 (pick A1). Ruling it follows (Xhunn, 10-31): a change to the base is made here,
 for every product, never as a product-local override.
 
