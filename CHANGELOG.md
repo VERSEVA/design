@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.5.0 · 2026-11-01
+
+### Added
+
+- **Neutral checkbox `.chk`.** A native checkbox that fills with `--text-1` when checked, so selection inside content spends
+  no accent (law 3 budget). Focus ring, disabled state.
+- **Picker row `.pickrow` and `.pickgroup`.** Checkbox, a title over a mono key and a meta line, an optional trailing tag;
+  centred, 44px minimum, the checked row on `--surface-2`.
+- **Search block `.searchblock`.** A search field and its filter chips as one evenly spaced unit (16px padding, 12px gap),
+  chips on one scrolling line.
+- **Tag chip `.tchip`.** A read-only label with optional icon and count; `.on` marks the active one.
+
+### Changed
+
+- **Table cells centre vertically** (`.table th, .table td { vertical-align: middle }`).
+
 ## 1.4.0 · 2026-10-31
 
 ### Changed

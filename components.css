@@ -88,6 +88,8 @@
 /* Header labels are human words: quiet sentence-case body, never tracked mono (law 4) */
 .table th{text-align:left;font-family:var(--font-sans);font-size:.75rem;font-weight:600;color:var(--text-2);padding:var(--s-3) var(--s-3);border-bottom:1px solid var(--hairline)}
 .table td{padding:var(--s-3);border-bottom:1px solid var(--hairline)}
+/* 1.5.0: every cell centres vertically, so a two-line identity beside one-line cells and controls lines up */
+.table th,.table td{vertical-align:middle}
 .table tr:hover td{background:var(--surface-2)}
 .table .num{text-align:right;font-variant-numeric:tabular-nums}
 /* 1.4.0: identity cell, name over email; the email never truncates */
@@ -238,6 +240,31 @@
 .snav a.active svg,.snav a[aria-current="page"] svg{color:var(--accent-on)}
 .snav a[aria-disabled="true"]{opacity:.45;cursor:not-allowed;pointer-events:none}
 .snav .cnt{margin-left:auto;font-size:10px;font-family:var(--font-mono);background:var(--surface-2);border:1px solid var(--hairline);border-radius:999px;padding:1px 6px;color:var(--text-2)}
+
+/* ---- 1.5.0: permission picking (neutral checkbox, picker rows, search block, tag chip) ---- */
+/* Neutral checkbox: selection inside content spends no accent (law 3 budget). Native input, 18px box, 44px row from its parent. */
+.chk{appearance:none;width:18px;height:18px;margin:0;flex:none;border-radius:5px;border:1.5px solid var(--hairline-strong);background:var(--surface);display:inline-grid;place-content:center;cursor:pointer;transition:background var(--dur-1) var(--ease-standard),border-color var(--dur-1) var(--ease-standard)}
+.chk:checked{background:var(--text-1);border-color:var(--text-1)}
+.chk:checked::after{content:"";width:9px;height:5px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+.chk:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.chk:disabled{opacity:.55;cursor:not-allowed}
+/* Picker row: checkbox, title over a mono key and meta line, an optional trailing tag. Centred, 44px minimum. */
+.pickrow{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:var(--s-3);align-items:center;min-height:44px;padding:12px var(--s-4);border-bottom:1px solid var(--hairline);cursor:pointer}
+.pickrow:has(.chk:checked){background:var(--surface-2)}
+.pickrow .tx{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pickrow .tx b{font-weight:600;color:var(--text-1)}
+.pickrow .key{font-family:var(--font-mono);font-size:11.5px;color:var(--text-2)}
+.pickgroup{padding:8px var(--s-4);font-size:12px;font-weight:600;color:var(--text-2);background:var(--surface-2);border-bottom:1px solid var(--hairline)}
+/* Search block: the search field and its filter chips as one evenly spaced unit at the top of a sheet or panel. */
+.searchblock{display:grid;gap:var(--s-3);padding:var(--s-4);border-bottom:1px solid var(--hairline)}
+.searchblock .searchbox{max-width:none;width:100%;min-height:44px}
+.searchblock .chiprow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.searchblock .fchip{flex:none}
+/* Tag chip: a read-only label with an optional icon and count (a role, an event). .on marks the one that is active. */
+.tchip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;line-height:1.4;padding:3px 10px;border-radius:var(--r-pill);border:1px solid var(--hairline);background:var(--surface);color:var(--text-2);white-space:nowrap}
+.tchip svg{width:12px;height:12px;flex:none}
+.tchip .cnt{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3)}
+.tchip.on{color:var(--text-1);border-color:var(--hairline-strong);font-weight:600}
 
 /* ---- Console shell (1.3.0): glass sidebar, rail, top bar, What's new ---- */
 /* Shell grid: sidebar track sizes itself; the sidebar floats inset 12px */
