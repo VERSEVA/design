@@ -57,6 +57,11 @@
 /* ---- Selection controls ---- */
 .sel{display:flex;align-items:center;gap:var(--s-2);font-size:.9375rem;cursor:pointer}
 .sel input{accent-color:var(--accent);width:18px;height:18px}
+/* 1.4.0: two-line choice (label over a .metaline), one native radio or checkbox, 44px hit area */
+.sel.two-line{align-items:flex-start;min-height:44px;padding:var(--s-2) 0}
+.sel.two-line input{margin-top:2px;flex:none}
+.sel.two-line .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sel.two-line .metaline{font-size:.8125rem;color:var(--text-2)}
 .switch{position:relative;width:40px;height:22px;border-radius:var(--r-pill);background:var(--surface-2);border:1px solid var(--hairline);transition:background var(--dur-2) var(--ease-standard)}
 .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text-2);transition:transform var(--dur-2) var(--ease-standard),background var(--dur-2) var(--ease-standard)}
 .sel input:checked+.switch{background:var(--accent);border-color:transparent}
@@ -85,6 +90,10 @@
 .table td{padding:var(--s-3);border-bottom:1px solid var(--hairline)}
 .table tr:hover td{background:var(--surface-2)}
 .table .num{text-align:right;font-variant-numeric:tabular-nums}
+/* 1.4.0: identity cell, name over email; the email never truncates */
+.table .ident{display:flex;flex-direction:column;gap:2px;min-width:0}
+.table .ident b{font-weight:600;color:var(--text-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.table .ident small{font-size:.8125rem;color:var(--text-2);overflow-wrap:anywhere}
 .table th.num{text-align:right}
 
 /* ---- Pinned list header (contract: long lists only, opt-in on the wrapper) ----
@@ -137,7 +146,7 @@
 /* ---- Filter chip row ---- */
 .chiprow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .fchip{display:inline-flex;align-items:center;gap:6px;font-size:.8125rem;padding:6px 12px;border-radius:var(--r-pill);border:1px solid var(--hairline);background:var(--surface);color:var(--text-2);cursor:pointer;transition:all var(--dur-1) var(--ease-standard)}
-.fchip[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:color-mix(in srgb,var(--accent) 36%,transparent);color:var(--text-1);font-weight:600}
+.fchip[aria-pressed="true"]{background:var(--surface-2);border-color:var(--hairline-strong);color:var(--text-1);font-weight:600}
 .fchip .cnt{font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
 .fchip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
@@ -253,7 +262,7 @@
 /* Nav rows inside the shell (.snav stays as shipped; these only add) */
 .snav .nl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .snav .ni{display:none}
-.snav .cnt.hot{background:var(--accent-bloom),var(--surface-2);border-color:transparent;color:var(--text-1);font-weight:600}
+.snav .cnt.hot{background:var(--surface-2);border-color:var(--hairline-strong);color:var(--text-1);font-weight:600}
 .cside .snav a svg{width:16px;height:16px}
 .cside .snav a:not(.active):not([aria-current="page"]):hover{background:color-mix(in srgb,var(--text-1) 6%,transparent)}
 
@@ -405,7 +414,7 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .cside[data-collapsed] .snav a{justify-content:center;padding:9px 0}
 .cside[data-collapsed] .snav a svg{width:18px;height:18px}
 .cside[data-collapsed] .snav .ni{display:grid;place-items:center;width:18px;height:18px;font-size:11px;font-weight:700}
-.cside[data-collapsed] .snav .cnt.hot{position:absolute;top:5px;right:9px;width:8px;height:8px;padding:0;border:0;overflow:hidden;color:transparent;background:var(--accent);box-shadow:0 0 0 2px var(--bg)}
+.cside[data-collapsed] .snav .cnt.hot{position:absolute;top:5px;right:9px;width:8px;height:8px;padding:0;border:0;overflow:hidden;color:transparent;background:var(--text-1);box-shadow:0 0 0 2px var(--bg)}
 .cside[data-collapsed] .collapse-row{justify-content:center;padding:9px 0}
 .cside[data-collapsed] .collapse-row svg{transform:scaleX(-1)}
 .cside[data-collapsed] .capsule{flex-direction:column-reverse;gap:var(--s-1);padding:var(--s-1) 2px}

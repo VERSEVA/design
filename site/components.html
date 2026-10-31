@@ -135,6 +135,18 @@ npx verseva block add quote-tool</code></pre></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
+  <section class="comp" id="sel-two-line">
+    <h2>Two-line choice</h2>
+    <div class="demo"><div class="specimen">
+      <fieldset><legend>Role</legend>
+        <label class="sel two-line"><input type="radio" name="spec-role" aria-describedby="spec-r1"><span class="tx"><span>Admin</span><span class="metaline" id="spec-r1">Team, blogs, forms, media, codes</span></span></label>
+        <label class="sel two-line"><input type="radio" name="spec-role" checked aria-describedby="spec-r2"><span class="tx"><span>Editor</span><span class="metaline" id="spec-r2">Blogs, media</span></span></label>
+        <label class="sel two-line"><input type="radio" name="spec-role" aria-describedby="spec-r3"><span class="tx"><span>Writer</span><span class="metaline" id="spec-r3">Own drafts</span></span></label>
+      </fieldset>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
   <section class="comp" id="card">
     <h2>Card</h2>
     <div class="demo"><div class="specimen">
@@ -250,6 +262,10 @@ npx verseva block add quote-tool</code></pre></div>
   <section class="comp" id="table">
     <h2>Table</h2>
     <div class="demo"><div class="specimen">
+      <table class="table" aria-label="Identity cell specimen"><thead><tr><th>Member</th><th>Role</th></tr></thead><tbody>
+        <tr><td><span class="ident"><b>Avery Lane</b><small>avery@example.test</small></span></td><td>Admin</td></tr>
+        <tr><td><span class="ident"><b>alexandria.konstantinopoulou@long-department.example.test</b><small>alexandria.konstantinopoulou@long-department.example.test</small></span></td><td>Editor</td></tr>
+      </tbody></table>
       <table class="table">
         <thead><tr><th>Quote</th><th>Client</th><th>Status</th><th class="num">Amount</th></tr></thead>
         <tbody>

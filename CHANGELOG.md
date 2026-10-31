@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.0 · 2026-10-31
+
+### Changed
+
+- **Accent budget (law 3).** One primary action plus the active nav item or tab per view. `--accent-active-glow` is now
+  `none` in both modes (law 3 already banned a colored outer glow; the bloom stays as the named device). Pressed filter
+  chips (`.fchip[aria-pressed="true"]`) and hot nav counts (`.snav .cnt.hot`, and the collapsed-rail dot) are neutral.
+  Products that COPY recipes (for example a vendored `.fchip` or console-shell CSS) re-copy these rules.
+
+### Added
+
+- **Two-line choice `.sel.two-line`.** A native radio or checkbox beside a label and a `.metaline`, 44px minimum height.
+- **Table identity cell `.table .ident`.** Name (`b`, 600, `--text-1`, one line) over email (`small`, `--text-2`, wraps anywhere, never truncates).
+
 ## 1.3.1 · 2026-10-27
 
 ### Fixed

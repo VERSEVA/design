@@ -25,6 +25,10 @@ enforce, binding by engagement contract rather than by gate.
    accented terminal period is now the default move across the web, so it reads as
    template rather than as signature. Surfaces still carrying it are retrofitted at next
    touch, not swept.)
+   **Budget (amended 2026-10-31, operator ruling):** per view the accent appears on the ONE primary action and on the
+   active nav item or tab (the bloom, with no outer glow: `--accent-active-glow` is `none`). Content selection (filter chips,
+   segmented pressed states), counts and info badges are neutral. Danger and status keep their own roles. The org mark in
+   the switcher is identity, not spend.
 4. **TYPE LAW: mono is for machines.** Mono only for machine artifacts (IDs, codes, SKUs,
    payloads, code inputs), live timers/stage displays, chart-internal microlabels ≤10px, and
    pure-number identity chips. Everything a human reads is body. Never uppercase tracked-out

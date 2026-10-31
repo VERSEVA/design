@@ -228,9 +228,10 @@ test('contrast on glass: --text-1 and --text-2 clear 4.5:1 over the worst-case c
   assert.deepEqual(fails, []);
 });
 
-test('contrast: the hot count sits its bloom on an opaque --surface-2 and clears 4.5:1 on every theme', () => {
-  assert.match(bodyOf('.snav .cnt.hot'), /background:var\(--accent-bloom\),var\(--surface-2\)/);
-  assert.deepEqual(eachScene((s) => ratio(s.text1, over(s.accent, s.bloomCenter, s.surface2))), []);
+test('contrast: the hot count is neutral (1.4.0 accent budget) on an opaque --surface-2 and clears 4.5:1 on every theme', () => {
+  assert.match(bodyOf('.snav .cnt.hot'), /background:var\(--surface-2\)/);
+  assert.doesNotMatch(bodyOf('.snav .cnt.hot'), /--accent/);
+  assert.deepEqual(eachScene((s) => ratio(s.text1, s.surface2)), []);
 });
 
 test('contrast: the org role lifts to --text-2 on the switcher hover wash', () => {
