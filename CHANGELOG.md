@@ -72,6 +72,12 @@
   studio shell (404.html); the tile no longer nests a studio in its thumbnail.
 - **Gallery: the details bento has no holes** (Count-up stat and Skeleton to loaded take M), and the gallery joins the
   chapter copy guard (no em dash, no doctrine sublabels, every legacy text accounted for).
+- **3D hero example: the copy holds its contrast over the scene.** The scene read its colours once at load, so a
+  frame the studio flips to light after load kept a dark knot behind dark copy (about 1:1). It now re-reads the tokens
+  on every theme or brand change and when a theme sheet lands, with light-mode lighting from the surface tones. A
+  directional scrim in the ground colour sits between the scene and the copy (left to right on desktop, a band on
+  phones), and the hint sits on a pill. A served probe samples the scene behind every line of copy over several
+  frames, in both themes at 1440 and 375: headline and body at least 4.5:1, kicker and hint at least 3:1.
 - **The studio side nav stays fixed while the page scrolls.** Expanded and collapsed to the rail, it sits below the
   header at full height, scrolls its own list when that is longer than the viewport, and keeps the collapse toggle
   in view at its foot (the expanded toggle had scrolled out of reach on long pages).
