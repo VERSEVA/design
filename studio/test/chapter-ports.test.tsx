@@ -16,7 +16,7 @@ const ported = chapters.filter((c) => NATIVE_CHAPTERS[c.slug]);
 
 /* Where a legacy URL lives once its chapter is a studio page. */
 export function portUrl(attr: string, value: string, file: string): string {
-  if (value.startsWith('#') || /^[a-z]+:/i.test(value) && !value.startsWith(ORIGIN)) return value;
+  if (value.startsWith('#')) return value;
   const url = new URL(value, `${ORIGIN}/site/${file}`);
   if (url.origin !== ORIGIN) return value;
   const name = url.pathname.split('/').pop() ?? '';
