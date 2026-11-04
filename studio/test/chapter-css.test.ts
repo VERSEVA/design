@@ -26,7 +26,11 @@ export function rules(css: string, allowAt: string[] = []): Rule[] {
       if (i >= s.length) break;
       const open = s.indexOf('{', i);
       const semi = s.indexOf(';', i);
-      if (s[i] === '@' && semi >= 0 && (open < 0 || semi < open)) throw new Error(`unknown at-rule: ${s.slice(i, semi + 1)}`);
+      if (s[i] === '@' && semi >= 0 && (open < 0 || semi < open)) {
+        if (!allowAt.includes(s.slice(i + 1).match(/^[\w-]+/)![0])) throw new Error(`unknown at-rule: ${s.slice(i, semi + 1)}`);
+        i = semi + 1;
+        continue;
+      }
       if (open < 0) break;
       const head = s.slice(i, open).trim();
       let depth = 1, j = open + 1;
@@ -199,6 +203,35 @@ describe('the .chap scope against components.css', () => {
     expect(specificity('.chap .ttable td:first-child')).toEqual([0, 3, 1]);
     expect(specificity(':where(.chap) *')).toEqual([0, 0, 0]);
     expect(specificity('.seg button[aria-selected="true"]')).toEqual([0, 2, 1]);
+  });
+});
+
+/* studio.css element resets a legacy page never had; each matches inside a ported
+   chapter only if native.css carries the same value for .chap. */
+const RESETS_SHARED: Record<string, string> = {
+  html: 'not inside a chapter', body: 'not inside a chapter',
+  h1: 'margin 0, as :where(.chap) * in native.css', h2: 'the same', h3: 'the same', h4: 'the same', p: 'the same',
+  '*': 'box-sizing border-box, as :where(.chap) * in native.css',
+};
+describe('studio.css against ported chapters', () => {
+  it('keeps every element-only reset out of .chap unless native.css says the same', () => {
+    const host = document.createElement('div');
+    host.innerHTML = '<div class="chap"><a href="#x">x</a><img alt=""><video></video><canvas></canvas><b>b</b><h2>h</h2><p>p</p></div>';
+    document.body.append(host);
+    const els = [...host.querySelectorAll('.chap *')];
+    const leaks: string[] = [];
+    for (const r of rules(read('studio/src/studio.css'), ['import'])) for (const sel of r.selectors) {
+      const parts = sel.split(/[\s>+~]+/);
+      if (parts.some((x) => /[.#\[]/.test(x.replace(/:where\((?:[^()]|\([^()]*\))*\)|::?[\w-]+(\([^)]*\))?/g, '')))) continue;
+      const base = sel.replace(/::?(before|after)$/, '');
+      const hits = els.filter((el) => { try { return el.matches(base || '*'); } catch { return false; } });
+      if (!hits.length) continue;
+      const key = sel.replace(/::?(before|after)$/, '') || '*';
+      if (RESETS_SHARED[key] && !/::?(before|after)$/.test(sel)) continue;
+      leaks.push(`${r.media}|${sel} { ${r.decls.join('; ')} } matches ${hits.map((h) => h.localName).join(',')}`);
+    }
+    host.remove();
+    expect(leaks).toEqual([]);
   });
 });
 
