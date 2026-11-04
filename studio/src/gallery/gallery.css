@@ -4,7 +4,6 @@
 .gtile > .wtile-body > .wtile-hd, .gex-tile > .wtile-body > .wtile-hd, .gsrc-tile > .wtile-body > .wtile-hd { flex-wrap: wrap; row-gap: var(--s-2); }
 .gtile .wtile-meta, .gex-tile .wtile-meta, .gsrc-tile .wtile-meta { flex-basis: 100%; margin-left: 0; white-space: normal; }
 .gtags { display: flex; flex-wrap: wrap; gap: var(--s-1); }
-.gtile-off { display: none; }
 .gtile .stile-foot, .gex-tile .stile-foot, .gsrc-tile .stile-foot { justify-content: flex-start; }
 .stile-foot a.btn { text-decoration: none; }
 

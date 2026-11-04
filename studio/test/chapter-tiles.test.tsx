@@ -10,6 +10,8 @@ import type React from 'react';
 import { NATIVE_CHAPTERS, NATIVE_FROZEN } from '../src/shell/routes';
 import { REDESIGNED } from './redesigned';
 import chapters from '../src/data/chapters.json';
+import { fireEvent } from '@testing-library/react';
+import { FILTERS } from '../src/gallery/meta';
 
 /* The spans as the stylesheets write them, read from components.css (.wgrid columns, .wtile[data-size]
    spans, the 1100px override) and tiles.css (XL on one content row), so a CSS change reaches this test. */
@@ -155,6 +157,21 @@ export const COPY: Record<string, { dropped: string[]; changed: Record<string, s
     },
   },
   distribute: { dropped: [], changed: {} },
+  gallery: {
+    /* Open becomes Live (after the tags); the count-up and the skeleton demos replace their own
+       text on mount, so 2,481 and the loaded row are not on screen when the guard reads. */
+    dropped: ['Open', 'Code', '2,481', 'KW', 'Quote 2081 verified', '2 minutes ago'],
+    changed: {
+      'the viz kit assembled': ['viz kit'],
+      'press physics · law 8': ['Press physics', 'law 8'],
+      'accent bloom · named device': ['Accent bloom'],
+      'count-up stat · tap to rerun': ['Count-up stat'],
+      'skeleton to loaded · tap to reload': ['Skeleton to loaded'],
+      'toast choreography': ['Toast'],
+      'switch · state color carries a word': ['Switch'],
+      'concept · not code': ['concept'],
+    },
+  },
   'docs-pdf': { dropped: [], changed: {} },
   /* The legacy code panel's Copy button: the tile's own Copy shows only while its code is open. The Data
      viz ruling (law 3) changed colours and classes, no copy, so its changed list is empty. */
@@ -197,6 +214,27 @@ describe.each(Object.keys(COPY))('%s copy guard', (slug) => {
     const file = chapters.find((c) => c.slug === slug)!.file;
     const raw = texts(new DOMParser().parseFromString(fs.readFileSync(path.resolve(__dirname, '../../site', file), 'utf8'), 'text/html').querySelector('.shell')!);
     for (const t of [...COPY[slug].dropped, ...Object.keys(COPY[slug].changed)]) expect(raw, t).toContain(t);
+  });
+});
+
+/* The gallery's bento is filtered: every chip's subset must leave no hole either. */
+describe('gallery as tiles', () => {
+  it('leaves no hole in any of its grids, under every filter, at 4 columns or 2', () => {
+    const root = page('gallery');
+    for (const f of ['all', ...FILTERS.map(([k]) => k)]) {
+      fireEvent.click(root.querySelector(`#gfilter [data-f="${f}"]`)!);
+      for (const g of grids(root)) {
+        const sizes = sizesOf(g);
+        expect(holes(sizes, COLS.wide), `${f}: ${sizes.join(',')}`).toBe(0);
+        expect(holes(sizes, COLS.mid), `${f}: ${sizes.join(',')}`).toBe(0);
+      }
+    }
+  });
+
+  it('carries no em dash and no doctrine sublabels', () => {
+    const chap = page('gallery').querySelector('.chap')!;
+    expect(chap.textContent).not.toContain(String.fromCharCode(0x2014));
+    expect(chap.querySelector('.speclabel, .specstack, .stile-toggle, figcaption')).toBeNull();
   });
 });
 

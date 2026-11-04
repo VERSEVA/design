@@ -76,3 +76,39 @@ for (const reducedMotion of [false, true]) {
     assert.deepEqual(r, { inert: true, hidden: 'true', hitInThumb: false, still: 'paused', hovered: reducedMotion ? 'paused' : 'running', left: 'paused' });
   });
 }
+
+/* Every chip, as rendered by the browser over the built CSS: exactly the chip's count of tiles is
+   displayed, and every row of the bento is full (the tiles on a row span the grid's width). */
+const FILTER = `(async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  await sleep(800);
+  const out = [];
+  for (const chip of document.querySelectorAll('#gfilter .fchip')) {
+    chip.click();
+    await sleep(250);
+    const grid = document.querySelector('#mock-sites ~ .sgrid');
+    const g = grid.getBoundingClientRect();
+    const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+    const shown = [...grid.children].filter((t) => getComputedStyle(t).display !== 'none' && t.getBoundingClientRect().height > 0);
+    const rows = new Map();
+    for (const t of shown) { const r = t.getBoundingClientRect(); const k = Math.round(r.top); rows.set(k, (rows.get(k) ?? -gap) + r.width + gap); }
+    const short = [...rows.values()].filter((w) => Math.abs(w - g.width) > 2).length;
+    out.push({ f: chip.dataset.f, want: Number(chip.querySelector('.cnt').textContent), shown: shown.length, short, said: document.querySelector('#gfilter-status')?.textContent ?? null });
+  }
+  return JSON.stringify(out);
+})()`;
+
+for (const width of [1440, 800, 375]) {
+  test(`every filter chip displays exactly its tiles, with no hole in the bento (${width}px)`, { timeout: 60000 }, async () => {
+    const page = await run.page({ width, height: 900 });
+    await page.goto('/gallery');
+    const r = JSON.parse(await page.evaluate(FILTER));
+    await page.close();
+    assert.equal(r.length, 10);
+    for (const x of r) {
+      assert.equal(x.shown, x.want, `${x.f}: ${x.shown} tiles displayed, the chip says ${x.want}`);
+      assert.equal(x.short, 0, `${x.f}: ${x.short} rows with a hole`);
+      assert.equal(x.said, `${x.want} ${x.want === 1 ? 'example' : 'examples'}`, `${x.f}: announced`);
+    }
+  });
+}

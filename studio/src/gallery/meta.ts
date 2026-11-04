@@ -20,3 +20,19 @@ export const FILTERS: ReadonlyArray<readonly [string, string]> = [
   ['data', 'Data'], ['motion', 'Motion'], ['dark', 'Dark'], ['light', 'Light'], ['console', 'Console'],
   ['tool', 'Tool'], ['commerce', 'Commerce'], ['portfolio', 'Portfolio'], ['3d', '3D'],
 ];
+
+/* Column spans on the bento (.wgrid 4 columns, 2 under 1100px; XL takes the M span there, one row). */
+const SPANS: Record<number, Record<string, number>> = { 4: { s: 1, m: 2, l: 2, xl: 4 }, 2: { s: 1, m: 2, l: 2, xl: 2 } };
+const fits = (sizes: ReadonlyArray<TileSize>, cols: number) => {
+  let used = 0;
+  for (const s of sizes) { const w = SPANS[cols][s]; if (used + w > cols) { if (used) return false; } used = (used + w) % cols; }
+  return used === 0;
+};
+
+/** The sizes for the examples a filter shows: their own when those fill every row at 4 and 2
+    columns, else a reflow that does (an XL first on an odd count, then Ms in pairs). */
+export function bentoSizes(slugs: ReadonlyArray<string>): TileSize[] {
+  const own = slugs.map((s) => META[s].size);
+  if (fits(own, 4) && fits(own, 2)) return own;
+  return slugs.map((_, i) => (slugs.length % 2 && i === 0 ? 'xl' : 'm'));
+}

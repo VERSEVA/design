@@ -5,10 +5,11 @@
 // serve as files. The legacy inline script still runs the detail demos, scoped to the
 // chapter root, listeners on the abort signal, and every change it makes undone on cleanup.
 import { useState } from 'react';
+import type { TileSize } from '../../tiles/SpecimenTile';
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
 import { SpecimenGrid, SpecimenTile } from '../../tiles/SpecimenTile';
 import { GALLERY } from '../../gallery/examples';
-import { META, FILTERS } from '../../gallery/meta';
+import { META, FILTERS, bentoSizes } from '../../gallery/meta';
 import { Thumb } from '../../gallery/Thumb';
 import '../../gallery/gallery.css';
 import './gallery.css';
@@ -101,39 +102,48 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
 const ALL = GALLERY.length;
 const count = (f: string) => GALLERY.filter((g) => META[g.slug].filters.includes(f)).length;
 
-/* The mock sites: filter chips (neutral selection, a count on each), then the bento. */
+/* One example: a live thumbnail, or the tile's error with Retry when the example does not load. */
+function ExampleTile({ slug, label, size }: { slug: string; label: string; size: TileSize }) {
+  const [failed, setFailed] = useState(false);
+  const nameId = `g-${slug}-name`;
+  return (
+    <SpecimenTile
+      level={3}
+      size={size}
+      className="gtile"
+      name={<span id={nameId}>{label}</span>}
+      meta={<span className="gtags">{META[slug].tags.map((t) => <span key={t} className="badge neutral">{t}</span>)}</span>}
+      status={failed ? { error: 'Preview did not load' } : undefined}
+      onRetry={() => setFailed(false)}
+      actions={<>
+        <a className="btn btn-secondary sm" href={`/gallery/${slug}`} aria-describedby={nameId}>Live</a>
+        <a className="btn btn-ghost sm" href={`/gallery/${slug}/code`} aria-describedby={nameId}>Code</a>
+      </>}
+    >
+      <Thumb slug={slug} title={label} onFail={() => setFailed(true)} />
+    </SpecimenTile>
+  );
+}
+
+/* The mock sites: filter chips (neutral selection, a count on each), the result said politely,
+   then the bento. A filter renders only its examples, sized so no row keeps a hole. */
 function MockSites() {
   const [f, setF] = useState('all');
+  const [said, setSaid] = useState('');
   const chips: ReadonlyArray<readonly [string, string, number]> = [['all', 'All', ALL], ...FILTERS.map(([k, l]) => [k, l, count(k)] as const)];
+  const shown = GALLERY.filter((g) => f === 'all' || META[g.slug].filters.includes(f));
+  const sizes = bentoSizes(shown.map((g) => g.slug));
+  const pick = (k: string, n: number) => { setF(k); setSaid(`${n} ${n === 1 ? 'example' : 'examples'}`); };
   return (
     <>
       <div className="chiprow" id="gfilter">
         {chips.map(([k, l, n]) => (
-          <button key={k} className="fchip" type="button" aria-pressed={f === k} data-f={k} onClick={() => setF(k)}>{l}<span className="cnt">{n}</span></button>
+          <button key={k} className="fchip" type="button" aria-pressed={f === k} data-f={k} onClick={() => pick(k, n)}>{l}<span className="cnt">{n}</span></button>
         ))}
       </div>
+      <p className="sr-only" id="gfilter-status" aria-live="polite">{said}</p>
       <SpecimenGrid className="gallery">
-        {GALLERY.map(({ slug, label }) => {
-          const m = META[slug];
-          const off = f !== 'all' && !m.filters.includes(f);
-          const nameId = `g-${slug}-name`;
-          return (
-            <SpecimenTile
-              key={slug}
-              level={3}
-              size={m.size}
-              className={off ? 'gtile gtile-off' : 'gtile'}
-              name={<span id={nameId}>{label}</span>}
-              meta={<span className="gtags">{m.tags.map((t) => <span key={t} className="badge neutral">{t}</span>)}</span>}
-              actions={<>
-                <a className="btn btn-secondary sm" href={`/gallery/${slug}`} aria-describedby={nameId}>Live</a>
-                <a className="btn btn-ghost sm" href={`/gallery/${slug}/code`} aria-describedby={nameId}>Code</a>
-              </>}
-            >
-              <Thumb slug={slug} title={label} off={off} />
-            </SpecimenTile>
-          );
-        })}
+        {shown.map(({ slug, label }, i) => <ExampleTile key={slug} slug={slug} label={label} size={sizes[i]} />)}
       </SpecimenGrid>
     </>
   );
@@ -171,12 +181,12 @@ export function Page() {
               <span className="bloomtab on" id="bloom-b">Quotes</span>
             </div>
           </SpecimenTile>
-          <SpecimenTile level={3} size="s" name="Count-up stat">
+          <SpecimenTile level={3} size="m" name="Count-up stat">
             <div className="demo">
               <div className="stat tapstat" id="countstat"><div className="num" id="countnum">2,481</div><div className="lbl">Quotes priced</div></div>
             </div>
           </SpecimenTile>
-          <SpecimenTile level={3} size="s" name="Skeleton to loaded">
+          <SpecimenTile level={3} size="m" name="Skeleton to loaded">
             <div className="demo">
               <div className="lrows taprow" id="skelrow">
                 <div className="lrow">
