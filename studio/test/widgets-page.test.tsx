@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, fireEvent, act, waitFor, within } from '@testing-library/react';
 import axe from 'axe-core';
 import { App } from '../src/App';
 import { navigate } from '../src/shell/router';
+import { wait } from '../src/widgets/WidgetsPage';
 
 // jsdom has no layout: matchMedia matches nothing, so grids run at one column (the phone view).
 const grid = (c: HTMLElement, name: string) => c.querySelector<HTMLElement>(`.wgrid[aria-label="${name}"]`)!;
@@ -102,4 +103,39 @@ describe('/widgets', () => {
     const r = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
     expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
   }, 60000);
+
+  it('the demo commands carry no key hints (no sequences are wired)', async () => {
+    const { container, getByRole } = await open();
+    fireEvent.click(getByRole('button', { name: 'Search or ask' }));
+    expect(container.querySelectorAll('.cmdk [role="option"]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('.cmdk .cmdk-hint')).toHaveLength(0);
+  });
+
+  it('a pending Retry timer is cleared on unmount', async () => {
+    const set = vi.spyOn(globalThis, 'setTimeout');
+    const clear = vi.spyOn(globalThis, 'clearTimeout');
+    try {
+      const { container, unmount } = await open();
+      const err = [...container.querySelectorAll<HTMLElement>('.wgrid[aria-label="Loading and error widgets"] .wtile')][1];
+      set.mockClear();
+      fireEvent.click(within(err).getByRole('button', { name: 'Retry' }));
+      const i = set.mock.calls.findIndex((c) => c[1] === 1200);
+      expect(i).toBeGreaterThanOrEqual(0);
+      const id = set.mock.results[i].value;
+      unmount();
+      expect(clear).toHaveBeenCalledWith(id);
+    } finally { set.mockRestore(); clear.mockRestore(); }
+  });
+
+  it('wait() removes its abort listener once the delay passes', async () => {
+    vi.useFakeTimers();
+    try {
+      const ac = new AbortController();
+      const remove = vi.spyOn(ac.signal, 'removeEventListener');
+      const p = wait(50, ac.signal);
+      vi.advanceTimersByTime(50);
+      await p;
+      expect(remove).toHaveBeenCalledWith('abort', expect.any(Function));
+    } finally { vi.useRealTimers(); }
+  });
 });

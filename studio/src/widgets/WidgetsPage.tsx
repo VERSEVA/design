@@ -182,9 +182,11 @@ function useJobs(onDone: (a: Activity) => void) {
 
 /* ---------- ask demo ---------- */
 const ANSWER = 'Revenue this month is ₱1.84M, up 12.4% on October. Harbor Botanics leads at ₱820k.';
-const wait = (ms: number, signal: AbortSignal) => new Promise<void>((res, rej) => {
-  const t = setTimeout(res, ms);
-  signal.addEventListener('abort', () => { clearTimeout(t); rej(new DOMException('aborted', 'AbortError')); }, { once: true });
+/** Resolves after ms; rejects on abort. The abort listener goes when either happens. */
+export const wait = (ms: number, signal: AbortSignal) => new Promise<void>((res, rej) => {
+  const onAbort = () => { clearTimeout(t); rej(new DOMException('aborted', 'AbortError')); };
+  const t = setTimeout(() => { signal.removeEventListener('abort', onAbort); res(); }, ms);
+  signal.addEventListener('abort', onAbort, { once: true });
 });
 const Preview = () => (
   <div className="wtile glass" data-size="m"><div className="wtile-body">{revenueView('m')}</div></div>
@@ -217,9 +219,9 @@ function HomeSpecimen() {
     { group: 'Actions', label: 'Edit Home', icon: I.edit, keywords: ['widgets', 'rearrange'], run: () => setEditing(true) },
     { group: 'Actions', label: 'Start job', icon: I.play, keywords: ['deploy', 'activity'], run: jobs.start },
     { group: 'Actions', label: 'Reset Home', icon: I.reset, run: () => setLayout(HOME) },
-    { group: 'Go to', label: 'Overview', icon: I.go, hint: 'G O', run: () => navigate('/') },
-    { group: 'Go to', label: 'Foundations', icon: I.go, hint: 'G F', run: () => navigate('/foundations') },
-    { group: 'Go to', label: 'Gallery', icon: I.go, hint: 'G G', run: () => navigate('/gallery') },
+    { group: 'Go to', label: 'Overview', icon: I.go, run: () => navigate('/') },
+    { group: 'Go to', label: 'Foundations', icon: I.go, run: () => navigate('/foundations') },
+    { group: 'Go to', label: 'Gallery', icon: I.go, run: () => navigate('/gallery') },
   ];
 
   const pin = () => setLayout((l) => move(addWidget(l, 'revenue', 'm'), l.length, 0));
@@ -271,9 +273,12 @@ function SizesSpecimen() {
 function WidgetStates() {
   const [status, setStatus] = React.useState<Record<string, WidgetStatus>>({ 'st-load': { loading: true }, 'st-err': { error: 'Revenue did not load.' } });
   const [empty, setEmpty] = React.useState<LayoutItem[]>([]);
+  const timers = React.useRef(new Set<ReturnType<typeof setTimeout>>());
+  React.useEffect(() => { const t = timers.current; return () => { t.forEach((x) => clearTimeout(x)); t.clear(); }; }, []);
   const retry = (id: string) => {
     setStatus((s) => ({ ...s, [id]: { loading: true } }));
-    setTimeout(() => setStatus((s) => ({ ...s, [id]: { error: 'Revenue did not load.' } })), 1200);
+    const t = setTimeout(() => { timers.current.delete(t); setStatus((s) => ({ ...s, [id]: { error: 'Revenue did not load.' } })); }, 1200);
+    timers.current.add(t);
   };
   return (
     <div className="wx-states">
