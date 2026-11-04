@@ -26,7 +26,7 @@ export const COPIED_HOLD_MS = 900;
 export const JOB_TICK_MS = 450;
 const JOB_STEP = 0.035;
 const JOB_HOLD_MS = 2400;
-/* The demo job loops a few times, then rests done: a landing page does not announce forever. */
+/* The demo job loops a few times, then rests done; Restart in its panel runs it again. */
 export const JOB_CYCLES = 5;
 const JOB_NAMES = ['Deploy studio', 'Import clients', 'Export ledger', 'Sync invoices', 'Agent run #419'];
 const STEPS = ['Queue', 'Build', 'Upload', 'Promote'];
@@ -35,27 +35,34 @@ const jobIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 
 const newJob = (k: number, progress = 0): Activity => ({ id: `job-${k}`, name: JOB_NAMES[k % JOB_NAMES.length], steps: STEPS, progress });
 
-/** One demo job: ticks while `live`, holds done, then the next one starts. */
+/** One demo job: ticks while `live`, holds done, then the next one starts; rests after JOB_CYCLES.
+    Cancel stops it (null); Restart starts a fresh run of cycles. */
 function useDemoJob(live: boolean) {
-  const [k, setK] = useState(0);
-  const [job, setJob] = useState<Activity>(() => newJob(0, 0.24));
+  const [run, setRun] = useState({ k: 0, n: 0 });
+  const [job, setJob] = useState<Activity | null>(() => newJob(0, 0.24));
   useEffect(() => {
-    if (!live) return;
+    if (!live || !job) return;
     if (job.done) {
-      if (k + 1 >= JOB_CYCLES) return;
-      const t = setTimeout(() => { setK(k + 1); setJob(newJob(k + 1)); }, JOB_HOLD_MS);
+      if (run.n + 1 >= JOB_CYCLES) return;
+      const t = setTimeout(() => { setRun({ k: run.k + 1, n: run.n + 1 }); setJob(newJob(run.k + 1)); }, JOB_HOLD_MS);
       return () => clearTimeout(t);
     }
     const t = setInterval(() => setJob((j) => {
-      if (j.done) return j;
+      if (!j || j.done) return j;
       const p = Math.min(1, (j.progress ?? 0) + JOB_STEP);
       return p >= 1 ? { ...j, progress: 1, done: true } : { ...j, progress: p };
     }), JOB_TICK_MS);
     return () => clearInterval(t);
-  }, [live, job.done, k]);
-  const restart = () => { setK(k + 1); setJob(newJob(k + 1)); };
-  return { job, restart };
+  }, [live, job?.done, job === null, run]);
+  const restart = () => { setRun({ k: run.k + 1, n: 0 }); setJob(newJob(run.k + 1)); };
+  const cancel = () => setJob(null);
+  return { job, restart, cancel };
 }
+
+/* Until the visitor opens the capsule panel, the demo job announces nothing. */
+const SILENT = { started: () => '', progress: () => '', finished: () => '', cancelled: () => '', failure: () => '' };
+const SPOKEN = { clearDone: 'Restart' };
+const QUIET = { ...SPOKEN, ...SILENT };
 
 const LAYOUT: LayoutItem[] = [
   { id: 'revenue', kind: 'revenue', size: 'l' },
@@ -65,8 +72,12 @@ const LAYOUT: LayoutItem[] = [
 const PICK = new Set(['revenue', 'live']);
 
 function LiveHome({ live }: { live: boolean }) {
-  const { job, restart } = useDemoJob(live);
-  const p = job.progress ?? 0;
+  const { job, restart, cancel } = useDemoJob(live);
+  const [engaged, setEngaged] = useState(false);
+  const [panel, setPanel] = useState(false);
+  const onOpenChange = (o: boolean) => { setPanel(o); if (o) setEngaged(true); };
+  const again = <button type="button" className="btn btn-secondary sm" onClick={restart}>Restart</button>;
+  const p = job?.progress ?? 0;
   const step = STEPS[Math.min(STEPS.length - 1, Math.floor(p * STEPS.length))];
   const defs: WidgetDefinition[] = [
     ...DEFINITIONS.filter((d) => PICK.has(d.kind)),
@@ -74,11 +85,13 @@ function LiveHome({ live }: { live: boolean }) {
       kind: 'job', name: 'Jobs', icon: jobIcon, sizes: ['m'],
       render: () => (
         <>
-          <div className="wtile-hd">{jobIcon}Jobs<span className="wtile-meta">{job.done ? 'Done' : step}</span></div>
+          <div className="wtile-hd">{jobIcon}Jobs<span className="wtile-meta">{!job ? 'Cancelled' : job.done ? 'Done' : step}</span></div>
           <div className="jobcap">
-            <LiveActivity activities={[job]} onCancel={restart} leaveDelay={1e9} />
+            {/* With no job the panel offers the one Restart (its empty state); the tile's shows only with the panel shut. */}
+            <LiveActivity activities={job ? [job] : []} onCancel={cancel} onClearDone={job ? restart : undefined} emptyAction={again} onOpenChange={onOpenChange} leaveDelay={1e9} labels={engaged ? SPOKEN : QUIET} />
+            {!job && !panel && again}
           </div>
-          <div className="wtile-sub">{`${Math.min(STEPS.length, Math.floor(p * STEPS.length) + 1)} of ${STEPS.length} steps`}</div>
+          {job && <div className="wtile-sub">{`${Math.min(STEPS.length, Math.floor(p * STEPS.length) + 1)} of ${STEPS.length} steps`}</div>}
         </>
       ),
     },
@@ -95,23 +108,29 @@ function LiveHome({ live }: { live: boolean }) {
   );
 }
 
-/** Get started: copy the install line, say Copied, then land on the install section. */
+/** Get started: copy the install line; say Copied only once it is copied, else point at the
+    command; then land on the install section (navigate focuses it). */
 function GetStarted() {
-  const [copied, setCopied] = useState(false);
+  const [said, setSaid] = useState<'' | 'Copied' | 'Command below'>('');
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
-  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    e.preventDefault();
-    navigator.clipboard?.writeText(INSTALL).catch(() => {});
-    setCopied(true);
+  const land = (label: 'Copied' | 'Command below') => {
+    setSaid(label);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => navigate(INSTALL_HREF), COPIED_HOLD_MS);
   };
+  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    let copy: Promise<void> | undefined;
+    try { copy = navigator.clipboard?.writeText(INSTALL); } catch { copy = undefined; }
+    if (!copy) { land('Command below'); return; }
+    copy.then(() => land('Copied'), () => land('Command below'));
+  };
   return (
     <>
-      <a className="btn btn-primary lg cta-go" href={INSTALL_HREF} onClick={onClick}>{copied ? 'Copied' : 'Get started'}</a>
-      <span className="sr-only" aria-live="polite">{copied ? 'Copied' : ''}</span>
+      <a className="btn btn-primary lg cta-go" href={INSTALL_HREF} onClick={onClick}>{said || 'Get started'}</a>
+      <span className="sr-only" aria-live="polite">{said}</span>
     </>
   );
 }

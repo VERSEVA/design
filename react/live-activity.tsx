@@ -22,6 +22,10 @@ export interface LiveActivityProps {
   onLeave?: (id: string) => void;
   /** "Clear done" in the panel header when given. */
   onClearDone?: () => void;
+  /** Shown in the panel's empty state, after the empty label (e.g. a Start or Restart button). */
+  emptyAction?: React.ReactNode;
+  /** The panel opened (true) or closed (false). */
+  onOpenChange?: (open: boolean) => void;
   /** Milliseconds a done job stays; default 6000. */
   leaveDelay?: number;
   /** Built-in words; English defaults in ACTIVITY_LABELS. */
@@ -50,10 +54,16 @@ function focusNextControl(root: HTMLElement | null) {
  * Cancel and Retry. Announces start, done, cancel and 25% steps politely;
  * failures as alerts. Data comes in as props; nothing is fetched here.
  */
-export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, onClearDone, leaveDelay = DONE_LEAVE_MS, labels, className }: LiveActivityProps) {
+export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, onClearDone, emptyAction, onOpenChange, leaveDelay = DONE_LEAVE_MS, labels, className }: LiveActivityProps) {
   const L = withDefaults(ACTIVITY_LABELS, labels);
   const { list, duplicates } = dedupeActivities(activities);
   const [open, setOpen] = React.useState(false);
+  const openSeen = React.useRef(open);
+  React.useEffect(() => {
+    if (openSeen.current === open) return;
+    openSeen.current = open;
+    onOpenChange?.(open);
+  }, [open]);
   const [left, setLeft] = React.useState<Set<string>>(() => new Set());
   // Each message gets a counter so an identical string still replaces the region's content node and is read again.
   const [status, setStatus] = React.useState({ n: 0, text: '' });
@@ -233,7 +243,7 @@ export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, o
               })}
             </ul>
           ) : (
-            <div className="panel-empty">{L.empty}</div>
+            <div className="panel-empty">{L.empty}{emptyAction}</div>
           )}
         </div>
       </div>

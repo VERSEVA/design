@@ -16,10 +16,17 @@ const sleep = 'const sleep = (ms) => new Promise((r) => setTimeout(r, ms));';
 
 /* Every painted use of the accent, grouped: the focus widget counts once, a control counts once
    (its icon and label are one use), and the rest by element. The color popover's swatch shows
-   the picked value (it is the picker's data, not spend) and is skipped. */
-const ACCENT = `(async () => {
+   the picked value (it is the picker's data, not spend) and is skipped, as are :focus-visible rings (the --focus role). */
+const ACCENT = (open = false) => `(async () => {
   ${sleep}
   await sleep(1500);
+  if (${open}) {
+    const cap = document.querySelector('.hero-live button.lact');
+    cap.focus();
+    cap.click();
+    await sleep(300);
+    if (document.querySelector('.hero-live .lact-panel')?.hidden !== false) return JSON.stringify(['panel did not open']);
+  }
   document.getAnimations().forEach((a) => { try { a.finish(); } catch (e) {} });
   await sleep(200);
   const probe = document.createElement('i');
@@ -48,11 +55,14 @@ const ACCENT = `(async () => {
     for (const pseudo of [null, '::before', '::after']) {
       const cs = getComputedStyle(el, pseudo);
       if (pseudo && (cs.content === 'none' || cs.content === 'normal')) continue;
-      const vals = [cs.backgroundColor, cs.backgroundImage, cs.boxShadow];
+      /* A focus ring is the --focus role, not accent spend (the contract's 2px --focus): skip it. */
+      const ring = !pseudo && el.matches(':focus-visible');
+      const vals = [cs.backgroundColor, cs.backgroundImage];
+      if (!ring) vals.push(cs.boxShadow);
       if (!pseudo && ownText(el)) vals.push(cs.color);
       if (el instanceof SVGElement) vals.push(cs.fill, cs.stroke);
       for (const side of ['Top', 'Right', 'Bottom', 'Left']) if (parseFloat(cs['border' + side + 'Width']) > 0) vals.push(cs['border' + side + 'Color']);
-      if (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0) vals.push(cs.outlineColor);
+      if (!ring && cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0) vals.push(cs.outlineColor);
       if (!vals.some(isAcc)) continue;
       const focus = el.closest('.wtile[data-focus]');
       uses.add(focus ? 'focus widget ' + focus.getAttribute('data-id') : (el.closest('.studio-main') ? 'main ' : 'shell ') + name(el));
@@ -65,7 +75,7 @@ for (const [width, height] of [[1440, 900], [375, 812]]) for (const scheme of ['
   test(`/ spends the accent on Get started, the active nav and one focus widget only (${width}px, ${scheme})`, { timeout: 60000 }, async () => {
     const page = await run.page({ width, height, scheme });
     await page.goto('/');
-    const uses = JSON.parse(await page.evaluate(ACCENT));
+    const uses = JSON.parse(await page.evaluate(ACCENT()));
     await page.close();
     const main = uses.filter((u) => u.startsWith('main '));
     const shell = uses.filter((u) => u.startsWith('shell '));
@@ -78,10 +88,22 @@ for (const [width, height] of [[1440, 900], [375, 812]]) for (const scheme of ['
   });
 }
 
+for (const scheme of ['dark', 'light']) {
+  test(`/ keeps the budget with the job panel open, focus on its first control (1440px, ${scheme})`, { timeout: 60000 }, async () => {
+    const page = await run.page({ width: 1440, height: 900, scheme });
+    await page.goto('/');
+    const uses = JSON.parse(await page.evaluate(ACCENT(true)));
+    await page.close();
+    assert.deepEqual(uses.filter((u) => u.startsWith('main ')).map((u) => u.replace(/^main a\.[^ ]+ /, '')), ['"Get started"'], uses.join('\n'));
+    assert.deepEqual(uses.filter((u) => u.startsWith('focus widget ')), ['focus widget revenue']);
+    assert.ok(uses.filter((u) => u.startsWith('shell ')).length <= 1, uses.join('\n'));
+  });
+}
+
 test('the accent counter sees a planted spend', { timeout: 60000 }, async () => {
   const page = await run.page({ width: 375 });
   await page.goto('/__probe/accent');
-  const uses = JSON.parse(await page.evaluate(ACCENT));
+  const uses = JSON.parse(await page.evaluate(ACCENT()));
   await page.close();
   assert.equal(uses.filter((u) => u.startsWith('main ')).length, 2, uses.join('\n'));
 });
@@ -132,26 +154,34 @@ test('reduced motion: the hero starts and stays still', { timeout: 60000 }, asyn
   assert.equal(r.moved, false, 'the demo job ticked under reduced motion');
 });
 
-const CTA = `(async () => {
+const CTA = (deny = false) => `(async () => {
   ${sleep}
   await sleep(800);
   let copied = null;
-  Object.defineProperty(navigator, 'clipboard', { value: { writeText: (t) => { copied = t; return Promise.resolve(); } }, configurable: true });
+  Object.defineProperty(navigator, 'clipboard', { value: { writeText: (t) => { copied = t; return ${deny} ? Promise.reject(new DOMException('denied', 'NotAllowedError')) : Promise.resolve(); } }, configurable: true });
   const go = [...document.querySelectorAll('.studio-main a')].find((a) => a.textContent.trim() === 'Get started');
   go.click();
   await sleep(50);
   const label = go.textContent.trim();
   const stayed = location.pathname;
   await sleep(1400);
-  return JSON.stringify({ copied, label, stayed, landed: location.pathname + location.hash, install: !!document.getElementById('install'), h1: document.querySelector('h1')?.textContent });
+  return JSON.stringify({ copied, label, stayed, landed: location.pathname + location.hash, install: !!document.getElementById('install'), focused: document.activeElement?.id ?? '', h1: document.querySelector('h1')?.textContent });
 })()`;
 
 test('Get started copies the install line, says Copied, then lands on /components#install', { timeout: 60000 }, async () => {
   const page = await run.page({ width: 1440, height: 900 });
   await page.goto('/');
-  const r = JSON.parse(await page.evaluate(CTA));
+  const r = JSON.parse(await page.evaluate(CTA()));
   await page.close();
-  assert.deepEqual(r, { copied: 'npm i @verseva/design', label: 'Copied', stayed: '/', landed: '/components#install', install: true, h1: 'Components' });
+  assert.deepEqual(r, { copied: 'npm i @verseva/design', label: 'Copied', stayed: '/', landed: '/components#install', install: true, focused: 'install', h1: 'Components' });
+});
+
+test('clipboard denied: Get started says Command below, never Copied, and still lands focused on #install', { timeout: 60000 }, async () => {
+  const page = await run.page({ width: 1440, height: 900 });
+  await page.goto('/');
+  const r = JSON.parse(await page.evaluate(CTA(true)));
+  await page.close();
+  assert.deepEqual(r, { copied: 'npm i @verseva/design', label: 'Command below', stayed: '/', landed: '/components#install', install: true, focused: 'install', h1: 'Components' });
 });
 
 const FOLD = `(async () => {

@@ -21,6 +21,15 @@
 - **The studio side nav stays fixed while the page scrolls.** Expanded and collapsed to the rail, it sits below the
   header at full height, scrolls its own list when that is longer than the viewport, and keeps the collapse toggle
   in view at its foot (the expanded toggle had scrolled out of reach on long pages).
+- **Home: the demo job is quiet.** It ticks visually but says nothing in its live region until the visitor opens the
+  capsule panel.
+- **Home: Copied is honest.** Get started says Copied only once `writeText` resolves. When the clipboard is denied or
+  missing, or `writeText` throws, it says "Command below" and still lands on `/components#install` with focus there.
+- **Home: the demo restarts.** Restart sits in the capsule panel whenever no job runs (done, rested or cancelled),
+  and Cancel now stops the job. With the panel shut after a Cancel, a Restart shows in the tile instead.
+- **`LiveActivity` takes `emptyAction` and `onOpenChange`.** `emptyAction` renders in the panel's empty state (a
+  Restart, a Start); `onOpenChange` reports the panel opening and closing.
+- Dropped the unused `.picker-lg` rules from `studio.css`.
 
 ### Tests
 
@@ -28,7 +37,7 @@
   bottom, it fills to the viewport bottom, and its collapse toggle is in view, expanded and collapsed.
 - `test/served/home.test.mjs`: the law 3 accent budget on `/` at 1440 and 375 in both schemes (with a planted
   spend), the hero's animations (running, transform and opacity only, stopped by Pause motion and by reduced
-  motion), Get started in Chrome, and the 375px fold at 667, 812 and 360 by 640. The served harness takes
+  motion), Get started in Chrome (copied and denied, focus on `#install`), the budget with the job panel open, and the 375px fold at 667, 812 and 360 by 640. The served harness takes
   `reducedMotion`.
 
 ## 1.6.1 · unreleased

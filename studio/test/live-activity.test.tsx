@@ -206,3 +206,18 @@ describe('LiveActivity', () => {
     expect(dialog.hidden).toBe(true);
   });
 });
+
+describe('LiveActivity emptyAction and onOpenChange (1.7.0)', () => {
+  it('renders emptyAction in the empty panel and reports open and close', () => {
+    const seen: boolean[] = [];
+    const { container, rerender } = render(<Bar activities={[job('a', 0.4)]} onOpenChange={(o) => seen.push(o)} emptyAction={<button type="button">Start</button>} />);
+    act(() => { (container.querySelector('.lact') as HTMLButtonElement).click(); });
+    expect(seen).toEqual([true]);
+    expect(container.querySelector('.panel-empty')).toBeNull();
+    rerender(<Bar activities={[]} onOpenChange={(o) => seen.push(o)} emptyAction={<button type="button">Start</button>} />);
+    const empty = container.querySelector('.lact-panel .panel-empty')!;
+    expect(empty.querySelector('button')?.textContent).toBe('Start');
+    fireEvent.keyDown(container.querySelector('.lact-wrap')!, { key: 'Escape' });
+    expect(seen).toEqual([true, false]);
+  });
+});
