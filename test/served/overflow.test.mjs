@@ -21,9 +21,7 @@ export const PROBED = ['/components', '/gallery', ...routes.filter((r) => r.path
 const WIDTH = 375;
 /* Example files that are wider than a 375px phone on their own, and why they are not fixed here.
    An entry that stops overflowing fails, so the list cannot go stale. */
-export const FRAME_OVERFLOW_ALLOWED = {
-  '/examples/landing.html': 'the example file itself is 433px wide at 375px standalone (its top-bar buttons); a fix belongs in site/examples/landing.html, out of this port',
-};
+export const FRAME_OVERFLOW_ALLOWED = {};
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.woff2': 'font/woff2' };
 

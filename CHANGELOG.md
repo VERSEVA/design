@@ -14,12 +14,18 @@
 - **A studio 404 page.** Unknown paths return 404 with the studio shell and a way back to Overview (noindex).
 - **The gallery lives in the studio.** `/gallery` is a native page, and each example opens at `/gallery/<slug>`
   (the example in a frame that fits its document and follows the studio theme and brand) with its source at
-  `/gallery/<slug>/code` (inlined at build time, pre-rendered, with Copy). Links inside an example route through
+  `/gallery/<slug>/code` (pre-rendered, with Copy). Links inside an example route through
   the studio. `/examples/*.html` still serve as files.
 - **Components links to Widgets** from its header.
 
 ### Fixed
 
+- **Gallery sources load per page, not in the main bundle.** Each `/gallery/<slug>/code` route loads only its own
+  example's source as a separate chunk; the pre-rendered page still holds the full text without JS and hydrates with
+  it in place. The main entry chunk drops from 176.3 kB to 146.8 kB gzip, held under a 150 kB budget by
+  `test/served/bundle.test.mjs`, which also fails if any example source returns to it.
+- **The landing example holds at phone width.** Below 600px its nav wraps the section links to their own row, so
+  `examples/landing.html` is 375px wide at 375px (was 433px). Unchanged at 1280px.
 - **Components no longer scrolls sideways on phones.** The `#table` specimen sits in its `.tscroll` scroller and the
   `#table-pin` specimen lets its `.pin.box` scroll, at 375px.
 
