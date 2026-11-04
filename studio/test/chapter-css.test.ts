@@ -174,4 +174,29 @@ describe('per-chapter CSS', () => {
     const bad = rules(fs.readFileSync(path.join(dir, f), 'utf8')).flatMap((r) => r.selectors).filter((s) => !s.startsWith(`[data-chapter="${slug}"] `));
     expect(bad).toEqual([]);
   });
+
+  /* The legacy page's own <style>, rule for rule and in order, with the scope removed.
+     @keyframes are compared too: rules() skips them, keyframes() reads them. */
+  const legacyStyle = (slug: string) => [...read(`site/${slug}.html`).matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
+  const flat = (css: string, scope = '') => [
+    ...rules(css).map((r) => `${r.media}|${r.selectors.map((s) => (scope && s.startsWith(scope) ? s.slice(scope.length) : s)).join(', ')} { ${r.decls.join('; ')} }`),
+    ...keyframes(css),
+  ];
+  it.each(files.length ? files : ['(none yet)'])('%s declares exactly what its legacy page\'s <style> declares', (f) => {
+    if (f === '(none yet)') return;
+    const slug = f.replace(/\.css$/, '');
+    const got = flat(fs.readFileSync(path.join(dir, f), 'utf8'), `[data-chapter="${slug}"] `);
+    expect(got.join('\n')).toBe(flat(legacyStyle(slug)).join('\n'));
+  });
 });
+
+export function keyframes(css: string): string[] {
+  const src = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const out: string[] = [];
+  for (const m of src.matchAll(/@keyframes\s+([\w-]+)\s*\{/g)) {
+    let depth = 1, j = m.index! + m[0].length;
+    while (depth && j < src.length) { if (src[j] === '{') depth++; else if (src[j] === '}') depth--; j++; }
+    out.push(`@keyframes ${m[1]} ${src.slice(m.index! + m[0].length, j - 1).replace(/\s+/g, ' ').replace(/\s*([{};:,])\s*/g, '$1').trim()}`);
+  }
+  return out;
+}
