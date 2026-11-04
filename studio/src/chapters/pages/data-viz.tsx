@@ -4,6 +4,8 @@
 // The docnav scrollspy is left out with the docnav (the studio sidebar spies).
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
 import './data-viz.css';
+/* Built by studio/scripts/chapter-code.mjs from the frozen page: the exact code samples its script showed. */
+import CODE from './data-viz.code.json';
 
 /* sha256 of site/data-viz.html; the parity test fails if the frozen page changes. */
 export const FROZEN = '66c03ff9190c14707ef38c5e0a20600d51cf28478d0b96c0fce63d8c9ae860ee';
@@ -15,17 +17,6 @@ const lpts = (vals: number[], W: number, H: number, pad: number, top: number): P
 ]);
 const lp = (p: Pt[]) => p.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
 const ap = (p: Pt[], H: number, pad: number) => `M${p[0][0].toFixed(1)} ${H - pad} ${lp(p).slice(1)} L${p[p.length - 1][0].toFixed(1)} ${H - pad} Z`;
-const dedent = (html: string) => {
-  const lines = html.replace(/^\n+|\s+$/g, '').split('\n');
-  const indents = lines.filter((l) => l.trim()).map((l) => l.match(/^\s*/)![0].length);
-  const min = Math.min(...indents);
-  return lines.map((l) => l.slice(min)).join('\n');
-};
-
-/* React writes style attributes through the CSSOM ("width: 45%;"); the legacy
-   page showed its source text ("width:45%"). The code samples keep the legacy form. */
-const legacyStyles = (html: string) =>
-  html.replace(/ style="([^"]*)"/g, (_, v: string) => ` style="${v.split(';').map((d) => d.trim().replace(/\s*:\s*/, ':')).filter(Boolean).join(';')}"`);
 
 export const script: ChapterScript = (root, signal, onCleanup) => {
   const on = <K extends keyof HTMLElementEventMap>(el: Element, type: K, fn: (e: HTMLElementEventMap[K]) => void) =>
@@ -133,10 +124,13 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
     added.push(bar);
   });
 
+  /* Each sample is the text the legacy page built from its specimen (see data-viz.code.json). */
+  let n = 0;
   root.querySelectorAll('.comp').forEach((comp) => {
-    const spec = comp.querySelector('.specimen');
     const code = comp.querySelector('.codewrap code');
-    if (spec && code && !code.textContent!.trim()) code.textContent = dedent(legacyStyles(spec.innerHTML));
+    if (!code || !comp.querySelector('.specimen')) return;
+    const text = CODE[n++];
+    if (!code.textContent!.trim()) code.textContent = text;
   });
   root.querySelectorAll<HTMLButtonElement>('.copybtn').forEach((btn) => {
     let t: ReturnType<typeof setTimeout> | undefined;
