@@ -807,22 +807,23 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .wtile:not([data-focus]) [stop-color="var(--data-3)"]{stop-color:var(--text-1)}
 
 /* Smart stack: one slot, several widgets; scroll, swipe, dots or a timer with a visible pause */
-.wstack{position:relative;flex:1;min-height:0;display:flex}
+.wstack{position:relative;flex:1;min-height:0;display:flex;touch-action:pan-y}
 .wstack-pages{position:relative;flex:1;min-width:0}
 .wstack-page{position:absolute;inset:0;display:flex;flex-direction:column;gap:var(--s-2);padding:var(--s-4) 0 var(--s-4) var(--s-4);transition:opacity var(--dur-3) var(--ease-standard),transform var(--dur-3) var(--ease-emph)}
-.wstack-page[data-pos="prev"]{opacity:0;transform:translateY(-18px);pointer-events:none}
-.wstack-page[data-pos="next"]{opacity:0;transform:translateY(18px);pointer-events:none}
+.wstack-page[data-pos="prev"]{opacity:0;transform:translateX(-18px);pointer-events:none}
+.wstack-page[data-pos="next"]{opacity:0;transform:translateX(18px);pointer-events:none}
 .wstack-nav{flex:none;width:44px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.wstack-dot,.wstack-pause{position:relative;width:44px;height:44px;flex:none;display:grid;place-items:center;padding:0;border:0;background:none;color:var(--text-2);cursor:pointer}
+.wstack-dot,.wstack-pause,.wstack-step{position:relative;width:44px;height:44px;flex:none;display:grid;place-items:center;padding:0;border:0;background:none;color:var(--text-2);cursor:pointer}
 .wstack-dot::before{content:"";width:6px;height:6px;border-radius:3px;background:var(--text-2);transition:transform var(--dur-2) var(--ease-spring),background var(--dur-1) var(--ease-standard)}
 .wstack-dot[aria-current="true"]::before{background:var(--text-1);transform:scaleY(2.67)}
 .wstack-dot:hover::before{background:var(--text-1)}
 .wstack-pause svg{width:14px;height:14px}
-.wstack-pause:hover{color:var(--text-1)}
-.wstack-dot:focus-visible,.wstack-pause:focus-visible{outline:2px solid var(--focus);outline-offset:-6px;border-radius:var(--r-sm)}
+.wstack-step svg{width:16px;height:16px}
+.wstack-pause:hover,.wstack-step:hover{color:var(--text-1)}
+.wstack-dot:focus-visible,.wstack-pause:focus-visible,.wstack-step:focus-visible{outline:2px solid var(--focus);outline-offset:-6px;border-radius:var(--r-sm)}
 .wstack-dot:active::before{transform:scale(.8)}
-.wstack-pause:active{transform:scale(.94)}
-.wstack-dot[aria-disabled="true"],.wstack-pause[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.wstack-pause:active,.wstack-step:active{transform:scale(.94)}
+.wstack-dot[aria-disabled="true"],.wstack-pause[aria-disabled="true"],.wstack-step[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 
 /* Gallery drawer content (inside .drawer > .drawer-bd: an opaque surface) */
 .wgal{list-style:none;margin:0;padding:var(--s-3) 0;display:grid;gap:var(--s-3)}
@@ -841,10 +842,19 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 @media (max-width:1099.98px){.wgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 2}}
 @media (max-width:559.98px){.wgrid{grid-template-columns:minmax(0,1fr);gap:var(--s-3)}.wtile[data-size]{grid-column:span 1;grid-row:span 1}.wtile-body{padding:var(--s-3)}}
+/* A forced column count (the columns prop) wins over the viewport breakpoints */
+.wgrid[data-cols="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+.wgrid[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.wgrid[data-cols="1"]{grid-template-columns:minmax(0,1fr)}
+.wgrid[data-cols="4"] .wtile[data-size="s"],.wgrid[data-cols="2"] .wtile[data-size="s"]{grid-column:span 1;grid-row:span 1}
+.wgrid[data-cols="4"] .wtile[data-size="m"],.wgrid[data-cols="2"] .wtile[data-size="m"]{grid-column:span 2;grid-row:span 1}
+.wgrid[data-cols="4"] .wtile[data-size="l"],.wgrid[data-cols="2"] .wtile[data-size="l"],.wgrid[data-cols="2"] .wtile[data-size="xl"]{grid-column:span 2;grid-row:span 2}
+.wgrid[data-cols="4"] .wtile[data-size="xl"]{grid-column:span 4;grid-row:span 2}
+.wgrid[data-cols="1"] .wtile[data-size]{grid-column:span 1;grid-row:span 1}
 @media (prefers-reduced-motion:reduce){
   .wtile,.wgrid-add,.wtile-sizes button,.wtile-move button,.wgal-sizes button,.wtile-x::before,.wtile-handle::before,.wstack-dot::before,.wstack-page{transition:none}
   .wgrid[data-editing] .wtile,.wgrid[data-editing] .wtile:nth-child(2n){animation:none}
-  .wgrid[data-editing] .wtile:active,.wgrid-add:active,.wstack-pause:active{transform:none}
+  .wgrid[data-editing] .wtile:active,.wgrid-add:active,.wstack-pause:active,.wstack-step:active{transform:none}
 }
 
 /* ---- Spacing utilities (the seam law's handrail). Rhythm stays at class

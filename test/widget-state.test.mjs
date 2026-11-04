@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   LAYOUT_KEY, SIZE_ORDER, SIZE_LABEL,
   columnsForWidth, largestSizeFor, sizeFits, fitSize, sizeOptions, spanOf, placeAll,
-  move, moveBy, moveDirection, addWidget, removeWidget, restoreWidget, resizeWidget, nextFocusId,
+  move, moveBy, rowPartner, swap, moveDirection, addWidget, removeWidget, restoreWidget, resizeWidget, nextFocusId,
   serializeLayout, parseLayout, readLayout, writeLayout,
   movedMessage, resizedMessage, removedMessage, addedMessage,
 } from '../react/widget-state.ts';
@@ -107,6 +107,12 @@ describe('reorder', () => {
     assert.deepEqual(ids(move(eight(), 0, 3)), ['b', 'c', 'd', 'a', 'e', 'f', 'g', 'h']);
     assert.deepEqual(ids(move(eight(), 5, 1)), ['a', 'f', 'b', 'c', 'd', 'e', 'g', 'h']);
   });
+  test('swap trades two slots; out of range returns the same layout', () => {
+    assert.deepEqual(ids(swap(eight(), 0, 2)), ['c', 'b', 'a', 'd', 'e', 'f', 'g', 'h']);
+    const l = eight();
+    assert.equal(swap(l, 1, 1), l);
+    assert.equal(swap(l, 1, 9), l);
+  });
   test('move out of range or onto itself returns the same layout', () => {
     const l = eight();
     assert.equal(move(l, 2, 2), l);
@@ -120,9 +126,29 @@ describe('reorder', () => {
     assert.equal(moveBy(l, 'a', 'left', 4, SPECS), l);
     assert.equal(moveBy(l, 'h', 'right', 4, SPECS), l);
   });
-  test('Up and Down move one row on a 2D grid', () => {
-    assert.deepEqual(ids(moveBy(eight(), 'f', 'up', 4, SPECS)), ['a', 'f', 'b', 'c', 'd', 'e', 'g', 'h']);
-    assert.deepEqual(ids(moveBy(eight(), 'b', 'down', 4, SPECS)), ['a', 'c', 'd', 'e', 'f', 'b', 'g', 'h']);
+  test('Up and Down swap with the tile one row above or below', () => {
+    assert.deepEqual(ids(moveBy(eight(), 'f', 'up', 4, SPECS)), ['a', 'f', 'c', 'd', 'e', 'b', 'g', 'h']);
+    assert.deepEqual(ids(moveBy(eight(), 'b', 'down', 4, SPECS)), ['a', 'f', 'c', 'd', 'e', 'b', 'g', 'h']);
+  });
+  test('Alt+Down then Alt+Up (and Up then Down) round-trip', () => {
+    const layouts = [
+      [4, eight()],
+      [2, [item('a', 'revenue', 'l'), item('b'), item('c')]],
+      [4, [item('a', 'revenue', 'm'), item('b'), item('c'), item('d', 'revenue', 'l'), item('e'), item('f', 'revenue', 'm')]],
+      [1, [item('a'), item('b'), item('c')]],
+    ];
+    for (const [cols, l] of layouts) {
+      for (const it of l) {
+        for (const [there, back] of [['down', 'up'], ['up', 'down']]) {
+          const partner = rowPartner(l, it.id, there, cols, SPECS);
+          const moved = moveBy(l, it.id, there, cols, SPECS);
+          if (moved === l) { assert.equal(partner, null); continue; }
+          const prev = { id: it.id, dir: there, partner };
+          assert.deepEqual(ids(moveBy(moved, it.id, back, cols, SPECS, prev)), ids(l), `${cols} cols, ${it.id} ${there} then ${back}`);
+          if (l.every((x) => x.size === 's')) assert.deepEqual(ids(moveBy(moved, it.id, back, cols, SPECS)), ids(l), `equal sizes round-trip without memory: ${it.id}`);
+        }
+      }
+    }
   });
   test('Up on the first row and Down on the last row do nothing', () => {
     const l = eight();
@@ -132,7 +158,7 @@ describe('reorder', () => {
   test('Up and Down step over a tall tile by its rows, at 2 columns', () => {
     // 2 cols: a(L) rows 0-1, b c on row 2
     const l = [item('a', 'revenue', 'l'), item('b'), item('c')];
-    assert.deepEqual(ids(moveBy(l, 'c', 'up', 2, SPECS)), ['c', 'a', 'b']);
+    assert.deepEqual(ids(moveBy(l, 'c', 'up', 2, SPECS)), ['c', 'b', 'a']);
     assert.deepEqual(ids(moveBy(l, 'a', 'down', 2, SPECS)), ['b', 'a', 'c']);
   });
   test('at 1 column Up and Down are one slot', () => {
@@ -167,6 +193,16 @@ describe('add, remove, undo, resize', () => {
     assert.equal(next[2].size, 'm');
     assert.ok(!['w1', 'w2'].includes(next[2].id));
     assert.deepEqual(ids(addWidget(l, 'tasks', 'm', 'x9')), ['w1', 'w2', 'x9']);
+  });
+  test('add never reuses a removed id, so Undo after an add still restores', () => {
+    const start = [item('w1'), item('w2')];
+    const { layout, removed } = removeWidget(start, 'w2');
+    const added = addWidget(layout, 'tasks', 'm');
+    assert.notEqual(added[1].id, 'w2');
+    const restored = restoreWidget(added, removed);
+    assert.deepEqual(ids(restored), ['w1', 'w2', added[1].id]);
+    const again = addWidget(addWidget([], 'tasks', 'm'), 'tasks', 'm');
+    assert.equal(new Set(ids(again)).size, 2);
   });
   test('add keeps a given id unique', () => {
     const next = addWidget([item('x9')], 'tasks', 'm', 'x9');

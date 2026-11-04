@@ -590,8 +590,9 @@ example `Bars` with `level`) cannot be recoloured, so it spends the accent where
 `studio/test/widget-grid.test.tsx` counts accent-bearing elements across a rendered grid (at most
 one tile, the focus one).
 
-**Edit mode** (an Edit button the product owns, a 550ms long-press on a tile, or the command bar;
-Esc leaves unless a dialog is open)
+**Edit mode** (an Edit button the product owns, a 550ms long-press on a tile, or the command bar).
+Esc leaves when focus is in the grid, on the Edit toggle (`toggleRef`) or nowhere, never from another
+part of the page or an open dialog, and focus moves to the toggle.
 
 - Jiggle is rotation only (`wtile-jiggle`, `--dur-3`), off under reduced motion. Content goes to
   .4 and is `inert`; tiles become tab stops with `aria-keyshortcuts`.
@@ -601,17 +602,22 @@ Esc leaves unless a dialog is open)
   `aria-disabled` and do nothing.
 - Reorder three ways: HTML drag on the tile (pointer devices); the handle (`pointer: coarse` only,
   `touch-action: none`, pointer capture) plus Move up and Move down (one slot); Alt+Arrow on a
-  focused tile, Left and Right one slot, Up and Down to the widget in the row above or below.
+  focused tile, Left and Right one slot, Up and Down swap with the tile one row above or below;
+  the opposite key swaps back with the same partner, so Down then Up round-trips at any size.
+  The Move buttons keep focus after the move.
 - Every hit area is 44px: the 28px badges sit in 44px buttons, stack dots are 44px buttons.
 - Announcements: "Revenue moved to position 3 of 8", "Revenue resized to large", "Revenue
   removed", "Revenue restored", "Revenue added".
 
-**Smart stack.** Wheel (non-passive, 450ms step), a 30px vertical swipe, the dots, or a timer
+**Smart stack.** A horizontal wheel (at least 24px and twice the vertical delta, 450ms step; only
+then is the default prevented), a 40px horizontal swipe (`touch-action: pan-y`, so vertical
+gestures scroll the page), the dots, or a timer
 (6s) that pauses on hover, on focus inside, through the visible pause button, while the page is
 hidden, and from outside (`paused`, e.g. in edit mode); no timer and no pause button under reduced
 motion (WCAG 2.2.2). `aria-roledescription` carousel and slide; hidden pages are `inert`; the
 pages announce politely only after a person moves them. The tile body drops its padding around a
-stack. A one-row tile holds three pages (pause plus three 44px dots).
+stack. Up to three pages show dots; above three, Previous and Next replace them, so pause plus
+the nav always fits a one-row tile.
 
 **Material and contrast.** The tile restates the glass material at `--r-lg` (like `.cside`, it
 does not compose `.glass`). No `--text-3` anywhere in the section: on glass the floor is
@@ -632,7 +638,9 @@ does not compose `.glass`). No `--text-3` anywhere in the section: on glass the 
 **React contract.** `WidgetDefinition { kind, name, icon?, sizes, render(size, state), skeleton? }`
 where `state` is `{ size, focus, editing, columns }`; layout `{ id, kind, size }[]`, controlled
 (`layout` + `onLayoutChange`) or uncontrolled (`defaultLayout`, stored under
-`verseva.widgets.layout` after mount; `storageKey={null}` turns it off). `status` maps an id to
+`verseva.widgets.layout` after mount; `storageKey={null}` turns it off; a stored layout with no valid
+item falls back to `defaultLayout`). `columns` forces a column count and writes `data-cols`, which
+the CSS follows over the breakpoints. Ids from `addWidget` are never reused. `status` maps an id to
 `{ loading?, error?, disabled? }`; `onRetry(id)`. `parseLayout` drops items with an unknown kind,
 an unsupported size or a duplicate id, and returns null for anything that is not a JSON array.
 

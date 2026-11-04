@@ -86,6 +86,20 @@ test('tile sizes span S 1x1, M 2x1, L 2x2, XL 4x2, and clamp on narrow grids', (
   assert.match(bodyOf('.wtile[data-size]', '@media(max-width:559.98px)'), /grid-column:span 1/);
 });
 
+test('a forced column count (data-cols) drives the grid and the spans', () => {
+  assert.match(bodyOf('.wgrid[data-cols="4"]'), /repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(bodyOf('.wgrid[data-cols="2"]'), /repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(bodyOf('.wgrid[data-cols="1"]'), /grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(bodyOf('.wgrid[data-cols="4"] .wtile[data-size="xl"]'), /grid-column:span 4/);
+  assert.match(bodyOf('.wgrid[data-cols="2"] .wtile[data-size="xl"]'), /grid-column:span 2/);
+  assert.match(bodyOf('.wgrid[data-cols="1"] .wtile[data-size]'), /grid-column:span 1;grid-row:span 1/);
+});
+
+test('smart stack leaves vertical gestures to the page and slides sideways', () => {
+  assert.match(bodyOf('.wstack'), /touch-action:pan-y/);
+  assert.match(bodyOf('.wstack-page[data-pos="next"]'), /translateX/);
+});
+
 test('tile is glass at --r-lg', () => {
   const t = bodyOf('.wtile');
   assert.match(t, /border-radius:var\(--r-lg\)/);
@@ -103,7 +117,7 @@ test('tile ships every contract state', () => {
   assert.match(bodyOf('.wtile[aria-disabled="true"]'), /opacity:\.45/);
 });
 
-const CONTROLS = ['.wtile-x', '.wtile-sizes button', '.wtile-move button', '.wtile-handle', '.wgrid-add', '.wstack-dot', '.wstack-pause', '.wgal-sizes button'];
+const CONTROLS = ['.wtile-x', '.wtile-sizes button', '.wtile-move button', '.wtile-handle', '.wgrid-add', '.wstack-dot', '.wstack-pause', '.wstack-step', '.wgal-sizes button'];
 
 test('every control has hover, focus-visible, press and disabled', () => {
   const miss = [];

@@ -49,7 +49,7 @@
   `.wtile-meta`, `.wtile-num`, `.wtile-sub`, `.wtile-foot`, `.wtile-rows`, `.wtile-row`, `.wtile-val`, `.wtile-skel`,
   `.wtile-skel-num`, `.wtile-skel-plot`, `.wtile-err`, `.wtile-errline`, `.wtile-x`, `.wtile-edit`, `.wtile-handle`,
   `.wtile-sizes`, `.wtile-move`, `.wstack`, `.wstack-pages`, `.wstack-page`, `.wstack-nav`, `.wstack-dot`,
-  `.wstack-pause`, `.wgal`, `.wgal-item`, `.wgal-icon`, `.wgal-name`, `.wgal-sizes`. Keyframes: `wtile-jiggle`.
+  `.wstack-pause`, `.wstack-step`, `.wgal`, `.wgal-item`, `.wgal-icon`, `.wgal-name`, `.wgal-sizes`. Keyframes: `wtile-jiggle`.
 
 ## 1.5.0 · 2026-11-01
 

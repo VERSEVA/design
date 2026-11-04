@@ -10,6 +10,9 @@ export interface SmartStackLabels {
   show: (label: string, index: number, total: number) => string;
   /** Slide name. */
   slide: (label: string, index: number, total: number) => string;
+  /** Step buttons, used instead of dots above three pages; index is the page they go to. */
+  prev: (index: number, total: number) => string;
+  next: (index: number, total: number) => string;
 }
 
 export const SMART_STACK_LABELS: SmartStackLabels = {
@@ -17,7 +20,11 @@ export const SMART_STACK_LABELS: SmartStackLabels = {
   resume: 'Resume rotation',
   show: (label) => `Show ${label}`,
   slide: (label, i, n) => `${i + 1} of ${n}: ${label}`,
+  prev: (i, n) => `Previous: ${i + 1} of ${n}`,
+  next: (i, n) => `Next: ${i + 1} of ${n}`,
 };
+/** A one-row tile fits the pause button and three 44px dots; above that the nav steps instead. */
+export const MAX_DOTS = 3;
 
 export interface SmartStackProps {
   pages: readonly StackPage[];
@@ -33,6 +40,8 @@ export interface SmartStackProps {
 }
 
 const PAUSE = <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>;
+const PREV = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>;
+const NEXT = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>;
 const PLAY = <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" /></svg>;
 
 function useReducedMotion(): boolean {
@@ -49,7 +58,8 @@ function useReducedMotion(): boolean {
 }
 
 /**
- * Several widgets in one slot. Moves by wheel, vertical swipe, the dots, or a timer that pauses on
+ * Several widgets in one slot. Moves by a horizontal wheel or swipe (vertical ones scroll the page),
+ * the dots (Previous and Next above three pages, so pause always shows), or a timer that pauses on
  * hover, on focus inside, through the visible pause button, while the page is hidden, and is off
  * under reduced motion (WCAG 2.2.2). Hidden pages are inert.
  */
@@ -79,25 +89,25 @@ export function SmartStack({ pages, label, interval = 6000, paused = false, defa
     return () => clearInterval(t);
   }, [running, interval, n]);
 
-  // Wheel needs a non-passive listener to keep the page from scrolling under the stack.
+  // Only a deliberate horizontal wheel steps the stack (and only then is the default prevented); vertical wheel scrolls the page.
   React.useEffect(() => {
     const el = rootRef.current;
     if (!el || n < 2 || paused) return;
     let last = 0;
     const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) < 4) return;
+      if (Math.abs(e.deltaX) < 24 || Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 2) return;
       e.preventDefault();
       const now = Date.now();
       if (now - last < 450) return;
       last = now;
-      setIndex((i) => (((i + (e.deltaY > 0 ? 1 : -1)) % n) + n) % n);
+      setIndex((i) => (((i + (e.deltaX > 0 ? 1 : -1)) % n) + n) % n);
       setUserMoved(true);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
   }, [n, paused]);
 
-  const touchY = React.useRef<number | null>(null);
+  const touch = React.useRef<{ x: number; y: number } | null>(null);
 
   return (
     <div
@@ -110,13 +120,17 @@ export function SmartStack({ pages, label, interval = 6000, paused = false, defa
       onMouseLeave={() => setHover(false)}
       onFocus={() => setFocusIn(true)}
       onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusIn(false); }}
-      onTouchStart={(e) => { touchY.current = e.touches[0]?.clientY ?? null; }}
+      onTouchStart={(e) => { const t = e.touches[0]; touch.current = t ? { x: t.clientX, y: t.clientY } : null; }}
       onTouchEnd={(e) => {
-        const y0 = touchY.current;
-        touchY.current = null;
-        const y1 = e.changedTouches[0]?.clientY;
-        if (paused || y0 === null || y1 === undefined || Math.abs(y1 - y0) < 30) return;
-        go(cur + (y1 < y0 ? 1 : -1));
+        const start = touch.current;
+        touch.current = null;
+        const t = e.changedTouches[0];
+        if (paused || !start || !t) return;
+        const dx = t.clientX - start.x;
+        const dy = t.clientY - start.y;
+        // A horizontal swipe of 40px or more; anything mostly vertical is the page scrolling.
+        if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy) * 2) return;
+        go(cur + (dx < 0 ? 1 : -1));
       }}
     >
       <div className="wstack-pages" aria-live={running || !userMoved ? 'off' : 'polite'}>
@@ -142,7 +156,12 @@ export function SmartStack({ pages, label, interval = 6000, paused = false, defa
               {userPaused ? PLAY : PAUSE}
             </button>
           )}
-          {pages.map((p, i) => (
+          {n > MAX_DOTS ? (
+            <>
+              <button type="button" className="wstack-step" aria-label={L.prev((cur - 1 + n) % n, n)} onClick={() => go(cur - 1)}>{PREV}</button>
+              <button type="button" className="wstack-step" aria-label={L.next((cur + 1) % n, n)} onClick={() => go(cur + 1)}>{NEXT}</button>
+            </>
+          ) : pages.map((p, i) => (
             <button key={i} type="button" className="wstack-dot" aria-label={L.show(p.label, i, n)} aria-current={i === cur ? true : undefined} onClick={() => go(i)} />
           ))}
         </div>

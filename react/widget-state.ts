@@ -99,24 +99,48 @@ export function move<T>(layout: readonly T[], from: number, to: number): T[] {
   return next;
 }
 
-/** Alt+Arrow: Left and Right move one slot, Up and Down move one row (to the widget above or below). */
-export function moveBy(layout: readonly LayoutItem[], id: string, dir: MoveDir, cols: Columns, specs: readonly WidgetSpec[]): LayoutItem[] {
-  const from = layout.findIndex((x) => x.id === id);
-  if (from < 0) return layout as LayoutItem[];
-  if (dir === 'left') return from > 0 ? move(layout, from, from - 1) : (layout as LayoutItem[]);
-  if (dir === 'right') return from < layout.length - 1 ? move(layout, from, from + 1) : (layout as LayoutItem[]);
+/** The items at i and j trade places. Out of range or i === j returns the same array. */
+export function swap<T>(layout: readonly T[], i: number, j: number): T[] {
+  const n = layout.length;
+  if (i === j || i < 0 || j < 0 || i >= n || j >= n) return layout as T[];
+  const next = layout.slice();
+  [next[i], next[j]] = [next[j], next[i]];
+  return next;
+}
+
+/** The last row move, so the opposite key swaps back with the same partner even when tile sizes differ. */
+export interface RowMove { id: string; dir: 'up' | 'down'; partner: string }
+
+/** The tile one row above or below this one (nearest by column), or null. */
+export function rowPartner(layout: readonly LayoutItem[], id: string, dir: 'up' | 'down', cols: Columns, specs: readonly WidgetSpec[]): string | null {
   const places = placeAll(layout, cols, specs);
-  const me = places[from];
+  const me = places.find((p) => p.id === id);
+  if (!me) return null;
   const lastRow = Math.max(...places.map((p) => p.row + p.rows - 1));
   const step = dir === 'up' ? -1 : 1;
   for (let r = dir === 'up' ? me.row - 1 : me.row + me.rows; r >= 0 && r <= lastRow; r += step) {
     const inRow = places.filter((p) => p.id !== id && p.row <= r && r < p.row + p.rows);
     if (!inRow.length) continue;
     const dist = (p: Placement) => (me.col >= p.col && me.col < p.col + p.cols ? 0 : Math.min(Math.abs(p.col - me.col), Math.abs(p.col + p.cols - 1 - me.col)));
-    const target = inRow.reduce((a, b) => (dist(b) < dist(a) ? b : a));
-    return move(layout, from, places.indexOf(target));
+    return inRow.reduce((a, b) => (dist(b) < dist(a) ? b : a)).id;
   }
-  return layout as LayoutItem[];
+  return null;
+}
+
+/**
+ * Alt+Arrow: Left and Right move one slot; Up and Down swap with the tile one row above or below.
+ * Pass the previous row move: the opposite key then swaps back with the same partner, so Down then
+ * Up always round-trips (with equal sizes it does without it).
+ */
+export function moveBy(layout: readonly LayoutItem[], id: string, dir: MoveDir, cols: Columns, specs: readonly WidgetSpec[], prev?: RowMove | null): LayoutItem[] {
+  const from = layout.findIndex((x) => x.id === id);
+  if (from < 0) return layout as LayoutItem[];
+  if (dir === 'left') return from > 0 ? move(layout, from, from - 1) : (layout as LayoutItem[]);
+  if (dir === 'right') return from < layout.length - 1 ? move(layout, from, from + 1) : (layout as LayoutItem[]);
+  const undoing = prev && prev.id === id && prev.dir !== dir ? layout.findIndex((x) => x.id === prev.partner) : -1;
+  if (undoing >= 0) return swap(layout, from, undoing);
+  const partner = rowPartner(layout, id, dir, cols, specs);
+  return partner === null ? (layout as LayoutItem[]) : swap(layout, from, layout.findIndex((x) => x.id === partner));
 }
 
 /** Alt plus an arrow, no other modifier, not mid-composition. */
@@ -125,11 +149,12 @@ export function moveDirection(e: KeyLike): MoveDir | null {
   return ARROWS[e.key] ?? null;
 }
 
+/** A new id that is not in the layout and was never handed out before (time plus random), so a removed id is never reused and Undo stays exact. */
 function freshId(layout: readonly LayoutItem[]): string {
   const used = new Set(layout.map((x) => x.id));
-  let n = layout.length + 1;
-  while (used.has(`w${n}`)) n++;
-  return `w${n}`;
+  let id: string;
+  do id = `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`; while (used.has(id));
+  return id;
 }
 
 export function addWidget(layout: readonly LayoutItem[], kind: string, size: WidgetSize, id?: string): LayoutItem[] {

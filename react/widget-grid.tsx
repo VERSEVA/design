@@ -1,10 +1,10 @@
 import * as React from 'react';
 import {
   LAYOUT_KEY, SIZE_LABEL, BREAKPOINTS,
-  addWidget, addedMessage, fitSize, move, moveBy, moveDirection, movedMessage, nextFocusId,
+  addWidget, addedMessage, fitSize, move, moveBy, moveDirection, movedMessage, nextFocusId, rowPartner,
   readLayout, removeWidget, removedMessage, resizeWidget, resizedMessage, restoreWidget, safeStorage, sizeOptions, writeLayout,
 } from './widget-state';
-import type { Columns, LayoutItem, Removed, WidgetSize, WidgetSpec } from './widget-state';
+import type { Columns, LayoutItem, Removed, RowMove, WidgetSize, WidgetSpec } from './widget-state';
 import { WidgetGallery } from './widget-gallery';
 import type { WidgetGalleryLabels } from './widget-gallery';
 import { cx } from './cx';
@@ -77,8 +77,10 @@ export interface WidgetGridProps {
   focus?: string;
   status?: Readonly<Record<string, WidgetStatus>>;
   onRetry?: (id: string) => void;
-  /** Force a column count (specimens, tests). Default: from the viewport, 4 / 2 / 1. */
+  /** Force a column count (specimens, tests); written to data-cols so the CSS follows. Default: from the viewport, 4 / 2 / 1. */
   columns?: Columns;
+  /** The product's Edit toggle: Esc leaving edit mode moves focus there. */
+  toggleRef?: React.RefObject<HTMLElement | null>;
   /** Long-press delay that enters edit mode, ms. Default 550; 0 turns it off. */
   longPress?: number;
   labels?: Partial<WidgetGridLabels>;
@@ -150,7 +152,7 @@ function DefaultSkeleton({ size }: { size: WidgetSize }) {
 export function WidgetGrid({
   definitions, layout: controlled, defaultLayout, onLayoutChange, storageKey = LAYOUT_KEY,
   editing: editingProp, defaultEditing = false, onEditingChange, focus, status, onRetry,
-  columns: forcedColumns, longPress = 550, labels, className,
+  columns: forcedColumns, toggleRef, longPress = 550, labels, className,
 }: WidgetGridProps) {
   const L = { ...WIDGET_GRID_LABELS, ...labels };
   const cols = useWidgetColumns(forcedColumns);
@@ -165,7 +167,10 @@ export function WidgetGrid({
   const [dragId, setDragId] = React.useState<string | null>(null);
   const gridRef = React.useRef<HTMLDivElement>(null);
   const rects = React.useRef<Map<string, DOMRect> | null>(null);
+  /** Tile id to focus after the next render ('' means none left), and optionally a control inside it. */
   const pendingFocus = React.useRef<string | null>(null);
+  const pendingControl = React.useRef<string | null>(null);
+  const lastRow = React.useRef<RowMove | null>(null);
   const layoutRef = React.useRef(layout);
   layoutRef.current = layout;
   const defs = React.useMemo(() => new Map(definitions.map((d) => [d.kind, d])), [definitions]);
@@ -175,7 +180,7 @@ export function WidgetGrid({
   React.useEffect(() => {
     if (isControlled || storageKey === null) return;
     const stored = readLayout(safeStorage(), definitions, storageKey);
-    if (stored) setOwn(stored);
+    if (stored && stored.length) setOwn(stored);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -189,8 +194,9 @@ export function WidgetGrid({
     rects.current = new Map([...grid.querySelectorAll<HTMLElement>('.wtile[data-id]')].map((el) => [el.dataset.id as string, el.getBoundingClientRect()]));
   };
 
-  const commit = (next: LayoutItem[]) => {
+  const commit = (next: LayoutItem[], row: RowMove | null = null) => {
     if (next === layoutRef.current) return;
+    lastRow.current = row;
     snapshot();
     layoutRef.current = next;
     if (!isControlled) setOwn(next);
@@ -208,11 +214,13 @@ export function WidgetGrid({
     const before = rects.current;
     rects.current = null;
     const grid = gridRef.current;
-    if (grid && pendingFocus.current) {
+    if (grid && pendingFocus.current !== null) {
       const id = pendingFocus.current;
+      const control = pendingControl.current;
       pendingFocus.current = null;
+      pendingControl.current = null;
       const tile = [...grid.querySelectorAll<HTMLElement>('.wtile[data-id]')].find((el) => el.dataset.id === id) ?? null;
-      const target = tile && (tile.tabIndex >= 0 ? tile : tile.querySelector<HTMLElement>(INTERACTIVE));
+      const target = tile && ((control && tile.querySelector<HTMLElement>(control)) || (tile.tabIndex >= 0 ? tile : tile.querySelector<HTMLElement>(INTERACTIVE)));
       (target ?? grid.querySelector<HTMLElement>('.wgrid-add, .wgrid-empty .btn') ?? grid).focus();
     }
     if (!before || !grid) return;
@@ -233,7 +241,13 @@ export function WidgetGrid({
     if (!editing) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || e.defaultPrevented || inOpenModal()) return;
+      // Scoped: only from inside the grid, the Edit toggle, or nowhere (after a long-press with the mouse).
+      const at = document.activeElement;
+      const grid = gridRef.current;
+      const toggle = toggleRef?.current ?? null;
+      if (at && at !== document.body && !(grid && grid.contains(at)) && at !== toggle) return;
       setEditing(false);
+      (toggle ?? grid)?.focus();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -266,10 +280,12 @@ export function WidgetGrid({
     setUndoHeld(false);
   };
 
-  const reorder = (next: LayoutItem[], id: string, keepFocus: boolean) => {
+  /** control: a selector inside the tile to refocus (the Move buttons), else the tile itself. */
+  const reorder = (next: LayoutItem[], id: string, control: string | null, row: RowMove | null = null) => {
     if (next === layoutRef.current) return;
-    if (keepFocus) pendingFocus.current = id;
-    commit(next);
+    pendingFocus.current = id;
+    pendingControl.current = control;
+    commit(next, row);
     const i = next.findIndex((x) => x.id === id);
     announce(movedMessage(nameOf(next[i]), i, next.length));
   };
@@ -362,7 +378,12 @@ export function WidgetGrid({
           const dir = moveDirection(e);
           if (!dir) return;
           e.preventDefault();
-          reorder(moveBy(layout, it.id, dir, cols, definitions), it.id, true);
+          if (dir === 'up' || dir === 'down') {
+            const prev = lastRow.current;
+            const undoing = prev && prev.id === it.id && prev.dir !== dir;
+            const partner = undoing ? null : rowPartner(layout, it.id, dir, cols, definitions);
+            reorder(moveBy(layout, it.id, dir, cols, definitions, prev), it.id, null, partner ? { id: it.id, dir, partner } : null);
+          } else reorder(moveBy(layout, it.id, dir, cols, definitions), it.id, null);
         }}
         onPointerDown={(e) => {
           if (editing || !longPress || e.button > 0 || (e.target as Element).closest(INTERACTIVE)) return;
@@ -396,8 +417,8 @@ export function WidgetGrid({
             <span className="wtile-handle" aria-hidden="true" onPointerDown={(e) => onHandleDown(e, it.id)} onPointerMove={onHandleMove} onPointerUp={onHandleUp} onPointerCancel={onHandleUp}>{GRIP}</span>
             <div className="wtile-edit">
               <div className="wtile-move" role="group" aria-label={L.move}>
-                <button type="button" aria-label={L.moveUp(def.name)} aria-disabled={index === 0 ? true : undefined} onClick={() => { if (index > 0) reorder(move(layout, index, index - 1), it.id, false); }}>{UP}</button>
-                <button type="button" aria-label={L.moveDown(def.name)} aria-disabled={index === layout.length - 1 ? true : undefined} onClick={() => { if (index < layout.length - 1) reorder(move(layout, index, index + 1), it.id, false); }}>{DOWN}</button>
+                <button type="button" aria-label={L.moveUp(def.name)} aria-disabled={index === 0 ? true : undefined} onClick={() => { if (index > 0) reorder(move(layout, index, index - 1), it.id, '.wtile-move button[data-move="up"]'); }} data-move="up">{UP}</button>
+                <button type="button" aria-label={L.moveDown(def.name)} aria-disabled={index === layout.length - 1 ? true : undefined} onClick={() => { if (index < layout.length - 1) reorder(move(layout, index, index + 1), it.id, '.wtile-move button[data-move="down"]'); }} data-move="down">{DOWN}</button>
               </div>
               {opts.length > 1 && (
                 <div className="wtile-sizes" role="group" aria-label={L.size(def.name)}>
@@ -424,7 +445,7 @@ export function WidgetGrid({
 
   return (
     <>
-      <div ref={gridRef} className={cx('wgrid', className)} role="region" aria-label={L.region} data-editing={editing ? '' : undefined} tabIndex={-1}>
+      <div ref={gridRef} className={cx('wgrid', className)} role="region" aria-label={L.region} data-editing={editing ? '' : undefined} data-cols={forcedColumns} tabIndex={-1}>
         {layout.length === 0 && !editing ? (
           <div className="wgrid-empty">
             <b>{L.empty}</b>

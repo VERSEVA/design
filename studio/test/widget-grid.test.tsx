@@ -195,11 +195,86 @@ describe('WidgetGrid', () => {
     act(() => { vi.advanceTimersByTime(600); });
     expect(grid.hasAttribute('data-editing')).toBe(true);
     expect(onEditingChange).toHaveBeenLastCalledWith(true);
-    fireEvent.keyDown(document, { key: 'Escape' });
+    tiles(container)[0].focus();
+    fireEvent.keyDown(tiles(container)[0], { key: 'Escape' });
     expect(grid.hasAttribute('data-editing')).toBe(false);
     fireEvent.pointerDown(tiles(container)[2].querySelector('a')!, { button: 0 });
     act(() => { vi.advanceTimersByTime(600); });
     expect(grid.hasAttribute('data-editing')).toBe(false);
+  });
+
+  it('Esc is scoped: focus elsewhere on the page keeps edit mode; leaving moves focus to the Edit toggle', () => {
+    function Page() {
+      const [editing, setEditing] = React.useState(true);
+      const toggle = React.useRef<HTMLButtonElement>(null);
+      return (
+        <>
+          <button ref={toggle} type="button" onClick={() => setEditing(!editing)}>Edit</button>
+          <input aria-label="Elsewhere" />
+          <WidgetGrid definitions={DEFS} defaultLayout={L3} columns={4} editing={editing} onEditingChange={setEditing} toggleRef={toggle} storageKey={null} />
+        </>
+      );
+    }
+    const { container, getByRole } = render(<Page />);
+    const grid = container.querySelector('.wgrid')!;
+    const other = getByRole('textbox', { name: 'Elsewhere' });
+    other.focus();
+    fireEvent.keyDown(other, { key: 'Escape' });
+    expect(grid.hasAttribute('data-editing')).toBe(true);
+    tiles(container)[1].focus();
+    fireEvent.keyDown(tiles(container)[1], { key: 'Escape' });
+    expect(grid.hasAttribute('data-editing')).toBe(false);
+    expect(document.activeElement).toBe(getByRole('button', { name: 'Edit' }));
+  });
+
+  it('Move down keeps focus on the Move down button', () => {
+    const { getByRole } = render(<WidgetGrid definitions={DEFS} defaultLayout={L3} columns={4} editing storageKey={null} />);
+    const down = getByRole('button', { name: 'Move Revenue down' });
+    down.focus();
+    fireEvent.click(down);
+    expect(document.activeElement).toBe(getByRole('button', { name: 'Move Revenue down' }));
+    const up = getByRole('button', { name: 'Move Revenue up' });
+    up.focus();
+    fireEvent.click(up);
+    expect(document.activeElement).toBe(getByRole('button', { name: 'Move Revenue up' }));
+  });
+
+  it('Alt+Down then Alt+Up on mixed sizes puts the layout back', () => {
+    const mixed: LayoutItem[] = [{ id: 'a', kind: 'revenue', size: 'm' }, { id: 'b', kind: 'runway', size: 's' }, { id: 'c', kind: 'tasks', size: 's' }, { id: 'd', kind: 'revenue', size: 'l' }, { id: 'e', kind: 'runway', size: 's' }];
+    const { container } = render(<WidgetGrid definitions={DEFS} defaultLayout={mixed} columns={4} editing storageKey={null} />);
+    const order = () => tiles(container).map((t) => t.dataset.id);
+    const a = () => tiles(container).find((t) => t.dataset.id === 'a')!;
+    a().focus();
+    fireEvent.keyDown(a(), { key: 'ArrowDown', altKey: true });
+    expect(order()).not.toEqual(['a', 'b', 'c', 'd', 'e']);
+    fireEvent.keyDown(a(), { key: 'ArrowUp', altKey: true });
+    expect(order()).toEqual(['a', 'b', 'c', 'd', 'e']);
+  });
+
+  it('Undo after an add restores the removed widget (ids are never reused)', () => {
+    const { container, getByRole } = render(<WidgetGrid definitions={DEFS} defaultLayout={L3} columns={4} editing storageKey={null} />);
+    fireEvent.click(getByRole('button', { name: 'Remove Tasks' }));
+    fireEvent.click(container.querySelector('.wgrid-add')!);
+    fireEvent.click(getByRole('button', { name: 'Add Runway, small' }));
+    fireEvent.click(getByRole('button', { name: 'Undo' }));
+    expect(tiles(container).map((t) => t.getAttribute('aria-label'))).toEqual(['Revenue, small', 'Runway, small', 'Tasks, small', 'Runway, small']);
+    expect(new Set(tiles(container).map((t) => t.dataset.id)).size).toBe(4);
+  });
+
+  it('a stored layout with nothing valid falls back to defaultLayout', () => {
+    localStorage.setItem('verseva.widgets.layout', JSON.stringify([{ id: 'q', kind: 'gone', size: 's' }]));
+    const { container } = render(<WidgetGrid definitions={DEFS} defaultLayout={L3} columns={4} />);
+    expect(tiles(container).map((t) => t.dataset.id)).toEqual(['a', 'b', 'c']);
+    localStorage.setItem('verseva.widgets.layout', '[]');
+    const { container: c2 } = render(<WidgetGrid definitions={DEFS} defaultLayout={L3} columns={4} />);
+    expect(tiles(c2).map((t) => t.dataset.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('the columns prop drives the CSS through data-cols', () => {
+    const { container } = render(<WidgetGrid definitions={DEFS} layout={L3} columns={2} storageKey={null} />);
+    expect(container.querySelector('.wgrid')!.getAttribute('data-cols')).toBe('2');
+    const { container: c2 } = render(<WidgetGrid definitions={DEFS} layout={L3} storageKey={null} />);
+    expect(c2.querySelector('.wgrid')!.hasAttribute('data-cols')).toBe(false);
   });
 
   it('empty grid: label and Add widget; the gallery adds the widget and closes', () => {
@@ -305,6 +380,36 @@ describe('SmartStack', () => {
     expect(getByRole('button', { name: 'Show Approvals' }).getAttribute('aria-current')).toBe('true');
     const hidden = [...container.querySelectorAll('.wstack-page:not([data-pos="cur"])')];
     expect(hidden.every((p) => p.hasAttribute('inert') && p.getAttribute('aria-hidden') === 'true')).toBe(true);
+  });
+
+  it('more than three pages: the pause button stays and Previous and Next replace the dots', () => {
+    const five = [...pages, { label: 'Invoices', content: <b>12 invoices</b> }, { label: 'Leads', content: <b>41 leads</b> }];
+    const { container, getByRole } = render(<SmartStack pages={five} label="Live now" />);
+    expect(getByRole('button', { name: 'Pause rotation' })).toBeTruthy();
+    expect(container.querySelectorAll('.wstack-dot')).toHaveLength(0);
+    fireEvent.click(getByRole('button', { name: 'Next: 2 of 5' }));
+    expect(cur(container)).toBe('1 deploy');
+    fireEvent.click(getByRole('button', { name: 'Previous: 1 of 5' }));
+    expect(cur(container)).toBe('3 agents');
+    expect(container.querySelectorAll('.wstack-nav button')).toHaveLength(3);
+  });
+
+  it('the page scrolls over the stack: vertical wheel and swipes pass through, horizontal ones step', () => {
+    const { container } = render(<SmartStack pages={pages} label="Live now" />);
+    const el = container.querySelector('.wstack')!;
+    const wheel = (init: WheelEventInit) => { const e = new WheelEvent("wheel", { bubbles: true, cancelable: true, ...init }); act(() => { el.dispatchEvent(e); }); return e; };
+    const v = wheel({ deltaY: 120 });
+    expect(v.defaultPrevented).toBe(false);
+    expect(cur(container)).toBe('3 agents');
+    const h = wheel({ deltaX: 80, deltaY: 4 });
+    expect(h.defaultPrevented).toBe(true);
+    expect(cur(container)).toBe('1 deploy');
+    fireEvent.touchStart(el, { touches: [{ clientX: 100, clientY: 100 }] });
+    fireEvent.touchEnd(el, { changedTouches: [{ clientX: 104, clientY: 20 }] });
+    expect(cur(container)).toBe('1 deploy');
+    fireEvent.touchStart(el, { touches: [{ clientX: 200, clientY: 100 }] });
+    fireEvent.touchEnd(el, { changedTouches: [{ clientX: 120, clientY: 110 }] });
+    expect(cur(container)).toBe('4 approvals');
   });
 
   it('reduced motion: no timer and no pause button', () => {
