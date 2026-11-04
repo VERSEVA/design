@@ -1,169 +1,162 @@
-// Front door: hero picker, live readout, the surfaces stage, counts, install.
-import { useEffect, useRef, useState } from 'react';
-import { ThemePicker } from '../shell/ThemePicker';
-import { onStudioLink } from '../shell/router';
-import { ThreeStage } from '../three/ThreeStage';
-import { ratio, type RGB } from '../contrast';
-import { BRANDS, useTheme, useThemeTick } from '../theme';
-import { watchFrames } from './frameSync';
+// Home (/): the headline, Get started + Browse, a live widget home on the package parts (L1),
+// a neutral drift behind it (L2), and four entry tiles. Labels and data only.
+// Pre-render: everything renders still; motion and ticking start after mount, and stop under
+// Pause motion (WCAG 2.2.2) and reduced motion.
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { WidgetGrid } from '../../../react/widget-grid';
+import type { WidgetDefinition } from '../../../react/widget-grid';
+import type { LayoutItem } from '../../../react/widget-state';
+import { LiveActivity } from '../../../react/live-activity';
+import type { Activity } from '../../../react/live-activity';
+import { DEFINITIONS } from '../widgets/WidgetsPage';
+import { navigate, onStudioLink } from '../shell/router';
+import { BookIcon, FramesIcon, GridIcon, SwatchIcon } from '../shell/icons';
+import { useHydrated, usePauseMotion } from '../theme';
+import { GALLERY } from '../gallery/examples';
 import tokens from '../data/tokens.json';
-import library from '../data/library.json';
+import chapters from '../data/chapters.json';
 import './front.css';
 
 export const SECTIONS: ReadonlyArray<{ id: string; label: string }> = [];
 
-const INSTALL = 'npm i @verseva/design';
-const ROWS = ['--bg', '--surface', '--text-1', '--text-2', '--accent', '--data-alt'] as const;
-const OBJECTS = [
-  { stem: 'VSV-016_partnership-links__linked-sway', label: 'Partnership links loop', tag: 'live loop', loop: true, w: 'w2' },
-  { stem: 'VSV-001', label: 'Stone portal', tag: 'live GLB', loop: false, w: 'w3' },
-  { stem: 'VSV-019', label: 'Rising arc', tag: 'live GLB', loop: false, w: 'w3' },
-] as const;
+export const INSTALL = 'npm i @verseva/design';
+export const INSTALL_HREF = '/components#install';
+/** How long "Copied" shows before Get started lands on the install section. */
+export const COPIED_HOLD_MS = 900;
+export const JOB_TICK_MS = 450;
+const JOB_STEP = 0.035;
+const JOB_HOLD_MS = 2400;
+/* The demo job loops a few times, then rests done: a landing page does not announce forever. */
+export const JOB_CYCLES = 5;
+const JOB_NAMES = ['Deploy studio', 'Import clients', 'Export ledger', 'Sync invoices', 'Agent run #419'];
+const STEPS = ['Queue', 'Build', 'Upload', 'Promote'];
 
-const len = (v: unknown) => (Array.isArray(v) ? v.length : 0);
-const lib = library as Partial<Record<'objects' | 'loops', unknown>>;
-/* hex, contrast, spacing, type: the four bin/*-gate.mjs checks that fail builds */
-const GATES = 4;
-const COUNTS = [
-  { label: 'Tokens', n: len(tokens) },
-  { label: 'Themes', n: BRANDS.length },
-  { label: '3D objects', n: len(lib.objects) },
-  { label: 'Loops', n: len(lib.loops) },
-  { label: 'Gates', n: GATES },
+const jobIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" /></svg>;
+
+const newJob = (k: number, progress = 0): Activity => ({ id: `job-${k}`, name: JOB_NAMES[k % JOB_NAMES.length], steps: STEPS, progress });
+
+/** One demo job: ticks while `live`, holds done, then the next one starts. */
+function useDemoJob(live: boolean) {
+  const [k, setK] = useState(0);
+  const [job, setJob] = useState<Activity>(() => newJob(0, 0.24));
+  useEffect(() => {
+    if (!live) return;
+    if (job.done) {
+      if (k + 1 >= JOB_CYCLES) return;
+      const t = setTimeout(() => { setK(k + 1); setJob(newJob(k + 1)); }, JOB_HOLD_MS);
+      return () => clearTimeout(t);
+    }
+    const t = setInterval(() => setJob((j) => {
+      if (j.done) return j;
+      const p = Math.min(1, (j.progress ?? 0) + JOB_STEP);
+      return p >= 1 ? { ...j, progress: 1, done: true } : { ...j, progress: p };
+    }), JOB_TICK_MS);
+    return () => clearInterval(t);
+  }, [live, job.done, k]);
+  const restart = () => { setK(k + 1); setJob(newJob(k + 1)); };
+  return { job, restart };
+}
+
+const LAYOUT: LayoutItem[] = [
+  { id: 'revenue', kind: 'revenue', size: 'l' },
+  { id: 'live', kind: 'live', size: 'm' },
+  { id: 'job', kind: 'job', size: 'm' },
 ];
+const PICK = new Set(['revenue', 'live']);
 
-const parse = (c: string): RGB | null => {
-  const m = c.match(/[\d.]+/g);
-  return m && m.length >= 3 ? [Number(m[0]), Number(m[1]), Number(m[2])] : null;
-};
-const toHex = (c: RGB | null) => (c ? '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase() : '');
-const fmt = (a: RGB | null, b: RGB | null) => (a && b ? ratio(a, b).toFixed(2) : '');
-
-interface Readout { values: Record<string, RGB | null>; inkOnAccent: number }
-
-function readTokens(): Readout {
-  const probe = document.createElement('i');
-  probe.style.display = 'none';
-  document.body.appendChild(probe);
-  const values: Record<string, RGB | null> = {};
-  for (const v of [...ROWS, '--accent-ink']) {
-    probe.style.color = `var(${v})`;
-    values[v] = parse(getComputedStyle(probe).color);
-  }
-  probe.remove();
-  const ink = values['--accent-ink'], acc = values['--accent'];
-  return { values, inkOnAccent: ink && acc ? ratio(ink, acc) : 0 };
+function LiveHome({ live }: { live: boolean }) {
+  const { job, restart } = useDemoJob(live);
+  const p = job.progress ?? 0;
+  const step = STEPS[Math.min(STEPS.length - 1, Math.floor(p * STEPS.length))];
+  const defs: WidgetDefinition[] = [
+    ...DEFINITIONS.filter((d) => PICK.has(d.kind)),
+    {
+      kind: 'job', name: 'Jobs', icon: jobIcon, sizes: ['m'],
+      render: () => (
+        <>
+          <div className="wtile-hd">{jobIcon}Jobs<span className="wtile-meta">{job.done ? 'Done' : step}</span></div>
+          <div className="jobcap">
+            <LiveActivity activities={[job]} onCancel={restart} leaveDelay={1e9} />
+          </div>
+          <div className="wtile-sub">{`${Math.min(STEPS.length, Math.floor(p * STEPS.length) + 1)} of ${STEPS.length} steps`}</div>
+        </>
+      ),
+    },
+  ];
+  return (
+    <WidgetGrid
+      definitions={defs}
+      layout={LAYOUT}
+      focus="revenue"
+      storageKey={null}
+      longPress={0}
+      labels={{ region: 'Live home' }}
+    />
+  );
 }
 
-function useReadout(): Readout {
-  const theme = useTheme();
-  const tick = useThemeTick();
-  const [r, setR] = useState<Readout>(() => ({ values: {}, inkOnAccent: 0 }));
-  useEffect(() => { setR(readTokens()); }, [theme.brand, theme.mode, tick]);
-  return r;
-}
-
-function CopyInstall() {
+/** Get started: copy the install line, say Copied, then land on the install section. */
+function GetStarted() {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
-  const copy = () => {
+  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
     navigator.clipboard?.writeText(INSTALL).catch(() => {});
     setCopied(true);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setCopied(false), 2000);
+    timer.current = setTimeout(() => navigate(INSTALL_HREF), COPIED_HOLD_MS);
   };
   return (
-    <div className="install">
-      <code>{INSTALL}</code>
-      <button type="button" className="btn btn-secondary lg" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>
+    <>
+      <a className="btn btn-primary lg cta-go" href={INSTALL_HREF} onClick={onClick}>{copied ? 'Copied' : 'Get started'}</a>
       <span className="sr-only" aria-live="polite">{copied ? 'Copied' : ''}</span>
-    </div>
+    </>
   );
 }
 
-/* The frame loads the example file; the cover opens its gallery page, inside the shell. */
-function FrameTile({ src, href, title, kind, w }: { src: string; href: string; title: string; kind: string; w: string }) {
-  return (
-    <div className={`card tile ${w}`}>
-      <div className="frame" inert><iframe src={src} title={title} loading="lazy" tabIndex={-1} /></div>
-      <a className="cover" href={href} onClick={onStudioLink} aria-label={`Open ${title}`} />
-      <span className="badge tag"><b>{title}</b>{kind}</span>
-    </div>
-  );
-}
+const componentCount = (chapters.find((c) => c.slug === 'components')?.sections ?? []).filter((s) => s.id !== 'install').length;
+const ENTRIES: ReadonlyArray<{ href: string; label: string; n: number; sub: string; icon: () => ReactNode }> = [
+  { href: '/components', label: 'Components', n: componentCount, sub: 'parts', icon: BookIcon },
+  { href: '/widgets', label: 'Widgets', n: DEFINITIONS.length, sub: 'widgets', icon: GridIcon },
+  { href: '/foundations', label: 'Foundations', n: tokens.length, sub: 'tokens', icon: SwatchIcon },
+  { href: '/gallery', label: 'Gallery', n: GALLERY.length, sub: 'examples', icon: FramesIcon },
+];
 
 export function FrontDoorPage() {
-  const { values, inkOnAccent } = useReadout();
-  const stage = useRef<HTMLElement>(null);
-  useEffect(() => (stage.current ? watchFrames(stage.current) : undefined), []);
-  const aa = inkOnAccent >= 4.5;
-
+  const hydrated = useHydrated();
+  const still = usePauseMotion();
+  const live = hydrated && !still;
   return (
     <div className="page front">
-      <section className="hero">
-        <h1 className="display">One source. Every surface</h1>
-        <ThemePicker size="lg" />
-        <div className="chiprow readout">
-          <span className="badge neutral">--accent <code>{toHex(values['--accent'] ?? null)}</code></span>
-          <span className="badge neutral">
-            ink on accent <code>{inkOnAccent.toFixed(2)}</code>
-            <span className={`badge ${aa ? 'ok' : 'err'}`}>{aa ? 'AA' : 'Fail'}</span>
-          </span>
-          <span className="badge neutral">text on bg <code>{fmt(values['--text-1'] ?? null, values['--bg'] ?? null)}</code></span>
+      <section className="hero" data-live={live ? '' : undefined}>
+        <div className="aurora" aria-hidden="true"><i /><i /></div>
+        <div className="hero-copy">
+          <h1 className="display">One source. Every surface</h1>
+          <div className="cta">
+            <GetStarted />
+            <a className="btn btn-secondary lg" href="/components" onClick={onStudioLink}>Browse</a>
+          </div>
+          <code className="cta-cmd">{INSTALL}</code>
+        </div>
+        <div className="hero-live">
+          <LiveHome live={live} />
         </div>
       </section>
-
-      <section className="stage" aria-label="Surfaces" ref={stage}>
-        <FrameTile src="/examples/pulse.html" href="/gallery/pulse" title="Pulse" kind="dashboard" w="w4" />
-        <FrameTile src="/examples/launch.html" href="/gallery/launch" title="Launch" kind="landing" w="w2" />
-        <div className="card tile w2">
-          <div className="deck">
-            <span className="k">Q3 review · 04</span>
-            <h3>Throughput doubled where the queue was cut</h3>
-            <div className="bars" aria-hidden="true">
-              <span style={{ height: '38%' }} /><span style={{ height: '46%' }} /><span style={{ height: '52%' }} /><span className="on" style={{ height: '94%' }} />
-            </div>
-          </div>
-          <span className="badge tag"><b>Deck</b>slide</span>
-        </div>
-        {OBJECTS.slice(0, 1).map((o) => <ObjectTile key={o.stem} {...o} />)}
-        <div className="card tile w2">
-          <div className="tok">
-            {ROWS.map((v) => (
-              <div className="row" key={v}>
-                <i style={{ background: `var(${v})` }} aria-hidden="true" />
-                <code>{v}</code>
-                <span className="v">{toHex(values[v] ?? null)}</span>
+      <nav className="entry wgrid" aria-label="Sections">
+        {ENTRIES.map((e) => (
+          <a key={e.href} className="wtile" data-size="s" href={e.href} onClick={onStudioLink}>
+            <div className="wtile-body">
+              <div className="wtile-hd">{e.icon()}{e.label}</div>
+              <div className="wtile-foot">
+                <span className="wtile-num">{e.n}</span>
+                <span className="wtile-sub">{e.sub}</span>
               </div>
-            ))}
-            <div className="pair"><span>--text-2 / --surface</span><span className="v">{fmt(values['--text-2'] ?? null, values['--surface'] ?? null)}</span></div>
-          </div>
-          <span className="badge tag"><b>Tokens</b>live</span>
-        </div>
-        {OBJECTS.slice(1).map((o) => <ObjectTile key={o.stem} {...o} />)}
-      </section>
-
-      <section className="counts">
-        <div className="statrow">
-          {COUNTS.map((c) => (
-            <div className="stat" key={c.label}><div className="num">{c.n}</div><div className="lbl">{c.label}</div></div>
-          ))}
-        </div>
-        <CopyInstall />
-      </section>
-    </div>
-  );
-}
-
-function ObjectTile({ stem, label, tag, loop, w }: (typeof OBJECTS)[number]) {
-  const id = stem.split('_')[0];
-  return (
-    <div className={`card tile ${w}`}>
-      <div className="obj">
-        <ThreeStage src={`/library/glb/${stem}.glb`} label={label} loop={loop} thumb={`/library/thumb/${stem}.webp`} />
-      </div>
-      <span className="badge tag"><b>{id}</b>{tag}</span>
+            </div>
+          </a>
+        ))}
+      </nav>
     </div>
   );
 }
