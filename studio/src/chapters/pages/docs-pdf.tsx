@@ -1,6 +1,9 @@
 // Ported from site/docs-pdf.html (frozen): same copy, same specimens, same anchors.
 import { NativeChapter } from '../NativeChapter';
 
+/* sha256 of site/docs-pdf.html; the parity test fails if the frozen page changes. */
+export const FROZEN = '3f544d6d940e30c97a3ea217f2a0cedc06a14553cf891760451c818ccab70376';
+
 export function Page() {
   return (
     <NativeChapter slug="docs-pdf">
