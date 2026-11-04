@@ -24,6 +24,15 @@ export function scrollToHash() {
   document.getElementById(id)?.scrollIntoView();
 }
 
+/* vercel.json's /code.html?f= redirects pass their query through, so a gallery landing can
+   arrive as /gallery/<slug>/code?f=...: drop the stray f in place (no history entry). */
+export function dropStrayF() {
+  const url = new URL(window.location.href);
+  if (!/^\/gallery(\/|$)/.test(url.pathname) || !url.searchParams.has('f')) return;
+  url.searchParams.delete('f');
+  window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+}
+
 /* An in-page jump scrolls AND moves focus (WCAG 2.4.1: a skip link must land the
    keyboard there too). A target that is not focusable gets tabindex=-1 first. */
 const FOCUSABLE = 'a[href],button,input,select,textarea,summary,[contenteditable]';
