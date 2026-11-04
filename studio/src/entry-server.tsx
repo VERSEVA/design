@@ -19,10 +19,20 @@ const ROOT = '<div id="studio-root"></div>';
 
 /** The template (index.html, source or built) with this route's head and pre-rendered root. */
 export function renderDocument(template: string, path: string): string {
+  if (!PRERENDER_PATHS.includes(path)) throw new Error(`prerender: ${path} is not a live route`);
+  return fill(template, path, headFor(path));
+}
+
+/** 404.html: the shell at /404 (not a route, so the router shows the not-found page). */
+export function renderNotFound(template: string): string {
+  return fill(template, '/404', headFor(null));
+}
+
+function fill(template: string, path: string, head: string): string {
   if (!HEAD_RE.test(template)) throw new Error('prerender: template has no <title> + description pair');
   if (!template.includes(ROOT)) throw new Error(`prerender: template has no ${ROOT}`);
   const attr = path.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
   return template
-    .replace(HEAD_RE, () => headFor(path))
+    .replace(HEAD_RE, () => head)
     .replace(ROOT, () => `<div id="studio-root" data-path="${attr}">${renderApp(path)}</div>`);
 }

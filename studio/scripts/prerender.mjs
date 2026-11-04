@@ -14,7 +14,7 @@ const ssrDir = path.join(studio, 'dist-ssr');
 const entry = ['entry-server.js', 'entry-server.mjs'].map((f) => path.join(ssrDir, f)).find((f) => fs.existsSync(f));
 if (!entry) { console.error('prerender: dist-ssr/entry-server.js missing, run the ssr build first'); process.exit(1); }
 
-const { renderDocument, PRERENDER_PATHS } = await import(pathToFileURL(entry).href);
+const { renderDocument, renderNotFound, PRERENDER_PATHS } = await import(pathToFileURL(entry).href);
 const template = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
 
 for (const route of PRERENDER_PATHS) {
@@ -23,6 +23,7 @@ for (const route of PRERENDER_PATHS) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, renderDocument(template, route));
 }
+fs.writeFileSync(path.join(dist, '404.html'), renderNotFound(template));
 const kit = writeSeoKit(dist, PRERENDER_PATHS);
 fs.rmSync(ssrDir, { recursive: true, force: true });
-console.log(`prerender: ${PRERENDER_PATHS.length} routes, ${kit.length} SEO kit files -> dist/`);
+console.log(`prerender: ${PRERENDER_PATHS.length} routes + 404.html, ${kit.length} SEO kit files -> dist/`);

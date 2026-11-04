@@ -4,6 +4,8 @@ import { FoundationsPage, SECTIONS as FOUNDATIONS } from '../foundations/Foundat
 import { AssetLibraryPage, SECTIONS as ASSETS } from '../library/AssetLibraryPage';
 import { ChapterPage } from '../chapters/ChapterPage';
 import { WidgetsPage, SECTIONS as WIDGETS } from '../widgets/WidgetsPage';
+import { NotFoundPage } from './NotFoundPage';
+import { NOT_FOUND_HEAD } from './head';
 import { GROUPS, LIVE_ROUTES, type Group, type RouteMeta } from './routes-table';
 import tokens from '../data/tokens.json';
 import library from '../data/library.json';
@@ -50,4 +52,7 @@ function viewFor(m: RouteMeta): View {
 
 export const ROUTES: ReadonlyArray<Route> = LIVE_ROUTES.map((m) => ({ ...m, ...viewFor(m) }));
 
-export const routeFor = (path: string) => ROUTES.find((r) => r.path === path) ?? ROUTES[0];
+/* Any path outside the table: 404.html pre-renders it at /404, Vercel serves it with a 404. */
+export const NOT_FOUND: Route = { path: '/404', label: 'Not found', group: 'Studio', ...NOT_FOUND_HEAD, sections: [], count: null, Page: NotFoundPage };
+
+export const routeFor = (path: string): Route => ROUTES.find((r) => r.path === path) ?? NOT_FOUND;

@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { renderDocument, PRERENDER_PATHS } from '../src/entry-server';
+import { renderDocument, renderNotFound, PRERENDER_PATHS } from '../src/entry-server';
 import { LIVE_ROUTES } from '../src/shell/routes-table';
 
 const SITE = 'https://design.verseva.com';
@@ -17,8 +17,9 @@ const one = (html: string, re: RegExp, what: string) => {
   expect(found.length, `${what}: exactly one`).toBe(1);
   return found[0];
 };
+const reEscape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const meta = (html: string, attr: 'name' | 'property', key: string) =>
-  one(html, new RegExp(`<meta ${attr}="${key.replace(/:/g, '\\:')}" content="([^"]*)">`, 'g'), key);
+  one(html, new RegExp(`<meta ${attr}="${reEscape(key)}" content="([^"]*)">`, 'g'), key);
 const decode = (s: string) => s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 
 describe('pre-render heads', () => {
@@ -110,4 +111,19 @@ describe('pre-render heads', () => {
       });
     });
   }
+});
+
+describe('404.html', () => {
+  const html = renderNotFound(template);
+
+  it('is the studio shell with a not-found page, kept out of the index', () => {
+    expect(one(html, /<title>([^<]*)<\/title>/g, 'title')).toBe('Page not found: VERSEVA Design');
+    expect(meta(html, 'name', 'robots')).toBe('noindex');
+    expect(html).not.toContain('rel="canonical"');
+    expect(html).not.toContain('application/ld+json');
+    const root = html.match(/<div id="studio-root" data-path="\/404">([\s\S]*)<\/div>\s*<script type="module"/);
+    expect(root, 'pre-rendered root').toBeTruthy();
+    expect(root![1]).toMatch(/<h1[^>]*>Page not found<\/h1>/);
+    expect(root![1]).toContain('href="/"');
+  });
 });

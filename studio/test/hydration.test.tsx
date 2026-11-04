@@ -23,35 +23,75 @@ function serverHtml(renderApp: Server['renderApp'], path: string): string {
 }
 
 let unmount: (() => void) | null = null;
-afterEach(() => { unmount?.(); unmount = null; document.body.innerHTML = ''; localStorage.clear(); vi.restoreAllMocks(); });
+const realMatchMedia = window.matchMedia;
+afterEach(() => {
+  unmount?.(); unmount = null; document.body.innerHTML = ''; localStorage.clear(); vi.restoreAllMocks();
+  window.matchMedia = realMatchMedia;
+});
+
+/* Returning visitors: a stored light + brand choice, a stored dark choice, and system on a light OS. */
+const VISITORS = [
+  { name: 'stored light, cobalt', store: { 'verseva-brand': 'cobalt', 'verseva-theme': 'light' }, osLight: false, theme: 'light' },
+  { name: 'stored dark', store: { 'verseva-theme': 'dark' }, osLight: true, theme: undefined },
+  { name: 'system on a light OS', store: { 'verseva-theme': 'system' }, osLight: true, theme: 'light' },
+] as const;
+
+function stubOs(light: boolean) {
+  window.matchMedia = ((q: string) => ({
+    matches: light && q.includes('prefers-color-scheme: light'), media: q, onchange: null,
+    addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+
+/** Pre-render `renderPath` on a fresh server graph, load it at `url`, boot it as main.tsx does. */
+async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[number]) {
+  const { renderApp } = await fresh<Server>('../src/entry-server');
+  const html = serverHtml(renderApp, renderPath);
+  expect(html).toMatch(/<h1/);
+
+  for (const [k, val] of Object.entries(v.store)) localStorage.setItem(k, val);
+  stubOs(v.osLight);
+  window.history.replaceState(null, '', url);
+  document.body.innerHTML = `<div id="studio-root" data-path="${renderPath}">${html}</div>`;
+  const el = document.getElementById('studio-root')!;
+  const first = el.firstElementChild;
+  const h1 = el.querySelector('h1');
+  expect(first).toBeTruthy();
+
+  const errors: string[] = [];
+  const recoverable: unknown[] = [];
+  vi.spyOn(console, 'error').mockImplementation((...a: unknown[]) => { errors.push(a.map(String).join(' ')); });
+
+  const { boot } = await fresh<Client>('../src/boot');
+  await act(async () => {
+    unmount = boot(el, { onRecoverableError: (e) => recoverable.push(e) });
+  });
+  await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+
+  expect(recoverable.map(String)).toEqual([]);
+  expect(errors.filter((e) => /hydrat|did not match|mismatch/i.test(e))).toEqual([]);
+  /* hydrated, not re-rendered: React adopted the server nodes */
+  expect(el.firstElementChild).toBe(first);
+  expect(el.querySelector('h1')).toBe(h1);
+  /* and the visitor's theme is applied after hydration */
+  expect(document.documentElement.dataset.theme).toBe(v.theme);
+  return el;
+}
 
 describe('hydration', () => {
-  for (const { path } of LIVE_ROUTES) {
-    it(`${path} hydrates without a mismatch`, async () => {
-      const { renderApp } = await fresh<Server>('../src/entry-server');
-      const html = serverHtml(renderApp, path);
-      expect(html).toMatch(/<h1/);
-
-      localStorage.setItem('verseva-brand', 'cobalt');
-      localStorage.setItem('verseva-theme', 'light');
-      window.history.replaceState(null, '', path);
-      document.body.innerHTML = `<div id="studio-root" data-path="${path}">${html}</div>`;
-      const el = document.getElementById('studio-root')!;
-
-      const errors: string[] = [];
-      const recoverable: unknown[] = [];
-      vi.spyOn(console, 'error').mockImplementation((...a: unknown[]) => { errors.push(a.map(String).join(' ')); });
-
-      const { boot } = await fresh<Client>('../src/boot');
-      await act(async () => {
-        unmount = boot(el, { onRecoverableError: (e) => recoverable.push(e) });
+  for (const v of VISITORS) {
+    describe(v.name, () => {
+      for (const { path } of LIVE_ROUTES) {
+        it(`${path} hydrates without a mismatch`, async () => {
+          const el = await hydrate(path, path, v);
+          expect(el.querySelector('.snav-page [aria-current="page"]')?.getAttribute('href')).toBe(path);
+        });
+      }
+      it('404.html hydrates at an unknown path', async () => {
+        const el = await hydrate('/404', '/gallery/x', v);
+        expect(el.querySelector('h1')?.textContent).toBe('Page not found');
+        expect(el.querySelector('.snav-page [aria-current="page"]')).toBeNull();
       });
-      await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
-
-      expect(recoverable.map(String)).toEqual([]);
-      expect(errors.filter((e) => /hydrat|did not match|mismatch/i.test(e))).toEqual([]);
-      expect(el.querySelector('h1')).toBeTruthy();
-      expect(el.querySelector('.snav-page [aria-current="page"]')?.getAttribute('href')).toBe(path);
     });
   }
 });

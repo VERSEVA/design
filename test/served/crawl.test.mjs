@@ -50,6 +50,15 @@ test('every route is a pre-rendered page carrying the studio root for its path',
   assert.deepEqual(bad, []);
 });
 
+test('404.html is the studio shell, kept out of the index', () => {
+  const f = path.join(out, '404.html');
+  assert.ok(fs.existsSync(f), 'out/404.html missing');
+  const html = fs.readFileSync(f, 'utf8');
+  assert.match(html, /<div id="studio-root" data-path="\/404">/);
+  assert.match(html, /<meta name="robots" content="noindex">/);
+  assert.doesNotMatch(html, /rel="canonical"/);
+});
+
 test('every in-site link from every route resolves, and legacy links are redirects', () => {
   const bad = [];
   let checked = 0;
