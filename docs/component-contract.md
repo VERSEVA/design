@@ -589,9 +589,9 @@ to `--text-1`, `--text-2` and a 30% `--text-1` mix in every tile except the one 
 example `Bars` with `level`) cannot be recoloured, so it spends the accent wherever it renders.
 `test/widgets-css.test.mjs` fails a new accent rule without a neutraliser;
 `studio/test/widget-grid.test.tsx` counts accent-bearing elements across a rendered grid (at most
-one tile, the focus one) and across a whole console view. The budget covers the view, not only the
-grid: while a `focus` tile is on the page, the chrome's accent marks (the unread count `.ibtn .num`,
-the unread dot `.ibtn .dot` and the current `.snav` item) step to the text ladder.
+one tile, the focus one) and across a whole console view, against the law 3 budget: the one primary
+action, the active nav bloom, and at most one focus widget's data marks. Counts, badges and dots
+(`.ibtn .num`, `.ibtn .dot`, `.notif .udot`, `.mhint .newdot`) are neutral on the text ladder.
 
 **Edit mode** (an Edit button the product owns, a 550ms long-press on a tile, or the command bar).
 Esc leaves when focus is in the grid, on the Edit toggle (`toggleRef`) or nowhere, never from another
