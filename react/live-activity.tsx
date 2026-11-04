@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
-  ACTIVITY_LABELS, DONE_LEAVE_MS, activityEvents, activityState, announcement, currentStep, failedCount, leadActivity,
-  leaveExpired, moreCount, nextLeaveIn, percent, pruneLeft, ringOffset, trackDone, visibleActivities,
+  ACTIVITY_LABELS, DONE_LEAVE_MS, activityEvents, activityState, announcement, currentStep, dedupeActivities, failedCount,
+  leadActivity, leaveExpired, moreCount, nextLeaveIn, percent, pruneLeft, restartStamps, ringOffset, trackDone, visibleActivities,
 } from './activity-state';
 import type { Activity, ActivityEvent, ActivityLabels, DoneStamps } from './activity-state';
 import { withDefaults } from './console-state';
@@ -12,13 +12,13 @@ export type { Activity } from './activity-state';
 export interface LiveActivityProps {
   /** Every job the product knows about; push a new array on each change. */
   activities: Activity[];
-  /** Cancel on running rows when given. The product removes the job; that removal is announced as cancelled. */
+  /** Cancel on running rows when given. The product removes the job; only a removal after Cancel is announced as cancelled. */
   onCancel?: (id: string) => void;
   /** Retry on failed rows when given. */
   onRetry?: (id: string) => void;
   /** Once per job when it finishes: write a notification here so it can be found later. */
   onDone?: (activity: Activity) => void;
-  /** A done job left the capsule (after leaveDelay, never while the panel is open); the product may drop it. */
+  /** A done job left the capsule (after leaveDelay, never while the panel is open); drop done jobs here, not before. */
   onLeave?: (id: string) => void;
   /** "Clear done" in the panel header when given. */
   onClearDone?: () => void;
@@ -37,6 +37,11 @@ const icon = (d: React.ReactNode, cls?: string) => (
 const CHECK = <path d="m5 12.5 4.5 4.5L19 7.5" />;
 const CROSS = <path d="M7 7l10 10M17 7 7 17" />;
 
+function isProduction(): boolean {
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  return env?.NODE_ENV === 'production';
+}
+
 function focusNextControl(root: HTMLElement | null) {
   const bar = root?.closest('.tbar-end') ?? root?.parentElement;
   const next = Array.from(bar?.querySelectorAll<HTMLElement>('button:not([disabled]),a[href]') ?? []).find((el) => !root?.contains(el) && el.offsetParent !== null);
@@ -52,23 +57,38 @@ function focusNextControl(root: HTMLElement | null) {
  */
 export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, onClearDone, leaveDelay = DONE_LEAVE_MS, labels, className }: LiveActivityProps) {
   const L = withDefaults(ACTIVITY_LABELS, labels);
+  const { list, duplicates } = dedupeActivities(activities);
   const [open, setOpen] = React.useState(false);
   const [left, setLeft] = React.useState<Set<string>>(() => new Set());
-  const [status, setStatus] = React.useState('');
-  const [alert, setAlert] = React.useState('');
-  const stamps = React.useRef<DoneStamps>({});
-  const prev = React.useRef<Activity[]>([]);
+  // Each message gets a counter so an identical string still replaces the region's content node and is read again.
+  const [status, setStatus] = React.useState({ n: 0, text: '' });
+  const [alert, setAlert] = React.useState({ n: 0, text: '' });
+  const stamps = React.useRef<DoneStamps>(trackDone({}, list, Date.now()));
+  // Seeded from the first list: a mount (or remount) announces nothing and fires no onDone.
+  const prev = React.useRef<Activity[]>(list);
+  const leftRef = React.useRef(left);
+  const cancelled = React.useRef<Set<string>>(new Set());
+  const wasOpen = React.useRef(false);
   const rootRef = React.useRef<HTMLDivElement>(null);
   const capRef = React.useRef<HTMLButtonElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
   const panelId = React.useId();
   const titleId = React.useId();
-  const list = Array.isArray(activities) ? activities : [];
+  leftRef.current = left;
+
+  const dupKey = duplicates.join('|');
+  React.useEffect(() => {
+    if (!dupKey || isProduction()) return;
+    console.warn(`LiveActivity: duplicate activity id "${dupKey.split('|').join('", "')}"; the last one pushed wins.`);
+  }, [dupKey]);
 
   // Transitions: announce, stamp done jobs, hand finished jobs to onDone.
   React.useEffect(() => {
-    const events: ActivityEvent[] = activityEvents(prev.current, list);
+    if (prev.current === list) return;
+    const events: ActivityEvent[] = activityEvents(prev.current, list, cancelled.current);
     prev.current = list;
+    const ids = new Set(list.map((a) => a.id));
+    for (const id of cancelled.current) if (!ids.has(id)) cancelled.current.delete(id);
     stamps.current = trackDone(stamps.current, list, Date.now());
     setLeft((l) => {
       const pruned = pruneLeft(l, list);
@@ -76,8 +96,8 @@ export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, o
     });
     const polite = events.filter((e) => e.politeness === 'status');
     const loud = events.filter((e) => e.politeness === 'alert');
-    if (polite.length) setStatus(polite.map((e) => announcement(e, L)).join('. '));
-    if (loud.length) setAlert(loud.map((e) => announcement(e, L)).join('. '));
+    if (polite.length) setStatus((m) => ({ n: m.n + 1, text: polite.map((e) => announcement(e, L)).join('. ') }));
+    if (loud.length) setAlert((m) => ({ n: m.n + 1, text: loud.map((e) => announcement(e, L)).join('. ') }));
     for (const e of events) {
       if (e.type !== 'done') continue;
       const a = list.find((x) => x.id === e.id);
@@ -85,16 +105,23 @@ export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, o
     }
   }, [activities]);
 
+  // Closing the panel restarts the delay, so done jobs never vanish the instant it shuts.
+  React.useEffect(() => {
+    if (wasOpen.current && !open) stamps.current = restartStamps(stamps.current, Date.now());
+    wasOpen.current = open;
+  }, [open]);
+
   // Done-leave timer: the earliest done job leaves after the delay, never while the panel is open.
   React.useEffect(() => {
     const ms = nextLeaveIn(list, stamps.current, left, Date.now(), open, leaveDelay);
     if (ms === null) return;
     const t = setTimeout(() => {
-      setLeft((l) => {
-        const next = leaveExpired(list, stamps.current, l, Date.now(), false, leaveDelay);
-        for (const id of next) if (!l.has(id)) onLeave?.(id);
-        return next;
-      });
+      const before = leftRef.current;
+      const next = leaveExpired(list, stamps.current, before, Date.now(), false, leaveDelay);
+      if (next.size === before.size) return;
+      leftRef.current = next;
+      setLeft(next);
+      for (const id of next) if (!before.has(id)) onLeave?.(id);
     }, ms);
     return () => clearTimeout(t);
   }, [activities, left, open, leaveDelay]);
@@ -204,7 +231,7 @@ export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, o
                       <div className="lact-acts">
                         {s === 'error'
                           ? <button type="button" className="btn btn-secondary sm" onClick={() => { onRetry?.(a.id); panelRef.current?.focus(); }}>{L.retry}</button>
-                          : <button type="button" className="btn btn-ghost sm" onClick={() => { onCancel?.(a.id); panelRef.current?.focus(); }}>{L.cancel}</button>}
+                          : <button type="button" className="btn btn-ghost sm" onClick={() => { cancelled.current.add(a.id); onCancel?.(a.id); panelRef.current?.focus(); }}>{L.cancel}</button>}
                       </div>
                     ) : null}
                   </li>
@@ -216,8 +243,8 @@ export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, o
           )}
         </div>
       </div>
-      <div className="sr-only" role="status" aria-live="polite">{status}</div>
-      <div className="sr-only" role="alert">{alert}</div>
+      <div className="sr-only" role="status" aria-live="polite">{status.text && <span key={status.n}>{status.text}</span>}</div>
+      <div className="sr-only" role="alert">{alert.text && <span key={alert.n}>{alert.text}</span>}</div>
     </>
   );
 }

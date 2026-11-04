@@ -5,7 +5,7 @@ import {
   DONE_LEAVE_MS, ACTIVITY_LABELS,
   activityState, clampProgress, percent, currentStep, ringOffset,
   leadActivity, moreCount, failedCount,
-  trackDone, leaveExpired, nextLeaveIn, pruneLeft, visibleActivities,
+  trackDone, leaveExpired, nextLeaveIn, pruneLeft, visibleActivities, restartStamps, dedupeActivities,
   activityEvents, announcement,
 } from '../react/activity-state.ts';
 
@@ -122,11 +122,16 @@ describe('done leaves, errors stay', () => {
 });
 
 describe('announcements', () => {
-  const types = (prev, next) => activityEvents(prev, next).map((e) => `${e.type}:${e.id}${e.step ? `:${e.step}` : ''}:${e.politeness}`);
-  test('start, done and cancel are polite status messages', () => {
+  const types = (prev, next, cancelled) => activityEvents(prev, next, cancelled).map((e) => `${e.type}:${e.id}${e.step ? `:${e.step}` : ''}:${e.politeness}`);
+  test('start, done and a requested cancel are polite status messages', () => {
     assert.deepEqual(types([], [job('a', 0)]), ['start:a:status']);
     assert.deepEqual(types([job('a', 0.9)], [job('a', 1, { done: true })]), ['done:a:status']);
-    assert.deepEqual(types([job('a', 0.4)], []), ['cancel:a:status']);
+    assert.deepEqual(types([job('a', 0.4)], [], new Set(['a'])), ['cancel:a:status']);
+  });
+  test('a running job removed without a Cancel request is silent (finished and removed in one push is not a cancel)', () => {
+    assert.deepEqual(types([job('a', 0.4)], []), []);
+    assert.deepEqual(types([job('a', 0.9), job('b', 0.2)], [job('b', 0.2)], new Set(['b'])), []);
+    assert.deepEqual(types([job('a', 1, { done: true })], [], new Set(['a'])), [], 'a cancel request on a done job is silent');
   });
   test('progress speaks at 25% steps only, once per step', () => {
     assert.deepEqual(types([job('a', 0.1)], [job('a', 0.2)]), []);
@@ -152,8 +157,25 @@ describe('announcements', () => {
     assert.deepEqual(say([], [job('a', 0)]), ['Job a started']);
     assert.deepEqual(say([job('a', 0.2)], [job('a', 0.5)]), ['Job a 50%']);
     assert.deepEqual(say([job('a', 0.9)], [job('a', 1, { done: true })]), ['Job a done']);
-    assert.deepEqual(say([job('a', 0.2)], []), ['Job a cancelled']);
+    assert.deepEqual(activityEvents([job('a', 0.2)], [], new Set(['a'])).map((e) => announcement(e, L)), ['Job a cancelled']);
     assert.deepEqual(say([job('a', 0.2)], [job('a', 0.2, { error: 'Timed out' })]), ['Job a failed: Timed out']);
     assert.deepEqual(say([job('a', 0.2)], [job('a', 0.2, { error: true })]), ['Job a failed']);
+  });
+});
+
+describe('panel close and duplicate ids', () => {
+  test('restartStamps gives every done job a fresh delay from now', () => {
+    assert.deepEqual(restartStamps({ a: 0, b: 500 }, 9000), { a: 9000, b: 9000 });
+    assert.deepEqual(restartStamps({}, 9000), {});
+  });
+  test('dedupeActivities keeps the last job per id, at its last position, and names the duplicates', () => {
+    const r = dedupeActivities([job('a', 0.2), job('b', 0.5), job('a', 1, { done: true })]);
+    assert.deepEqual(r.list.map((a) => `${a.id}:${a.progress}`), ['b:0.5', 'a:1']);
+    assert.deepEqual(r.duplicates, ['a']);
+    assert.equal(moreCount(r.list), 0, '+n no longer counts the stale copy');
+    assert.equal(leadActivity(r.list).id, 'b');
+    const clean = [job('a', 0.2)];
+    assert.equal(dedupeActivities(clean).list, clean, 'no copy when there are no duplicates');
+    assert.deepEqual(dedupeActivities(undefined), { list: [], duplicates: [] });
   });
 });

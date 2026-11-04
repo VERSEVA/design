@@ -328,8 +328,13 @@ renders exactly this DOM; its rules live in `activity-state` (pure, tested).
 - **`+n`** counts running jobs other than the lead. Done and failed jobs never count.
 - **Percent** is floored, so a running job never reads 100% before it is done.
 - **Done leaves** the capsule 6 seconds after it finishes (`leaveDelay`), never while the panel is
-  open; it leaves when the panel closes if its time has passed. `onDone` fires once per job: write a
-  notification there so the result can be found later. `onLeave` tells the product it may drop it.
+  open; closing the panel restarts the delay, so nothing vanishes the instant it shuts. `onDone`
+  fires once per job: write a notification there so the result can be found later. **Remove a done
+  job only after `onLeave`**; a removal is never read as a cancel unless Cancel was pressed for it.
+- **First render is silent:** the list a capsule mounts with is its baseline, so a remount
+  announces nothing and fires no `onDone` (no duplicate notifications).
+- **Ids are unique.** A duplicate id keeps the last job pushed (one row, one count) and logs a
+  warning outside production.
 - **Errors never auto-leave.** The row shows the failure line and Retry.
 - **Rows update in place** (keyed by `id`): the bar scales, the step and percent change, nothing
   re-mounts.
@@ -367,7 +372,7 @@ and both loading animations.
 |---|---|---|
 | Capsule | `button`, `aria-haspopup="dialog"`, `aria-expanded`, `aria-controls`; name "Live activity: {job}, {n}%, {m} more running, {k} failed"; the visible text, ring and `+n` are `aria-hidden` | Enter or Space opens the panel |
 | Panel | `role="dialog"` `aria-labelledby` its `h4`; each bar `role="progressbar"` named by its job with `aria-valuenow` (none while pending) | Opening focuses Clear done when enabled, else the first Cancel or Retry, else the panel; Escape closes and returns focus to the capsule (or the next top bar control when the capsule has gone); tabbing out or an outside pointer closes; after Cancel or Retry focus stays in the panel |
-| Live regions | a polite `role="status"` and a `role="alert"`, both visually hidden, outside the wrapper so they outlive the capsule | Status: "{job} started", "{job} done", "{job} cancelled" (a running job removed) and "{job} 25%", 50%, 75% only; alert: "{job} failed: {message}". A done or failed job leaving is silent |
+| Live regions | a polite `role="status"` and a `role="alert"`, both visually hidden, outside the wrapper so they outlive the capsule | Status: "{job} started", "{job} done", "{job} cancelled" (a running job removed after its Cancel) and "{job} 25%", 50%, 75% only; alert: "{job} failed: {message}". Any other removal is silent. Each message replaces the region's content node, so a repeat of the same words is read again |
 
 Every built-in string is a `labels` prop with English defaults (`ACTIVITY_LABELS`).
 

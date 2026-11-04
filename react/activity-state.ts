@@ -166,14 +166,36 @@ export function visibleActivities(list: Activity[], left: Set<string>): Activity
   return list.filter((a) => !(left.has(a.id) && activityState(a) === 'done'));
 }
 
+/** A fresh delay for every done job, from now: used when the panel closes so nothing vanishes the instant it shuts. */
+export function restartStamps(stamps: DoneStamps, now: number): DoneStamps {
+  const out: DoneStamps = {};
+  for (const id of Object.keys(stamps)) out[id] = now;
+  return out;
+}
+
+/** One job per id: the last one pushed wins, at its last position. Returns the list unchanged when ids are unique. */
+export function dedupeActivities(list: Activity[] | null | undefined): { list: Activity[]; duplicates: string[] } {
+  if (!Array.isArray(list)) return { list: [], duplicates: [] };
+  const byId = new Map<string, Activity>();
+  const duplicates = new Set<string>();
+  for (const a of list) {
+    if (byId.has(a.id)) { duplicates.add(a.id); byId.delete(a.id); }
+    byId.set(a.id, a);
+  }
+  return duplicates.size ? { list: [...byId.values()], duplicates: [...duplicates] } : { list, duplicates: [] };
+}
+
 const quarter = (a: Activity) => Math.floor((clampProgress(a.progress) ?? 0) * ANNOUNCE_STEPS + 1e-9);
 
 /**
- * What changed between two pushes, for the live regions: start, done and
- * cancel (a running job removed), progress at 25% steps only, and errors as
- * alerts. A done or failed job leaving is silent.
+ * What changed between two pushes, for the live regions: start, done,
+ * progress at 25% steps only, and errors as alerts. A removed job is
+ * announced as cancelled only when its id is in `cancelled` (Cancel was
+ * pressed for it) and it was still running; any other removal is silent, so
+ * a job that finishes and is dropped in one push is never a false cancel.
+ * Seed `prev` with the first list a view sees so a mount announces nothing.
  */
-export function activityEvents(prev: Activity[], next: Activity[]): ActivityEvent[] {
+export function activityEvents(prev: Activity[], next: Activity[], cancelled: ReadonlySet<string> = new Set()): ActivityEvent[] {
   const before = new Map(prev.map((a) => [a.id, a]));
   const ids = new Set(next.map((a) => a.id));
   const out: ActivityEvent[] = [];
@@ -194,7 +216,7 @@ export function activityEvents(prev: Activity[], next: Activity[]): ActivityEven
     }
   }
   for (const p of prev) {
-    if (!ids.has(p.id) && running(p)) out.push({ id: p.id, name: p.name, type: 'cancel', politeness: 'status' });
+    if (!ids.has(p.id) && running(p) && cancelled.has(p.id)) out.push({ id: p.id, name: p.name, type: 'cancel', politeness: 'status' });
   }
   return out;
 }

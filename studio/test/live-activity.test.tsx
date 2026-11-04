@@ -60,8 +60,69 @@ describe('LiveActivity', () => {
     await act(async () => { vi.advanceTimersByTime(60000); });
     expect(getByRole('dialog', { hidden: false }).querySelectorAll('.lact-item')).toHaveLength(1);
     fireEvent.keyDown(container.querySelector('.lact-panel')!, { key: 'Escape' });
-    await act(async () => { vi.advanceTimersByTime(0); });
+    await act(async () => { vi.advanceTimersByTime(5999); });
+    expect((container.querySelector('.lact-wrap') as HTMLElement).hidden).toBe(false);
+    await act(async () => { vi.advanceTimersByTime(1); });
     expect((container.querySelector('.lact-wrap') as HTMLElement).hidden).toBe(true);
+  });
+
+  it('first render announces nothing and fires no onDone, so a remount writes no duplicate notification', () => {
+    const onDone = vi.fn();
+    const list = [job('a', 1, { done: true }), job('b', 0.3)];
+    const { container, unmount } = render(<Bar activities={list} onDone={onDone} />);
+    expect(container.querySelector('[role="status"]')?.textContent).toBe('');
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe('');
+    unmount();
+    render(<React.StrictMode><Bar activities={list} onDone={onDone} /></React.StrictMode>);
+    expect(onDone).not.toHaveBeenCalled();
+  });
+
+  it('an identical message is announced again: the region keeps its node, its content node is replaced', () => {
+    const { container, rerender } = render(<Bar activities={[job('a', 0)]} />);
+    const status = container.querySelector('[role="status"]')!;
+    const alert = container.querySelector('[role="alert"]')!;
+    rerender(<Bar activities={[job('a', 0.1, { error: 'x' })]} />);
+    const firstAlert = alert.firstElementChild;
+    expect(alert.textContent).toBe('Job a failed: x');
+    rerender(<Bar activities={[job('a', 0)]} />);
+    const firstStart = status.firstElementChild;
+    expect(status.textContent).toBe('Job a started');
+    rerender(<Bar activities={[job('a', 0.1, { error: 'x' })]} />);
+    expect(alert.textContent).toBe('Job a failed: x');
+    expect(alert.firstElementChild).not.toBe(firstAlert);
+    rerender(<Bar activities={[job('a', 0)]} />);
+    expect(status.textContent).toBe('Job a started');
+    expect(status.firstElementChild).not.toBe(firstStart);
+    expect(container.querySelector('[role="status"]')).toBe(status);
+  });
+
+  it('duplicate ids: the last one wins, +n is right, one row per id, and a dev warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { container } = render(<Bar activities={[job('a', 0.2), job('b', 0.5), job('a', 1, { done: true })]} />);
+    expect(container.querySelector('.lact-name')?.textContent).toBe('Job b');
+    expect(container.querySelector('.lact-more')).toBeNull();
+    fireEvent.click(container.querySelector('.lact')!);
+    expect(container.querySelectorAll('.lact-item')).toHaveLength(2);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('duplicate activity id "a"'));
+    expect(error).not.toHaveBeenCalled();
+    warn.mockRestore();
+    error.mockRestore();
+  });
+
+  it('a job that finishes and is removed in one push is not announced as cancelled', () => {
+    const { container, rerender } = render(<Bar activities={[job('a', 0.9)]} />);
+    rerender(<Bar activities={[]} />);
+    expect(container.querySelector('[role="status"]')?.textContent).toBe('');
+  });
+
+  it('onLeave fires once under StrictMode', async () => {
+    vi.useFakeTimers();
+    const onLeave = vi.fn();
+    const { rerender } = render(<React.StrictMode><Bar activities={[job('a', 0.5)]} onLeave={onLeave} /></React.StrictMode>);
+    rerender(<React.StrictMode><Bar activities={[job('a', 1, { done: true })]} onLeave={onLeave} /></React.StrictMode>);
+    await act(async () => { vi.advanceTimersByTime(6000); });
+    expect(onLeave).toHaveBeenCalledTimes(1);
   });
 
   it('error: danger state with Retry, never auto-leaves, announced as an alert', async () => {
