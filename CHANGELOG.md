@@ -17,6 +17,10 @@
   `/gallery/<slug>/code` (pre-rendered, with Copy). Links inside an example route through
   the studio. `/examples/*.html` still serve as files.
 - **Components links to Widgets** from its header.
+- **Old site links land in the studio.** `/code.html?f=examples/<slug>.html` (and `/site/code.html?f=`) 308s to
+  `/gallery/<slug>/code`; any other `code.html` request goes to `/gallery`. Every `/site/<page>.html` 308s to its
+  studio route (`/site/index.html` to `/`, `/site/examples.html` to `/gallery`), as the root copies already did. The
+  registry JSON (`/r/*`, `/site/r/*`), `/examples/**`, `/site/examples/**`, `site.css` and `theme.js` stay files.
 
 ### Fixed
 

@@ -23,6 +23,9 @@ const WIDTH = 375;
    An entry that stops overflowing fails, so the list cannot go stale. */
 export const FRAME_OVERFLOW_ALLOWED = {};
 
+/* A page known to scroll sideways at 375px, served only by this probe, so the probe can prove it sees one. */
+const WIDE_PAGE = '/__probe/wide';
+const WIDE_HTML = '<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><body style="margin:0"><div style="width:600px;height:10px"></div></body>';
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.woff2': 'font/woff2' };
 
 /* out/ the way Vercel serves it: a file, a pre-rendered <route>/index.html, or a rewrite. */
@@ -66,6 +69,7 @@ before(async () => {
   const bin = findChrome();
   assert.ok(bin, 'no Chrome found for the 375px overflow probe: set CHROME_PATH');
   server = http.createServer((req, res) => {
+    if (req.url === WIDE_PAGE) { res.writeHead(200, { 'content-type': TYPES['.html'] }); res.end(WIDE_HTML); return; }
     const f = resolveServed(req.url);
     if (!f) { res.writeHead(404); res.end('not found'); return; }
     res.writeHead(200, { 'content-type': TYPES[path.extname(f)] ?? 'application/octet-stream' });
@@ -140,11 +144,11 @@ test('the probe sees a wide page', { timeout: 60000 }, async () => {
   await send('Page.enable', {}, sessionId);
   await send('Emulation.setDeviceMetricsOverride', { width: WIDTH, height: 812, deviceScaleFactor: 2, mobile: true }, sessionId);
   const loaded = waitFor('Page.loadEventFired', sessionId);
-  await send('Page.navigate', { url: origin + '/site/components.html' }, sessionId);
+  await send('Page.navigate', { url: origin + WIDE_PAGE }, sessionId);
   await loaded;
   const { result } = await send('Runtime.evaluate', { expression: PROBE, awaitPromise: true, returnByValue: true }, sessionId);
   const r = JSON.parse(result.value);
-  assert.ok(r.scrollWidth > r.clientWidth, `the frozen site/components.html overflows at ${WIDTH}px, so the probe must see it (got ${r.scrollWidth} vs ${r.clientWidth})`);
+  assert.ok(r.scrollWidth > r.clientWidth, `a 600px-wide page overflows at ${WIDTH}px, so the probe must see it (got ${r.scrollWidth} vs ${r.clientWidth})`);
 });
 
 /* React's text escapes, undone: the pre-rendered #srccode back to the string it was given. */

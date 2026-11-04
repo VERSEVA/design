@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 // Builds out/, the folder Vercel serves for design.verseva.com:
 //   1. the repo tree as Vercel served it before (package files, docs, registry, site/...)
-//   2. site/** again at the root (the old catch-all rewrite, now real files)
+//   2. site/** again at the root (the old catch-all rewrite, now real files): site/r/**,
+//      site/examples/**, site.css, theme.js and DEPLOY.md
 //   3. the studio build over the top (its index.html owns /)
-// Every path in test/fixtures/served-paths.json must survive (npm run test:served).
+// The legacy chapter pages (site/*.html) are left out of both copies: vercel.json 308s
+// /<page>.html and /site/<page>.html to their studio routes, so no file may sit behind a
+// redirect. The sources stay in the repo, frozen.
+// Every path in test/fixtures/served-paths.json must resolve as its kind (npm run test:served).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,7 +17,7 @@ const out = path.join(root, 'out');
 const studio = path.join(root, 'studio/dist');
 
 const SKIP_TOP = new Set(['node_modules', '.git', '.github', '.vercel', '.claude', 'out', 'studio', 'test', 'scripts']);
-const SKIP_PATH = [/^board\/_themes(\/|$)/, /^board\/theme-manifest\.json$/];
+const SKIP_PATH = [/^board\/_themes(\/|$)/, /^board\/theme-manifest\.json$/, /^site\/[^/]+\.html$/];
 
 function guard(rel, abs) {
   if (/Brand Assets/i.test(rel)) throw new Error(`assemble: refusing brand asset path ${rel}`);
