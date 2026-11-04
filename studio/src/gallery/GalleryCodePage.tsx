@@ -1,6 +1,5 @@
-// A gallery example's source inside the studio shell, ported from site/code.html
-// (frozen): the same head, source box, buttons and footer that page showed once its
-// script had read ?f=. The slug comes from the route; the source is the served file
+// A gallery example's source inside the studio shell, in a studio tile (1.7.0): the file
+// in the header, the source in the body, Open live and Copy in the footer. The slug comes from the route; the source is the served file
 // /examples/<slug>.html, bundled as its own chunk (sources.ts), so the pre-rendered page
 // holds the real text and the main bundle carries none of it.
 import { useEffect, useRef, useState } from 'react';
@@ -8,11 +7,10 @@ import { NativeChapter } from '../chapters/NativeChapter';
 import { onStudioLink } from '../shell/router';
 import { GALLERY } from './examples';
 import { useSource } from './sources';
+import { META } from './meta';
+import { SpecimenTile } from '../tiles/SpecimenTile';
 import './code.css';
 import './gallery.css';
-
-/* sha256 of site/code.html; the parity test fails if the frozen page changes. */
-export const FROZEN_CODE = '488c27a0dd7cd4bc94537ee80cbfa86796378ccc1d4aaf9929492fe04a7cca50';
 
 export function GalleryCodePage({ slug }: { slug: string }) {
   const file = `examples/${slug}.html`;
@@ -45,25 +43,26 @@ export function GalleryCodePage({ slug }: { slug: string }) {
           <span aria-current="page">Code</span>
         </nav>
         <div className="srchead">
-          <h1 id="srctitle">{slug}</h1>
-          {' '}
-          <span className="srcfile" id="srcfile">{`site/${file}`}</span>
+          <h1 id="srctitle">{label}</h1>
         </div>
       </section>
-      <div className="srcwrap">
-        <div className="srcbtns">
+      <SpecimenTile
+        className="gsrc-tile"
+        size="xl"
+        name={`site/${file}`}
+        meta={META[slug] && <span className="gtags">{META[slug].tags.map((t) => <span key={t} className="badge neutral">{t}</span>)}</span>}
+        actions={<>
           <a className="btn btn-secondary sm" id="openlive" href={`/gallery/${slug}`} onClick={onStudioLink}>Open live</a>
-          {' '}
-          <button className="btn btn-secondary sm" id="copysrc" type="button" disabled={!text} onClick={onCopy}>{copy}</button>
-        </div>
+          <button className="btn btn-ghost sm" id="copysrc" type="button" disabled={!text} onClick={onCopy}><span aria-live="polite">{copy}</span></button>
+        </>}
+      >
         {failed ? (
-          <div className="srcerr">
-            <span role="alert">Source failed to load</span>
-            {' '}
+          <div className="wtile-err srcerr" role="alert">
+            <span className="wtile-errline">Source failed to load</span>
             <button className="btn btn-secondary sm" id="retrysrc" type="button" onClick={retry}>Retry</button>
           </div>
-        ) : <pre aria-busy={!text || undefined}><code id="srccode">{text}</code></pre>}
-      </div>
+        ) : <pre className="stile-code srcpre" tabIndex={0} aria-label={`site/${file}`} aria-busy={!text || undefined}><code id="srccode">{text}</code></pre>}
+      </SpecimenTile>
       <footer className="site">
         <span>VERSEVA · open source · MIT</span>
         {' '}

@@ -53,9 +53,11 @@ describe('example frames follow the studio theme', () => {
     expect(d.querySelector('link[data-vsv-theme="violet"]')).not.toBeNull();
   });
 
-  it('carries them into every gallery preview card', async () => {
+  it('carries them into every live gallery thumbnail', async () => {
     const { container } = render(<Gallery />);
-    const frames = [...container.querySelectorAll<HTMLIFrameElement>('.prevbox iframe')];
+    const frames = [...container.querySelectorAll<HTMLIFrameElement>('.gthumb iframe')];
+    expect(frames.length).toBeGreaterThan(0);
+    for (const f of frames) { frameDoc(f); await act(async () => { f.dispatchEvent(new Event('load')); }); }
     const docs = frames.map(frameDoc);
     await act(async () => { applyTheme({ brand: 'cobalt', mode: 'light' }); });
     expect(docs.map((d) => [d.documentElement.dataset.theme, d.documentElement.dataset.brand])).toEqual(frames.map(() => ['light', 'cobalt']));
@@ -157,7 +159,7 @@ describe('a source chunk that fails on a client visit', () => {
     try {
       const { container } = render(<Fresh slug="store" />);
       await vi.waitFor(() => expect(container.querySelector('.srcerr')).not.toBeNull());
-      expect(container.querySelector('.srcerr [role="alert"]')!.textContent).toBe('Source failed to load');
+      expect(container.querySelector('.srcerr[role="alert"] .wtile-errline')!.textContent).toBe('Source failed to load');
       expect(container.querySelector('pre')).toBeNull();
       expect(container.querySelector<HTMLButtonElement>('#copysrc')!.disabled).toBe(true);
       await new Promise((r) => setTimeout(r, 0));

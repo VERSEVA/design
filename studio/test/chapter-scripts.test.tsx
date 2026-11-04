@@ -1,6 +1,6 @@
 // Chapter scripts: what a ported page's legacy inline script became. Each one is
 // idempotent across StrictMode's mount, cleanup, mount, and does what it did on the legacy page.
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -213,32 +213,24 @@ describe('components chapter script', () => {
 describe('gallery chapter script', () => {
   const pristine = () => new DOMParser().parseFromString(renderToStaticMarkup(<Gallery />), 'text/html').querySelector('.chap')!;
 
-  it('filters the mock sites by tag, as the legacy page did', () => {
-    const { container } = render(<Gallery />);
-    const shown = () => [...container.querySelectorAll('.gallery .gcard:not(.hidden) b')].map((b) => b.textContent);
-    expect(shown().length).toBe(8);
-    fireEvent.click(container.querySelector('#gfilter [data-f="light"]')!);
-    expect(shown()).toEqual(['Redline Supply · storefront', 'Ledgerline · landing']);
-    expect([...container.querySelectorAll('#gfilter .fchip')].filter((c) => c.getAttribute('aria-pressed') === 'true').map((c) => c.getAttribute('data-f'))).toEqual(['light']);
-    fireEvent.click(container.querySelector('#gfilter [data-f="all"]')!);
-    expect(shown().length).toBe(8);
-  });
+  /* The filter and the thumbnails are React's now (gallery-tiles.test.tsx); the script runs the detail demos.
+     No thumbnail goes live here, so the markup compares against the pre-render. */
+  beforeEach(() => { vi.stubGlobal('IntersectionObserver', class { observe() {} unobserve() {} disconnect() {} }); });
+  afterEach(() => { vi.unstubAllGlobals(); });
 
-  it('scales each preview to its box, flips the bloom, the switch word and the toast', () => {
+  it('flips the bloom, the switch word and the toast', () => {
     const { container } = render(<Gallery />);
-    for (const f of container.querySelectorAll<HTMLIFrameElement>('.prevbox iframe')) expect(f.style.transform).toMatch(/^scale\(/);
     fireEvent.click(container.querySelector('#bloom-a')!);
     expect([container.querySelector('#bloom-a')!.classList.contains('on'), container.querySelector('#bloom-b')!.classList.contains('on')]).toEqual([true, false]);
     fireEvent.click(container.querySelector('#switchdemo')!);
     expect(container.querySelector('#switchword')!.textContent).toBe('Provenance off');
     fireEvent.click(container.querySelector('#toastdemo')!);
-    expect(document.querySelector('#toastwrap .toast.ok')!.textContent).toBe('Saved. The word does the work; the dot just nods.');
+    expect(document.querySelector('#toastwrap .toast.ok')!.textContent).toBe('Saved');
   });
 
   it('is idempotent under StrictMode and leaves the markup exactly as rendered on unmount', async () => {
     const { container, unmount } = render(<StrictMode><Gallery /></StrictMode>);
     expect(container.querySelectorAll('#skelrow .skel').length).toBe(2);
-    fireEvent.click(container.querySelector('#gfilter [data-f="dark"]')!);
     fireEvent.click(container.querySelector('#bloom-a')!);
     fireEvent.click(container.querySelector('#countstat')!);
     fireEvent.click(container.querySelector('#switchdemo')!);

@@ -1,22 +1,25 @@
-// Ported from site/examples.html (frozen): same copy, same specimens, same anchors.
-// The legacy inline script runs as the chapter script: scoped to the chapter root,
-// listeners on the abort signal, and every change it makes to the DOM undone on
-// cleanup. Gallery links stay in the shell: Open goes to /gallery/<slug>, Code to
-// /gallery/<slug>/code; the preview iframes keep loading /examples/*.html, which
-// serve as files.
+// Gallery (1.7.0 redesign): the mock sites as a bento of studio tiles (name and tags in the
+// header, a live thumbnail in the body, Live and Code in the footer), filtered by tag; the
+// details and inspiration shots as tiles too. Gallery links stay in the shell: Live goes to
+// /gallery/<slug>, Code to /gallery/<slug>/code; thumbnails load /examples/*.html, which
+// serve as files. The legacy inline script still runs the detail demos, scoped to the
+// chapter root, listeners on the abort signal, and every change it makes undone on cleanup.
+import { useState } from 'react';
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
-import { watchFrames } from '../../front/frameSync';
+import { SpecimenGrid, SpecimenTile } from '../../tiles/SpecimenTile';
+import { GALLERY } from '../../gallery/examples';
+import { META, FILTERS } from '../../gallery/meta';
+import { Thumb } from '../../gallery/Thumb';
+import '../../gallery/gallery.css';
 import './gallery.css';
-
-/* sha256 of site/examples.html; the parity test fails if the frozen page changes. */
-export const FROZEN = '83b74a36a7b6aa7078510efb1db2a628e28c66824b6fb0738cc5a2f2f643bf23';
 
 export const script: ChapterScript = (root, signal, onCleanup) => {
   const on = <K extends keyof HTMLElementEventMap>(el: EventTarget, type: K, fn: (e: HTMLElementEventMap[K]) => void) =>
     el.addEventListener(type, fn as EventListener, { signal });
   const $ = <T extends Element = HTMLElement>(id: string) => root.querySelector<T>(`[id="${id}"]`)!;
-  /* Every attribute as rendered, and the children the script replaces, come back on cleanup. */
-  const attrs = [...root.querySelectorAll('*')].map((el) => [el, [...el.attributes].map((a) => [a.name, a.value] as const)] as const);
+  /* Every attribute the demos render, and the children the script replaces, come back on
+     cleanup. Only the details: the bento above is React's own. */
+  const attrs = [...root.querySelectorAll('#details ~ .sgrid *')].map((el) => [el, [...el.attributes].map((a) => [a.name, a.value] as const)] as const);
   onCleanup(() => {
     for (const [el, list] of attrs) {
       for (const a of [...el.attributes]) if (!list.some(([n]) => n === a.name)) el.removeAttribute(a.name);
@@ -28,27 +31,6 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
   const later = (fn: () => void, ms: number) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); };
   let raf = 0;
   onCleanup(() => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); });
-
-  const scalePreviews = () => {
-    root.querySelectorAll<HTMLIFrameElement>('.prevbox iframe').forEach((f) => {
-      f.style.transform = 'scale(' + f.parentElement!.clientWidth / 1280 + ')';
-    });
-  };
-  on(window, 'resize', scalePreviews);
-  scalePreviews();
-  /* The previews follow the studio theme and brand, as the iframe embed's nested frames did. */
-  onCleanup(watchFrames(root));
-
-  on($('gfilter'), 'click', (e) => {
-    const chip = (e.target as Element).closest<HTMLElement>('.fchip');
-    if (!chip) return;
-    root.querySelectorAll('#gfilter .fchip').forEach((c) => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
-    const f = chip.dataset.f!;
-    root.querySelectorAll<HTMLElement>('.gallery .gcard').forEach((card) => {
-      card.classList.toggle('hidden', f !== 'all' && !card.dataset.tags!.split(' ').includes(f));
-    });
-    scalePreviews();
-  });
 
   [['bloom-a', 'bloom-b'], ['bloom-b', 'bloom-a']].forEach(([self, other]) => {
     on($(self), 'click', () => {
@@ -101,7 +83,7 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
     t.style.right = 'var(--s-5)';
     t.style.bottom = 'var(--s-5)';
     t.style.zIndex = '9';
-    t.innerHTML = '<span class="dot"></span>Saved. The word does the work; the dot just nods.';
+    t.innerHTML = '<span class="dot"></span>Saved';
     wrap.append(t);
     later(() => t.remove(), 2200);
   });
@@ -116,149 +98,85 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
   });
 };
 
+const ALL = GALLERY.length;
+const count = (f: string) => GALLERY.filter((g) => META[g.slug].filters.includes(f)).length;
+
+/* The mock sites: filter chips (neutral selection, a count on each), then the bento. */
+function MockSites() {
+  const [f, setF] = useState('all');
+  const chips: ReadonlyArray<readonly [string, string, number]> = [['all', 'All', ALL], ...FILTERS.map(([k, l]) => [k, l, count(k)] as const)];
+  return (
+    <>
+      <div className="chiprow" id="gfilter">
+        {chips.map(([k, l, n]) => (
+          <button key={k} className="fchip" type="button" aria-pressed={f === k} data-f={k} onClick={() => setF(k)}>{l}<span className="cnt">{n}</span></button>
+        ))}
+      </div>
+      <SpecimenGrid className="gallery">
+        {GALLERY.map(({ slug, label }) => {
+          const m = META[slug];
+          const off = f !== 'all' && !m.filters.includes(f);
+          const nameId = `g-${slug}-name`;
+          return (
+            <SpecimenTile
+              key={slug}
+              level={3}
+              size={m.size}
+              className={off ? 'gtile gtile-off' : 'gtile'}
+              name={<span id={nameId}>{label}</span>}
+              meta={<span className="gtags">{m.tags.map((t) => <span key={t} className="badge neutral">{t}</span>)}</span>}
+              actions={<>
+                <a className="btn btn-secondary sm" href={`/gallery/${slug}`} aria-describedby={nameId}>Live</a>
+                <a className="btn btn-ghost sm" href={`/gallery/${slug}/code`} aria-describedby={nameId}>Code</a>
+              </>}
+            >
+              <Thumb slug={slug} title={label} off={off} />
+            </SpecimenTile>
+          );
+        })}
+      </SpecimenGrid>
+    </>
+  );
+}
+
+const RENDERS = [
+  ['console-dark', 'Ops console', 'Concept render: dark ops console'],
+  ['landing-light', 'Landing page', 'Concept render: light landing page'],
+  ['quote-tool-dark', 'Quote tool', 'Concept render: dark quoting tool'],
+  ['mobile-dark', 'Mobile app', 'Concept render: mobile app screens'],
+] as const;
+
+const concept = <span className="badge neutral">concept</span>;
+
 export function Page() {
   return (
     <NativeChapter slug="gallery" script={script}>
       <section className="hero"><h1>The gallery</h1></section>
       <section className="ch">
         <h2 id="mock-sites">Mock sites</h2>
-        <div className="chiprow" id="gfilter">
-          <button className="fchip" type="button" aria-pressed="true" data-f="all">{"All "}<span className="cnt">8</span></button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="data">Data</button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="motion">Motion</button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="dark">Dark</button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="light">Light</button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="console">Console</button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="tool">Tool</button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="commerce">Commerce</button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="portfolio">Portfolio</button>
-          {' '}
-          <button className="fchip" type="button" aria-pressed="false" data-f="3d">3D</button>
-        </div>
-        <div className="gallery">
-          <div className="gcard" data-tags="dark 3d">
-            <a className="prevlink" href="/gallery/three-hero" aria-label="Open the 3D hero live"><span className="prevbox"><iframe src="/examples/three-hero.html" loading="lazy" title="3D hero preview" tabIndex={-1}></iframe></span></a>
-            {' '}
-            <div className="gcap">
-              <div className="row">
-                <b>Signal Foundry · 3D hero</b>
-                <span className="acts"><a className="open" href="/gallery/three-hero">Open</a><a className="open" href="/gallery/three-hero/code">Code</a></span>
-              </div>
-              <span className="gtags"><span className="gtag">three.js</span><span className="gtag">dark</span><span className="gtag">tokens at runtime</span></span>
-            </div>
-          </div>
-          <div className="gcard" data-tags="dark data console">
-            <a className="prevlink" href="/gallery/pulse" aria-label="Open Pulse analytics live"><span className="prevbox"><iframe src="/examples/pulse.html" loading="lazy" title="Pulse analytics preview" tabIndex={-1}></iframe></span></a>
-            {' '}
-            <div className="gcap">
-              <div className="row">
-                <b>Pulse · analytics</b>
-                <span className="acts"><a className="open" href="/gallery/pulse">Open</a><a className="open" href="/gallery/pulse/code">Code</a></span>
-              </div>
-              <span className="gtags"><span className="gtag">the viz kit assembled</span><span className="gtag">crosshair hover</span><span className="gtag">dark</span></span>
-            </div>
-          </div>
-          <div className="gcard" data-tags="dark motion landing">
-            <a className="prevlink" href="/gallery/launch" aria-label="Open the Launch page live"><span className="prevbox"><iframe src="/examples/launch.html" loading="lazy" title="Launch page preview" tabIndex={-1}></iframe></span></a>
-            {' '}
-            <div className="gcap">
-              <div className="row">
-                <b>Launch · the motion kit</b>
-                <span className="acts"><a className="open" href="/gallery/launch">Open</a><a className="open" href="/gallery/launch/code">Code</a></span>
-              </div>
-              <span className="gtags"><span className="gtag">line reveal</span><span className="gtag">theme wipe</span><span className="gtag">rolling stats</span></span>
-            </div>
-          </div>
-          <div className="gcard" data-tags="dark console">
-            <a className="prevlink" href="/gallery/console" aria-label="Open the ops console live"><span className="prevbox"><iframe src="/examples/console.html" loading="lazy" title="Ops console preview" tabIndex={-1}></iframe></span></a>
-            {' '}
-            <div className="gcap">
-              <div className="row">
-                <b>Ops console</b>
-                <span className="acts"><a className="open" href="/gallery/console">Open</a><a className="open" href="/gallery/console/code">Code</a></span>
-              </div>
-              <span className="gtags"><span className="gtag">org switcher</span><span className="gtag">rail</span><span className="gtag">dark</span></span>
-            </div>
-          </div>
-          <div className="gcard" data-tags="dark tool">
-            <a className="prevlink" href="/gallery/quote-tool" aria-label="Open the quote tool live"><span className="prevbox"><iframe src="/examples/quote-tool.html" loading="lazy" title="Quote tool preview" tabIndex={-1}></iframe></span></a>
-            {' '}
-            <div className="gcap">
-              <div className="row">
-                <b>Quote tool</b>
-                <span className="acts"><a className="open" href="/gallery/quote-tool">Open</a><a className="open" href="/gallery/quote-tool/code">Code</a></span>
-              </div>
-              <span className="gtags"><span className="gtag">live recompute</span><span className="gtag">state machine</span><span className="gtag">dark</span></span>
-            </div>
-          </div>
-          <div className="gcard" data-tags="light commerce">
-            <a className="prevlink" href="/gallery/store" aria-label="Open the storefront live"><span className="prevbox"><iframe src="/examples/store.html" loading="lazy" title="Storefront preview" tabIndex={-1}></iframe></span></a>
-            {' '}
-            <div className="gcap">
-              <div className="row">
-                <b>Redline Supply · storefront</b>
-                <span className="acts"><a className="open" href="/gallery/store">Open</a><a className="open" href="/gallery/store/code">Code</a></span>
-              </div>
-              <span className="gtags"><span className="gtag">generated asset</span><span className="gtag">working cart</span><span className="gtag">light</span></span>
-            </div>
-          </div>
-          <div className="gcard" data-tags="dark portfolio">
-            <a className="prevlink" href="/gallery/studio" aria-label="Open the studio site live"><span className="prevbox"><iframe src="/examples/studio.html" loading="lazy" title="Studio site preview" tabIndex={-1}></iframe></span></a>
-            {' '}
-            <div className="gcap">
-              <div className="row">
-                <b>Foundry Nine · studio</b>
-                <span className="acts"><a className="open" href="/gallery/studio">Open</a><a className="open" href="/gallery/studio/code">Code</a></span>
-              </div>
-              <span className="gtags"><span className="gtag">generated covers</span><span className="gtag">tag filter</span><span className="gtag">dark</span></span>
-            </div>
-          </div>
-          <div className="gcard" data-tags="light landing">
-            <a className="prevlink" href="/gallery/landing" aria-label="Open the landing page live"><span className="prevbox"><iframe src="/examples/landing.html" loading="lazy" title="Landing page preview" tabIndex={-1}></iframe></span></a>
-            {' '}
-            <div className="gcap">
-              <div className="row">
-                <b>Ledgerline · landing</b>
-                <span className="acts"><a className="open" href="/gallery/landing">Open</a><a className="open" href="/gallery/landing/code">Code</a></span>
-              </div>
-              <span className="gtags"><span className="gtag">working modal</span><span className="gtag">validation</span><span className="gtag">light</span></span>
-            </div>
-          </div>
-        </div>
+        <MockSites />
       </section>
       <section className="ch">
         <h2 id="details">Details</h2>
-        <div className="spells">
-          <div className="spell">
-            <span className="speclabel">press physics · law 8</span>
+        <SpecimenGrid className="spells">
+          <SpecimenTile level={3} size="s" name="Press physics" meta={<span className="badge neutral">law 8</span>}>
             <div className="demo">
               <button className="btn btn-primary" type="button">Hold me down</button>
               <button className="btn btn-secondary" type="button">Me too</button>
             </div>
-          </div>
-          <div className="spell">
-            <span className="speclabel">accent bloom · named device</span>
+          </SpecimenTile>
+          <SpecimenTile level={3} size="s" name="Accent bloom">
             <div className="demo">
               <span className="bloomtab" id="bloom-a">Overview</span>
               <span className="bloomtab on" id="bloom-b">Quotes</span>
             </div>
-          </div>
-          <div className="spell">
-            <span className="speclabel">count-up stat · tap to rerun</span>
+          </SpecimenTile>
+          <SpecimenTile level={3} size="s" name="Count-up stat">
             <div className="demo">
               <div className="stat tapstat" id="countstat"><div className="num" id="countnum">2,481</div><div className="lbl">Quotes priced</div></div>
             </div>
-          </div>
-          <div className="spell">
-            <span className="speclabel">skeleton to loaded · tap to reload</span>
+          </SpecimenTile>
+          <SpecimenTile level={3} size="s" name="Skeleton to loaded">
             <div className="demo">
               <div className="lrows taprow" id="skelrow">
                 <div className="lrow">
@@ -267,41 +185,28 @@ export function Page() {
                 </div>
               </div>
             </div>
-          </div>
-          <div className="spell">
-            <span className="speclabel">toast choreography</span>
+          </SpecimenTile>
+          <SpecimenTile level={3} size="s" name="Toast">
             <div className="demo">
               <button className="btn btn-secondary" type="button" id="toastdemo">Trigger a toast</button>
             </div>
-          </div>
-          <div className="spell">
-            <span className="speclabel">switch · state color carries a word</span>
+          </SpecimenTile>
+          <SpecimenTile level={3} size="s" name="Switch">
             <div className="demo">
               <label className="sel switch-wrap"><input className="sw" type="checkbox" defaultChecked id="switchdemo" /><span className="switch"></span><span id="switchword">Provenance on</span></label>
             </div>
-          </div>
-        </div>
+          </SpecimenTile>
+        </SpecimenGrid>
       </section>
       <section className="ch">
         <h2 id="inspiration-shots">Inspiration shots</h2>
-        <div className="rendergrid">
-          <figure className="render">
-            <img src="/examples/renders/console-dark.png" alt="Concept render: dark ops console" loading="lazy" />
-            <figcaption>concept · not code</figcaption>
-          </figure>
-          <figure className="render">
-            <img src="/examples/renders/landing-light.png" alt="Concept render: light landing page" loading="lazy" />
-            <figcaption>concept · not code</figcaption>
-          </figure>
-          <figure className="render">
-            <img src="/examples/renders/quote-tool-dark.png" alt="Concept render: dark quoting tool" loading="lazy" />
-            <figcaption>concept · not code</figcaption>
-          </figure>
-          <figure className="render">
-            <img src="/examples/renders/mobile-dark.png" alt="Concept render: mobile app screens" loading="lazy" />
-            <figcaption>concept · not code</figcaption>
-          </figure>
-        </div>
+        <SpecimenGrid className="rendergrid">
+          {RENDERS.map(([file, name, alt]) => (
+            <SpecimenTile key={file} level={3} size="m" name={name} meta={concept}>
+              <img className="grender" src={`/examples/renders/${file}.png`} alt={alt} loading="lazy" />
+            </SpecimenTile>
+          ))}
+        </SpecimenGrid>
       </section>
       <footer className="site">
         <span>VERSEVA · open source · MIT</span>

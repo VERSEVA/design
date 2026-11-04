@@ -2,21 +2,19 @@
 // /gallery/<slug>/code, both inside the studio shell, both explicit rows in the
 // routes table with a parent. No gallery link leaves the shell; /examples/*.html
 // stay files (the iframes load them).
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, act, fireEvent } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
 import path from 'node:path';
-import { createRequire } from 'node:module';
 import { App } from '../src/App';
 import { navigate } from '../src/shell/router';
 import { ROUTES } from '../src/shell/routes';
 import { ROUTE_TABLE, LIVE_ROUTES } from '../src/shell/routes-table';
 import { exampleLink, GALLERY } from '../src/gallery/examples';
 import { Page as Gallery } from '../src/chapters/pages/gallery';
-import { GalleryCodePage, FROZEN_CODE } from '../src/gallery/GalleryCodePage';
-import { loadSource } from '../src/gallery/sources';
-import { createHash } from 'node:crypto';
+import { GalleryCodePage } from '../src/gallery/GalleryCodePage';
+import { REDESIGNED_ROUTES } from './redesigned';
 
 const repo = path.resolve(__dirname, '../..');
 const ORIGIN = window.location.origin;
@@ -45,7 +43,7 @@ describe('gallery rows in the routes table', () => {
 
   it('labels each example row with its gallery card name', () => {
     const { container } = render(<Gallery />);
-    const cards = [...container.querySelectorAll('.gcard')].map((c) => [c.querySelector('.prevlink')!.getAttribute('href'), c.querySelector('.gcap b')!.textContent]);
+    const cards = [...container.querySelectorAll('.gtile')].map((c) => [c.querySelector('.stile-foot a')!.getAttribute('href'), c.querySelector('.stile-name')!.textContent]);
     expect(cards).toEqual(GALLERY.map((g) => [`/gallery/${g.slug}`, ROUTE_TABLE.find((r) => r.path === `/gallery/${g.slug}`)!.label]));
   });
 });
@@ -65,7 +63,7 @@ describe('gallery links stay in the shell', () => {
   it('opens an example and its code from the gallery by clicking, in the shell', async () => {
     const { container } = render(<App />);
     await act(async () => { navigate('/gallery'); });
-    await act(async () => { fireEvent.click(container.querySelector('.gcard a.open[href="/gallery/pulse"]')!); });
+    await act(async () => { fireEvent.click(container.querySelector('.gtile a[href="/gallery/pulse"]')!); });
     expect(window.location.pathname).toBe('/gallery/pulse');
     expect(container.querySelector('.studio-side')).not.toBeNull();
     const frame = container.querySelector<HTMLIFrameElement>('.gex-frame')!;
@@ -162,51 +160,14 @@ describe('gallery links stay in the shell', () => {
   });
 });
 
-/* The legacy code.html after its own script, for one example, as the parity reference. */
-function legacyCode(slug: string): Element {
-  const { JSDOM } = createRequire(path.join(repo, 'studio/package.json'))('jsdom');
-  const html = fs.readFileSync(path.join(repo, 'site/code.html'), 'utf8').replace(/<script src="theme\.js[^"]*"><\/script>/, '');
-  let done!: () => void;
-  const fetched = new Promise<void>((r) => { done = r; });
-  const dom = new JSDOM(html, {
-    url: `${ORIGIN}/site/code.html?f=examples/${slug}.html`,
-    runScripts: 'dangerously',
-    beforeParse(w: Window & typeof globalThis) { w.fetch = (() => { setTimeout(done, 0); return Promise.resolve({ ok: true, text: () => Promise.resolve(source(slug)) }); }) as unknown as typeof fetch; },
+describe('the code route', () => {
+  it('retires its element-for-element parity with site/code.html, with a written reason', () => {
+    expect(REDESIGNED_ROUTES['/gallery/<slug>/code'].length).toBeGreaterThan(20);
   });
-  return Object.assign(dom.window.document.querySelector('.shell')!, { fetched });
-}
-
-describe('the code route against the legacy code.html', () => {
-  afterEach(() => { vi.restoreAllMocks(); });
-
-  it('pins the frozen site/code.html by hash', () => {
-    expect(createHash('sha256').update(fs.readFileSync(path.join(repo, 'site/code.html'))).digest('hex')).toBe(FROZEN_CODE);
-  });
-
-  it.each(files)('%s: renders what code.html showed once its script ran, element for element', async (slug) => {
-    const legacy = legacyCode(slug) as Element & { fetched: Promise<void> };
-    await legacy.fetched;
-    await new Promise((r) => setTimeout(r, 0));
-    legacy.querySelector('header.topbar')!.remove();
-    await loadSource(slug);
-    const { container } = render(<GalleryCodePage slug={slug} />);
-    await tick();
-    const chap = container.querySelector('.chap')!;
-    /* Written deviations: the breadcrumb row replaces the stripped top bar's "Back to the gallery". */
-    chap.querySelector(':scope > .hero > .crumbs')!.remove();
-    /* The source text is compared as text (React and jsdom escape quotes in text differently). */
-    expect(chap.querySelector('#srccode')!.textContent).toBe(legacy.querySelector('#srccode')!.textContent);
-    for (const el of [chap, legacy]) el.querySelector('#srccode')!.textContent = '';
-    const norm = (el: Element) => el.innerHTML.replace(/[ \t\n\r\f]+/g, ' ').replace(/> </g, '><').trim();
-    const want = norm(legacy).replace(`href="examples/${slug}.html"`, `href="/gallery/${slug}"`);
-    expect(norm(chap)).toBe(want);
-  });
-
-
 
   it('renders on the server with the crumbs and its h1', () => {
     const html = renderToStaticMarkup(<GalleryCodePage slug="pulse" />);
-    expect(html).toMatch(/<h1 id="srctitle">pulse<\/h1>/);
+    expect(html).toMatch(/<h1 id="srctitle">Pulse · analytics<\/h1>/);
     expect(html).toContain('aria-label="Breadcrumb"');
   });
 });
