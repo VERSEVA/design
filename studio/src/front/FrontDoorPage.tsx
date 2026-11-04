@@ -81,11 +81,12 @@ function CopyInstall() {
   );
 }
 
-function FrameTile({ src, title, kind, w }: { src: string; title: string; kind: string; w: string }) {
+/* The frame loads the example file; the cover opens its gallery page, inside the shell. */
+function FrameTile({ src, href, title, kind, w }: { src: string; href: string; title: string; kind: string; w: string }) {
   return (
     <div className={`card tile ${w}`}>
       <div className="frame" inert><iframe src={src} title={title} loading="lazy" tabIndex={-1} /></div>
-      <a className="cover" href={src} aria-label={`Open ${title}`} />
+      <a className="cover" href={href} aria-label={`Open ${title}`} />
       <span className="badge tag"><b>{title}</b>{kind}</span>
     </div>
   );
@@ -113,8 +114,8 @@ export function FrontDoorPage() {
       </section>
 
       <section className="stage" aria-label="Surfaces" ref={stage}>
-        <FrameTile src="/examples/pulse.html" title="Pulse" kind="dashboard" w="w4" />
-        <FrameTile src="/examples/launch.html" title="Launch" kind="landing" w="w2" />
+        <FrameTile src="/examples/pulse.html" href="/gallery/pulse" title="Pulse" kind="dashboard" w="w4" />
+        <FrameTile src="/examples/launch.html" href="/gallery/launch" title="Launch" kind="landing" w="w2" />
         <div className="card tile w2">
           <div className="deck">
             <span className="k">Q3 review · 04</span>

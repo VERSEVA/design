@@ -51,6 +51,253 @@
       "source": "/board/:path*",
       "destination": "/foundations",
       "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/console\\.html$"
+        }
+      ],
+      "destination": "/gallery/console/code",
+      "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/landing\\.html$"
+        }
+      ],
+      "destination": "/gallery/landing/code",
+      "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/launch\\.html$"
+        }
+      ],
+      "destination": "/gallery/launch/code",
+      "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/pulse\\.html$"
+        }
+      ],
+      "destination": "/gallery/pulse/code",
+      "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/quote-tool\\.html$"
+        }
+      ],
+      "destination": "/gallery/quote-tool/code",
+      "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/store\\.html$"
+        }
+      ],
+      "destination": "/gallery/store/code",
+      "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/studio\\.html$"
+        }
+      ],
+      "destination": "/gallery/studio/code",
+      "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/three-hero\\.html$"
+        }
+      ],
+      "destination": "/gallery/three-hero/code",
+      "permanent": true
+    },
+    {
+      "source": "/code.html",
+      "destination": "/gallery",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/console\\.html$"
+        }
+      ],
+      "destination": "/gallery/console/code",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/landing\\.html$"
+        }
+      ],
+      "destination": "/gallery/landing/code",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/launch\\.html$"
+        }
+      ],
+      "destination": "/gallery/launch/code",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/pulse\\.html$"
+        }
+      ],
+      "destination": "/gallery/pulse/code",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/quote-tool\\.html$"
+        }
+      ],
+      "destination": "/gallery/quote-tool/code",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/store\\.html$"
+        }
+      ],
+      "destination": "/gallery/store/code",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/studio\\.html$"
+        }
+      ],
+      "destination": "/gallery/studio/code",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "f",
+          "value": "^examples/three-hero\\.html$"
+        }
+      ],
+      "destination": "/gallery/three-hero/code",
+      "permanent": true
+    },
+    {
+      "source": "/site/code.html",
+      "destination": "/gallery",
+      "permanent": true
+    },
+    {
+      "source": "/site/components.html",
+      "destination": "/components",
+      "permanent": true
+    },
+    {
+      "source": "/site/data-viz.html",
+      "destination": "/data-viz",
+      "permanent": true
+    },
+    {
+      "source": "/site/decks.html",
+      "destination": "/decks",
+      "permanent": true
+    },
+    {
+      "source": "/site/distribute.html",
+      "destination": "/distribute",
+      "permanent": true
+    },
+    {
+      "source": "/site/docs-pdf.html",
+      "destination": "/docs-pdf",
+      "permanent": true
+    },
+    {
+      "source": "/site/examples.html",
+      "destination": "/gallery",
+      "permanent": true
+    },
+    {
+      "source": "/site/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/site/motion.html",
+      "destination": "/motion",
+      "permanent": true
+    },
+    {
+      "source": "/site/web-ui.html",
+      "destination": "/web-ui",
+      "permanent": true
     }
   ],
   "trailingSlash": false
