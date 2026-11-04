@@ -705,6 +705,158 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .bulkbar[aria-busy="true"] .btn{pointer-events:none}
 @media (max-width:767px){.bulkbar{width:auto;margin-inline:0;flex-wrap:wrap}.bulkbar .count{margin-right:auto;border-right:0}}
 
+/* ---- Widgets (1.6.0): grid, tile, edit mode, smart stack, gallery ---- */
+/* Grid: 4 columns, 2 under 1100px, 1 under 560px. Sparse row flow (never dense), so DOM order,
+   focus order and visual order agree. Each tile picks its view from data-size; the React grid
+   writes the fitted size, so L and XL show their M view in one column. */
+.wgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:180px;grid-auto-flow:row;gap:var(--s-4);width:100%}
+.wtile{position:relative;min-width:0;display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface-body),var(--glass-fill-3);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow),var(--glass-glow),var(--glass-inset);color:var(--text-1);transition:border-color var(--dur-1) var(--ease-standard),opacity var(--dur-2) var(--ease-standard)}
+.wtile[data-size="s"]{grid-column:span 1;grid-row:span 1}
+.wtile[data-size="m"]{grid-column:span 2;grid-row:span 1}
+.wtile[data-size="l"]{grid-column:span 2;grid-row:span 2}
+.wtile[data-size="xl"]{grid-column:span 4;grid-row:span 2}
+.wtile-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:var(--s-2);padding:var(--s-4);overflow:hidden;border-radius:inherit}
+.wtile-body:has(>.wstack){padding:0}
+.wtile-hd{display:flex;align-items:center;gap:var(--s-2);min-width:0;font-size:12px;font-weight:600;color:var(--text-2)}
+.wtile-hd svg{width:15px;height:15px;flex:none}
+.wtile-meta{margin-left:auto;font-weight:500;color:var(--text-2);white-space:nowrap}
+.wtile-num{font-family:var(--font-display);font-weight:var(--display-weight);font-size:30px;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.wtile[data-size="s"] .wtile-num{font-size:28px}
+.wtile[data-size="l"] .wtile-num,.wtile[data-size="xl"] .wtile-num{font-size:36px}
+.wtile-sub{font-size:12px;color:var(--text-2)}
+.wtile-foot{margin-top:auto;display:flex;align-items:center;gap:var(--s-2)}
+.wtile-rows{display:grid;gap:2px}
+.wtile-row{display:flex;align-items:center;gap:var(--s-2);min-height:28px;font-size:13px;color:var(--text-2)}
+.wtile-row b{color:var(--text-1);font-weight:600}
+.wtile-row .wtile-val{margin-left:auto;color:var(--text-1);font-variant-numeric:tabular-nums}
+
+/* States: hover, focus-visible (tiles take focus in edit mode), press, disabled, loading, error, empty */
+.wtile:hover{border-color:var(--hairline-strong)}
+.wtile:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wtile[aria-disabled="true"]{opacity:.45}
+.wtile[aria-disabled="true"] .wtile-body{pointer-events:none}
+.wtile[aria-busy="true"] .wtile-body{pointer-events:none}
+.wtile-skel{flex:1;min-height:0;display:flex;flex-direction:column;gap:var(--s-2)}
+.wtile-skel .skel{background:color-mix(in srgb,var(--text-1) 8%,transparent)}
+.wtile-skel-num.skel{height:28px;width:55%}
+.wtile-skel-plot.skel{flex:1;min-height:24px;height:auto;border-radius:var(--r-sm)}
+.wtile-err{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:var(--s-3);font-size:13px;color:var(--text-1)}
+.wtile-err .wtile-errline{display:flex;align-items:center;gap:var(--s-2)}
+.wtile-err .wtile-errline svg{width:16px;height:16px;flex:none;color:var(--danger)}
+.wgrid-empty{grid-column:1/-1;grid-row:span 1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-3);border:1.5px dashed var(--hairline-strong);border-radius:var(--r-lg);color:var(--text-2);font-size:13.5px}
+.wgrid-empty b{color:var(--text-1);font-family:var(--font-display);font-weight:var(--heading-weight);font-size:16px}
+
+/* Edit mode: jiggle is rotation only; content goes quiet; remove, size, move and handle appear */
+.wgrid[data-editing] .wtile{cursor:grab;animation:wtile-jiggle var(--dur-3) var(--ease-standard) infinite alternate}
+.wgrid[data-editing] .wtile:nth-child(2n){animation-delay:calc(var(--dur-3) * -.5)}
+.wgrid[data-editing] .wtile:active{cursor:grabbing;animation:none;transform:scale(.98)}
+.wgrid[data-editing] .wtile-body{opacity:.4;pointer-events:none;user-select:none}
+.wtile[data-dragging]{opacity:.4;animation:none}
+@keyframes wtile-jiggle{from{transform:rotate(-.45deg)}to{transform:rotate(.45deg)}}
+.wtile-x,.wtile-edit,.wtile-handle{display:none}
+.wgrid[data-editing] .wtile-x,.wgrid[data-editing] .wtile-handle{display:grid}
+.wgrid[data-editing] .wtile-edit{display:flex}
+.wtile-x,.wtile-handle{position:absolute;top:0;z-index:2;width:44px;height:44px;place-items:center;padding:0;border:0;background:none;color:var(--text-1);cursor:pointer}
+.wtile-x{left:0}
+.wtile-handle{right:0;cursor:grab;touch-action:none}
+.wtile-x::before,.wtile-handle::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--surface-2);border:1px solid var(--hairline-strong);transition:background var(--dur-1) var(--ease-standard),color var(--dur-1) var(--ease-standard),transform var(--dur-1) var(--ease-standard)}
+.wtile-x svg,.wtile-handle svg{position:relative;width:14px;height:14px}
+.wtile-x:hover{color:var(--danger)}
+.wtile-x:hover::before{background:linear-gradient(var(--danger-bg),var(--danger-bg)),var(--surface)}
+.wtile-handle:hover::before{background:var(--surface)}
+.wtile-x:focus-visible,.wtile-handle:focus-visible{outline:2px solid var(--focus);outline-offset:-4px;border-radius:50%}
+.wtile-x:active::before,.wtile-handle:active::before{transform:scale(.92)}
+.wtile-x:active,.wtile-handle:active{cursor:grabbing}
+.wtile-x[aria-disabled="true"],.wtile-handle[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.wtile-edit{position:absolute;inset:44px 0 0;z-index:2;flex-direction:column;align-items:center;justify-content:flex-end;gap:var(--s-2);padding:0 0 var(--s-2);pointer-events:none}
+.wtile-edit>*{pointer-events:auto}
+.wtile-sizes,.wtile-move{display:inline-flex;flex-wrap:wrap;justify-content:center;border-radius:var(--r-pill);background:var(--surface-2);border:1px solid var(--hairline);box-shadow:var(--e-1)}
+.wtile-sizes button,.wtile-move button{min-width:44px;height:44px;display:grid;place-items:center;padding:0 var(--s-2);border:0;border-radius:var(--r-pill);background:transparent;color:var(--text-2);font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background var(--dur-1) var(--ease-standard),color var(--dur-1) var(--ease-standard),transform var(--dur-1) var(--ease-standard)}
+.wtile-move button svg{width:16px;height:16px}
+.wtile-sizes button:hover,.wtile-move button:hover{color:var(--text-1);background:color-mix(in srgb,var(--text-1) 6%,transparent)}
+.wtile-sizes button[aria-pressed="true"]{background:var(--surface);color:var(--text-1);box-shadow:var(--e-1)}
+.wtile-sizes button:focus-visible,.wtile-move button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.wtile-sizes button:active,.wtile-move button:active{transform:translateY(1px)}
+.wtile-sizes button[aria-disabled="true"],.wtile-move button[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.wtile-sizes button[aria-disabled="true"]:hover,.wtile-move button[aria-disabled="true"]:hover{background:transparent;color:var(--text-2)}
+/* The handle is the touch reorder (HTML drag does not fire on iOS); fine pointers drag the tile itself */
+@media (pointer:fine){.wgrid[data-editing] .wtile-handle{display:none}}
+.wgrid-add{grid-column:span 1;grid-row:span 1;min-width:44px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-2);border:1.5px dashed var(--hairline-strong);border-radius:var(--r-lg);background:transparent;color:var(--text-2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:color var(--dur-1) var(--ease-standard),border-color var(--dur-1) var(--ease-standard),transform var(--dur-1) var(--ease-standard)}
+.wgrid-add svg{width:22px;height:22px}
+.wgrid-add:hover{color:var(--text-1);border-color:var(--text-2)}
+.wgrid-add:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wgrid-add:active{transform:translateY(1px)}
+.wgrid-add[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+/* Undo after a remove: one toast, bottom centre, above the phone nav */
+.wgrid-undo{position:fixed;left:50%;bottom:calc(var(--s-5) + env(safe-area-inset-bottom,0px));z-index:30;transform:translateX(-50%)}
+.wgrid-undo .toast{max-width:min(360px,calc(100vw - var(--s-5)))}
+.wgrid-undo .toast .btn{margin-left:var(--s-2);min-height:44px;color:var(--text-1);font-size:.875rem}
+
+/* Accent budget (law 3, one accent per view): charts in a tile draw on the text ladder; only the
+   widget the product marks focus keeps the viz kit's accent. */
+.wtile:not([data-focus]) .bar .fill,.wtile:not([data-focus]) .stat .microbar i,.wtile:not([data-focus]) .hbar .htrack i,.wtile:not([data-focus]) .markstrip i.current,.wtile:not([data-focus]) .vizlegend i{background:var(--text-1)}
+.wtile:not([data-focus]) .hbar .htrack i.alt,.wtile:not([data-focus]) .vizlegend i.alt{background:var(--data-alt)}
+.wtile:not([data-focus]) .ring .ringfill{stroke:var(--text-1)}
+.wtile:not([data-focus]) .stat .num i{color:var(--text-1)}
+.wtile:not([data-focus]) .heat span.d1,.wtile:not([data-focus]) .actstrip i[data-l="1"],.wtile:not([data-focus]) .actcal i[data-l="1"]{background:color-mix(in srgb,var(--text-1) 30%,transparent)}
+.wtile:not([data-focus]) .heat span.d2,.wtile:not([data-focus]) .actstrip i[data-l="2"],.wtile:not([data-focus]) .actcal i[data-l="2"]{background:var(--text-2)}
+.wtile:not([data-focus]) .heat span.d3,.wtile:not([data-focus]) .actstrip i[data-l="3"],.wtile:not([data-focus]) .actcal i[data-l="3"]{background:var(--text-1)}
+.wtile:not([data-focus]) .actstrip i.today,.wtile:not([data-focus]) .actcal i.today{box-shadow:0 0 0 2px var(--text-2)}
+.wtile:not([data-focus]) [stroke="var(--data-3)"]{stroke:var(--text-1)}
+.wtile:not([data-focus]) [fill="var(--data-3)"]{fill:var(--text-1)}
+.wtile:not([data-focus]) [stop-color="var(--data-3)"]{stop-color:var(--text-1)}
+
+/* Smart stack: one slot, several widgets; scroll, swipe, dots or a timer with a visible pause */
+.wstack{position:relative;flex:1;min-height:0;display:flex;touch-action:pan-y}
+.wstack-pages{position:relative;flex:1;min-width:0}
+.wstack-page{position:absolute;inset:0;display:flex;flex-direction:column;gap:var(--s-2);padding:var(--s-4) 0 var(--s-4) var(--s-4);transition:opacity var(--dur-3) var(--ease-standard),transform var(--dur-3) var(--ease-emph)}
+.wstack-page[data-pos="prev"]{opacity:0;transform:translateX(-18px);pointer-events:none}
+.wstack-page[data-pos="next"]{opacity:0;transform:translateX(18px);pointer-events:none}
+.wstack-nav{flex:none;width:44px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.wstack-dot,.wstack-pause,.wstack-step{position:relative;width:44px;height:44px;flex:none;display:grid;place-items:center;padding:0;border:0;background:none;color:var(--text-2);cursor:pointer}
+.wstack-dot::before{content:"";width:6px;height:6px;border-radius:3px;background:var(--text-2);transition:transform var(--dur-2) var(--ease-spring),background var(--dur-1) var(--ease-standard)}
+.wstack-dot[aria-current="true"]::before{background:var(--text-1);transform:scaleY(2.67)}
+.wstack-dot:hover::before{background:var(--text-1)}
+.wstack-pause svg{width:14px;height:14px}
+.wstack-step svg{width:16px;height:16px}
+.wstack-pause:hover,.wstack-step:hover{color:var(--text-1)}
+.wstack-dot:focus-visible,.wstack-pause:focus-visible,.wstack-step:focus-visible{outline:2px solid var(--focus);outline-offset:-6px;border-radius:var(--r-sm)}
+.wstack-dot:active::before{transform:scale(.8)}
+.wstack-pause:active,.wstack-step:active{transform:scale(.94)}
+.wstack-dot[aria-disabled="true"],.wstack-pause[aria-disabled="true"],.wstack-step[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+
+/* Gallery drawer content (inside .drawer > .drawer-bd: an opaque surface) */
+.wgal{list-style:none;margin:0;padding:var(--s-3) 0;display:grid;gap:var(--s-3)}
+.wgal-item{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3);padding:var(--s-3);border-radius:var(--r-md);background:var(--surface-2)}
+.wgal-icon{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:var(--r-sm);background:var(--surface);color:var(--text-1)}
+.wgal-icon svg{width:18px;height:18px}
+.wgal-name{flex:1;min-width:0;font-size:14px;font-weight:600}
+.wgal-name small{display:block;font-size:12px;font-weight:500;color:var(--text-2)}
+.wgal-sizes{display:inline-flex;gap:2px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--hairline)}
+.wgal-sizes button{min-width:44px;height:44px;padding:0 var(--s-2);border:0;border-radius:var(--r-pill);background:transparent;color:var(--text-1);font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background var(--dur-1) var(--ease-standard),transform var(--dur-1) var(--ease-standard)}
+.wgal-sizes button:hover{background:var(--surface-2)}
+.wgal-sizes button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.wgal-sizes button:active{transform:translateY(1px)}
+.wgal-sizes button[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.wgal-sizes button[aria-disabled="true"]:hover{background:transparent}
+
+@media (max-width:1099.98px){.wgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 2}}
+@media (max-width:559.98px){.wgrid{grid-template-columns:minmax(0,1fr);gap:var(--s-3)}.wtile[data-size]{grid-column:span 1;grid-row:span 1}.wtile-body{padding:var(--s-3)}}
+/* A forced column count (the columns prop) wins over the viewport breakpoints */
+.wgrid[data-cols="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+.wgrid[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.wgrid[data-cols="1"]{grid-template-columns:minmax(0,1fr)}
+.wgrid[data-cols="4"] .wtile[data-size="s"],.wgrid[data-cols="2"] .wtile[data-size="s"]{grid-column:span 1;grid-row:span 1}
+.wgrid[data-cols="4"] .wtile[data-size="m"],.wgrid[data-cols="2"] .wtile[data-size="m"]{grid-column:span 2;grid-row:span 1}
+.wgrid[data-cols="4"] .wtile[data-size="l"],.wgrid[data-cols="2"] .wtile[data-size="l"],.wgrid[data-cols="2"] .wtile[data-size="xl"]{grid-column:span 2;grid-row:span 2}
+.wgrid[data-cols="4"] .wtile[data-size="xl"]{grid-column:span 4;grid-row:span 2}
+.wgrid[data-cols="1"] .wtile[data-size]{grid-column:span 1;grid-row:span 1}
+@media (prefers-reduced-motion:reduce){
+  .wtile,.wgrid-add,.wtile-sizes button,.wtile-move button,.wgal-sizes button,.wtile-x::before,.wtile-handle::before,.wstack-dot::before,.wstack-page{transition:none}
+  .wgrid[data-editing] .wtile,.wgrid[data-editing] .wtile:nth-child(2n){animation:none}
+  .wgrid[data-editing] .wtile:active,.wgrid-add:active,.wstack-pause:active,.wstack-step:active{transform:none}
+}
+
 /* ---- Spacing utilities (the seam law's handrail). Rhythm stays at class
    level, and these ARE classes: mt-5 means margin-top: var(--s-5), straight
    off the scale, so a seam is never left to memory. Vertical + gap only;

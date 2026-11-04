@@ -12,3 +12,7 @@ jobs:
           node-version: 22
       - run: npm test
       - run: npm run gate
+      # The studio suite carries the rendered checks (accent count, React parts, axe) and typechecks react/.
+      - run: npm --prefix studio ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm --prefix studio test
