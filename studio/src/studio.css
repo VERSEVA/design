@@ -113,7 +113,9 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 :root[data-nav-shut~="chapters"] .sgroup[data-g="chapters"]:not(:has([aria-current])) .sgroup-chev,
 :root[data-nav-shut~="gallery"] .sgroup[data-g="gallery"]:not(:has([aria-current])) .sgroup-chev { transform: rotate(-90deg); }
 .snav a:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
-.side-full .collapse-row { margin-top: auto; min-height: 40px; }
+/* The toggle stays in view at the bottom of the sidebar, however long the nav: sticky inside its own scroll. */
+.side-full .collapse-row { position: sticky; bottom: 0; z-index: 1; margin-top: auto; min-height: 40px; background: var(--bg); box-shadow: 0 -1px 0 var(--hairline-soft); }
+.side-full .collapse-row:hover { background: color-mix(in srgb, var(--text-1) 6%, var(--bg)); }
 .side-rail { display: none; flex-direction: column; align-items: center; gap: var(--s-1); min-height: 100%; padding: var(--s-4) 0 var(--s-3); }
 :root[data-rail="collapsed"] .side-full { display: none; }
 :root[data-rail="collapsed"] .side-rail { display: flex; }

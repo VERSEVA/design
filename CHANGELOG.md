@@ -16,8 +16,16 @@
   language, routed in the shell. The theme picker, token readout, frame stage and counts row leave the home (the
   header's color popover and Foundations carry them); the home no longer loads the 3D stage.
 
+### Fixed
+
+- **The studio side nav stays fixed while the page scrolls.** Expanded and collapsed to the rail, it sits below the
+  header at full height, scrolls its own list when that is longer than the viewport, and keeps the collapse toggle
+  in view at its foot (the expanded toggle had scrolled out of reach on long pages).
+
 ### Tests
 
+- `test/served/sidebar.test.mjs`: at 1280, `/components` scrolled to its end, the sidebar's top stays at the header
+  bottom, it fills to the viewport bottom, and its collapse toggle is in view, expanded and collapsed.
 - `test/served/home.test.mjs`: the law 3 accent budget on `/` at 1440 and 375 in both schemes (with a planted
   spend), the hero's animations (running, transform and opacity only, stopped by Pause motion and by reduced
   motion), Get started in Chrome, and the 375px fold at 667, 812 and 360 by 640. The served harness takes
