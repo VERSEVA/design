@@ -24,6 +24,12 @@
 - **Components: 50 sections as tiles.** Section ids, deep links, the On this page rail and the demos are
   unchanged; each code panel shows the generated, byte-checked sample from `chapter-code.mjs`.
 - **Foundations: each token family is a tile,** with its declarations (`:root` and the light flip) as its code.
+- **Web UI, Distribute and Docs + PDF as tiles.** Web UI: the ladders, type trio and radius tables, then the four
+  contract specimens (Buttons, Status, Card + stat, Segmented + field) under their section. Distribute: the command
+  blocks, the agent tool table and the theme presets. Docs + PDF: the memo in one XL tile. Section ids, cold deep links
+  and the On this page rail are unchanged; the bento has no holes at 4 and 2 columns. The legacy doctrine sublabels
+  above the Web UI specimens are gone (labels and counts only). These pages have no generated code samples, so their
+  tiles show no code.
 
 ### Fixed
 

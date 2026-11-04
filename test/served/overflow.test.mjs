@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 import { root, out, routes, start } from './chrome.mjs';
 
 export { resolveServed } from './chrome.mjs';
-export const PROBED = ['/', '/foundations', '/components', '/motion', '/widgets', '/gallery', ...routes.filter((r) => r.path.startsWith('/gallery/')).map((r) => r.path)];
+export const PROBED = ['/', '/foundations', '/components', '/web-ui', '/distribute', '/docs-pdf', '/motion', '/widgets', '/gallery', ...routes.filter((r) => r.path.startsWith('/gallery/')).map((r) => r.path)];
 const WIDTH = 375;
 /* Both schemes, at 375px, 371px and 360px (the narrowest common phone). The #bulk specimen on
    /components fit at 375px and spilled 0.53px past a 371px viewport (372 vs 371) in either
