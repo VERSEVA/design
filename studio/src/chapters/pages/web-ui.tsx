@@ -1,8 +1,15 @@
-// Ported from site/web-ui.html (frozen): same copy, same specimens, same anchors.
+// Web app UI: every specimen as a studio tile (1.7.0 redesign), in the /widgets language.
+// The tables and specimens are the frozen site/web-ui.html content; the tiles around them are new.
+// The page has no generated code samples, so the tiles carry no Show code.
 import { NativeChapter } from '../NativeChapter';
+import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
+import './web-ui.css';
 
-/* sha256 of site/web-ui.html; the parity test fails if the frozen page changes. */
-export const FROZEN = '04e77ca367d9aabc69697eedc91c6663a362c3b1912f103197214ced3b9085c3';
+/* One header icon per category. */
+const ICON = {
+  table: tileIcon(<><rect x="4" y="5" width="16" height="14" rx="2" /><path d="M4 10h16M10 10v9" /></>),
+  control: tileIcon(<><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></>),
+};
 
 export function Page() {
   return (
@@ -10,182 +17,171 @@ export function Page() {
       <section className="hero">
         <h1>Web app UI</h1>
       </section>
-      <section className="ch" id="the-ladders">
-        <h2>The ladders</h2>
-        <div className="tscroll">
-          <table className="ttable">
-            <thead>
-              <tr>
-                <th>Role</th>
-                <th></th>
-                <th>Job</th>
-                <th>Floor</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>--bg / --surface / --surface-2</td>
-                <td>
-                  <span className="swatch sw-bg"></span>
-                  {' '}
-                  <span className="swatch sw-surface"></span>
-                  {' '}
-                  <span className="swatch sw-surface2"></span>
-                </td>
-                <td>Canvas and card grounds</td>
-                <td>ground</td>
-              </tr>
-              <tr>
-                <td>--text-1 / -2 / -3</td>
-                <td>
-                  <span className="swatch sw-t1"></span>
-                  {' '}
-                  <span className="swatch sw-t2"></span>
-                  {' '}
-                  <span className="swatch sw-t3"></span>
-                </td>
-                <td>Primary, secondary, hints</td>
-                <td>4.5 / 4.5 / 3</td>
-              </tr>
-              <tr>
-                <td>--accent</td>
-                <td>
-                  <span className="swatch sw-accent"></span>
-                </td>
-                <td>One per view, matte</td>
-                <td>label 4.5</td>
-              </tr>
-              <tr>
-                <td>--success / --warn / --danger</td>
-                <td>
-                  <span className="swatch sw-success"></span>
-                  {' '}
-                  <span className="swatch sw-warn"></span>
-                  {' '}
-                  <span className="swatch sw-danger"></span>
-                </td>
-                <td>Status on tints, never alone</td>
-                <td>4.5 on tint</td>
-              </tr>
-              <tr>
-                <td>--hairline*</td>
-                <td></td>
-                <td>Decoration only, never a boundary</td>
-                <td>none</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="ch" id="type-trio">
-        <h2>Type trio</h2>
-        <div className="tscroll">
-          <table className="ttable">
-            <thead>
-              <tr>
-                <th>Token</th>
-                <th>Face</th>
-                <th>Job</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>--font-display</td>
-                <td>Archivo 650</td>
-                <td>Short statements, tight tracking, accent full stop</td>
-              </tr>
-              <tr>
-                <td>--font-sans</td>
-                <td>Manrope 400-700</td>
-                <td>Everything a human reads; body 13-14px, meta 11-12.5px</td>
-              </tr>
-              <tr>
-                <td>--font-mono</td>
-                <td>JetBrains Mono</td>
-                <td>Machines: IDs, codes, microlabels to 10px</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="ch" id="radius-press">
-        <h2>Radius + press · amended 2026-08-31</h2>
-        <div className="tscroll">
-          <table className="ttable">
-            <thead>
-              <tr>
-                <th>Surface</th>
-                <th>Radius</th>
-                <th>Press</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>controls</td>
-                <td>10-14 (--r-sm to --r-btn)</td>
-                <td>sit down · translateY(1px)</td>
-              </tr>
-              <tr>
-                <td>product cards</td>
-                <td>14 (--r-md)</td>
-                <td>none</td>
-              </tr>
-              <tr>
-                <td>modals, elevated</td>
-                <td>22 (--r-lg)</td>
-                <td>none</td>
-              </tr>
-              <tr>
-                <td>sheets</td>
-                <td>26-30</td>
-                <td>none</td>
-              </tr>
-              <tr>
-                <td>floating / icon controls</td>
-                <td>16 within pill frames</td>
-                <td>compress · scale(.92-.97)</td>
-              </tr>
-              <tr>
-                <td>chips</td>
-                <td>pill</td>
-                <td>none</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <SpecimenGrid>
+        <SpecimenTile id="the-ladders" name="The ladders" icon={ICON.table} size="xl" meta="5 roles">
+          <div className="tscroll">
+            <table className="ttable">
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th></th>
+                  <th>Job</th>
+                  <th>Floor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>--bg / --surface / --surface-2</td>
+                  <td>
+                    <span className="swatch sw-bg"></span>
+                    {' '}
+                    <span className="swatch sw-surface"></span>
+                    {' '}
+                    <span className="swatch sw-surface2"></span>
+                  </td>
+                  <td>Canvas and card grounds</td>
+                  <td>ground</td>
+                </tr>
+                <tr>
+                  <td>--text-1 / -2 / -3</td>
+                  <td>
+                    <span className="swatch sw-t1"></span>
+                    {' '}
+                    <span className="swatch sw-t2"></span>
+                    {' '}
+                    <span className="swatch sw-t3"></span>
+                  </td>
+                  <td>Primary, secondary, hints</td>
+                  <td>4.5 / 4.5 / 3</td>
+                </tr>
+                <tr>
+                  <td>--accent</td>
+                  <td>
+                    <span className="swatch sw-accent"></span>
+                  </td>
+                  <td>One per view, matte</td>
+                  <td>label 4.5</td>
+                </tr>
+                <tr>
+                  <td>--success / --warn / --danger</td>
+                  <td>
+                    <span className="swatch sw-success"></span>
+                    {' '}
+                    <span className="swatch sw-warn"></span>
+                    {' '}
+                    <span className="swatch sw-danger"></span>
+                  </td>
+                  <td>Status on tints, never alone</td>
+                  <td>4.5 on tint</td>
+                </tr>
+                <tr>
+                  <td>--hairline*</td>
+                  <td></td>
+                  <td>Decoration only, never a boundary</td>
+                  <td>none</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="type-trio" name="Type trio" icon={ICON.table} size="m" meta="3 faces">
+          <div className="tscroll">
+            <table className="ttable">
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th>Face</th>
+                  <th>Job</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>--font-display</td>
+                  <td>Archivo 650</td>
+                  <td>Short statements, tight tracking, accent full stop</td>
+                </tr>
+                <tr>
+                  <td>--font-sans</td>
+                  <td>Manrope 400-700</td>
+                  <td>Everything a human reads; body 13-14px, meta 11-12.5px</td>
+                </tr>
+                <tr>
+                  <td>--font-mono</td>
+                  <td>JetBrains Mono</td>
+                  <td>Machines: IDs, codes, microlabels to 10px</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="radius-press" name="Radius + press · amended 2026-08-31" icon={ICON.table} size="m" meta="6 surfaces">
+          <div className="tscroll">
+            <table className="ttable">
+              <thead>
+                <tr>
+                  <th>Surface</th>
+                  <th>Radius</th>
+                  <th>Press</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>controls</td>
+                  <td>10-14 (--r-sm to --r-btn)</td>
+                  <td>sit down · translateY(1px)</td>
+                </tr>
+                <tr>
+                  <td>product cards</td>
+                  <td>14 (--r-md)</td>
+                  <td>none</td>
+                </tr>
+                <tr>
+                  <td>modals, elevated</td>
+                  <td>22 (--r-lg)</td>
+                  <td>none</td>
+                </tr>
+                <tr>
+                  <td>sheets</td>
+                  <td>26-30</td>
+                  <td>none</td>
+                </tr>
+                <tr>
+                  <td>floating / icon controls</td>
+                  <td>16 within pill frames</td>
+                  <td>compress · scale(.92-.97)</td>
+                </tr>
+                <tr>
+                  <td>chips</td>
+                  <td>pill</td>
+                  <td>none</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </SpecimenTile>
+      </SpecimenGrid>
       <section className="ch" id="contract-specimens">
         <h2>Contract specimens</h2>
-        <div className="specstack">
-          <div>
-            <div className="speclabel">buttons · equal-sized pairs, fill decides</div>
-            <div className="spec">
+        <SpecimenGrid>
+          <SpecimenTile name="Buttons" level={3} icon={ICON.control} size="m" meta="5 variants">
+            <div className="demo">
               <button className="btn btn-primary" type="button">Primary</button>
-              {' '}
               <button className="btn btn-secondary" type="button">Secondary</button>
-              {' '}
               <button className="btn btn-ghost" type="button">Ghost</button>
-              {' '}
               <button className="btn btn-destructive" type="button">Delete</button>
-              {' '}
               <button className="btn btn-primary" type="button" disabled>Disabled</button>
             </div>
-          </div>
-          <div>
-            <div className="speclabel">status · word-carrying chips</div>
-            <div className="spec">
+          </SpecimenTile>
+          <SpecimenTile name="Status" level={3} icon={ICON.control} size="m" meta="4 chips">
+            <div className="demo">
               <span className="badge ok">Deployed</span>
-              {' '}
               <span className="badge warn">2 pending</span>
-              {' '}
               <span className="badge err">1 failing</span>
-              {' '}
               <span className="badge neutral">Draft</span>
             </div>
-          </div>
-          <div>
-            <div className="speclabel">card + stat</div>
-            <div className="spec">
+          </SpecimenTile>
+          <SpecimenTile name="Card + stat" level={3} icon={ICON.control} size="m">
+            <div className="demo">
               <div className="card">
                 <div className="hd">
                   <h4>Quote 2081</h4>
@@ -201,10 +197,9 @@ export function Page() {
                 <div className="lbl">p95 after the sweep</div>
               </div>
             </div>
-          </div>
-          <div>
-            <div className="speclabel">segmented + field</div>
-            <div className="spec">
+          </SpecimenTile>
+          <SpecimenTile name="Segmented + field" level={3} icon={ICON.control} size="m">
+            <div className="demo">
               <div className="seg">
                 <button type="button" aria-selected="true">Week</button>
                 <button type="button">Month</button>
@@ -216,8 +211,8 @@ export function Page() {
                 <div className="help">As it appears on the quote.</div>
               </div>
             </div>
-          </div>
-        </div>
+          </SpecimenTile>
+        </SpecimenGrid>
       </section>
       <footer className="site">
         <span>VERSEVA · open source · MIT</span>

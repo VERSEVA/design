@@ -1,0 +1,4 @@
+/* The Distribute chapter, scoped to its page. The tiles come from tiles/tiles.css; these
+   rules lay out the specimens inside them (the legacy .spec box is the tile now). */
+[data-chapter="distribute"] .stile-spec { gap: var(--s-4); }
+[data-chapter="distribute"] .demo { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: flex-start; }
