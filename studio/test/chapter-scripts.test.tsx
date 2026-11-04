@@ -2,6 +2,8 @@
 // idempotent across StrictMode's mount, cleanup, mount, and does what it did on the legacy page.
 import { describe, it, expect, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
+import fs from 'node:fs';
+import path from 'node:path';
 import { StrictMode } from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { Page as DataViz } from '../src/chapters/pages/data-viz';
@@ -88,6 +90,14 @@ describe('motion chapter script', () => {
     unmount();
     expect(window.versevaThemeWipe).toBeUndefined();
     expect(canon(chap)).toBe(canon(pristine()));
+  });
+
+  it('gets the .js root class the legacy theme.js set, so the line reveal starts hidden and slides in', () => {
+    const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
+    const head = html.match(/<script>([\s\S]*?)<\/script>/)![1];
+    document.documentElement.classList.remove('js');
+    new Function(head)();
+    expect(document.documentElement.classList.contains('js')).toBe(true);
   });
 
   it('runs the demos as the legacy page did', () => {
