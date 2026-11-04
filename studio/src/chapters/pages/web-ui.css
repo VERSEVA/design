@@ -1,0 +1,5 @@
+/* The Web app UI chapter, scoped to its page. The tiles come from tiles/tiles.css; these
+   rules lay out the specimens inside them (the legacy .spec box is the tile now). */
+[data-chapter="web-ui"] .demo { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: flex-start; }
+[data-chapter="web-ui"] .demo .card { flex: 1 1 240px; min-width: 0; }
+[data-chapter="web-ui"] .demo .field { flex: 1 1 200px; min-width: 0; }
