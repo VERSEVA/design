@@ -44,9 +44,26 @@
   and the On this page rail are unchanged; the bento has no holes at 4 and 2 columns. The legacy doctrine sublabels
   above the Web UI specimens are gone (labels and counts only). These pages have no generated code samples, so their
   tiles show no code.
+- **Data viz, Motion and Decks as tiles.** Data viz keeps law 3 the way a product must: one focus tile (Line + area)
+  spends the data accent and the other nine charts draw on the text ladder. Motion's Replay, Roll it, Point at it,
+  Resolve it and Open it sit in their tiles' footers; the theme wipe, the curves race and the Pause motion control
+  work as before. Decks: the slide and the structure table side by side. The Data viz and Motion samples load on
+  first intent (main chunk 141.22 to 137.56 kB gzip).
+- **Data viz recipes follow the data-intensity rule.** Bar magnitude goes through `data-l` (new `.bar .fill[data-l]`
+  rungs in `components.css`, with their text-ladder twins in a tile without `data-focus`), Stacked segments take
+  series identity (series one, `--data-alt`, a neutral third on `--text-2`) instead of the magnitude ladder, the intensity legend
+  uses the same rungs as its cells, and the source dot uses a neutral token, not `--success`. No chart colour is
+  inline. The Data viz samples are generated from these specimens as drawn and held byte for byte
+  (`specimen-code.test.tsx`), so a sample cannot drift from what renders.
+- **Chart marks clear 3:1 and their labels 4.5:1 in both modes.** The text-ladder rung 1 a tile without `data-focus`
+  draws (bars, heat cells, activity strips) lifts from 30% to 50% `--text-1` (light was 2.0:1, dark 2.6:1); the
+  Stacked third series fills `--text-2` with a `--bg` label, and the Priced label takes `--surface` (4.46 to 5:1).
+- **`SpecimenTile` `focus` prop** (default true): false drops `data-focus`, so the package recolours the tile's charts.
 
 ### Fixed
 
+- **On this page marks the deep-linked section on a page too short to scroll** (Decks at 1440x900: both tiles in
+  one row below the line marked Slide anatomy for `/decks#structure`).
 - **The studio side nav stays fixed while the page scrolls.** Expanded and collapsed to the rail, it sits below the
   header at full height, scrolls its own list when that is longer than the viewport, and keeps the collapse toggle
   in view at its foot (the expanded toggle had scrolled out of reach on long pages).

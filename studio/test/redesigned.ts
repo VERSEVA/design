@@ -8,6 +8,9 @@ export const REDESIGNED: Readonly<Record<string, string>> = {
   distribute: 'studio specimen tiles: commands, agent tools and theme presets as tiles (1.7.0, feat/tiles-chapters-a); tested by chapter-tiles.test.tsx',
   'docs-pdf': 'studio specimen tiles: the memo anatomy as one XL tile (1.7.0, feat/tiles-chapters-a); tested by chapter-tiles.test.tsx',
   gallery: 'a bento of example tiles with lazy, inert live thumbnails (1.7.0, feat/tiles-gallery); tested by gallery-tiles.test.tsx',
+  'data-viz': 'studio specimen tiles with one focus tile (law 3), specimens as the recipe source and samples generated from them (1.7.0, feat/tiles-chapters-b); tested by chapter-tiles.test.tsx and specimen-code.test.tsx',
+  motion: 'studio specimen tiles, demo controls in the tile footers, samples still from the frozen page (1.7.0, feat/tiles-chapters-b); tested by chapter-tiles.test.tsx and chapter-scripts.test.tsx',
+  decks: 'studio specimen tiles: the slide and the structure table side by side (1.7.0, feat/tiles-chapters-b); tested by chapter-tiles.test.tsx',
 };
 
 /* Routes that are not chapters but were ported element for element from a frozen page, and

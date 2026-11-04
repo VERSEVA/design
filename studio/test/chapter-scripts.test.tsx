@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
 import path from 'node:path';
 import { StrictMode } from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, act, waitFor } from '@testing-library/react';
 import { Page as DataViz } from '../src/chapters/pages/data-viz';
 import CODE from '../src/chapters/pages/data-viz.code.json';
 import { Page as Motion } from '../src/chapters/pages/motion';
@@ -16,26 +16,26 @@ import { Page as Components } from '../src/chapters/pages/components';
 import COMPONENTS_CODE from '../src/chapters/pages/components.code.json';
 
 describe('data-viz chapter script', () => {
-  it('adds one code toggle per demo, even under StrictMode, and removes them on unmount', () => {
+  it('draws once under StrictMode, leaves the code panels to the tiles, and removes what it added on unmount', () => {
     const { container, unmount } = render(<StrictMode><DataViz /></StrictMode>);
-    const demos = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.demo') && c.querySelector('.codewrap'));
-    expect(demos.length).toBeGreaterThan(0);
-    expect(container.querySelectorAll('.codetoggle').length).toBe(demos.length);
+    const tiles = container.querySelectorAll('section.stile');
+    expect(tiles.length).toBe(10);
+    expect(container.querySelectorAll('.stile-toggle').length).toBe(tiles.length);
+    expect(container.querySelectorAll('.codetoggle, .codewrap, .copybtn').length).toBe(0);
     expect(container.querySelectorAll('#vseries .reftag').length).toBe(1);
     const chap = container.querySelector('.chap')!;
     unmount();
-    expect(chap.querySelectorAll('.codetoggle, #vseries .reftag, .viztip').length).toBe(0);
+    expect(chap.querySelectorAll('#vseries .reftag, .viztip').length).toBe(0);
   });
 
-  it('hides each code sample behind its toggle, shows the legacy sample text, and flips the range', () => {
+  it('shows each sample behind its tile\'s Show code, and flips the range', async () => {
     const { container } = render(<DataViz />);
-    const comp = container.querySelector('#stat')!;
-    const cw = comp.querySelector<HTMLElement>('.codewrap')!;
-    const btn = comp.querySelector<HTMLButtonElement>('.codetoggle button')!;
-    expect(cw.hidden).toBe(true);
-    fireEvent.click(btn);
-    expect([cw.hidden, btn.textContent, btn.getAttribute('aria-expanded')]).toEqual([false, 'Hide code', 'true']);
-    expect(cw.querySelector('code')!.textContent).toBe(CODE[0]);
+    const btn = container.querySelector<HTMLButtonElement>('#stat .stile-toggle')!;
+    expect(container.querySelector('#stat .stile-code')).toBeNull();
+    await act(async () => { fireEvent.click(btn); });
+    await waitFor(() => expect(container.querySelector('#stat pre.stile-code code')).not.toBeNull());
+    expect([btn.textContent, btn.getAttribute('aria-expanded')]).toEqual(['Hide code', 'true']);
+    expect(container.querySelector('#stat pre.stile-code code')!.textContent).toBe(CODE[0]);
     const tag = container.querySelector('#vseries .reftag')!;
     expect(tag.textContent).toBe('YOUR AVG · 12 WK');
     fireEvent.click(container.querySelectorAll('#vrange button')[1]);
@@ -45,7 +45,7 @@ describe('data-viz chapter script', () => {
 
   it('has one generated sample per specimen, each the same markup, attributes and text as its specimen once the script has drawn it', () => {
     const { container } = render(<DataViz />);
-    const specs = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.codewrap code')).map((c) => c.querySelector('.specimen')!);
+    const specs = [...container.querySelectorAll('section.stile')].filter((t) => t.querySelector('.specimen')).map((t) => t.querySelector('.specimen')!);
     expect(CODE.length).toBe(specs.length);
     specs.forEach((spec, i) => {
       const parsed = document.createElement('div');
@@ -81,8 +81,8 @@ describe('motion chapter script', () => {
     await new Promise((r) => setTimeout(r, 60));
     expect(magnet.getAttribute('style')).toContain('transform');
     expect((container.querySelector('[data-spot] .spot') as HTMLElement).style.getPropertyValue('--mx')).not.toBe('');
-    const comps = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.demo') && c.querySelector('.codewrap'));
-    expect(container.querySelectorAll('.codetoggle').length).toBe(comps.length);
+    expect(container.querySelectorAll('.stile-toggle').length).toBe(container.querySelectorAll('section.stile').length);
+    expect(container.querySelectorAll('.codetoggle, .codewrap, .copybtn').length).toBe(0);
     expect(container.querySelectorAll('#tickdemo .td').length).toBe(3);
     expect(window.versevaThemeWipe).toBe(chapterThemeWipe);
     fireEvent.click(container.querySelector('#growfire')!);
@@ -131,16 +131,18 @@ describe('motion chapter script', () => {
     window.versevaThemeWipe = chapterThemeWipe;
   });
 
-  it('has one generated sample per specimen, each the same markup, attributes and text as its specimen once the script has drawn it', () => {
+  it('has one generated sample per specimen, each the same markup, attributes and text as its specimen once the script has drawn it', async () => {
     const { container } = render(<Motion />);
-    const specs = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.codewrap code')).map((c) => c.querySelector('.specimen')!);
+    const specs = [...container.querySelectorAll('section.stile')].filter((t) => t.querySelector('.specimen')).map((t) => t.querySelector('.specimen')!);
     expect(MOTION_CODE.length).toBe(specs.length);
     specs.forEach((spec, i) => {
       const parsed = document.createElement('div');
       parsed.innerHTML = MOTION_CODE[i];
       expect(canon(spec), `sample ${i}`).toBe(canon(parsed));
     });
-    expect(container.querySelector('#numbers .codewrap code')!.textContent).toContain('class="td"');
+    await act(async () => { fireEvent.click(container.querySelector('#numbers .stile-toggle')!); });
+    await waitFor(() => expect(container.querySelector('#numbers pre.stile-code code')).not.toBeNull());
+    expect(container.querySelector('#numbers pre.stile-code code')!.textContent).toContain('class="td"');
   });
 });
 

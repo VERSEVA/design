@@ -6,15 +6,22 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import chapters from '../src/data/chapters.json';
-import { chapterCode, format, ALLOWED_JSDOM_ERRORS } from '../scripts/chapter-code.mjs';
+import { chapterCode, format, ALLOWED_JSDOM_ERRORS, FROM_SOURCE } from '../scripts/chapter-code.mjs';
 
 const repo = path.resolve(__dirname, '../..');
 const pages = path.join(repo, 'studio/src/chapters/pages');
-const generated = fs.readdirSync(pages).filter((f) => f.endsWith('.code.json')).map((f) => f.replace(/\.code\.json$/, ''));
+const generated = fs.readdirSync(pages).filter((f) => f.endsWith('.code.json')).map((f) => f.replace(/\.code\.json$/, '')).filter((slug) => !FROM_SOURCE.includes(slug));
 
 describe('generated chapter code samples', () => {
   it('has at least one generated file', () => {
     expect(generated.length).toBeGreaterThan(0);
+  });
+
+  it('generates every from-source chapter elsewhere (specimen-code.test.tsx), and gives it no jsdom allowlist', () => {
+    for (const slug of FROM_SOURCE) {
+      expect(fs.existsSync(path.join(pages, `${slug}.code.json`)), slug).toBe(true);
+      expect(ALLOWED_JSDOM_ERRORS[slug], slug).toBeUndefined();
+    }
   });
 
   it.each(generated)('%s.code.json is what the generator writes from its frozen page', (slug) => {

@@ -1,5 +1,5 @@
 // The chapters redesigned onto the studio specimen tiles after Components (1.7.0): Web UI,
-// Distribute, Docs + PDF. These replace each chapter's retired element-for-element parity with
+// Distribute, Docs + PDF, Data viz, Motion, Decks. These replace each chapter's retired element-for-element parity with
 // its frozen site/*.html (test/redesigned.ts): the tile contract per page, the rail anchors on
 // their tiles, and a bento with no holes at the package's 4- and 2-column breakpoints.
 import { describe, it, expect } from 'vitest';
@@ -64,7 +64,10 @@ export function holes(sizes: string[], cols: number): number {
   return filled.reduce((n, row) => n + row.filter((x) => !x).length, 0);
 }
 
-const PAGES = ['web-ui', 'distribute', 'docs-pdf'] as const;
+const PAGES = ['web-ui', 'distribute', 'docs-pdf', 'data-viz', 'motion', 'decks'] as const;
+/* Pages with generated samples: every tile shows its code. The rest have none to show. */
+const SAMPLED_PAGES = new Set(['data-viz', 'motion']);
+const css = (slug: string) => fs.readFileSync(path.resolve(__dirname, `../src/chapters/pages/${slug}.css`), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 const page = (slug: string) => { const Page = NATIVE_CHAPTERS[slug] as () => React.ReactElement; return render(<Page />).container; };
 const grids = (root: Element) => [...root.querySelectorAll('.chap .wgrid.sgrid')];
 const sizesOf = (grid: Element) => [...grid.children].map((t) => t.getAttribute('data-size')!);
@@ -124,14 +127,16 @@ describe.each(PAGES)('%s as tiles', (slug) => {
     }
   });
 
-  it('keeps header meta to neutral counts, carries no em dash and no doctrine sublabels, and shows no code it has no sample for', () => {
+  it('keeps header meta to neutral counts, carries no em dash and no legacy code chrome, and shows code exactly where it has samples', () => {
     const root = page(slug);
     for (const m of root.querySelectorAll('.wtile-meta')) {
       expect(m.textContent).toMatch(/^(\d+ [a-z]+|amended \d{4}-\d{2}-\d{2})$/);
       expect(m.closest('[class*="accent"]')).toBeNull();
     }
     expect(root.querySelector('.chap')!.textContent).not.toContain(String.fromCharCode(0x2014));
-    expect(root.querySelector('.speclabel, .specstack, .stile-toggle')).toBeNull();
+    expect(root.querySelector('.specstack, .comp, .codewrap, .codetoggle, .copybtn')).toBeNull();
+    const tiles = root.querySelectorAll('section.stile');
+    expect(root.querySelectorAll('.stile-toggle').length).toBe(SAMPLED_PAGES.has(slug) ? tiles.length : 0);
   });
 });
 
@@ -151,6 +156,11 @@ export const COPY: Record<string, { dropped: string[]; changed: Record<string, s
   },
   distribute: { dropped: [], changed: {} },
   'docs-pdf': { dropped: [], changed: {} },
+  /* The legacy code panel's Copy button: the tile's own Copy shows only while its code is open. The Data
+     viz ruling (law 3) changed colours and classes, no copy, so its changed list is empty. */
+  'data-viz': { dropped: ['Copy'], changed: {} },
+  motion: { dropped: ['Copy'], changed: {} },
+  decks: { dropped: [], changed: {} },
 };
 const norm = (t: string) => t.replace(/\s+/g, ' ').trim();
 const texts = (root: Node) => {
@@ -234,5 +244,78 @@ describe('Docs + PDF tiles', () => {
     expect(t.getAttribute('data-size')).toBe('xl');
     expect(t.querySelector('.doc-mock h3')!.textContent).toBe('Say the decision in the title');
     expect(t.querySelector('.doc-mock .callout b')!.textContent).toBe('Recommendation.');
+  });
+});
+
+describe('Data viz tiles (law 3)', () => {
+  it('gives the data accent to one focus tile, Line + area; every other chart is on the text ladder', () => {
+    const root = page('data-viz');
+    expect([...root.querySelectorAll('section.stile[data-focus]')].map((t) => t.id)).toEqual(['lines']);
+    expect(root.querySelectorAll('section.stile:not([data-focus])').length).toBe(9);
+  });
+
+  it('names no colour inline: magnitude goes through data-l, categories through series classes', () => {
+    const root = page('data-viz');
+    for (const el of root.querySelectorAll('[style]')) expect(el.getAttribute('style'), el.outerHTML.slice(0, 80)).not.toMatch(/background|color|--data|--success|--warn|--danger|--accent/);
+  });
+
+  it('steps the bar rungs with the value, never against it', () => {
+    const root = page('data-viz');
+    const bars = [...root.querySelectorAll('#bars .bar')].map((b) => [Number(b.querySelector('.vlab')!.textContent), Number(b.querySelector('.fill')!.getAttribute('data-l'))]);
+    expect(bars.length).toBe(5);
+    const byValue = [...bars].sort((a, b) => a[0] - b[0]).map(([, l]) => l);
+    expect(byValue).toEqual([...byValue].sort((a, b) => a - b));
+    expect(new Set(byValue).size).toBeGreaterThan(1);
+  });
+
+  it('puts the second series on --data-alt and a third on a neutral, in fixed order', () => {
+    const root = page('data-viz');
+    expect(root.querySelector('#vseries svg')!.innerHTML).toMatch(/stroke="var\(--data-alt\)"/);
+    for (const col of root.querySelectorAll('#stacked .stackcol')) expect([...col.children].map((i) => i.className)).toEqual(['s1', 's2', 's3']);
+    expect([...root.querySelectorAll('#stacked .vizlegend i')].map((i) => i.className)).toEqual(['', 'alt', 's3']);
+    const c = css('data-viz');
+    expect(c).toMatch(/\.stackcol i\.s2 \{ background: var\(--data-alt\);/);
+    expect(c).toMatch(/\.stackcol i\.s1 \{ background: var\(--data-3\);/);
+  });
+
+  it('keeps status hues out of the chart marks', () => {
+    const root = page('data-viz');
+    const marks = root.querySelectorAll('.bar, .stackcol, .hbars, .actstrip, .actcal, .vizlegend, .ring, .spark, .vizplot, .srcdot, .microbar');
+    for (const m of marks) expect(m.outerHTML).not.toMatch(/--(success|warn|danger)/);
+    expect(css('data-viz')).not.toMatch(/--(success|warn|danger)/);
+  });
+
+  it('gives every data rung the chapter paints a text-ladder twin for a tile without data-focus', () => {
+    const c = css('data-viz');
+    for (const [sel] of [['.stackcol i.s1'], ['.vizlegend i[data-l="1"]'], ['.vizlegend i[data-l="2"]'], ['.srcdot i.mom']]) {
+      expect(c, sel).toContain(`.wtile:not([data-focus]) ${sel}`);
+    }
+  });
+});
+
+describe('Motion tiles', () => {
+  it('puts each demo control in its tile footer, beside Show code', () => {
+    const root = page('motion');
+    for (const [tile, ctl] of [['entrances', '[data-replay="stagdemo"]'], ['lines', '[data-replay-lines="linedemo"]'], ['numbers', '#tickroll'], ['attention', '#attnfire'], ['loading', '#skload'], ['grow', '#growfire']]) {
+      const foot = root.querySelector(`#${tile} > .wtile-body > .wtile-foot`)!;
+      expect([...foot.querySelectorAll('button')].map((b) => b.matches(ctl) ? 'ctl' : b.className.includes('stile-toggle') ? 'code' : '?'), tile).toEqual(['ctl', 'code']);
+    }
+    expect(root.querySelector('#tokens .specimen #firecurves')).not.toBeNull();
+    expect(root.querySelector('#wipe .specimen #wipedemo')).not.toBeNull();
+  });
+
+  it('animates transform and opacity only in its own CSS', () => {
+    const c = css('motion');
+    for (const [, v] of c.matchAll(/transition:\s*([^;}]+)/g)) for (const part of v.split(',')) expect(part.trim().split(/\s+/)[0], v).toMatch(/^(transform|opacity)$/);
+    expect(c).not.toMatch(/@keyframes/);
+  });
+});
+
+describe('Decks tiles', () => {
+  it('holds the slide and the five-beat structure side by side', () => {
+    const root = page('decks');
+    expect([...root.querySelectorAll('section.stile')].map((t) => [t.id, t.getAttribute('data-size')])).toEqual([['slide-anatomy', 'm'], ['structure', 'm']]);
+    expect(root.querySelector('#slide-anatomy .slide-mock h3')!.textContent).toBe('One claim, stated as a verdict');
+    expect(root.querySelectorAll('#structure tbody tr').length).toBe(5);
   });
 });

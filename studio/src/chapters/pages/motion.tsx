@@ -1,13 +1,22 @@
-// Ported from site/motion.html (frozen): same copy, same specimens, same anchors.
-// The legacy inline script runs as the chapter script: scoped to the chapter root,
-// listeners on the abort signal, frames and timers cancelled, and every change it
-// makes to the DOM undone on cleanup. The docnav scrollspy is left out with the
-// docnav (the studio sidebar spies).
+// Motion: every specimen as a studio tile (1.7.0 redesign), in the /widgets language.
+// The specimens are the frozen site/motion.html markup; the tiles around them are new, and a
+// demo's Replay, Roll or Open control sits in its tile's footer. The legacy inline script runs
+// as the chapter script for the demos: scoped to the chapter root, listeners on the abort
+// signal, frames and timers cancelled, and every change it makes to the DOM undone on cleanup.
+// Code panels are the tiles' own.
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
+import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
 import { chapterThemeWipe } from '../themeWipe';
 import './motion.css';
-/* Built by studio/scripts/chapter-code.mjs from the frozen page: the exact code samples its script showed. */
-import CODE from './motion.code.json';
+/* The sections with a specimen, in page order: sample i of motion.code.json (built by
+   studio/scripts/chapter-code.mjs from the frozen page) is the sample of SAMPLED[i]. The samples
+   load on first intent, so they stay out of the main chunk. */
+export const SAMPLED = ['tokens', 'press', 'entrances', 'lines', 'spotlight', 'magnetic', 'numbers', 'swap', 'attention', 'loading', 'grow', 'ambient', 'wipe'];
+let samples: Promise<string[]> | undefined;
+const sample = (id: string) => () => (samples ??= import('./motion.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
+
+/* One header icon for the chapter. */
+const ICON = tileIcon(<path d="M4 19c6 0 6-14 16-14" />);
 
 type Wipe = (e: { clientX?: number; clientY?: number } | null) => void;
 declare global { interface Window { versevaThemeWipe?: Wipe } }
@@ -191,64 +200,7 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
       skLoad.disabled = true;
     });
   }
-
-  // Show code / samples / copy: the chapter chrome.
-  const added: Element[] = [];
-  onCleanup(() => added.forEach((el) => el.remove()));
-  root.querySelectorAll('.comp').forEach((comp) => {
-    const demo = comp.querySelector('.demo');
-    const cw = comp.querySelector<HTMLElement>('.codewrap');
-    if (!demo || !cw) return;
-    cw.hidden = true;
-    onCleanup(() => { cw.hidden = false; });
-    const bar = document.createElement('div');
-    bar.className = 'codetoggle';
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn btn-ghost sm';
-    btn.textContent = 'Show code';
-    btn.setAttribute('aria-expanded', 'false');
-    on(btn, 'click', () => {
-      const show = cw.hidden;
-      cw.hidden = !show;
-      bar.classList.toggle('opened', show);
-      btn.textContent = show ? 'Hide code' : 'Show code';
-      btn.setAttribute('aria-expanded', String(show));
-    });
-    bar.append(btn);
-    demo.after(bar);
-    bar.after(cw);
-    added.push(bar);
-  });
-
-  /* Each sample is the text the legacy page built from its specimen (see motion.code.json). */
-  let n = 0;
-  root.querySelectorAll('.comp').forEach((comp) => {
-    const code = comp.querySelector('.codewrap code');
-    if (!code || !comp.querySelector('.specimen')) return;
-    const text = CODE[n++];
-    if (!code.textContent!.trim()) { code.textContent = text; onCleanup(() => { code.textContent = ''; }); }
-  });
-  root.querySelectorAll<HTMLButtonElement>('.copybtn').forEach((btn) => {
-    let t: ReturnType<typeof setTimeout> | undefined;
-    on(btn, 'click', async () => {
-      const code = btn.parentElement!.querySelector('code')!;
-      try {
-        await navigator.clipboard.writeText(code.textContent!);
-        btn.textContent = 'Copied';
-      } catch {
-        btn.textContent = 'Select + copy';
-      }
-      if (signal.aborted) return;
-      if (t) { clearTimeout(t); timers.delete(t); }
-      t = setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
-      timers.add(t);
-    });
-  });
 };
-
-/* sha256 of site/motion.html; the parity test fails if the frozen page changes. */
-export const FROZEN = '291a354f18ea882b2ee3093a353e10c1cd4bc1f6f71a387152b5bacc0f97df04';
 
 export function Page() {
   return (
@@ -256,357 +208,272 @@ export function Page() {
       <section className="hero">
         <h1>Motion</h1>
       </section>
-      <div className="docgrid">
-        <div className="doccol">
-          <section className="comp" id="tokens">
-            <h2>Tokens</h2>
-            <div className="demo">
-              <div className="specimen curverow" id="curves">
-                <div className="curve c-standard">
-                  <span className="cl">--ease-standard</span>
-                  <span className="track">
-                    <span className="ball"></span>
-                  </span>
-                </div>
-                <div className="curve c-entrance">
-                  <span className="cl">--ease-entrance</span>
-                  <span className="track">
-                    <span className="ball"></span>
-                  </span>
-                </div>
-                <div className="curve c-emph">
-                  <span className="cl">--ease-emph</span>
-                  <span className="track">
-                    <span className="ball"></span>
-                  </span>
-                </div>
-                <div className="curve c-exit">
-                  <span className="cl">--ease-exit</span>
-                  <span className="track">
-                    <span className="ball"></span>
-                  </span>
-                </div>
-                <div className="curve c-back">
-                  <span className="cl">--ease-back</span>
-                  <span className="track">
-                    <span className="ball"></span>
-                  </span>
-                </div>
-                <div className="replaybar">
-                  <button className="btn btn-secondary sm" id="firecurves" type="button">Run the curves</button>
-                </div>
-                <div className="tscroll">
-                  <table className="ttable">
-                    <thead>
-                      <tr>
-                        <th>Token</th>
-                        <th>Value</th>
-                        <th>Job</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>--dur-1</td>
-                        <td>120ms</td>
-                        <td>Press, hover, color shifts</td>
-                      </tr>
-                      <tr>
-                        <td>--dur-2</td>
-                        <td>200ms</td>
-                        <td>Toggles, switches, chips</td>
-                      </tr>
-                      <tr>
-                        <td>--dur-3</td>
-                        <td>320ms</td>
-                        <td>Entrances, sheets, disclosure</td>
-                      </tr>
-                      <tr>
-                        <td>--dur-4</td>
-                        <td>480ms</td>
-                        <td>Orchestrated moments, rare</td>
-                      </tr>
-                      <tr>
-                        <td>--ease-standard</td>
-                        <td>cubic-bezier(.2, 0, 0, 1)</td>
-                        <td>The default; press and state</td>
-                      </tr>
-                      <tr>
-                        <td>--ease-entrance</td>
-                        <td>cubic-bezier(.16, 1, .3, 1)</td>
-                        <td>Things arriving</td>
-                      </tr>
-                      <tr>
-                        <td>--ease-emph</td>
-                        <td>cubic-bezier(.3, 0, .1, 1)</td>
-                        <td>Emphasis, attention</td>
-                      </tr>
-                      <tr>
-                        <td>--ease-exit</td>
-                        <td>cubic-bezier(.3, 0, 1, 1)</td>
-                        <td>Leaving for good</td>
-                      </tr>
-                      <tr>
-                        <td>--ease-back</td>
-                        <td>cubic-bezier(.34, 1.56, .64, 1)</td>
-                        <td>Snap-back settle after a drag or magnet</td>
-                      </tr>
-                      <tr>
-                        <td>--ease-spring</td>
-                        <td>cubic-bezier(.22, 1, .36, 1)</td>
-                        <td>Playful settle, sparing</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+      <SpecimenGrid>
+        <SpecimenTile id="tokens" name="Tokens" icon={ICON} size="xl" meta="10 tokens" code={sample('tokens')}>
+          <div className="demo">
+            <div className="specimen curverow" id="curves">
+              <div className="curve c-standard">
+                <span className="cl">--ease-standard</span>
+                <span className="track">
+                  <span className="ball"></span>
+                </span>
               </div>
-            </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="press">
-            <h2>Press</h2>
-            <div className="demo">
-              <div className="specimen">
-                <button className="btn btn-primary" type="button">Sits down 1px</button>
-                {' '}
-                <button className="btn btn-secondary" type="button">Same idiom</button>
-                {' '}
-                <button className="btn btn-primary" type="button" disabled>Disabled: still</button>
+              <div className="curve c-entrance">
+                <span className="cl">--ease-entrance</span>
+                <span className="track">
+                  <span className="ball"></span>
+                </span>
               </div>
-            </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="entrances">
-            <h2>Entrances</h2>
-            <div className="demo">
-              <div className="specimen mo-st" id="stagdemo">
-                <div className="mcard">
-                  <b>First</b>
-                  <span className="mnote">0ms</span>
-                </div>
-                <div className="mcard">
-                  <b>Second</b>
-                  <span className="mnote">+60ms</span>
-                </div>
-                <div className="mcard">
-                  <b>Third</b>
-                  <span className="mnote">+120ms</span>
-                </div>
-                <div className="mcard">
-                  <b>Fourth</b>
-                  <span className="mnote">+180ms</span>
-                </div>
+              <div className="curve c-emph">
+                <span className="cl">--ease-emph</span>
+                <span className="track">
+                  <span className="ball"></span>
+                </span>
               </div>
-              <div className="replaybar">
-                <button className="btn btn-secondary sm" data-replay="stagdemo" type="button">Replay</button>
+              <div className="curve c-exit">
+                <span className="cl">--ease-exit</span>
+                <span className="track">
+                  <span className="ball"></span>
+                </span>
               </div>
-            </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="lines">
-            <h2>Line reveal</h2>
-            <div className="demo">
-              <div className="specimen">
-                <span className="mo-lines heroline" id="linedemo">
-                  <span>
-                    <span>Design is the</span>
-                  </span>
-                  {' '}
-                  <span>
-                    <span>signature</span>
-                  </span>
+              <div className="curve c-back">
+                <span className="cl">--ease-back</span>
+                <span className="track">
+                  <span className="ball"></span>
                 </span>
               </div>
               <div className="replaybar">
-                <button className="btn btn-secondary sm" data-replay-lines="linedemo" type="button">Replay</button>
+                <button className="btn btn-secondary sm" id="firecurves" type="button">Run the curves</button>
+              </div>
+              <div className="tscroll">
+                <table className="ttable">
+                  <thead>
+                    <tr>
+                      <th>Token</th>
+                      <th>Value</th>
+                      <th>Job</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>--dur-1</td>
+                      <td>120ms</td>
+                      <td>Press, hover, color shifts</td>
+                    </tr>
+                    <tr>
+                      <td>--dur-2</td>
+                      <td>200ms</td>
+                      <td>Toggles, switches, chips</td>
+                    </tr>
+                    <tr>
+                      <td>--dur-3</td>
+                      <td>320ms</td>
+                      <td>Entrances, sheets, disclosure</td>
+                    </tr>
+                    <tr>
+                      <td>--dur-4</td>
+                      <td>480ms</td>
+                      <td>Orchestrated moments, rare</td>
+                    </tr>
+                    <tr>
+                      <td>--ease-standard</td>
+                      <td>cubic-bezier(.2, 0, 0, 1)</td>
+                      <td>The default; press and state</td>
+                    </tr>
+                    <tr>
+                      <td>--ease-entrance</td>
+                      <td>cubic-bezier(.16, 1, .3, 1)</td>
+                      <td>Things arriving</td>
+                    </tr>
+                    <tr>
+                      <td>--ease-emph</td>
+                      <td>cubic-bezier(.3, 0, .1, 1)</td>
+                      <td>Emphasis, attention</td>
+                    </tr>
+                    <tr>
+                      <td>--ease-exit</td>
+                      <td>cubic-bezier(.3, 0, 1, 1)</td>
+                      <td>Leaving for good</td>
+                    </tr>
+                    <tr>
+                      <td>--ease-back</td>
+                      <td>cubic-bezier(.34, 1.56, .64, 1)</td>
+                      <td>Snap-back settle after a drag or magnet</td>
+                    </tr>
+                    <tr>
+                      <td>--ease-spring</td>
+                      <td>cubic-bezier(.22, 1, .36, 1)</td>
+                      <td>Playful settle, sparing</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="press" name="Press" icon={ICON} size="m" meta="3 buttons" code={sample('press')}>
+          <div className="demo">
+            <div className="specimen">
+              <button className="btn btn-primary" type="button">Sits down 1px</button>
+              {' '}
+              <button className="btn btn-secondary" type="button">Same idiom</button>
+              {' '}
+              <button className="btn btn-primary" type="button" disabled>Disabled: still</button>
             </div>
-          </section>
-          <section className="comp" id="spotlight">
-            <h2>Spotlight</h2>
-            <div className="demo">
-              <div className="specimen sprow gap-5" data-spot="">
-                <div className="mcard spot">
-                  <b>Move across these</b>
-                  <span className="mnote">the halo tracks the pointer</span>
-                </div>
-                <div className="mcard spot">
-                  <b>Neighbors warm early</b>
-                  <span className="mnote">tracking is on the group</span>
-                </div>
-                <div className="mcard spot">
-                  <b>Accent at 10%</b>
-                  <span className="mnote">never a new color</span>
-                </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="entrances" name="Entrances" icon={ICON} size="m" meta="4 cards" code={sample('entrances')} actions={<button className="btn btn-secondary sm" data-replay="stagdemo" type="button">Replay</button>}>
+          <div className="demo">
+            <div className="specimen mo-st" id="stagdemo">
+              <div className="mcard">
+                <b>First</b>
+                <span className="mnote">0ms</span>
+              </div>
+              <div className="mcard">
+                <b>Second</b>
+                <span className="mnote">+60ms</span>
+              </div>
+              <div className="mcard">
+                <b>Third</b>
+                <span className="mnote">+120ms</span>
+              </div>
+              <div className="mcard">
+                <b>Fourth</b>
+                <span className="mnote">+180ms</span>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="magnetic">
-            <h2>Magnetic</h2>
-            <div className="demo">
-              <div className="specimen">
-                <span className="magnet" data-magnet="">
-                  <button className="btn btn-primary" type="button">Come closer</button>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="lines" name="Line reveal" icon={ICON} size="m" code={sample('lines')} actions={<button className="btn btn-secondary sm" data-replay-lines="linedemo" type="button">Replay</button>}>
+          <div className="demo">
+            <div className="specimen">
+              <span className="mo-lines heroline" id="linedemo">
+                <span>
+                  <span>Design is the</span>
                 </span>
-              </div>
-            </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="numbers">
-            <h2>Numbers</h2>
-            <div className="demo">
-              <div className="specimen">
-                <span className="statline">
-                  <span className="ticker" id="tickdemo"></span>
-                  <span className="unit">/wk</span>
-                </span>
-              </div>
-              <div className="replaybar">
-                <button className="btn btn-secondary sm" id="tickroll" type="button">Roll it</button>
-              </div>
-            </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="swap">
-            <h2>Text swap</h2>
-            <div className="demo">
-              <div className="specimen">
-                <span className="swver xswap">
-                  <span className="xa">v1.0.0 · stable</span>
-                  <span className="xb" aria-hidden="true">8243358 · signed</span>
-                </span>
-              </div>
-            </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="attention">
-            <h2>Attention</h2>
-            <div className="demo">
-              <div className="specimen">
-                <div className="mcard" id="attndemo">
-                  <b>Batch size</b>
-                  <span className="mnote">the field the error points at</span>
-                </div>
-              </div>
-              <div className="replaybar">
-                <button className="btn btn-secondary sm" id="attnfire" type="button">Point at it</button>
-              </div>
-            </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="loading">
-            <h2>Loading</h2>
-            <div className="demo">
-              <div className="specimen skdemo" id="skdemo">
-                <span className="skel" style={{ width: "60%" }}></span>
                 {' '}
-                <span className="skel"></span>
-                {' '}
-                <span className="skel" style={{ width: "82%" }}></span>
-              </div>
-              <div className="replaybar">
-                <button className="btn btn-secondary sm" id="skload" type="button">Resolve it</button>
-              </div>
+                <span>
+                  <span>signature</span>
+                </span>
+              </span>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="grow">
-            <h2>Height + width</h2>
-            <div className="demo">
-              <div className="specimen growdemo">
-                <div className="grow-y" id="growdemo">
-                  <div>
-                    <div className="inner">
-                      <div className="pad">Auto height, travelling. The wrapper animates grid-template-rows; the child clips. No measured pixels, no max-height guesses.</div>
-                    </div>
-                  </div>
-                </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="spotlight" name="Spotlight" icon={ICON} size="m" meta="3 cards" code={sample('spotlight')}>
+          <div className="demo">
+            <div className="specimen sprow gap-5" data-spot="">
+              <div className="mcard spot">
+                <b>Move across these</b>
+                <span className="mnote">the halo tracks the pointer</span>
               </div>
-              <div className="replaybar">
-                <button className="btn btn-secondary sm" id="growfire" type="button" aria-expanded="false" aria-controls="growdemo">Open it</button>
+              <div className="mcard spot">
+                <b>Neighbors warm early</b>
+                <span className="mnote">tracking is on the group</span>
+              </div>
+              <div className="mcard spot">
+                <b>Accent at 10%</b>
+                <span className="mnote">never a new color</span>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="magnetic" name="Magnetic" icon={ICON} size="m" code={sample('magnetic')}>
+          <div className="demo">
+            <div className="specimen">
+              <span className="magnet" data-magnet="">
+                <button className="btn btn-primary" type="button">Come closer</button>
+              </span>
             </div>
-          </section>
-          <section className="comp" id="ambient">
-            <h2>Ambient</h2>
-            <div className="demo">
-              <div className="specimen ambcol gap-5">
-                <div className="mcard beam beamcard">
-                  <b>Border beam</b>
-                  <span className="mnote">conic accent on a ring mask · 4s</span>
-                </div>
-                <div className="marq" aria-hidden="true">
-                  <div className="mrow">
-                    <span className="marqitem">Web app UI</span>
-                    <span className="marqitem">Decks</span>
-                    <span className="marqitem">Docs + PDF</span>
-                    <span className="marqitem">Data viz</span>
-                    <span className="marqitem">Motion</span>
-                  </div>
-                  <div className="mrow">
-                    <span className="marqitem">Web app UI</span>
-                    <span className="marqitem">Decks</span>
-                    <span className="marqitem">Docs + PDF</span>
-                    <span className="marqitem">Data viz</span>
-                    <span className="marqitem">Motion</span>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="numbers" name="Numbers" icon={ICON} size="m" code={sample('numbers')} actions={<button className="btn btn-secondary sm" id="tickroll" type="button">Roll it</button>}>
+          <div className="demo">
+            <div className="specimen">
+              <span className="statline">
+                <span className="ticker" id="tickdemo"></span>
+                <span className="unit">/wk</span>
+              </span>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="swap" name="Text swap" icon={ICON} size="m" code={sample('swap')}>
+          <div className="demo">
+            <div className="specimen">
+              <span className="swver xswap">
+                <span className="xa">v1.0.0 · stable</span>
+                <span className="xb" aria-hidden="true">8243358 · signed</span>
+              </span>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="attention" name="Attention" icon={ICON} size="m" code={sample('attention')} actions={<button className="btn btn-secondary sm" id="attnfire" type="button">Point at it</button>}>
+          <div className="demo">
+            <div className="specimen">
+              <div className="mcard" id="attndemo">
+                <b>Batch size</b>
+                <span className="mnote">the field the error points at</span>
+              </div>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="loading" name="Loading" icon={ICON} size="m" code={sample('loading')} actions={<button className="btn btn-secondary sm" id="skload" type="button">Resolve it</button>}>
+          <div className="demo">
+            <div className="specimen skdemo" id="skdemo">
+              <span className="skel" style={{ width: "60%" }}></span>
+              {' '}
+              <span className="skel"></span>
+              {' '}
+              <span className="skel" style={{ width: "82%" }}></span>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="grow" name="Height + width" icon={ICON} size="m" code={sample('grow')} actions={<button className="btn btn-secondary sm" id="growfire" type="button" aria-expanded="false" aria-controls="growdemo">Open it</button>}>
+          <div className="demo">
+            <div className="specimen growdemo">
+              <div className="grow-y" id="growdemo">
+                <div>
+                  <div className="inner">
+                    <div className="pad">Auto height, travelling. The wrapper animates grid-template-rows; the child clips. No measured pixels, no max-height guesses.</div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="wipe">
-            <h2>Theme wipe</h2>
-            <div className="demo">
-              <div className="specimen">
-                <button className="btn btn-primary" id="wipedemo" type="button">Flip the theme</button>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="ambient" name="Ambient" icon={ICON} size="m" code={sample('ambient')}>
+          <div className="demo">
+            <div className="specimen ambcol gap-5">
+              <div className="mcard beam beamcard">
+                <b>Border beam</b>
+                <span className="mnote">conic accent on a ring mask · 4s</span>
+              </div>
+              <div className="marq" aria-hidden="true">
+                <div className="mrow">
+                  <span className="marqitem">Web app UI</span>
+                  <span className="marqitem">Decks</span>
+                  <span className="marqitem">Docs + PDF</span>
+                  <span className="marqitem">Data viz</span>
+                  <span className="marqitem">Motion</span>
+                </div>
+                <div className="mrow">
+                  <span className="marqitem">Web app UI</span>
+                  <span className="marqitem">Decks</span>
+                  <span className="marqitem">Docs + PDF</span>
+                  <span className="marqitem">Data viz</span>
+                  <span className="marqitem">Motion</span>
+                </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="wipe" name="Theme wipe" icon={ICON} size="m" code={sample('wipe')}>
+          <div className="demo">
+            <div className="specimen">
+              <button className="btn btn-primary" id="wipedemo" type="button">Flip the theme</button>
             </div>
-          </section>
-        </div>
-      </div>
+          </div>
+        </SpecimenTile>
+      </SpecimenGrid>
       <footer className="site">
         <span>VERSEVA · open source · MIT</span>
         {' '}

@@ -38,6 +38,10 @@ export interface SpecimenTileProps {
   /** Extra footer controls before Show code, e.g. a Replay button. */
   actions?: ReactNode;
   status?: TileStatus;
+  /** The tile that owns the view's data accent (law 3): its viz kit keeps the --data ladder. Every other tile on a
+      page of charts sets false, and the package recolours its charts to the text ladder. Default true: a specimen
+      page that is not about charts shows each component as it ships. */
+  focus?: boolean;
   onRetry?: () => void;
   /** Labels, for translation. */
   labels?: Partial<typeof LABELS>;
@@ -93,7 +97,7 @@ function useCode(code: SpecimenTileProps['code']) {
   return { text: typeof code === 'string' ? code : loaded, failed, load };
 }
 
-export function SpecimenTile({ id, name, level = 2, icon, meta, size = 'm', code, actions, status, onRetry, labels, className, children }: SpecimenTileProps) {
+export function SpecimenTile({ id, name, level = 2, icon, meta, size = 'm', code, actions, status, focus = true, onRetry, labels, className, children }: SpecimenTileProps) {
   const L = { ...LABELS, ...labels };
   const [open, setOpen] = useState(false);
   const pre = useRef<HTMLPreElement>(null);
@@ -123,8 +127,8 @@ export function SpecimenTile({ id, name, level = 2, icon, meta, size = 'm', code
 
   return (
     /* data-focus: a specimen shows its component as it ships, so the viz kit keeps its accent
-       here (the .wtile neutraliser is for dashboards, where one widget owns the accent). */
-    <section id={id} className={['wtile stile', className].filter(Boolean).join(' ')} data-size={size} data-focus="" data-state={state ?? undefined} aria-busy={state === 'loading' ? true : undefined}>
+       here; on a page of charts only the focus tile does (the .wtile neutraliser, law 3). */
+    <section id={id} className={['wtile stile', className].filter(Boolean).join(' ')} data-size={size} data-focus={focus ? '' : undefined} data-state={state ?? undefined} aria-busy={state === 'loading' ? true : undefined}>
       <div className="wtile-body">
         <div className="wtile-hd">
           {icon}
