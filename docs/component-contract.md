@@ -383,7 +383,8 @@ Meta+K or Ctrl+K opens one bar for actions, go-to, recent items and questions. T
 
 **Contract:** `commands: { group, label, icon?, hint?, keywords?, disabled?, run }[]`, optional
 `onAsk(question, { signal }) => AsyncIterable<string> | { text, widget? }` (or a promise of
-either), optional `onPin({ question, text, widget })`. `open`, `onOpenChange` or `defaultOpen`;
+either; a `widget` property on the iterable shows once the stream ends), optional
+`onPin({ question, text, widget })`. `open`, `onOpenChange` or `defaultOpen`;
 `shortcut` (default true); every word a `labels` prop.
 
 **Anatomy**

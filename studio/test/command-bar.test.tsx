@@ -114,6 +114,25 @@ describe('CommandBar', () => {
     expect(onPin).not.toHaveBeenCalled();
   });
 
+  it('a stream that carries a widget shows it and offers Pin to Home once the stream ends', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    async function* chunks() { yield 'Revenue is '; await gate; yield '₱1.84M.'; }
+    const onPin = vi.fn();
+    const { container, getByRole, queryByRole } = render(<Harness onAsk={() => Object.assign(chunks(), { widget: <div className="wtile">W</div> })} onPin={onPin} />);
+    fireEvent.click(getByRole('button', { name: 'Search or ask' }));
+    type(container, 'what was revenue this month?');
+    fireEvent.keyDown(input(container), { key: 'Enter' });
+    await waitFor(() => expect(container.querySelector('.cmdk-a')?.textContent).toBe('Revenue is '));
+    expect(queryByRole('button', { name: 'Pin to Home' })).toBeNull();
+    expect(container.querySelector('.cmdk-widget')).toBeNull();
+    await act(async () => { release(); await gate; });
+    const pin = await waitFor(() => getByRole('button', { name: 'Pin to Home' }));
+    expect(container.querySelector('.cmdk-widget')?.textContent).toBe('W');
+    fireEvent.click(pin);
+    expect(onPin).toHaveBeenCalledWith(expect.objectContaining({ question: 'what was revenue this month?', text: 'Revenue is ₱1.84M.' }));
+  });
+
   it('a whole answer with a widget offers Pin to Home', async () => {
     const onPin = vi.fn();
     const { container, getByRole } = render(<Harness onAsk={async () => ({ text: 'Done.', widget: <div className="wtile">W</div> })} onPin={onPin} />);

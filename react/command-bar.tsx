@@ -24,8 +24,11 @@ export interface AskAnswer {
   widget?: React.ReactNode;
 }
 
+/** Streamed tokens; a `widget` on the iterable shows under the answer once the stream ends. */
+export type AskStream = AsyncIterable<string> & { widget?: React.ReactNode };
+
 /** Stream tokens, or return the whole answer (directly or as a promise). */
-export type AskResult = AsyncIterable<string> | AskAnswer;
+export type AskResult = AskStream | AskAnswer;
 
 export interface CommandBarProps {
   commands: Command[];
@@ -236,7 +239,7 @@ export function CommandBar({
           setAsk({ question, text, status: 'streaming' });
         }
         if (id !== runId.current) return;
-        setAsk({ question, text, status: 'done' });
+        setAsk({ question, text, widget: (r as AskStream).widget, status: 'done' });
       } else if (r && typeof r === 'object' && typeof r.text === 'string') {
         setAsk({ question, text: r.text, widget: r.widget, status: 'done' });
       } else {
