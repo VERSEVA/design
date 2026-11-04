@@ -22,7 +22,6 @@ A widget home, a live activity capsule and a command bar, each as CSS recipes, R
   `.wtile-skel-num`, `.wtile-skel-plot`, `.wtile-err`, `.wtile-errline`, `.wtile-x`, `.wtile-edit`, `.wtile-handle`,
   `.wtile-sizes`, `.wtile-move`, `.wstack`, `.wstack-pages`, `.wstack-page`, `.wstack-nav`, `.wstack-dot`,
   `.wstack-pause`, `.wstack-step`, `.wgal`, `.wgal-item`, `.wgal-icon`, `.wgal-name`, `.wgal-sizes`. Keyframes: `wtile-jiggle`.
-
 - **Live activity capsule `.lact` and panel `.lact-panel`.** A glass capsule for long jobs in the top bar's
   `.tbar-end`, before the bell: the running job closest to done with its ring and percent, `+n` running. Ring and
   bar are `--text-1` while running, `--success` done, `--danger` on error (no accent). The panel lists every job
