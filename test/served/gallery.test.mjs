@@ -39,8 +39,10 @@ for (const [width, height, max] of [[375, 812, MAX.phone], [1440, 900, MAX.wide]
   });
 }
 
-const HOVER = `(async () => {
+/* The motion state after each step, waited for up to 2s (a busy CI runner renders late). */
+const HOVER = (reduced) => `(async () => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const settle = async (want) => { for (let t = 0; t < 40 && motion() !== want; t++) await sleep(50); return motion(); };
   await sleep(2500);
   const box = [...document.querySelectorAll('.gthumb')].find((t) => t.querySelector('iframe[data-loaded]'));
   if (!box) return JSON.stringify({ error: 'no loaded thumbnail' });
@@ -51,16 +53,16 @@ const HOVER = `(async () => {
   /* The headless pointer may rest over a tile after load: start from no hover and no focus. */
   tile.dispatchEvent(new PointerEvent('pointerleave'));
   document.activeElement?.blur?.();
-  await sleep(100);
+  await settle('paused');
   const r = box.getBoundingClientRect();
   const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
   const out = { inert: box.inert, hidden: box.getAttribute('aria-hidden'), hitInThumb: box.contains(hit), still: motion() };
   tile.dispatchEvent(new PointerEvent('pointerenter'));
-  await sleep(100);
+  out.hovered = await settle(${reduced} ? 'paused' : 'running');
+  ${reduced} && await sleep(500);
   out.hovered = motion();
   tile.dispatchEvent(new PointerEvent('pointerleave'));
-  await sleep(100);
-  out.left = motion();
+  out.left = await settle('paused');
   return JSON.stringify({ out, pre });
 })()`;
 
@@ -68,7 +70,7 @@ for (const reducedMotion of [false, true]) {
   test(`a thumbnail is inert, takes no pointer events, and plays on hover only with motion allowed (reduced motion ${reducedMotion})`, { timeout: 60000 }, async () => {
     const page = await run.page({ width: 1440, height: 900, reducedMotion });
     await page.goto('/gallery');
-    const { out: r, pre } = JSON.parse(await page.evaluate(HOVER));
+    const { out: r, pre } = JSON.parse(await page.evaluate(HOVER(reducedMotion)));
     await page.close();
     console.log('before idle reset', JSON.stringify(pre));
     assert.deepEqual(r, { inert: true, hidden: 'true', hitInThumb: false, still: 'paused', hovered: reducedMotion ? 'paused' : 'running', left: 'paused' });
