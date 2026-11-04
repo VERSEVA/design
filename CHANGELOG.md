@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.6.0 · unreleased
+
+### Added
+
+- **Command bar `.cmdk`** (React `command-bar` + `command-state`). Meta+K / Ctrl+K opens actions,
+  go-to and recent items filtered as you type; with `onAsk`, a question becomes an Ask row and the
+  answer streams in place, with an optional widget preview and Pin to Home. Listbox semantics,
+  focus trap, Escape returns focus, `aria-busy` while streaming and one announcement when done,
+  no-results and Ask-failure states, a full-height sheet on phone. Contract: "Command bar".
+  New global classes: `.cmdk`, `.cmdk-ovl`, `.cmdk-field`, `.cmdk-input`, `.cmdk-mode`,
+  `.cmdk-kbd`, `.cmdk-list`, `.cmdk-group`, `.cmdk-opt` (modifier `.ask`), `.cmdk-label`,
+  `.cmdk-hint`, `.cmdk-empty`, `.cmdk-ans`, `.cmdk-q`, `.cmdk-a`, `.cmdk-caret`, `.cmdk-load`,
+  `.cmdk-widget`, `.cmdk-acts`, `.cmdk-err`, `.cmdk-ft`, `.cmdk-trigger`; keyframes `cmdk-in`,
+  `cmdk-blink`.
+- **Three-column top bar.** `.tbar` is a grid (breadcrumb, centred search, actions) only when it
+  holds a `.searchbox`; every other top bar keeps the 1.3 layout.
+
 ## 1.5.0 · 2026-11-01
 
 ### Added

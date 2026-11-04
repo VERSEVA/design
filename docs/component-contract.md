@@ -300,6 +300,80 @@ carries `aria-hidden="true"`.
   `.platform`, `.tbar`, `.drawer`, `.scrim` and the rest) are global class names.
 - **Direction:** the shell is left-to-right in 1.3.0; right-to-left layout is a stage 2 item.
 
+## Command bar: `.cmdk` · three-column top bar (1.6.0)
+
+Meta+K or Ctrl+K opens one bar for actions, go-to, recent items and questions. The React copy
+(`npx verseva add command-bar`) renders exactly this DOM; `command-state` holds the rules.
+
+**Contract:** `commands: { group, label, icon?, hint?, keywords?, disabled?, run }[]`, optional
+`onAsk(question, { signal }) => AsyncIterable<string> | { text, widget? }` (or a promise of
+either), optional `onPin({ question, text, widget })`. `open`, `onOpenChange` or `defaultOpen`;
+`shortcut` (default true); every word a `labels` prop.
+
+**Anatomy**
+
+| Region | Classes | Holds |
+|---|---|---|
+| Trigger | `button.searchbox.cmdk-trigger` | Search icon, label, K chord; sits in the top bar's search slot |
+| Overlay | `.cmdk-ovl` > `.cmdk` | Scrim and a 620px glass panel at `--r-lg`, 12vh from the top |
+| Field | `.cmdk-field`, `.cmdk-input`, `.cmdk-mode`, `.cmdk-kbd` | Combobox input, "Ask" chip while the Ask row shows, esc chip |
+| Results | `ul.cmdk-list` > `.cmdk-group` + `ul[role=group]` > `.cmdk-opt` (`.ask`), `.cmdk-label`, `.cmdk-hint`; `.cmdk-empty` | Ask row first in its own group, then groups in the order they first appear |
+| Answer | `.cmdk-ans` > `.cmdk-q`, `.cmdk-load` (`.skel` x3), `.cmdk-a` + `.cmdk-caret`, `.cmdk-err`, `.cmdk-widget`, `.cmdk-acts` | Question, loading lines, streamed text, error with Retry, widget preview, Pin to Home and Ask another |
+| Footer | `.cmdk-ft` | Key hints; `aria-hidden`, gone on phone |
+
+**Rules**
+
+- **Filtering:** every word of the query must appear in the label, group or keywords; case and
+  accents fold. Commands keep their order inside a group.
+- **Ask row:** shows for a trailing `?`, a leading question word (what, how, why, when, where,
+  which, who, is, are, do, does, did, can, could, should, will, would and kin), Tab, or no
+  matches. Never without `onAsk` and never on an empty query. Without `onAsk`, no matches is the
+  no-results state ("No results").
+- **Selection** wraps at both ends and skips disabled options.
+- **Running a command** closes the bar, returns focus, then calls `run`.
+- **Answers:** an async iterable streams chunk by chunk; `{ text, widget? }` shows at once.
+  Typing during an answer drops it and returns to the list (late chunks are ignored and the
+  signal aborts). A throw or rejection is the error state.
+- **Accent budget:** the Ask row's icon is the list view's one accent; in an answer it is the
+  Pin to Home primary. The Ask chip is neutral.
+- **No `--text-3` on the panel:** group labels, hints, placeholder, question, empty state, kbd
+  chips and footer are `--text-2`.
+
+**States**
+
+| Part | Hover | Focus-visible | Press | Disabled | Other |
+|---|---|---|---|---|---|
+| Trigger | `--hairline-strong` border | 2px `--focus` at 2px | sits down 1px | `:disabled` at .45 | |
+| Option | 6% `--text-1` wash | the active option takes a 2px inset `--focus` ring while the field has focus | sits down 1px | `aria-disabled="true"` at .45, no wash, never selected | active: `aria-selected="true"` on `--surface-2` |
+| Answer | | | | | loading: three `.skel` lines + "Thinking" (read); streaming: `aria-busy="true"` + caret; error: `.cmdk-err` `role="alert"`, `--danger` icon, the words, Retry |
+| List | | | | | empty: `.cmdk-empty` "No results" in `--text-2` |
+
+Reduced motion: motion is opt-in under `prefers-reduced-motion:no-preference` (panel rise,
+scrim fade, option and trigger transitions, caret blink); otherwise the bar appears in place and
+the caret holds still. Phone (below 600px): a full-height sheet with no radius and no footer.
+Options are at least 44px tall. `.cmdk-ovl` stacks at 19, above the drawer (17) and the skip
+link (18).
+
+**Accessibility**
+
+| Part | Roles and names | Keyboard and focus |
+|---|---|---|
+| Trigger | `button`, name = its label, `aria-haspopup="dialog"`, `aria-keyshortcuts` | Click or Meta+K / Ctrl+K opens; the chord also closes, also while typing elsewhere, and stands down while another `aria-modal` dialog is open |
+| Panel | `role="dialog"` `aria-modal="true"` `aria-label="Command bar"` | Opening focuses the field; Tab and Shift+Tab stay inside; Escape or a scrim click closes; focus returns to what opened it |
+| Field | `role="combobox"`, `aria-controls` the listbox, `aria-expanded`, `aria-autocomplete="list"`, `aria-activedescendant` the active option | Up and Down move; Enter runs; Tab (with text, before an answer) forces the Ask row |
+| Results | `role="listbox"` named "Commands"; groups `role="group"` named by their heading; `role="option"` + `aria-selected`, `aria-disabled` | Pointer movement selects; a click runs; options never take focus |
+| Status | one visually hidden `role="status"` | Reads the result count as you type, nothing while an answer streams, then the finished answer once |
+| Answer | `section` named "Answer", `aria-busy` while loading or streaming; error `role="alert"` | Retry and Ask another return focus to the field |
+
+**Top bar:** `.tbar` becomes a three-column grid only when it holds a `.searchbox` as a direct
+child (`.tbar:has(>.searchbox)`): breadcrumb left, search centred at up to 360px, actions right
+at their natural width. Under 900px the search takes the free track. Every other top bar keeps
+the 1.3 flex row.
+
+**Placement:** render `CommandBar` as a sibling of the shell, never inside `.tbar` (its sticky
+stacking context would trap the overlay); put `CommandBarTrigger` in the top bar's `search`
+slot. Mount one K-chord owner: pass `shortcut={false}` to `ConsoleSearch` if both are present.
+
 ## Glass panel: `.glass`
 
 Law 1 on a content panel: `.navshell`'s container material verbatim (`--glass-fill-3`,
