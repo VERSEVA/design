@@ -17,6 +17,7 @@ const { JSDOM, VirtualConsole } = createRequire(path.join(studio, 'package.json'
    Anything else the legacy script throws stops the generator. */
 /** @type {Record<string, string[]>} */
 export const ALLOWED_JSDOM_ERRORS = {
+  components: [],
   'data-viz': [],
   motion: [],
 };

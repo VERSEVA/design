@@ -11,6 +11,8 @@ import CODE from '../src/chapters/pages/data-viz.code.json';
 import { Page as Motion } from '../src/chapters/pages/motion';
 import MOTION_CODE from '../src/chapters/pages/motion.code.json';
 import { chapterThemeWipe } from '../src/chapters/themeWipe';
+import { Page as Components } from '../src/chapters/pages/components';
+import COMPONENTS_CODE from '../src/chapters/pages/components.code.json';
 
 describe('data-viz chapter script', () => {
   it('adds one code toggle per demo, even under StrictMode, and removes them on unmount', () => {
@@ -138,6 +140,75 @@ describe('motion chapter script', () => {
       expect(canon(spec), `sample ${i}`).toBe(canon(parsed));
     });
     expect(container.querySelector('#numbers .codewrap code')!.textContent).toContain('class="td"');
+  });
+});
+
+describe('components chapter script', () => {
+  const pristine = () => new DOMParser().parseFromString(renderToStaticMarkup(<Components />), 'text/html').querySelector('.chap')!;
+
+  it('is idempotent under StrictMode and leaves the markup and inputs exactly as rendered on unmount', () => {
+    const { container, unmount } = render(<StrictMode><Components /></StrictMode>);
+    const comps = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.demo') && c.querySelector('.codewrap'));
+    expect(container.querySelectorAll('.codetoggle').length).toBe(comps.length);
+    fireEvent.click(container.querySelectorAll('.tabbar [role="tab"]')[1]);
+    fireEvent.click(container.querySelector('.menu [aria-haspopup]')!);
+    const radio = [...container.querySelectorAll('.menu.inline [role="menuitemradio"]')].find((i) => i.getAttribute('aria-checked') !== 'true' && !i.getAttribute('aria-disabled') && !i.getAttribute('aria-busy'))!;
+    fireEvent.click(radio);
+    const erase = container.querySelector<HTMLInputElement>('.modal.erase input[data-phrase]')!;
+    fireEvent.input(erase, { target: { value: erase.dataset.phrase } });
+    fireEvent.click(container.querySelector('.bulk-demo tbody .pick input')!);
+    fireEvent.click(container.querySelector('.sgroup-head')!);
+    fireEvent.click(container.querySelector('.codetoggle button')!);
+    const chap = container.querySelector('.chap')!;
+    const box = chap.querySelector<HTMLInputElement>('.bulk-demo tbody .pick input')!;
+    const boxWas = pristine().querySelector<HTMLInputElement>('.bulk-demo tbody .pick input')!.hasAttribute('checked');
+    unmount();
+    expect(canon(chap)).toBe(canon(pristine()));
+    expect([box.checked, erase.value]).toEqual([boxWas, '']);
+  });
+
+  it('runs the demos as the legacy page did', () => {
+    const { container } = render(<Components />);
+    const tabs = [...container.querySelector('.tabbar')!.querySelectorAll('[role="tab"]')];
+    fireEvent.click(tabs[1]);
+    expect(tabs.map((t) => t.getAttribute('aria-selected'))).toEqual(tabs.map((_, i) => String(i === 1)));
+    const menu = container.querySelector('.menu')!;
+    const trig = menu.querySelector('[aria-haspopup]')!;
+    fireEvent.click(trig);
+    expect([menu.querySelector<HTMLElement>('.menu-list')!.hidden, trig.getAttribute('aria-expanded')]).toEqual([false, 'true']);
+    fireEvent.pointerDown(document.body);
+    expect([menu.querySelector<HTMLElement>('.menu-list')!.hidden, trig.getAttribute('aria-expanded')]).toEqual([true, 'false']);
+    const erase = container.querySelector<HTMLInputElement>('.modal.erase input[data-phrase]')!;
+    const go = erase.closest('.modal')!.querySelector<HTMLButtonElement>('.btn-destructive')!;
+    fireEvent.input(erase, { target: { value: 'Marisol' } });
+    expect(go.disabled).toBe(true);
+    fireEvent.input(erase, { target: { value: ` ${erase.dataset.phrase} ` } });
+    expect(go.disabled).toBe(false);
+    const panel = container.querySelector('.bulk-demo')!;
+    const bar = panel.querySelector<HTMLElement>('.bulkbar')!;
+    const all = panel.querySelector<HTMLInputElement>('thead .pick input')!;
+    const boxes = [...panel.querySelectorAll<HTMLInputElement>('tbody .pick input')];
+    expect([bar.hidden, bar.querySelector('.count')!.textContent]).toEqual([false, `${boxes.filter((b) => b.checked).length} selected`]);
+    fireEvent.keyDown(panel, { key: 'Escape' });
+    expect(bar.hidden).toBe(true);
+    fireEvent.click(boxes[0]);
+    expect([bar.hidden, bar.querySelector('.count')!.textContent, all.indeterminate, boxes[0].closest('tr')!.getAttribute('aria-selected')]).toEqual([false, '1 selected', true, 'true']);
+    fireEvent.click(all);
+    expect([boxes.every((b) => b.checked), all.indeterminate, bar.querySelector('.count')!.textContent]).toEqual([true, false, `${boxes.length} selected`]);
+    fireEvent.keyDown(panel, { key: 'Escape' });
+    expect([boxes.some((b) => b.checked), bar.hidden]).toEqual([false, true]);
+  });
+
+  it('has one generated sample per specimen, each the same markup, attributes and text as its specimen before the demos sync', () => {
+    const { container } = render(<Components />);
+    const withSample = (r: ParentNode) => [...r.querySelectorAll('.comp')].filter((c) => c.querySelector('.codewrap code') && c.querySelector('.specimen')).map((c) => c.querySelector('.specimen')!);
+    expect(COMPONENTS_CODE.length).toBe(withSample(container).length);
+    const before = withSample(pristine());
+    before.forEach((spec, i) => {
+      const parsed = document.createElement('div');
+      parsed.innerHTML = COMPONENTS_CODE[i];
+      expect(canon(spec), `sample ${i}`).toBe(canon(parsed));
+    });
   });
 });
 
