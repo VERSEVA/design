@@ -51,10 +51,13 @@
   first intent (main chunk 141.22 to 137.56 kB gzip).
 - **Data viz recipes follow the data-intensity rule.** Bar magnitude goes through `data-l` (new `.bar .fill[data-l]`
   rungs in `components.css`, with their text-ladder twins in a tile without `data-focus`), Stacked segments take
-  series identity (series one, `--data-alt`, a neutral third) instead of the magnitude ladder, the intensity legend
+  series identity (series one, `--data-alt`, a neutral third on `--text-2`) instead of the magnitude ladder, the intensity legend
   uses the same rungs as its cells, and the source dot uses a neutral token, not `--success`. No chart colour is
   inline. The Data viz samples are generated from these specimens as drawn and held byte for byte
   (`specimen-code.test.tsx`), so a sample cannot drift from what renders.
+- **Chart marks clear 3:1 and their labels 4.5:1 in both modes.** The text-ladder rung 1 a tile without `data-focus`
+  draws (bars, heat cells, activity strips) lifts from 30% to 50% `--text-1` (light was 2.0:1, dark 2.6:1); the
+  Stacked third series fills `--text-2` with a `--bg` label, and the Priced label takes `--surface` (4.46 to 5:1).
 - **`SpecimenTile` `focus` prop** (default true): false drops `data-focus`, so the package recolours the tile's charts.
 
 ### Fixed

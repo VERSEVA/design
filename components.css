@@ -803,7 +803,7 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .wtile:not([data-focus]) .ring .ringfill{stroke:var(--text-1)}
 .wtile:not([data-focus]) .stat .num i{color:var(--text-1)}
 .wtile:not([data-focus]) .bar .fill[data-l="0"]{background:var(--data-0)}
-.wtile:not([data-focus]) .bar .fill[data-l="1"],.wtile:not([data-focus]) .heat span.d1,.wtile:not([data-focus]) .actstrip i[data-l="1"],.wtile:not([data-focus]) .actcal i[data-l="1"]{background:color-mix(in srgb,var(--text-1) 30%,transparent)}
+.wtile:not([data-focus]) .bar .fill[data-l="1"],.wtile:not([data-focus]) .heat span.d1,.wtile:not([data-focus]) .actstrip i[data-l="1"],.wtile:not([data-focus]) .actcal i[data-l="1"]{background:color-mix(in srgb,var(--text-1) 50%,transparent)}
 .wtile:not([data-focus]) .bar .fill[data-l="2"],.wtile:not([data-focus]) .heat span.d2,.wtile:not([data-focus]) .actstrip i[data-l="2"],.wtile:not([data-focus]) .actcal i[data-l="2"]{background:var(--text-2)}
 .wtile:not([data-focus]) .heat span.d3,.wtile:not([data-focus]) .actstrip i[data-l="3"],.wtile:not([data-focus]) .actcal i[data-l="3"]{background:var(--text-1)}
 .wtile:not([data-focus]) .actstrip i.today,.wtile:not([data-focus]) .actcal i.today{box-shadow:0 0 0 2px var(--text-2)}

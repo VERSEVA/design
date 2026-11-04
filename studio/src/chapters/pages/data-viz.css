@@ -21,19 +21,21 @@
 [data-chapter="data-viz"] .vlegcol { flex-direction: column; align-items: flex-start; gap: 6px; }
 [data-chapter="data-viz"] .chips.tight { padding-top: 0; }
 /* Stacked segments: categories take series identity in fixed order (series one, --data-alt, a
-   neutral third), never the magnitude ladder. */
+   neutral third on --text-2), never the magnitude ladder. Every segment clears 3:1 on the surface
+   and every label 4.5:1 on its segment (test/served/chapters.test.mjs). */
 [data-chapter="data-viz"] .stackcol i { border-radius: 3px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; }
 [data-chapter="data-viz"] .stackcol i.s1 { background: var(--data-3); color: var(--accent-ink); }
-[data-chapter="data-viz"] .stackcol i.s2 { background: var(--data-alt); color: var(--bg); }
-[data-chapter="data-viz"] .stackcol i.s3, [data-chapter="data-viz"] .vizlegend i.s3 { background: var(--data-0); color: var(--text-1); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+[data-chapter="data-viz"] .stackcol i.s2 { background: var(--data-alt); color: var(--surface); }
+[data-chapter="data-viz"] .stackcol i.s3, [data-chapter="data-viz"] .vizlegend i.s3 { background: var(--text-2); color: var(--bg); }
 [data-chapter="data-viz"] .wtile:not([data-focus]) .stackcol i.s1 { background: var(--text-1); color: var(--bg); }
 /* The intensity legend: the same --data rungs as the cells it explains. */
 [data-chapter="data-viz"] .vizlegend i[data-l="0"] { background: var(--data-0); }
 [data-chapter="data-viz"] .vizlegend i[data-l="1"] { background: var(--data-1); }
 [data-chapter="data-viz"] .vizlegend i[data-l="2"] { background: var(--data-2); }
-[data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="1"] { background: color-mix(in srgb, var(--text-1) 30%, transparent); }
+[data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="1"] { background: color-mix(in srgb, var(--text-1) 50%, transparent); }
 [data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="2"] { background: var(--text-2); }
 /* Source dots: identity, not status. */
 [data-chapter="data-viz"] .srcdot i.neu { background: var(--text-3); }
 [data-chapter="data-viz"] .wtile:not([data-focus]) .srcdot i.mom { background: var(--text-1); }
-[data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="0"], [data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i.s3 { background: var(--data-0); }
+[data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="0"] { background: var(--data-0); }
+[data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i.s3 { background: var(--text-2); }
