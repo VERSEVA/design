@@ -35,7 +35,7 @@ export function fitToDocument(f: HTMLIFrameElement): () => void {
     const d = f.contentDocument;
     if (!d?.documentElement) return;
     if (++passes > 60) { ro?.disconnect(); return; }
-    f.style.height = `${d.documentElement.scrollHeight}px`;
+    f.style.height = `${d.documentElement.scrollHeight + f.offsetHeight - f.clientHeight}px`;
   };
   const onLoad = () => {
     const d = f.contentDocument;

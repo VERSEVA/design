@@ -69,12 +69,15 @@ describe('example frames fit their document', () => {
     const d = frameDoc(f);
     let h = 2336;
     Object.defineProperty(d.documentElement, 'scrollHeight', { configurable: true, get: () => h });
+    /* the frame's own 1px top and bottom border: the document gets every pixel of its height */
+    Object.defineProperty(f, 'offsetHeight', { configurable: true, get: () => 572 });
+    Object.defineProperty(f, 'clientHeight', { configurable: true, get: () => 570 });
     await act(async () => { f.dispatchEvent(new Event('load')); });
     expect(f.getAttribute('scrolling')).toBe('no');
-    expect(f.style.height).toBe('2336px');
+    expect(f.style.height).toBe('2338px');
     h = 2600;
     await act(async () => { fire.forEach((cb) => cb()); });
-    expect(f.style.height).toBe('2600px');
+    expect(f.style.height).toBe('2602px');
   });
 
   it('pins viewport-height rules to px first, so a 100vh stage cannot grow the frame without end', async () => {
