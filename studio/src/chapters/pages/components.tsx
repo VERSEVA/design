@@ -151,6 +151,7 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
 
   root.querySelectorAll<HTMLButtonElement>('.copybtn').forEach((btn) => {
     let t: ReturnType<typeof setTimeout> | undefined;
+    const label = btn.textContent; onCleanup(() => { btn.textContent = label; });
     on(btn, 'click', async () => {
       const code = btn.parentElement!.querySelector('code')!;
       try {

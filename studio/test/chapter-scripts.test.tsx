@@ -146,8 +146,12 @@ describe('motion chapter script', () => {
 describe('components chapter script', () => {
   const pristine = () => new DOMParser().parseFromString(renderToStaticMarkup(<Components />), 'text/html').querySelector('.chap')!;
 
-  it('is idempotent under StrictMode and leaves the markup and inputs exactly as rendered on unmount', () => {
+  it('is idempotent under StrictMode and leaves the markup and inputs exactly as rendered on unmount', async () => {
     const { container, unmount } = render(<StrictMode><Components /></StrictMode>);
+    const copy = container.querySelector<HTMLButtonElement>('.copybtn')!;
+    fireEvent.click(copy);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(copy.textContent).not.toBe('Copy');
     const comps = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.demo') && c.querySelector('.codewrap'));
     expect(container.querySelectorAll('.codetoggle').length).toBe(comps.length);
     fireEvent.click(container.querySelectorAll('.tabbar [role="tab"]')[1]);
