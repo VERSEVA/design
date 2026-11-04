@@ -6,11 +6,12 @@ import { ROUTES } from '../src/shell/routes';
 const repo = path.resolve(__dirname, '../..');
 
 describe('studio routes and the Vercel config', () => {
-  it('rewrites every studio route except / to the studio', () => {
+  it('serves every studio route as its own pre-rendered file: no SPA rewrite, no redirect', () => {
     const v = JSON.parse(fs.readFileSync(path.join(repo, 'vercel.json'), 'utf8'));
-    const rewritten = new Set(v.rewrites.filter((r: { destination: string }) => r.destination === '/index.html').map((r: { source: string }) => r.source));
-    const missing = ROUTES.map((r) => r.path).filter((p) => p !== '/' && !rewritten.has(p));
-    expect(missing).toEqual([]);
+    const toShell = (v.rewrites ?? []).filter((r: { destination: string }) => r.destination === '/index.html');
+    expect(toShell).toEqual([]);
+    const redirected = new Set((v.redirects ?? []).map((r: { source: string }) => r.source));
+    expect(ROUTES.map((r) => r.path).filter((p) => redirected.has(p))).toEqual([]);
     expect(v.trailingSlash).toBe(false);
   });
 

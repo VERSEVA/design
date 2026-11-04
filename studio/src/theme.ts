@@ -42,6 +42,7 @@ let current: ThemeState = { brand: '', mode: 'system' };
 const listeners = new Set<() => void>();
 
 export function setAttrs(el: HTMLElement, state: ThemeState = current) {
+  el.dataset.mode = state.mode;
   if (state.brand) el.dataset.brand = state.brand; else delete el.dataset.brand;
   if (resolveMode(state.mode) === 'light') el.dataset.theme = 'light'; else delete el.dataset.theme;
 }
@@ -65,8 +66,18 @@ export function initTheme() {
 }
 
 const subscribe = (l: () => void) => { listeners.add(l); return () => listeners.delete(l); };
+/* The pre-render has no stored theme: hydration starts from this default, then re-renders
+   with the visitor's choice (the head script already set it on <html> before first paint). */
+const SERVER_THEME: ThemeState = { brand: '', mode: 'system' };
+const serverTheme = () => SERVER_THEME;
 export function useTheme(): ThemeState {
-  return useSyncExternalStore(subscribe, getTheme, getTheme);
+  return useSyncExternalStore(subscribe, getTheme, serverTheme);
+}
+
+/** False on the server and through hydration, true after: gates values read from the live page. */
+const noSubscribe = () => () => {};
+export function useHydrated(): boolean {
+  return useSyncExternalStore(noSubscribe, () => true, () => false);
 }
 
 /* The View Transition circle wipe (site/theme.js, ratified 09-01); reduced motion flips instantly. */

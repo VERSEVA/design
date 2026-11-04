@@ -38,9 +38,21 @@ export function jumpTo(el: HTMLElement | null, behavior: ScrollBehavior = 'smoot
   focusTarget(el);
 }
 
-const snapshot = () => window.location.pathname;
+/* A direct hit on a pre-rendered file (/foundations/index.html) is that route. */
+const clean = (p: string) => p.replace(/\/index\.html$/, '') || '/';
+const snapshot = () => clean(window.location.pathname);
+
+/* The path a page was pre-rendered for: set by the pre-render on the server, read from
+   #studio-root[data-path] in the browser, so hydration renders the same route as the HTML. */
+let renderPath = '/';
+export function setServerPath(path: string) { renderPath = path; }
+export function serverSnapshot(): string {
+  if (typeof document === 'undefined') return renderPath;
+  return document.getElementById('studio-root')?.dataset.path ?? clean(window.location.pathname);
+}
+
 export function usePath(): string {
-  return useSyncExternalStore((l) => { listeners.add(l); return () => listeners.delete(l); }, snapshot, () => '/');
+  return useSyncExternalStore((l) => { listeners.add(l); return () => listeners.delete(l); }, snapshot, serverSnapshot);
 }
 
 /* Click handler for in-studio links: keeps modified clicks native. */

@@ -64,6 +64,11 @@ function reader(root: HTMLElement) {
 
 const over = (top: RGBA, under: RGB): RGB => composite([top[0], top[1], top[2]], under, top[3]);
 
+/** Every PAIRS entry, unmeasured: what renders before the live theme can be read. */
+export function pendingPairs(): PairResult[] {
+  return PAIRS.map(([fg, chain, floor]) => ({ fg, bg: chain.join('+'), ratio: 0, floor, pass: false }));
+}
+
 /** Measures every PAIRS entry on the element's live theme; an unresolvable pair fails at ratio 0. */
 export function evaluatePairs(root: HTMLElement = document.documentElement): PairResult[] {
   const read = reader(root);

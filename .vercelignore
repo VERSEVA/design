@@ -2,3 +2,4 @@ out
 studio/dist
 **/node_modules
 .claude
+studio/dist-ssr

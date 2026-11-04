@@ -6,3 +6,4 @@ node_modules/
 out/
 studio/dist/
 studio/node_modules/
+studio/dist-ssr/

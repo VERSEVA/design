@@ -57,6 +57,15 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 .snav a:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .studio-main { min-width: 0; padding: 0 var(--s-7) var(--s-9); }
 .studio-main h1:focus { outline: none; }
+.notfound { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-5); }
+/* Mode control before hydration: the server marks System; the head script's <html data-mode>
+   picks the option to draw, with the selected-segment look (components.css), so hydration
+   changes nothing on screen. MODES order: Light, Dark, System. */
+:root[data-mode] .modeswitch[data-pending] .seg button { transition: none; }
+:root[data-mode] .modeswitch[data-pending] .seg button[aria-selected="true"] { background: transparent; color: var(--text-2); font-weight: inherit; box-shadow: none; }
+:root[data-mode="light"] .modeswitch[data-pending] .seg button:nth-child(1),
+:root[data-mode="dark"] .modeswitch[data-pending] .seg button:nth-child(2),
+:root[data-mode="system"] .modeswitch[data-pending] .seg button:nth-child(3) { background: var(--surface); color: var(--text-1); font-weight: 600; box-shadow: var(--e-1); }
 
 /* ---- page rhythm (SEAM LAW: sections breathe) ---- */
 .page { padding-top: var(--s-8); }

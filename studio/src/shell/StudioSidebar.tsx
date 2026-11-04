@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { GROUPS, ROUTES, routeFor } from './routes';
+import { GROUPS, NOT_FOUND, ROUTES, routeFor } from './routes';
 import { navigate, onStudioLink } from './router';
 
 /* rAF position watcher (IntersectionObserver pauses in hidden panes; see learnings). */
@@ -61,7 +61,8 @@ export function StudioSelect({ path }: { path: string }) {
   return (
     <label className="studio-select">
       <span className="sr-only">Go to</span>
-      <select value={path} onChange={(e) => go(e.target.value)} aria-label="Go to">
+      <select value={route === NOT_FOUND ? '' : path} onChange={(e) => go(e.target.value)} aria-label="Go to">
+        {route === NOT_FOUND && <option value="" disabled hidden>Go to</option>}
         {GROUPS.map((g) => (
           <optgroup key={g} label={g}>
             {ROUTES.filter((r) => r.group === g).map((r) => <option key={r.path} value={r.path}>{r.label}</option>)}

@@ -2,7 +2,22 @@
 
 ## 1.6.1 · unreleased
 
+### Added
+
+- **design.verseva.com is pre-rendered.** Every route in the studio routes table ships its own HTML: real headings
+  without JS, a unique title and description, a canonical on design.verseva.com, Open Graph and Twitter tags, and
+  JSON-LD (BreadcrumbList, plus WebSite on home). Pages hydrate in place, and client navigation keeps the whole head
+  in step. The SPA rewrites in `vercel.json` are gone: each route is a file.
+- **SEO kit, generated at build time** from the emblem and the dark canvas tokens at full clear space: `favicon.ico`,
+  `icon.svg`, `apple-touch-icon.png`, 192 and 512 icons plus a maskable one, the `og.png` social card,
+  `site.webmanifest`, `robots.txt` and `sitemap.xml` (every route).
+- **A studio 404 page.** Unknown paths return 404 with the studio shell and a way back to Overview (noindex).
+
 ### Fixed
+
+- **Theme before first paint.** The inline head script runs ahead of every stylesheet, and the Mode control shows the
+  stored mode from first paint instead of sliding from System after load.
+- **`/<route>/index.html`** opens that route instead of the not-found page.
 
 - **What's new New tag spends no accent.** `.badge.bloom` moves from `--accent-bloom` to the text ladder:
   `--text-1` at weight 600 on `--surface-2`, a step above Improved (`--text-2`). Law 3 budget: counts and info
