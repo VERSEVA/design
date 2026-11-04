@@ -10,7 +10,7 @@ export function navigate(href: string) {
   if (url.pathname + url.hash === window.location.pathname + window.location.hash) return;
   window.history.pushState(null, '', url.pathname + url.hash);
   notify();
-  if (url.hash) requestAnimationFrame(() => document.getElementById(url.hash.slice(1))?.scrollIntoView());
+  if (url.hash) requestAnimationFrame(() => jumpTo(document.getElementById(url.hash.slice(1)), 'auto'));
   else window.scrollTo(0, 0);
 }
 
@@ -22,6 +22,20 @@ export function scrollToHash() {
   let id = raw;
   try { id = decodeURIComponent(raw); } catch { /* keep raw */ }
   document.getElementById(id)?.scrollIntoView();
+}
+
+/* An in-page jump scrolls AND moves focus (WCAG 2.4.1: a skip link must land the
+   keyboard there too). A target that is not focusable gets tabindex=-1 first. */
+const FOCUSABLE = 'a[href],button,input,select,textarea,summary,[contenteditable]';
+export function focusTarget(el: HTMLElement | null) {
+  if (!el) return;
+  if (!el.hasAttribute('tabindex') && !el.matches(FOCUSABLE)) el.setAttribute('tabindex', '-1');
+  el.focus({ preventScroll: true });
+}
+export function jumpTo(el: HTMLElement | null, behavior: ScrollBehavior = 'smooth') {
+  if (!el) return;
+  el.scrollIntoView({ behavior });
+  focusTarget(el);
 }
 
 const snapshot = () => window.location.pathname;
