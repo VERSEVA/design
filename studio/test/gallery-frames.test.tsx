@@ -143,6 +143,47 @@ describe('gallery code route', () => {
   });
 });
 
+describe('a source chunk that fails on a client visit', () => {
+  it('shows a label and Retry, rejects nothing unhandled, and Retry refetches', async () => {
+    vi.resetModules();
+    const sources = await import('../src/gallery/sources');
+    const { GalleryCodePage: Fresh } = await import('../src/gallery/GalleryCodePage');
+    const ok = sources.BY_SLUG.store;
+    let fail = true;
+    const chunk = vi.fn(() => (fail ? Promise.reject(new Error('500 /_s/store.js')) : ok()));
+    sources.BY_SLUG.store = chunk;
+    const unhandled = vi.fn();
+    process.on('unhandledRejection', unhandled);
+    try {
+      const { container } = render(<Fresh slug="store" />);
+      await vi.waitFor(() => expect(container.querySelector('.srcerr')).not.toBeNull());
+      expect(container.querySelector('.srcerr [role="alert"]')!.textContent).toBe('Source failed to load');
+      expect(container.querySelector('pre')).toBeNull();
+      expect(container.querySelector<HTMLButtonElement>('#copysrc')!.disabled).toBe(true);
+      await new Promise((r) => setTimeout(r, 0));
+      expect(unhandled).not.toHaveBeenCalled();
+      fail = false;
+      await act(async () => { fireEvent.click(container.querySelector('#retrysrc')!); });
+      await vi.waitFor(() => expect(container.querySelector('#srccode')?.textContent).toBe(served('store')));
+      expect(chunk).toHaveBeenCalledTimes(2);
+      expect(container.querySelector('.srcerr')).toBeNull();
+    } finally {
+      process.off('unhandledRejection', unhandled);
+    }
+  });
+
+  it('forgets a failed load, so the next load fetches again', async () => {
+    vi.resetModules();
+    const sources = await import('../src/gallery/sources');
+    const ok = sources.BY_SLUG.pulse;
+    const chunk = vi.fn().mockRejectedValueOnce(new Error('500')).mockImplementation(ok);
+    sources.BY_SLUG.pulse = chunk;
+    await expect(sources.loadSource('pulse')).rejects.toThrow('500');
+    expect(await sources.loadSource('pulse')).toBe(served('pulse'));
+    expect(chunk).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('gallery sources', () => {
   beforeAll(() => Promise.all(SOURCE_SLUGS.map(loadSource)));
   it('loads one source per site/examples/*.html, byte for byte the file assemble serves at /examples', async () => {

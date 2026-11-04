@@ -9,6 +9,7 @@ import { onStudioLink } from '../shell/router';
 import { GALLERY } from './examples';
 import { useSource } from './sources';
 import './code.css';
+import './gallery.css';
 
 /* sha256 of site/code.html; the parity test fails if the frozen page changes. */
 export const FROZEN_CODE = '488c27a0dd7cd4bc94537ee80cbfa86796378ccc1d4aaf9929492fe04a7cca50';
@@ -16,7 +17,7 @@ export const FROZEN_CODE = '488c27a0dd7cd4bc94537ee80cbfa86796378ccc1d4aaf992949
 export function GalleryCodePage({ slug }: { slug: string }) {
   const file = `examples/${slug}.html`;
   const label = GALLERY.find((g) => g.slug === slug)?.label ?? slug;
-  const text = useSource(slug);
+  const { text, failed, retry } = useSource(slug);
   const [copy, setCopy] = useState('Copy');
   const reset = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -55,7 +56,13 @@ export function GalleryCodePage({ slug }: { slug: string }) {
           {' '}
           <button className="btn btn-secondary sm" id="copysrc" type="button" disabled={!text} onClick={onCopy}>{copy}</button>
         </div>
-        <pre aria-busy={!text || undefined}><code id="srccode">{text}</code></pre>
+        {failed ? (
+          <div className="srcerr">
+            <span role="alert">Source failed to load</span>
+            {' '}
+            <button className="btn btn-secondary sm" id="retrysrc" type="button" onClick={retry}>Retry</button>
+          </div>
+        ) : <pre aria-busy={!text || undefined}><code id="srccode">{text}</code></pre>}
       </div>
       <footer className="site">
         <span>VERSEVA · open source · MIT</span>

@@ -44,7 +44,7 @@ function stubOs(light: boolean) {
   })) as unknown as typeof window.matchMedia;
 }
 
-/** Pre-render `renderPath` on a fresh server graph, load it at `url`, boot it as main.tsx does (ready, then boot). */
+/** Pre-render `renderPath` on a fresh server graph, load it at `url`, boot it as main.tsx does. */
 async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[number]) {
   const { renderApp } = await fresh<Server>('../src/entry-server');
   const html = serverHtml(renderApp, renderPath);
@@ -65,8 +65,7 @@ async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[num
   const recoverable: unknown[] = [];
   vi.spyOn(console, 'error').mockImplementation((...a: unknown[]) => { errors.push(a.map(String).join(' ')); });
 
-  const { boot, ready } = await fresh<Client>('../src/boot');
-  await ready(el);
+  const { boot } = await fresh<Client>('../src/boot');
   await act(async () => {
     unmount = boot(el, { onRecoverableError: (e) => recoverable.push(e) });
   });
@@ -84,6 +83,32 @@ async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[num
   expect([...el.querySelectorAll('.modeswitch [aria-selected="true"]')].map((b) => b.textContent)).toEqual([v.mode]);
   return el;
 }
+
+describe('a code page whose source chunk fails on a cold load', () => {
+  it('keeps the server text: hydrates without a mismatch, nothing busy, Copy on', async () => {
+    const route = '/gallery/landing/code';
+    const { renderApp } = await fresh<Server>('../src/entry-server');
+    const html = serverHtml(renderApp, route);
+    window.history.replaceState(null, '', route);
+    document.body.innerHTML = `<div id="studio-root" data-path="${route}">${html}</div>`;
+    const el = document.getElementById('studio-root')!;
+    const recoverable: unknown[] = [];
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.resetModules();
+    const sources = await import('../src/gallery/sources');
+    const chunk = vi.fn(() => Promise.reject(new Error('500 /_s/landing.js')));
+    sources.BY_SLUG.landing = chunk;
+    const { boot } = await import('../src/boot');
+    await act(async () => { unmount = boot(el, { onRecoverableError: (e) => recoverable.push(e) }); });
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+    expect(recoverable.map(String)).toEqual([]);
+    expect(el.querySelector('#srccode')!.textContent).toBe(fs.readFileSync(`${__dirname}/../../site/examples/landing.html`, 'utf8'));
+    expect(el.querySelector('pre')!.hasAttribute('aria-busy')).toBe(false);
+    expect(el.querySelector<HTMLButtonElement>('#copysrc')!.disabled).toBe(false);
+    /* the server text is the source: no chunk round trip before hydration */
+    expect(chunk).not.toHaveBeenCalled();
+  });
+});
 
 describe('hydration', () => {
   for (const v of VISITORS) {
