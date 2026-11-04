@@ -426,7 +426,8 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .drawer .chg .k .badge{padding:1px 8px;font-size:11px}
 .drawer .rel.seen .chg{color:var(--text-2)}
 .drawer .empty{border:0;border-radius:0}
-.badge.bloom{color:var(--text-1);background:var(--accent-bloom)}
+/* New: text ladder, not the accent (law 3 budget: info badges are neutral); text-1 and weight set it above Improved */
+.badge.bloom{color:var(--text-1);background:var(--surface-2);font-weight:600}
 
 /* Rail (.cside[data-collapsed]): 72px, icons only; names visually hidden (never display:none); urgent counts become dots */
 .cside[data-collapsed]{width:72px}

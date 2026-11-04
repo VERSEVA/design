@@ -234,6 +234,13 @@ test('contrast: the hot count is neutral (1.4.0 accent budget) on an opaque --su
   assert.deepEqual(eachScene((s) => ratio(s.text1, s.surface2)), []);
 });
 
+test('contrast: the What\'s new "New" tag (.badge.bloom) sits on the text ladder and clears 4.5:1 on every theme', () => {
+  assert.match(bodyOf('.badge.bloom'), /color:var\(--text-1\)/);
+  assert.match(bodyOf('.badge.bloom'), /background:var\(--surface-2\)/);
+  assert.doesNotMatch(bodyOf('.badge.bloom'), /--accent/);
+  assert.deepEqual(eachScene((s) => ratio(s.text1, s.surface2)), []);
+});
+
 test('contrast: the org role lifts to --text-2 on the switcher hover wash', () => {
   assert.match(bodyOf('.switcher:hover .oname small'), /color:var\(--text-2\)/);
   assert.match(bodyOf('.switcher[aria-expanded="true"] .oname small'), /color:var\(--text-2\)/);
