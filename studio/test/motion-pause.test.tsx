@@ -23,7 +23,15 @@ describe('Pause motion (WCAG 2.2.2)', () => {
     fireEvent.click(btn);
     expect(btn.getAttribute('aria-pressed')).toBe('true');
     expect(html().dataset.motion).toBe('paused');
-    expect(pauseSheet(document)).toMatch(/\[data-motion="paused"\][^{]*\*[^{]*::before[^{]*::after[^{]*\{[^}]*animation:\s*none\s*!important/);
+    /* Paused = every animation runs to its end state at once. animation:none would restart
+       one-shot entrances on resume; play-state:paused would hold a route mounted while
+       paused at its first frame (rise at opacity 0). */
+    const sheet = pauseSheet(document);
+    expect(sheet).toMatch(/\[data-motion="paused"\][^{]*\*[^{]*::before[^{]*::after[^{]*\{/);
+    expect(sheet).toMatch(/animation-duration:\s*0\.01ms\s*!important/);
+    expect(sheet).toMatch(/animation-iteration-count:\s*1\s*!important/);
+    expect(sheet).toMatch(/animation-delay:\s*0s\s*!important/);
+    expect(sheet).not.toMatch(/animation:\s*none|animation-play-state/);
     fireEvent.click(btn);
     expect(html().dataset.motion).toBeUndefined();
   });
@@ -37,7 +45,7 @@ describe('Pause motion (WCAG 2.2.2)', () => {
     act(() => setMotionPaused(true));
     syncFrame(f);
     expect(d.documentElement.dataset.motion).toBe('paused');
-    expect(pauseSheet(d)).toMatch(/animation:\s*none\s*!important/);
+    expect(pauseSheet(d)).toMatch(/animation-duration:\s*0\.01ms\s*!important/);
     act(() => setMotionPaused(false));
     syncFrame(f);
     expect(d.documentElement.dataset.motion).toBeUndefined();

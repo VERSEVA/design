@@ -88,11 +88,13 @@ export function wipe(e: { clientX?: number; clientY?: number } | null, fn: () =>
 
 /* Page-level motion pause (WCAG 2.2.2); reduced motion starts it paused.
    The control stops every auto-moving element: JS loops read isMotionPaused, and
-   every CSS animation on the page and in same-origin example frames is switched
-   off by data-motion="paused" on the root plus one injected sheet. */
+   every CSS animation on the page and in same-origin example frames runs to its end
+   state at once under data-motion="paused" on the root plus one injected sheet.
+   Not animation:none (resume would restart one-shot entrances) and not
+   play-state:paused (a route mounted while paused would hold rise at opacity 0). */
 let paused = false;
 const pauseListeners = new Set<() => void>();
-const PAUSE_CSS = ':root[data-motion="paused"] *, :root[data-motion="paused"] *::before, :root[data-motion="paused"] *::after { animation: none !important; }';
+const PAUSE_CSS = ':root[data-motion="paused"] *, :root[data-motion="paused"] *::before, :root[data-motion="paused"] *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; }';
 export function applyMotionPause(d: Document) {
   if (!d.querySelector('style[data-vsv-pause]')) {
     const st = d.createElement('style');
