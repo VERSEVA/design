@@ -42,7 +42,7 @@ describe('studio shell', () => {
     const h1 = screen.getByRole('heading', { level: 1 });
     expect(h1.textContent).toBe('Foundations');
     expect(document.activeElement).toBe(h1);
-    expect(document.title).toBe('Foundations · VERSEVA Design');
+    expect(document.title).toBe('Foundations: color, type, radius and motion tokens');
   });
 
   it('moves the mode tab with arrow keys', () => {

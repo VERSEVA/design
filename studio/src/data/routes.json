@@ -1,0 +1,87 @@
+[
+  {
+    "path": "/",
+    "label": "Overview",
+    "group": "Studio",
+    "title": "VERSEVA Design: tokens, components and widgets",
+    "description": "VERSEVA Design: an open design system with tokens, components, widgets, motion and an asset library. MIT licensed on npm as @verseva/design."
+  },
+  {
+    "path": "/foundations",
+    "label": "Foundations",
+    "group": "Studio",
+    "title": "Foundations: color, type, radius and motion tokens",
+    "description": "Every token in the signature: color ladders, status, data colors, glass material, radius and spacing, type, motion and live contrast ratios."
+  },
+  {
+    "path": "/assets",
+    "label": "Asset Library",
+    "group": "Studio",
+    "title": "Asset Library: 3D objects and loops",
+    "description": "Open 3D objects and motion loops, themed to the signature, ready to download and drop into a surface."
+  },
+  {
+    "path": "/widgets",
+    "label": "Widgets",
+    "group": "Studio",
+    "title": "Widgets: home screen widgets in four sizes",
+    "description": "Home screen widgets in small, medium, large and extra large, each size with its own chart. Smart stacks, edit mode and drag to reorder.",
+    "proposed": true
+  },
+  {
+    "path": "/components",
+    "label": "Components",
+    "group": "Chapters",
+    "title": "Components: buttons, fields, cards and the console shell",
+    "description": "Buttons, fields, checkboxes, cards, glass panels, badges and the console shell, each with every state: hover, focus, press, disabled and loading."
+  },
+  {
+    "path": "/web-ui",
+    "label": "Web UI",
+    "group": "Chapters",
+    "title": "Web UI: ladders, type and contract specimens",
+    "description": "The color ladders, the type trio, radius and press behavior, and the contract specimens every web surface is built from."
+  },
+  {
+    "path": "/data-viz",
+    "label": "Data viz",
+    "group": "Chapters",
+    "title": "Data viz: stat tiles, sparklines, bars and rings",
+    "description": "Stat tiles, sparklines, line and area charts, bars, stacked segments, calendars and rings, drawn from the data color tokens."
+  },
+  {
+    "path": "/motion",
+    "label": "Motion",
+    "group": "Chapters",
+    "title": "Motion: easing, press, entrances and number tweens",
+    "description": "Motion tokens and recipes: press, entrances, line reveal, spotlight, magnetic, number tweens and text swaps. Reduced motion respected."
+  },
+  {
+    "path": "/decks",
+    "label": "Decks",
+    "group": "Chapters",
+    "title": "Decks: slide anatomy and structure",
+    "description": "Slide anatomy and deck structure on the VERSEVA signature, for presentations that match the product."
+  },
+  {
+    "path": "/docs-pdf",
+    "label": "Docs and PDF",
+    "group": "Chapters",
+    "title": "Docs and PDF: memo anatomy",
+    "description": "Memo and document anatomy for docs and PDFs on the VERSEVA signature."
+  },
+  {
+    "path": "/distribute",
+    "label": "Distribute",
+    "group": "Chapters",
+    "title": "Distribute: npm, registries, agents and themes",
+    "description": "Install from npm, copy parts with npx verseva add, use the registry with coding agents, and apply theme presets."
+  },
+  {
+    "path": "/gallery",
+    "label": "Gallery",
+    "group": "Chapters",
+    "title": "Gallery: example sites and apps built on VERSEVA Design",
+    "description": "Example consoles, landing pages, stores and tools built on VERSEVA Design, with the source for each."
+  }
+]
