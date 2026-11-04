@@ -1,6 +1,9 @@
 // Ported from site/distribute.html (frozen): same copy, same specimens, same anchors.
 import { NativeChapter } from '../NativeChapter';
 
+/* sha256 of site/distribute.html; the parity test fails if the frozen page changes. */
+export const FROZEN = '5c964df6da7a61bceda5c1ecbf4ffd45b0811e5259b9f938fadb2f468f1be824';
+
 export function Page() {
   return (
     <NativeChapter slug="distribute">
