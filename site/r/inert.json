@@ -1,0 +1,12 @@
+{
+  "name": "inert",
+  "kind": "util",
+  "description": "inert props that type-check and render the same on React 18 and 19",
+  "deps": [],
+  "files": [
+    {
+      "path": "react/inert.ts",
+      "content": "import * as React from 'react';\n\n/**\n * Props that make an element inert, the same on React 18 and React 19.\n * React 19 knows `inert` as a boolean and drops an empty string; React 18 does not know it,\n * drops a boolean, and only renders it from a string. Spread the result: `<div {...inert(hidden)}>`.\n */\nexport function inertFor(version: string, on: boolean): Record<string, unknown> {\n  if (!on) return {};\n  return { inert: Number.parseInt(version, 10) < 19 ? '' : true };\n}\n\nexport function inert(on: boolean): Record<string, unknown> {\n  return inertFor(React.version, on);\n}\n"
+    }
+  ]
+}

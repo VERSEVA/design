@@ -10,6 +10,13 @@
       "description": "Class-join helper; the only utility the kit needs"
     },
     {
+      "name": "inert",
+      "file": "react/inert.ts",
+      "kind": "util",
+      "deps": [],
+      "description": "inert props that type-check and render the same on React 18 and 19"
+    },
+    {
       "name": "button",
       "file": "react/button.tsx",
       "kind": "component",
@@ -268,6 +275,7 @@
       "file": "react/smart-stack.tsx",
       "kind": "component",
       "deps": [
+        "inert",
         "cx"
       ],
       "description": "Several widgets in one slot: wheel, swipe, dots, a timer with a visible pause; off under reduced motion"
@@ -279,6 +287,7 @@
       "deps": [
         "widget-state",
         "widget-gallery",
+        "inert",
         "cx"
       ],
       "description": "Widget home: tiles pick their view from their size (S, M, L, XL); edit mode removes with Undo, resizes, reorders by drag, touch, buttons or Alt+Arrow, adds from the gallery; one focus widget spends the accent"

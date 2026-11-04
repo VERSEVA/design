@@ -27,6 +27,14 @@
     "verseva-type-gate": "bin/type-gate.mjs",
     "verseva-gate": "bin/verseva-gate.mjs"
   },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "files": [
     "tokens.css",
     "components.css",

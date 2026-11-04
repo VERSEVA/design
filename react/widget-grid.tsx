@@ -8,6 +8,7 @@ import type { Columns, LayoutItem, Removed, RowMove, WidgetSize, WidgetSpec } fr
 import { WidgetGallery } from './widget-gallery';
 import type { WidgetGalleryLabels } from './widget-gallery';
 import { cx } from './cx';
+import { inert } from './inert';
 
 export interface WidgetRenderState {
   /** The size the tile renders at (already fitted to the columns). */
@@ -410,7 +411,7 @@ export function WidgetGrid({
         onDrop={(e) => e.preventDefault()}
         onDragEnd={onHandleUp}
       >
-        <div className="wtile-body" inert={editing || undefined}>{body}</div>
+        <div className="wtile-body" {...inert(editing)}>{body}</div>
         {editing && (
           <>
             <button type="button" className="wtile-x" aria-label={L.remove(def.name)} onClick={() => remove(it.id)}>{MINUS}</button>
