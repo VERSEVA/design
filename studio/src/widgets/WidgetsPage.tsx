@@ -217,7 +217,7 @@ const NAV = [
   { label: 'You', icon: icon(<><circle cx="12" cy="9" r="4" /><path d="M5 20c2-5 12-5 14 0" /></>) },
 ] as const;
 
-function ConsoleNav() {
+function SpecimenNav() {
   const [on, setOn] = React.useState<string>('Home');
   return (
     <nav className="navshell" aria-label="Console">
@@ -290,7 +290,7 @@ function HomeSpecimen() {
             labels={{ region: 'Home widgets' }}
           />
         </div>
-        <ConsoleNav />
+        <SpecimenNav />
       </div>
       <CommandBar commands={commands} onAsk={streamAnswer} onPin={pin} open={barOpen} onOpenChange={setBarOpen} />
     </>

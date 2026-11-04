@@ -1,4 +1,4 @@
-// At 375px and 360px no probed page scrolls sideways, in dark and in light, and no gallery example
+// At 375px, 371px and 360px no probed page scrolls sideways, in dark and in light, and no gallery example
 // frame is wider than its box. Runs headless Chrome over out/ (npm run studio:build && npm run
 // assemble first), served the way vercel.json serves it (chrome.mjs), and reads scrollWidth
 // against clientWidth after the page settles. No Chrome: the test fails, loudly.
@@ -12,11 +12,11 @@ import { root, out, routes, start } from './chrome.mjs';
 export { resolveServed } from './chrome.mjs';
 export const PROBED = ['/components', '/gallery', ...routes.filter((r) => r.path.startsWith('/gallery/')).map((r) => r.path)];
 const WIDTH = 375;
-/* Both schemes, at 375px and at 360px (the narrowest common phone). The #bulk specimen on
-   /components fit at 375px and spilled 0.53px past a 371px viewport in either scheme, so a
-   single width cannot prove a page holds at phone widths. */
+/* Both schemes, at 375px, 371px and 360px (the narrowest common phone). The #bulk specimen on
+   /components fit at 375px and spilled 0.53px past a 371px viewport (372 vs 371) in either
+   scheme, so a single width cannot prove a page holds at phone widths. */
 export const SCHEMES = ['dark', 'light'];
-export const WIDTHS = [WIDTH, 360];
+export const WIDTHS = [WIDTH, 371, 360];
 /* Example files that are wider than a 375px phone on their own, and why they are not fixed here.
    An entry that stops overflowing fails, so the list cannot go stale. */
 export const FRAME_OVERFLOW_ALLOWED = {};
