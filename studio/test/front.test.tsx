@@ -36,7 +36,7 @@ describe('front door', () => {
     expect(['AA', 'Fail']).toContain(read.querySelector('.badge.ok, .badge.err')?.textContent);
   });
 
-  it('keeps frames inert behind a single cover link each', () => {
+  it('keeps frames inert behind a single cover link each, opening the gallery page in the shell', () => {
     const { container } = render(<FrontDoorPage />);
     const frames = [...container.querySelectorAll('iframe')];
     expect(frames.map((f) => f.getAttribute('src'))).toEqual(['/examples/pulse.html', '/examples/launch.html']);
@@ -46,7 +46,8 @@ describe('front door', () => {
       const tile = wrap.parentElement!;
       const links = tile.querySelectorAll('a');
       expect(links).toHaveLength(1);
-      expect(links[0].getAttribute('href')).toBe(f.getAttribute('src'));
+      const slug = f.getAttribute('src')!.match(/^\/examples\/([a-z0-9-]+)\.html$/)![1];
+      expect(links[0].getAttribute('href')).toBe(`/gallery/${slug}`);
     }
   });
 

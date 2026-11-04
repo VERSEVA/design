@@ -36,6 +36,8 @@
 - **Theme before first paint.** The inline head script runs ahead of every stylesheet, and the Mode control shows the
   stored mode from first paint instead of sliding from System after load.
 - **`/<route>/index.html`** opens that route instead of the not-found page.
+- **Overview's Pulse and Launch tiles open their gallery pages** (`/gallery/pulse`, `/gallery/launch`) inside the
+  studio, instead of the bare example files.
 
 - **What's new New tag spends no accent.** `.badge.bloom` moves from `--accent-bloom` to the text ladder:
   `--text-1` at weight 600 on `--surface-2`, a step above Improved (`--text-2`). Law 3 budget: counts and info

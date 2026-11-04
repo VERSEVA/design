@@ -3,7 +3,8 @@
 // way Vercel answers it (vercel.json redirects first, then out/), through redirects and
 // onto every studio page it reaches, and fails on a 404, on a page without
 // id="studio-root" (404.html and the served example and file paths excepted), and on a
-// link to a legacy page that is not a redirect. A planted-defect run proves it can fail.
+// link to a legacy page that is not a redirect, or on a link (not a frame) to an example
+// file, which would leave the shell. A planted-defect run proves it can fail.
 // Runs after `npm run studio:build && npm run assemble` (npm run test:served).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -24,7 +25,7 @@ const EXEMPT = (p) => p === '/404.html' || /^\/(site\/)?examples\//.test(p) || d
 const pageFile = (p) => path.join(out, p === '/' ? 'index.html' : `${p.slice(1)}/index.html`);
 const isRedirect = (url) => !!redirectFor(url);
 const served = (p) => resolve(out, p).kind === 'file';
-const links = (html) => [...html.matchAll(/<(?:a|iframe)\b[^>]*?\s(?:href|src)="([^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, '&'));
+const links = (html) => [...html.matchAll(/<(a|iframe)\b[^>]*?\s(?:href|src)="([^"]*)"/g)].map((m) => [m[1], m[2].replace(/&amp;/g, '&')]);
 
 /* Crawls out/ from `starts` (paths); returns { bad, links, pages }. */
 export function crawl(dir, starts, { legacy = LEGACY, exempt = EXEMPT } = {}) {
@@ -53,11 +54,13 @@ export function crawl(dir, starts, { legacy = LEGACY, exempt = EXEMPT } = {}) {
     if (!studio) { if (!exempt(url.pathname)) bad.push(`${label}: no id="studio-root"`); continue; }
     if (pages.has(r.file)) continue;
     pages.add(r.file);
-    for (const href of links(html)) {
+    for (const [tag, href] of links(html)) {
       if (!href || href.startsWith('#')) continue;
       const next = new URL(href, url);
       if (next.origin !== SITE) continue;
       checked++;
+      /* an example may load in a frame, but a link to one leaves the shell: link its gallery page */
+      if (tag === 'a' && /^\/(site\/)?examples\/[^/]+\.html$/.test(next.pathname)) bad.push(`${key} -> ${href}: a link out of the shell to an example file`);
       queue.push({ url: next, from: key, hops: 0 });
     }
   }
@@ -96,11 +99,11 @@ test('the crawl from every route reaches only live pages, through redirects for 
   assert.deepEqual(bad, []);
 });
 
-test('the crawl is not vacuous: a planted 404, a page without the studio root and an unredirected legacy link each fail', () => {
+test('the crawl is not vacuous: a planted 404, a page without the studio root, an unredirected legacy link and a link to an example file each fail', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vsv-crawl-'));
   try {
     const page = (body) => `<!doctype html><div id="studio-root" data-path="/">${body}</div>`;
-    fs.writeFileSync(path.join(dir, 'index.html'), page('<a href="/ok">ok</a><a href="/missing">gone</a><a href="/plain.html">plain</a><a href="/old.html">old</a><a href="/examples/x.html">x</a>'));
+    fs.writeFileSync(path.join(dir, 'index.html'), page('<a href="/ok">ok</a><a href="/missing">gone</a><a href="/plain.html">plain</a><a href="/old.html">old</a><iframe src="/examples/x.html"></iframe><a href="/examples/x.html">x</a>'));
     fs.mkdirSync(path.join(dir, 'ok'));
     fs.writeFileSync(path.join(dir, 'ok/index.html'), page('<a href="/">home</a>'));
     fs.writeFileSync(path.join(dir, 'plain.html'), '<!doctype html><p>no shell</p>');
@@ -109,6 +112,7 @@ test('the crawl is not vacuous: a planted 404, a page without the studio root an
     fs.writeFileSync(path.join(dir, 'examples/x.html'), '<!doctype html><p>an example</p>');
     const { bad } = crawl(dir, ['/'], { legacy: new Set(['/old.html']), exempt: (p) => p.startsWith('/examples/') });
     assert.deepEqual(bad.sort(), [
+      '/ -> /examples/x.html: a link out of the shell to an example file',
       '/ -> /missing: 404',
       '/ -> /old.html: legacy page linked without a redirect',
       '/ -> /plain.html: no id="studio-root"',

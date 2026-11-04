@@ -79,6 +79,8 @@ before(async () => {
   origin = `http://127.0.0.1:${server.address().port}`;
   profile = fs.mkdtempSync(path.join(os.tmpdir(), 'vsv-probe-'));
   chrome = spawn(bin, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--hide-scrollbars', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+  /* the run owns this Chrome and its temp profile: both go when the process ends, even on a crash */
+  process.once('exit', () => { try { chrome.kill('SIGKILL'); } catch { /* gone */ } try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* gone */ } });
   const wsUrl = await new Promise((resolve, reject) => {
     let buf = '';
     const t = setTimeout(() => reject(new Error('Chrome did not start')), 20000);
