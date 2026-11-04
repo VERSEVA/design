@@ -35,7 +35,7 @@ function compoundClasses(compound, lifted) {
   let c = compound.replace(/\[[^\]]*\]/g, '');
   c = c.replace(/:(?:is|where|matches)\(((?:[^()]|\([^()]*\))*)\)/g, (_, inner) => { lifted.push(inner); return ''; });
   c = c.replace(/:(?:not|has)\((?:[^()]|\([^()]*\))*\)/g, '').replace(/(?<!\\)::?[\w-]+(\([^)]*\))?/g, '');
-  return { lead: /^[a-zA-Z*]*$/.test(c.split('.')[0]), names: [...c.matchAll(NAME)].map((m) => m[1]) };
+  return { lead: /^[a-zA-Z*]*(#[\w-]+)?$/.test(c.split('.')[0]), names: [...c.matchAll(NAME)].map((m) => m[1]) };
 }
 
 /* Every class in a selector list, and whether it is ever standalone: the first class of a compound
@@ -45,7 +45,7 @@ function selectorUse(list, use) {
     for (const compound of splitTop(part.trim(), /[\s>+~]/)) {
       const lifted = [];
       const { lead, names } = compoundClasses(compound, lifted);
-      names.forEach((n, i) => use.set(n, use.get(n) || (i === 0 && lead) || (i > 0 && GENERIC.has(names[0]))));
+      names.forEach((n, i) => use.set(n, use.get(n) || (i === 0 && lead) || (i > 0 && (GENERIC.has(names[0]) || names[0].length <= 3))));
       for (const inner of lifted) selectorUse(inner, use);
     }
   }
@@ -82,6 +82,8 @@ test('the rule catches the names the 1.6 prototype collided on', () => {
 
 test('the rule sees through :is, :where, tags and generic compounds (review of PR #1)', () => {
   const use = classUse(':where(.tabx){x:1} :is(.rowx, .barx){x:1} div.navx{x:1} *.cardx{x:1} .active.tabz{x:1} .lact:not(.hidex){x:1} [data-x="a .attrx"]{x:1} .sm\\:lact{x:1}');
+  const more = classUse('.on.taby{x:1} .bd.rowy{x:1} #app.tabw{x:1}');
+  for (const n of ['taby', 'rowy', 'tabw']) assert.equal(more.get(n), true, n);
   for (const n of ['tabx', 'rowx', 'barx', 'navx', 'cardx', 'tabz']) assert.equal(use.get(n), true, n);
   assert.notEqual(use.get('hidex'), true);
   assert.equal(use.has('attrx'), false);
