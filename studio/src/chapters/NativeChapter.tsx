@@ -30,7 +30,11 @@ function onChapterClick(e: MouseEvent<HTMLElement>, file: string) {
   if (!a || !e.currentTarget.contains(a) || (a.target && a.target !== '_self') || a.hasAttribute('download')) return;
   const href = a.getAttribute('href');
   if (!href) return;
-  if (href.startsWith('/') && !href.startsWith('//') && !href.includes('.html')) {
+  /* A studio path is a root path whose last segment has no file extension:
+     /motion routes, /r/x.json and /examples/pulse.html are files and stay native
+     (legacy *.html chapter URLs still route, through resolveChapterLink). */
+  const hasExt = /\.[\w-]+$/.test(href.split(/[?#]/)[0].split('/').pop() ?? '');
+  if (href.startsWith('/') && !href.startsWith('//') && !hasExt) {
     e.preventDefault();
     navigate(href);
     return;
@@ -51,7 +55,10 @@ export function NativeChapter({ slug, script, children }: { slug: string; script
     const cleanups: Array<() => void> = [];
     script?.(el, ac.signal, (fn) => cleanups.push(fn));
     /* A deep link (/decks#structure) lands on its section once the script has laid the page out. */
-    const id = decodeURIComponent(window.location.hash.slice(1));
+    /* A malformed escape (#%) must not throw out of the effect and unmount the studio: use the raw id. */
+    const raw = window.location.hash.slice(1);
+    let id = raw;
+    try { id = decodeURIComponent(raw); } catch { /* keep raw */ }
     if (id) document.getElementById(id)?.scrollIntoView();
     return () => { ac.abort(); cleanups.forEach((fn) => fn()); };
   }, [script]);

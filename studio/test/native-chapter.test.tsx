@@ -14,6 +14,7 @@ const links = (
     <a id="anchor" href="#here">anchor</a>
     <a id="mail" href="mailto:a@b.test">mail</a>
     <a id="file" href="/examples/pulse.html">file</a>
+    <a id="data" href="/r/x.json">data</a>
     <a id="blank" href="/motion" target="_blank">blank</a>
     <a id="out" href="https://github.com/verseva/design">out</a>
     <span id="plain">plain</span>
@@ -30,6 +31,16 @@ describe('NativeChapter', () => {
     await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
     const hits = spy.mock.contexts.filter((el) => (el as Element).id === 'structure');
     expect(hits.length).toBe(1);
+    spy.mockRestore();
+  });
+
+  it('survives a malformed deep link (/decks#%): the studio stays mounted and nothing scrolls', async () => {
+    window.history.replaceState(null, '', '/decks#%');
+    const spy = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const { container } = render(<App />);
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+    expect(container.querySelector('[data-chapter="decks"] .chap')).not.toBeNull();
+    expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
 
@@ -50,7 +61,7 @@ describe('NativeChapter', () => {
     expect(click('anchor')).toBe(false);
     expect(spy.mock.contexts.map((el) => (el as Element).id)).toEqual(['here']);
     spy.mockRestore();
-    for (const id of ['mail', 'file', 'blank', 'out', 'plain']) expect(click(id), id).toBe(true);
+    for (const id of ['mail', 'file', 'data', 'blank', 'out', 'plain']) expect(click(id), id).toBe(true);
     expect(click('route', { metaKey: true })).toBe(true);
     expect(click('route', { ctrlKey: true })).toBe(true);
     expect(click('route', { shiftKey: true })).toBe(true);
