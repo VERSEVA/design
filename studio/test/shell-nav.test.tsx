@@ -205,6 +205,29 @@ describe('On this page', () => {
     vi.restoreAllMocks();
   });
 
+  it('scroll-spy keeps the first tile of a shared bento row, and the hash target inside that row', async () => {
+    window.history.replaceState(null, '', '/components');
+    const { container } = render(<App />);
+    /* Install and Spacing utilities share the top row (a sub-pixel apart); Button and Field the next. */
+    const tops = new Map<string, number>([['install', -40], ['spacing', -39.6], ['button', 400], ['field', 400]]);
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      const top = tops.get(this.id) ?? 900;
+      return { top, bottom: top + 10, left: 0, right: 0, width: 0, height: 10, x: 0, y: top, toJSON() {} } as DOMRect;
+    });
+    const marked = async () => {
+      await act(async () => { window.dispatchEvent(new Event('scroll')); });
+      await tick();
+      return [...container.querySelectorAll('.pagetoc a[aria-current="location"]')].map((a) => a.getAttribute('href'));
+    };
+    expect(await marked()).toEqual(['/components#install']);
+    await act(async () => { navigate('/components#spacing'); });
+    expect(await marked()).toEqual(['/components#spacing']);
+    /* A hash outside the winning row does not pull the mark. */
+    tops.set('install', -500); tops.set('spacing', -499.6); tops.set('button', -40); tops.set('field', -40);
+    expect(await marked()).toEqual(['/components#button']);
+    vi.restoreAllMocks();
+  });
+
   it('a click moves focus to the section', async () => {
     window.history.replaceState(null, '', '/foundations');
     const { container } = render(<App />);

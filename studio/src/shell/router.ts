@@ -5,6 +5,12 @@ const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 if (typeof window !== 'undefined') window.addEventListener('popstate', notify);
 
+/** Runs l after every studio navigation (a pushState within the page included). */
+export function onNavigate(l: () => void): () => void {
+  listeners.add(l);
+  return () => { listeners.delete(l); };
+}
+
 export function navigate(href: string) {
   const url = new URL(href, window.location.href);
   if (url.pathname + url.hash === window.location.pathname + window.location.hash) return;

@@ -2,14 +2,21 @@
 // marks the section under the sticky chrome with aria-current; a click scrolls and moves focus
 // (router.navigate: jumpTo, focusTarget, and the --studio-scroll-pad scroll margin).
 import { useEffect, useState } from 'react';
-import { navigate } from './router';
+import { navigate, onNavigate } from './router';
 import type { Route } from './routes';
 
 /** Pages that carry the rail: Foundations and every chapter with sections. */
 export const hasToc = (r: Route) => r.sections.length > 0 && (r.path === '/foundations' || (r.group === 'Chapters' && !r.parent));
 
 /* rAF position watcher (IntersectionObserver pauses in hidden panes; see learnings). The last
-   section counts as current once the page is scrolled to its end. */
+   section counts as current once the page is scrolled to its end. Sections that are tiles in one
+   bento row share a top: the first in the row holds, a later one wins only from >=1px lower, and
+   the location.hash target wins inside its row (and at the page end, while it is on screen). */
+const hashId = () => {
+  const raw = window.location.hash.slice(1);
+  try { return decodeURIComponent(raw); } catch { return raw; }
+};
+
 export function useActiveAnchor(ids: ReadonlyArray<string>): string | null {
   const [active, setActive] = useState<string | null>(ids[0] ?? null);
   useEffect(() => {
@@ -17,20 +24,31 @@ export function useActiveAnchor(ids: ReadonlyArray<string>): string | null {
     const tick = () => {
       raf = 0;
       const pad = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--studio-head-h')) || 66;
+      const line = pad + 48;
       let cur: string | null = ids[0] ?? null;
+      let curTop = -Infinity;
+      const tops = new Map<string, number>();
       for (const id of ids) {
         const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= pad + 48) cur = id;
+        if (!el) continue;
+        const top = el.getBoundingClientRect().top;
+        tops.set(id, top);
+        if (top <= line && top >= curTop + 1) { cur = id; curTop = top; }
       }
+      const hash = hashId();
+      const hashTop = tops.get(hash);
+      if (hashTop !== undefined && Math.abs(hashTop - curTop) < 1) cur = hash;
       const end = document.documentElement.scrollHeight > window.innerHeight && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-      if (end && ids.length) cur = ids[ids.length - 1];
+      if (end && ids.length) cur = hashTop !== undefined && hashTop >= curTop - 1 && hashTop < window.innerHeight ? hash : ids[ids.length - 1];
       setActive((p) => (p === cur ? p : cur));
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(tick); };
     window.addEventListener('scroll', on, { passive: true });
     window.addEventListener('resize', on);
+    /* A click on a tile in the row already in view changes the hash without a scroll. */
+    const off = onNavigate(on);
     on();
-    return () => { window.removeEventListener('scroll', on); window.removeEventListener('resize', on); if (raf) cancelAnimationFrame(raf); };
+    return () => { window.removeEventListener('scroll', on); window.removeEventListener('resize', on); off(); if (raf) cancelAnimationFrame(raf); };
   }, [ids]);
   return active;
 }
