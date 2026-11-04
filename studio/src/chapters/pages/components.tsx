@@ -738,91 +738,94 @@ export function Page() {
           <section className="comp" id="bulk">
             <h2>Bulk selection</h2>
             <div className="demo">
-              <div className="specimen" style={{ flex: "1 1 100%" }}>
-                <div className="glass bulk-demo">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th className="pick">
-                          <label>
-                            <input type="checkbox" aria-label="Select all" data-indeterminate="" />
-                          </label>
-                        </th>
-                        <th>Quote</th>
-                        <th className="client">Client</th>
-                        <th>Status</th>
-                        <th className="num">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr aria-selected="true">
-                        <td className="pick">
-                          <label>
-                            <input type="checkbox" aria-label="Select Q-2081" defaultChecked />
-                          </label>
-                        </td>
-                        <td>Q-2081</td>
-                        <td className="client">Northline Foods</td>
-                        <td>
-                          <span className="badge ok">Verified</span>
-                        </td>
-                        <td className="num">48,220.00</td>
-                      </tr>
-                      <tr aria-selected="true">
-                        <td className="pick">
-                          <label>
-                            <input type="checkbox" aria-label="Select Q-2080" defaultChecked />
-                          </label>
-                        </td>
-                        <td>Q-2080</td>
-                        <td className="client">Harbor Botanics</td>
-                        <td>
-                          <span className="badge warn">Pending</span>
-                        </td>
-                        <td className="num">12,940.00</td>
-                      </tr>
-                      <tr>
-                        <td className="pick">
-                          <label>
-                            <input type="checkbox" aria-label="Select Q-2079" />
-                          </label>
-                        </td>
-                        <td>Q-2079</td>
-                        <td className="client">{"Cedar & Pine"}</td>
-                        <td>
-                          <span className="badge ok">Verified</span>
-                        </td>
-                        <td className="num">7,310.00</td>
-                      </tr>
-                      <tr>
-                        <td className="pick">
-                          <label>
-                            <input type="checkbox" aria-label="Select Q-2078" />
-                          </label>
-                        </td>
-                        <td>Q-2078</td>
-                        <td className="client">Ridgeway Labs</td>
-                        <td>
-                          <span className="badge warn">Pending</span>
-                        </td>
-                        <td className="num">22,105.00</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div className="bulkbar" role="toolbar" aria-label="Bulk actions">
-                    <span className="count" aria-live="polite">2 selected</span>
-                    {' '}
-                    <button className="btn btn-ghost sm" type="button">Assign</button>
-                    {' '}
-                    <button className="btn btn-ghost sm" type="button">Export</button>
-                    {' '}
-                    <button className="btn btn-destructive sm" type="button">Archive</button>
-                    {' '}
-                    <button className="btn btn-ghost sm icon" type="button" aria-label="Clear selection">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                        <path d="m6 6 12 12M18 6 6 18"></path>
-                      </svg>
-                    </button>
+              {/* Deviation bulk-tscroll: the 320px table scrolls in place at phone widths, not the page. */}
+              <div className="tscroll" style={{ flex: "1 1 100%" }}>
+                <div className="specimen" style={{ flex: "1 1 100%" }}>
+                  <div className="glass bulk-demo">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th className="pick">
+                            <label>
+                              <input type="checkbox" aria-label="Select all" data-indeterminate="" />
+                            </label>
+                          </th>
+                          <th>Quote</th>
+                          <th className="client">Client</th>
+                          <th>Status</th>
+                          <th className="num">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr aria-selected="true">
+                          <td className="pick">
+                            <label>
+                              <input type="checkbox" aria-label="Select Q-2081" defaultChecked />
+                            </label>
+                          </td>
+                          <td>Q-2081</td>
+                          <td className="client">Northline Foods</td>
+                          <td>
+                            <span className="badge ok">Verified</span>
+                          </td>
+                          <td className="num">48,220.00</td>
+                        </tr>
+                        <tr aria-selected="true">
+                          <td className="pick">
+                            <label>
+                              <input type="checkbox" aria-label="Select Q-2080" defaultChecked />
+                            </label>
+                          </td>
+                          <td>Q-2080</td>
+                          <td className="client">Harbor Botanics</td>
+                          <td>
+                            <span className="badge warn">Pending</span>
+                          </td>
+                          <td className="num">12,940.00</td>
+                        </tr>
+                        <tr>
+                          <td className="pick">
+                            <label>
+                              <input type="checkbox" aria-label="Select Q-2079" />
+                            </label>
+                          </td>
+                          <td>Q-2079</td>
+                          <td className="client">{"Cedar & Pine"}</td>
+                          <td>
+                            <span className="badge ok">Verified</span>
+                          </td>
+                          <td className="num">7,310.00</td>
+                        </tr>
+                        <tr>
+                          <td className="pick">
+                            <label>
+                              <input type="checkbox" aria-label="Select Q-2078" />
+                            </label>
+                          </td>
+                          <td>Q-2078</td>
+                          <td className="client">Ridgeway Labs</td>
+                          <td>
+                            <span className="badge warn">Pending</span>
+                          </td>
+                          <td className="num">22,105.00</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div className="bulkbar" role="toolbar" aria-label="Bulk actions">
+                      <span className="count" aria-live="polite">2 selected</span>
+                      {' '}
+                      <button className="btn btn-ghost sm" type="button">Assign</button>
+                      {' '}
+                      <button className="btn btn-ghost sm" type="button">Export</button>
+                      {' '}
+                      <button className="btn btn-destructive sm" type="button">Archive</button>
+                      {' '}
+                      <button className="btn btn-ghost sm icon" type="button" aria-label="Clear selection">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                          <path d="m6 6 12 12M18 6 6 18"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

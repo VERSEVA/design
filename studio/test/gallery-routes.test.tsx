@@ -135,6 +135,31 @@ describe('gallery links stay in the shell', () => {
     await tick();
     expect(container.querySelector('[data-chapter="code"] #srccode')!.textContent).toBe(source('store'));
   });
+
+  /* vercel.json's /code.html?f= redirects pass the query through: the landing drops f, keeps the rest. */
+  it.each([
+    ['/gallery/pulse/code?f=examples/pulse.html', '/gallery/pulse/code'],
+    ['/gallery/pulse/code?f=examples/pulse.html&x=1#top', '/gallery/pulse/code?x=1#top'],
+    ['/gallery?f=examples/bogus.html', '/gallery'],
+    ['/gallery/pulse/code?x=1', '/gallery/pulse/code?x=1'],
+  ])('strips a stray f from %s on arrival', async (from, to) => {
+    window.history.replaceState({ k: 1 }, '', from);
+    const len = window.history.length;
+    const { unmount } = render(<App />);
+    await tick();
+    expect(window.location.pathname + window.location.search + window.location.hash).toBe(to);
+    expect(window.history.length).toBe(len);
+    expect(window.history.state).toEqual({ k: 1 });
+    unmount();
+  });
+
+  it('leaves f alone outside the gallery', async () => {
+    window.history.replaceState(null, '', '/components?f=1');
+    const { unmount } = render(<App />);
+    await tick();
+    expect(window.location.search).toBe('?f=1');
+    unmount();
+  });
 });
 
 /* The legacy code.html after its own script, for one example, as the parity reference. */

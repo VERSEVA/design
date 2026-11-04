@@ -19,6 +19,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const pkgRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -173,6 +174,17 @@ function validateItemFiles(spec, item, isFetched) {
   }
 }
 
+/* Set when an add copies a file that imports react. */
+let addedReact = false;
+
+/** The react version installed in the consumer's project (cwd), or null. */
+function installedReact() {
+  try {
+    const req = createRequire(path.join(process.cwd(), 'package.json'));
+    return JSON.parse(fs.readFileSync(req.resolve('react/package.json'), 'utf8')).version ?? null;
+  } catch { return null; }
+}
+
 async function addOne(spec, dir, seen, depth = 0, parentCtx = null) {
   if (depth > 10) {
     console.error('dependency chain deeper than 10; refusing (cycle?)');
@@ -205,6 +217,7 @@ async function addOne(spec, dir, seen, depth = 0, parentCtx = null) {
   }
   for (const f of item.files) {
     const content = f.content;
+    if (/from ['"]react['"]/.test(content)) addedReact = true;
     const finalContent = f.path.endsWith('.html') ? rewriteBlockHrefs(content) : content;
     writeFileInto(dir, f.path, finalContent);
   }
@@ -247,6 +260,8 @@ if (cmd === 'add' && rest[0] !== undefined) {
   const dir = dirFlag ?? config.dir ?? 'src/components/verseva';
   const seen = new Set();
   for (const spec of rest) await addOne(spec, dir, seen);
+  const react = addedReact ? installedReact() : null;
+  if (react && Number.parseInt(react, 10) < 18) console.error(`verseva: react ${react} is installed; the React parts need React 18 or later.`);
   console.log(`\nYours now. Edit freely; re-run with --force to reset to the kit's cut.`);
   process.exit(0);
 }

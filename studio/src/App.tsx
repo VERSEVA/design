@@ -2,9 +2,16 @@ import { useEffect, useRef } from 'react';
 import { StudioHeader } from './shell/StudioHeader';
 import { StudioSelect, StudioSidebar } from './shell/StudioSidebar';
 import { NOT_FOUND, routeFor } from './shell/routes';
-import { scrollToHash, usePath } from './shell/router';
+import { dropStrayF, focusTarget, scrollToHash, usePath } from './shell/router';
 import { useStickyOffset } from './shell/stickyOffset';
 import { applyHead } from './shell/head';
+
+/* WCAG 2.4.1: the first focusable element of the shell. Without JS the #main fragment still
+   jumps; with it, focus moves to <main> and the URL keeps its own hash. */
+function onSkip(e: React.MouseEvent<HTMLAnchorElement>) {
+  e.preventDefault();
+  focusTarget(document.getElementById('main'));
+}
 
 export function App() {
   const path = usePath();
@@ -13,7 +20,7 @@ export function App() {
   const first = useRef(true);
   useStickyOffset();
   /* Cold deep link: after every child effect (chapter scripts) and the sticky offset. */
-  useEffect(() => { scrollToHash(); }, []);
+  useEffect(() => { dropStrayF(); scrollToHash(); }, []);
 
   useEffect(() => {
     applyHead(document, route === NOT_FOUND ? null : route.path);
@@ -25,6 +32,7 @@ export function App() {
   const { Page } = route;
   return (
     <div className="studio">
+      <a className="studio-skip" href="#main" onClick={onSkip}>Skip to content</a>
       <StudioHeader showPicker={route.path !== '/'} />
       <StudioSelect path={route.path} />
       <div className="studio-body">

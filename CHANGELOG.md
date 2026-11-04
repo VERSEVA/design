@@ -50,6 +50,29 @@
 - **Deep links clear the sticky studio header.** Every studio scroll margin reads one variable,
   `--studio-scroll-pad`, built from the header's and the phone page select's measured heights (191px and 61px at
   375px, 66px at 1280px), with per-breakpoint fallbacks. Cold deep links now land on their section.
+- **React 18 consumers: `widget-grid` and `smart-stack` compile and work again.** Both set `inert`, which
+  `@types/react` 18 does not know, so `tsc` failed on React 18 projects; React 18 also drops a boolean
+  `inert`, so edit mode and hidden stack pages were not inert there. A new registry util, `inert`
+  (`react/inert.ts`), renders `inert` on both: `true` on React 19, `""` on React 18. Re-add the two parts
+  (`npx verseva add widget-grid smart-stack`, which brings `inert`). Every registry React part now
+  type-checks against `@types/react` 18 and 19 in CI. React 18 or later is needed for the React parts
+  only; the CSS, tokens and preset need no React, and the package declares no React peer, so it installs
+  into any project. `verseva add` warns in one line when it copies React parts into a project on an
+  older React.
+- **Skip to content (WCAG 2.4.1).** Every studio route opens with a "Skip to content" link, the first
+  focusable element of the shell, hidden until focused, with the focus ring. It moves focus to the page's
+  main content, in the pre-rendered HTML and after hydration.
+- **The /widgets console keeps its phone nav.** The Home console specimen carries a `.navshell` below
+  900px, where the console hides its sidebar, inside the specimen instead of fixed to the page.
+- **Overview's Pulse and Launch covers open without a page reload.** They route through the studio like
+  every other studio link.
+- **Components and the console example hold at 360px.** The `#bulk` table specimen sits in a `.tscroll`
+  scroller (it spilled past its box and scrolled the page sideways below 372px), and
+  `examples/console.html` (and `blocks/console.html`) tightens its quotes table cells below 400px
+  (366px wide at 360px before).
+- **Old `/code.html?f=` links land on a clean URL.** The redirect passed its query through, so the code
+  page opened at `/gallery/<slug>/code?f=...`; the studio now drops the stray `f` in place, on any
+  gallery route.
 
 ## 1.6.0 · 2026-11-04
 

@@ -3,6 +3,7 @@
   "homepage": "https://design.verseva.com",
   "components": [
     { "name": "cx", "file": "react/cx.ts", "kind": "util", "deps": [], "description": "Class-join helper; the only utility the kit needs" },
+    { "name": "inert", "file": "react/inert.ts", "kind": "util", "deps": [], "description": "inert props that type-check and render the same on React 18 and 19" },
     { "name": "button", "file": "react/button.tsx", "kind": "component", "deps": ["cx"], "description": "Primary/secondary/ghost/destructive, sm-lg, loading; press sits it down 1px" },
     { "name": "badge", "file": "react/badge.tsx", "kind": "component", "deps": ["cx"], "description": "Status word on a tint; never a dot alone" },
     { "name": "card", "file": "react/card.tsx", "kind": "component", "deps": ["cx"], "description": "Card + header/body/footer at the r-md posture" },
@@ -31,8 +32,8 @@
     { "name": "motion", "file": "react/motion.tsx", "kind": "component", "deps": ["cx"], "description": "The motion kit: Stagger, Reveal (masked lines), Spotlight (group), Magnetic, NumberRoll; enter on entrance, settle on back, reduced-motion honored" },
     { "name": "widget-state", "file": "react/widget-state.ts", "kind": "util", "deps": [], "description": "Widget grid logic: fit a size to 4/2/1 columns, sparse placement, reorder with 2D keyboard moves, add, remove, undo, serialize and parse with validation" },
     { "name": "widget-gallery", "file": "react/widget-gallery.tsx", "kind": "component", "deps": ["widget-state", "cx"], "description": "Add-widget drawer: every kind with its sizes as add buttons; sizes that do not fit stay listed, aria-disabled" },
-    { "name": "smart-stack", "file": "react/smart-stack.tsx", "kind": "component", "deps": ["cx"], "description": "Several widgets in one slot: wheel, swipe, dots, a timer with a visible pause; off under reduced motion" },
-    { "name": "widget-grid", "file": "react/widget-grid.tsx", "kind": "component", "deps": ["widget-state", "widget-gallery", "cx"], "description": "Widget home: tiles pick their view from their size (S, M, L, XL); edit mode removes with Undo, resizes, reorders by drag, touch, buttons or Alt+Arrow, adds from the gallery; one focus widget spends the accent" },
+    { "name": "smart-stack", "file": "react/smart-stack.tsx", "kind": "component", "deps": ["inert", "cx"], "description": "Several widgets in one slot: wheel, swipe, dots, a timer with a visible pause; off under reduced motion" },
+    { "name": "widget-grid", "file": "react/widget-grid.tsx", "kind": "component", "deps": ["widget-state", "widget-gallery", "inert", "cx"], "description": "Widget home: tiles pick their view from their size (S, M, L, XL); edit mode removes with Undo, resizes, reorders by drag, touch, buttons or Alt+Arrow, adds from the gallery; one focus widget spends the accent" },
     { "name": "command-state", "file": "react/command-state.ts", "kind": "util", "deps": [], "description": "Command bar logic: filtering, group order, ask detection, wrapping selection" },
     { "name": "command-bar", "file": "react/command-bar.tsx", "kind": "component", "deps": ["command-state", "console-state", "cx"], "description": "Command bar on the K chord: actions, go-to and recent filtered as you type; an Ask row only with onAsk, the answer streamed in place" }
   ],

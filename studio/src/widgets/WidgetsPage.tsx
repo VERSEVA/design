@@ -209,6 +209,29 @@ const neverAnswer = (_q: string, { signal }: { signal: AbortSignal }) => new Pro
 const failAnswer = async (_q: string, { signal }: { signal: AbortSignal }): Promise<AskResult> => { await wait(600, signal); throw new Error('Ask failed'); };
 
 /* ---------- page ---------- */
+/* The console's phone nav (.navshell): the sidebar hides below 900px, so this is the nav there. */
+const NAV = [
+  { label: 'Home', icon: icon(<><path d="M4 11 12 4l8 7" /><path d="M6 10v10h12V10" /></>) },
+  { label: 'Quotes', icon: icon(<rect x="5" y="5" width="14" height="14" rx="3" />) },
+  { label: 'Trends', icon: icon(<path d="M4 18 10 10l4 4 6-8" />) },
+  { label: 'You', icon: icon(<><circle cx="12" cy="9" r="4" /><path d="M5 20c2-5 12-5 14 0" /></>) },
+] as const;
+
+function SpecimenNav() {
+  const [on, setOn] = React.useState<string>('Home');
+  return (
+    <nav className="navshell" aria-label="Console">
+      <div className="navmain">
+        {NAV.map((t) => (
+          <button key={t.label} type="button" className={t.label === on ? 'tab on' : 'tab'} aria-current={t.label === on ? 'page' : undefined} onClick={() => setOn(t.label)}>
+            {t.icon}<span>{t.label}</span>
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 const NOTES: NotificationItem[] = [
   { id: 'n-1', text: <><b>Q-2081</b> approved</>, at: '2 min ago', unread: false },
   { id: 'n-2', text: <><b>Kestrel Co</b> paid INV-311</>, at: '1 hour ago', unread: false },
@@ -267,6 +290,7 @@ function HomeSpecimen() {
             labels={{ region: 'Home widgets' }}
           />
         </div>
+        <SpecimenNav />
       </div>
       <CommandBar commands={commands} onAsk={streamAnswer} onPin={pin} open={barOpen} onOpenChange={setBarOpen} />
     </>

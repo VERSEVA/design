@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cx } from './cx';
+import { inert } from './inert';
 
 export interface StackPage { label: string; content: React.ReactNode }
 
@@ -143,7 +144,7 @@ export function SmartStack({ pages, label, interval = 6000, paused = false, defa
             aria-roledescription="slide"
             aria-label={L.slide(p.label, i, n)}
             aria-hidden={i === cur ? undefined : true}
-            inert={i !== cur}
+            {...inert(i !== cur)}
           >
             {p.content}
           </div>
