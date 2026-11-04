@@ -120,13 +120,13 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
     events.push(ev);
   });
 
-  /* A page at a width and colour scheme: { goto(path), evaluate(expr) }. */
-  async function page({ width = 375, height = 812, scheme = 'dark' } = {}) {
+  /* A page at a width, colour scheme and motion preference: { goto(path), evaluate(expr) }. */
+  async function page({ width = 375, height = 812, scheme = 'dark', reducedMotion = false } = {}) {
     const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
     const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
     await send('Page.enable', {}, sessionId);
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 2, mobile: width < 768 }, sessionId);
-    await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }] }, sessionId);
+    await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }, { name: 'prefers-reduced-motion', value: reducedMotion ? 'reduce' : 'no-preference' }] }, sessionId);
     return {
       async goto(p) {
         const loaded = waitFor('Page.loadEventFired', sessionId);

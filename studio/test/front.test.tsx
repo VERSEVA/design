@@ -1,109 +1,182 @@
+// The home route: hero, the two CTAs, the live widget home (L1), the neutral drift (L2) and
+// the four entry tiles. Motion stops under Pause motion and under reduced motion.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
-import { FrontDoorPage } from '../src/front/FrontDoorPage';
-import { applyTheme } from '../src/theme';
+import fs from 'node:fs';
+import { FrontDoorPage, INSTALL, INSTALL_HREF, COPIED_HOLD_MS, JOB_TICK_MS } from '../src/front/FrontDoorPage';
+import { applyTheme, setMotionPaused } from '../src/theme';
 
-vi.mock('../src/three/ThreeStage', () => ({
-  ThreeStage: (p: { src: string; label: string; loop?: boolean; thumb?: string }) => (
-    <div className="stage-mock" data-src={p.src} data-thumb={p.thumb} data-loop={String(!!p.loop)} aria-label={p.label} />
-  ),
-}));
+const CSS = fs.readFileSync(`${__dirname}/../src/front/front.css`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const realMatchMedia = window.matchMedia;
+const reduce = (on: boolean) => {
+  window.matchMedia = ((q: string) => ({
+    matches: on && q.includes('prefers-reduced-motion: reduce'), media: q, onchange: null,
+    addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+};
+const pct = (el: ParentNode) => el.querySelector('.hero-live .lact-pc')?.textContent ?? '';
+const slide = (el: ParentNode) => el.querySelector('.hero-live .wstack-page[data-pos="cur"]')?.getAttribute('aria-label') ?? '';
 
 describe('front door', () => {
-  beforeEach(() => { localStorage.clear(); applyTheme({ brand: '', mode: 'dark' }); });
-  afterEach(() => { cleanup(); vi.useRealTimers(); });
+  beforeEach(() => { localStorage.clear(); window.history.replaceState(null, '', '/'); applyTheme({ brand: '', mode: 'dark' }); });
+  afterEach(() => { cleanup(); act(() => setMotionPaused(false)); window.matchMedia = realMatchMedia; vi.useRealTimers(); vi.restoreAllMocks(); });
 
-  it('holds the hero picker with five chips', () => {
+  it('keeps the approved headline as the one h1', () => {
     render(<FrontDoorPage />);
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('One source. Every surface');
-    const group = screen.getByRole('group', { name: 'Theme' });
-    expect(group.classList.contains('picker-lg')).toBe(true);
-    expect(group.querySelectorAll('button.fchip')).toHaveLength(5);
+    const h1 = screen.getAllByRole('heading', { level: 1 });
+    expect(h1).toHaveLength(1);
+    expect(h1[0].textContent).toBe('One source. Every surface');
   });
 
-  it('picking Cobalt sets data-brand', () => {
+  it('carries one primary action and a quieter Browse', () => {
+    const { container } = render(<FrontDoorPage />);
+    const go = screen.getByRole('link', { name: 'Get started' });
+    const browse = screen.getByRole('link', { name: 'Browse' });
+    expect(go.className).toContain('btn-primary');
+    expect(browse.className).toContain('btn-secondary');
+    expect(browse.getAttribute('href')).toBe('/components');
+    expect(go.getAttribute('href')).toBe(INSTALL_HREF);
+    expect(INSTALL_HREF).toBe('/components#install');
+    expect(container.querySelectorAll('.btn-primary')).toHaveLength(1);
+  });
+
+  it('Get started copies the install line, says Copied, then lands on the install section', () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const { container } = render(<FrontDoorPage />);
+    const go = screen.getByRole('link', { name: 'Get started' });
+    const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+    act(() => { go.dispatchEvent(ev); });
+    expect(ev.defaultPrevented).toBe(true);
+    expect(writeText).toHaveBeenCalledWith(INSTALL);
+    expect(INSTALL).toBe('npm i @verseva/design');
+    expect(go.textContent).toBe('Copied');
+    expect(container.querySelector('.hero [aria-live="polite"]')?.textContent).toBe('Copied');
+    expect(window.location.pathname).toBe('/');
+    act(() => { vi.advanceTimersByTime(COPIED_HOLD_MS); });
+    expect(window.location.pathname + window.location.hash).toBe('/components#install');
+  });
+
+  it('a modified click on Get started is left to the browser', () => {
     render(<FrontDoorPage />);
-    fireEvent.click(screen.getByRole('button', { name: 'Cobalt' }));
-    expect(document.documentElement.dataset.brand).toBe('cobalt');
+    const go = screen.getByRole('link', { name: 'Get started' });
+    const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, metaKey: true });
+    go.dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(false);
   });
 
-  it('shows the readout with an AA or Fail badge', () => {
+  it('Browse routes in the shell', () => {
+    render(<FrontDoorPage />);
+    const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+    screen.getByRole('link', { name: 'Browse' }).dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(true);
+    expect(window.location.pathname).toBe('/components');
+  });
+
+  it('the live hero is a real widget home: smart stack, live activity, one focus widget', () => {
     const { container } = render(<FrontDoorPage />);
-    const read = container.querySelector('.readout')!;
-    expect(read.textContent).toContain('--accent');
-    expect(read.textContent).toContain('ink on accent');
-    expect(read.textContent).toContain('text on bg');
-    expect(['AA', 'Fail']).toContain(read.querySelector('.badge.ok, .badge.err')?.textContent);
+    const live = container.querySelector('.hero-live')!;
+    const grid = live.querySelector('.wgrid')!;
+    expect(grid).toBeTruthy();
+    const ids = [...grid.querySelectorAll('.wtile')].map((t) => t.getAttribute('data-id'));
+    expect(ids).toEqual(['revenue', 'live', 'job']);
+    expect(grid.querySelectorAll('.wtile[data-focus]')).toHaveLength(1);
+    expect(grid.querySelector('.wtile[data-focus]')!.getAttribute('data-id')).toBe('revenue');
+    expect(live.querySelector('.wstack .wstack-pause')).toBeTruthy();
+    expect(live.querySelector('.lact')).toBeTruthy();
+    expect(live.querySelector('iframe, video, img')).toBeNull();
   });
 
-  it('keeps frames inert behind a single cover link each, opening the gallery page in the shell', () => {
-    const { container } = render(<FrontDoorPage />);
-    const frames = [...container.querySelectorAll('iframe')];
-    expect(frames.map((f) => f.getAttribute('src'))).toEqual(['/examples/pulse.html', '/examples/launch.html']);
-    for (const f of frames) {
-      const wrap = f.parentElement!;
-      expect(wrap.hasAttribute('inert')).toBe(true);
-      const tile = wrap.parentElement!;
-      const links = tile.querySelectorAll('a');
-      expect(links).toHaveLength(1);
-      const slug = f.getAttribute('src')!.match(/^\/examples\/([a-z0-9-]+)\.html$/)![1];
-      expect(links[0].getAttribute('href')).toBe(`/gallery/${slug}`);
-    }
+  it('nothing in the live hero takes focus on its own', () => {
+    vi.useFakeTimers();
+    render(<FrontDoorPage />);
+    const before = document.activeElement;
+    act(() => { vi.advanceTimersByTime(30_000); });
+    expect(document.activeElement).toBe(before);
   });
 
-  it('a cover click routes through the studio router instead of reloading the page', () => {
-    const { container } = render(<FrontDoorPage />);
-    for (const a of container.querySelectorAll<HTMLAnchorElement>('a.cover')) {
-      window.history.replaceState(null, '', '/');
-      const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
-      a.dispatchEvent(ev);
-      expect(ev.defaultPrevented, `${a.getAttribute('href')} reloads the page`).toBe(true);
-      expect(window.location.pathname).toBe(a.getAttribute('href'));
-    }
-    window.history.replaceState(null, '', '/');
-  });
-
-  it('stages the three library objects with glb, thumb and loop', () => {
-    const { container } = render(<FrontDoorPage />);
-    const st = [...container.querySelectorAll('.stage-mock')].map((e) => [e.getAttribute('data-src'), e.getAttribute('data-thumb'), e.getAttribute('data-loop')]);
-    expect(st).toEqual([
-      ['/library/glb/VSV-016_partnership-links__linked-sway.glb', '/library/thumb/VSV-016_partnership-links__linked-sway.webp', 'true'],
-      ['/library/glb/VSV-001.glb', '/library/thumb/VSV-001.webp', 'false'],
-      ['/library/glb/VSV-019.glb', '/library/thumb/VSV-019.webp', 'false'],
-    ]);
-  });
-
-  it('lists six live tokens and one pair', () => {
-    const { container } = render(<FrontDoorPage />);
-    const tok = container.querySelector('.tok')!;
-    expect([...tok.querySelectorAll('code')].map((c) => c.textContent)).toEqual(['--bg', '--surface', '--text-1', '--text-2', '--accent', '--data-alt']);
-    expect(tok.querySelector('.pair')?.textContent).toContain('--text-2 / --surface');
-  });
-
-  it('tags tiles with badges', () => {
-    const { container } = render(<FrontDoorPage />);
-    expect(container.querySelectorAll('.stage .badge.tag')).toHaveLength(7);
-  });
-
-  it('renders the counts row', () => {
-    const { container } = render(<FrontDoorPage />);
-    const labels = [...container.querySelectorAll('.statrow .stat .lbl')].map((l) => l.textContent);
-    expect(labels).toEqual(['Tokens', 'Themes', '3D objects', 'Loops', 'Gates']);
-    container.querySelectorAll('.statrow .num').forEach((n) => expect(n.textContent).toMatch(/^\d+$/));
-  });
-
-  it('copy announces then reverts after 2 s', () => {
+  it('the demo job ticks and the stack rotates while motion runs', () => {
     vi.useFakeTimers();
     const { container } = render(<FrontDoorPage />);
-    expect(container.querySelector('.install code')?.textContent).toBe('npm i @verseva/design');
-    const btn = screen.getByRole('button', { name: 'Copy' });
-    expect(btn.className).toContain('btn-secondary');
-    const live = container.querySelector('[aria-live="polite"]')!;
-    fireEvent.click(btn);
-    expect(btn.textContent).toBe('Copied');
-    expect(live.textContent).toBe('Copied');
-    act(() => { vi.advanceTimersByTime(2000); });
-    expect(btn.textContent).toBe('Copy');
-    expect(live.textContent).toBe('');
+    const a = pct(container);
+    const s = slide(container);
+    act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 6); });
+    expect(pct(container)).not.toBe(a);
+    act(() => { vi.advanceTimersByTime(6000); });
+    expect(slide(container)).not.toBe(s);
+  });
+
+  it('Pause motion stops the job and the stack, and marks the hero still', () => {
+    vi.useFakeTimers();
+    const { container } = render(<FrontDoorPage />);
+    act(() => setMotionPaused(true));
+    const hero = container.querySelector('.hero')!;
+    expect(hero.hasAttribute('data-live')).toBe(false);
+    const a = pct(container);
+    const s = slide(container);
+    act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 10 + 12_000); });
+    expect(pct(container)).toBe(a);
+    expect(slide(container)).toBe(s);
+    act(() => setMotionPaused(false));
+    expect(hero.hasAttribute('data-live')).toBe(true);
+  });
+
+  it('reduced motion starts still: no drift, no sweep, no ticking', () => {
+    vi.useFakeTimers();
+    reduce(true);
+    const { container } = render(<FrontDoorPage />);
+    expect(container.querySelector('.hero')!.hasAttribute('data-live')).toBe(false);
+    const a = pct(container);
+    act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 10); });
+    expect(pct(container)).toBe(a);
+  });
+
+  it('the drift field is decorative and neutral', () => {
+    const { container } = render(<FrontDoorPage />);
+    const aurora = container.querySelector('.hero .aurora')!;
+    expect(aurora.getAttribute('aria-hidden')).toBe('true');
+    const rules = [...CSS.matchAll(/([^{}]*\.aurora[^{}]*)\{([^}]*)\}/g)].map((m) => m[2]).join('\n');
+    expect(rules).not.toMatch(/--accent|--data-[0-3]|--focus/);
+  });
+
+  it('every animation is transform or opacity, runs only after mount and only without reduced motion', () => {
+    const keyframes = [...CSS.matchAll(/@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^}]*\})*)\s*\}/g)];
+    expect(keyframes.length).toBeGreaterThanOrEqual(3);
+    for (const [, name, body] of keyframes) {
+      const props = [...body.matchAll(/([a-z-]+)\s*:/g)].map((m) => m[1]);
+      for (const p of props) expect(['transform', 'opacity'], `${name} animates ${p}`).toContain(p);
+    }
+    const anim = [...CSS.matchAll(/([^{}]+)\{[^{}]*\banimation(?:-name)?\s*:\s*(?!none)[^;}]+/g)].map((m) => m[1].trim());
+    expect(anim.length).toBeGreaterThanOrEqual(3);
+    for (const sel of anim) expect(sel, sel).toMatch(/\[data-live\]/);
+    const media = CSS.match(/@media\s*\(prefers-reduced-motion:\s*no-preference\)\s*\{([\s\S]*)\}\s*$/m);
+    expect(media, 'animations live in one no-preference block at the end of front.css').toBeTruthy();
+    const outside = CSS.slice(0, CSS.indexOf(media![0]));
+    expect(outside).not.toMatch(/\banimation(?:-name)?\s*:\s*(?!none)/);
+    for (const v of [...media![1].matchAll(/animation\s*:([^;}]+)/g)].map((m) => m[1])) expect(v, v).toMatch(/var\(--dur-\d\)/);
+  });
+
+  it('the ambient sweep holds on hover and focus; the primary stays matte', () => {
+    expect(CSS).toMatch(/\.cta-go:is\(:hover,\s*:focus-visible\)::after\s*\{[^}]*animation-play-state:\s*paused/);
+    const go = [...CSS.matchAll(/([^{}]*\.cta-go[^{}]*)\{([^}]*)\}/g)].map((m) => m[2]).join('\n');
+    expect(go).not.toMatch(/--accent(?!-ink)/);
+    for (const s of [...go.matchAll(/box-shadow\s*:([^;}]+)/g)].map((m) => m[1])) expect(s.trim(), s).toMatch(/^inset\b/);
+  });
+
+  it('four labels-only entry tiles route in the shell', () => {
+    const { container } = render(<FrontDoorPage />);
+    const tiles = [...container.querySelectorAll<HTMLAnchorElement>('.entry a.wtile')];
+    expect(tiles.map((t) => t.getAttribute('href'))).toEqual(['/components', '/widgets', '/foundations', '/gallery']);
+    expect(tiles.map((t) => t.querySelector('.wtile-hd')?.textContent)).toEqual(['Components', 'Widgets', 'Foundations', 'Gallery']);
+    for (const t of tiles) {
+      expect(t.querySelector('.wtile-num')?.textContent).toMatch(/^\d+$/);
+      expect(t.querySelector('p')).toBeNull();
+      window.history.replaceState(null, '', '/');
+      const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+      t.dispatchEvent(ev);
+      expect(ev.defaultPrevented, `${t.getAttribute('href')} reloads the page`).toBe(true);
+      expect(window.location.pathname).toBe(t.getAttribute('href'));
+    }
   });
 });

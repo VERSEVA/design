@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.7.0 · unreleased
+
+### Changed
+
+- **Studio home (`/`) is a live product hero.** "One source. Every surface" with one primary action, **Get started**
+  (copies `npm i @verseva/design`, shows Copied, then lands on `/components#install`), and a quieter **Browse**
+  (`/components`). Beside it, a real widget home on the package parts (`.wgrid` tiles): the smart stack rotates with
+  its visible pause, a demo job ticks in the live activity capsule, and the focus widget's chart settles. Only the
+  focus widget carries the accent. At phone widths the home drops to two tiles and the CTA stays above the fold.
+- **Ambient motion on the home.** Get started carries a slow catch-light sweep inside its matte body (transform only,
+  no glow, no outer shadow), held on hover and focus. A neutral drift (text-ladder and surface tones, no accent)
+  moves behind the hero. Both start after mount and stop under Pause motion and under reduced motion.
+- **Entry tiles** into Components, Widgets, Foundations and Gallery, labels and counts only, in the `/widgets` tile
+  language, routed in the shell. The theme picker, token readout, frame stage and counts row leave the home (the
+  header's color popover and Foundations carry them); the home no longer loads the 3D stage.
+
+### Tests
+
+- `test/served/home.test.mjs`: the law 3 accent budget on `/` at 1440 and 375 in both schemes (with a planted
+  spend), the hero's animations (running, transform and opacity only, stopped by Pause motion and by reduced
+  motion), Get started in Chrome, and the 375px fold at 667, 812 and 360 by 640. The served harness takes
+  `reducedMotion`.
+
 ## 1.6.1 · unreleased
 
 ### Added

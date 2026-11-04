@@ -158,3 +158,23 @@ describe('hydration', () => {
     });
   }
 });
+
+/* The home hero (1.7.0): the pre-render ships it still, with real tiles and no live motion;
+   motion and the live grid start only after hydration, for each of the three visitors. */
+describe('/ hero hydrates still, then goes live', () => {
+  for (const v of BASE) {
+    it(`${v.name}: no data-live in the pre-render, live after mount`, async () => {
+      const { renderApp } = await fresh<Server>('../src/entry-server');
+      const html = serverHtml(renderApp, '/');
+      expect(html).toMatch(/<h1[^>]*>One source\. Every surface<\/h1>/);
+      expect(html).toMatch(/class="hero"/);
+      expect(html).not.toMatch(/data-live/);
+      expect(html).toMatch(/class="wgrid/);
+      expect(html).toMatch(/href="\/components#install"/);
+      const el = await hydrate('/', '/', { ...v, rail: false, name: v.name });
+      expect(el.querySelector('.hero')!.hasAttribute('data-live')).toBe(true);
+      expect(el.querySelectorAll('.hero-live .wtile')).toHaveLength(3);
+      expect(el.querySelectorAll('.hero-live .wtile[aria-busy="true"]')).toHaveLength(0);
+    });
+  }
+});
