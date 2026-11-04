@@ -265,7 +265,9 @@ test('non-text contrast in the rail: icons (--text-3), letters (--text-2) and th
 
 // ---- reduced motion, deprecation, scrub ----
 test('reduced motion: shell transitions, presses and the drawer are off, inside the existing block', () => {
-  assert.equal(RAW.split('@media (prefers-reduced-motion:reduce)').length - 1, 2, 'no new reduced-motion block');
+  // 1.6.0 sections are self-contained and carry their own block; everything before them stays in the two existing blocks.
+  const pre16 = RAW.split('/* ---- ').filter((s) => !/^[^\n]*\(1\.6\.0\)/.test(s)).join('/* ---- ');
+  assert.equal(pre16.split('@media (prefers-reduced-motion:reduce)').length - 1, 2, 'no new reduced-motion block outside 1.6.0 sections');
   const rm = '@media (prefers-reduced-motion:reduce)';
   for (const s of ['.switcher', '.acct', '.collapse-row', '.ibtn', '.platform', 'button.notif', 'a.notif']) assert.match(bodyOf(s, rm), /transition:none/, `${s} transition off`);
   for (const s of ['.switcher:active', 'button.acct:active', '.collapse-row:active', '.ibtn:active', '.platform:active']) assert.match(bodyOf(s, rm), /transform:none/, `${s} press off`);

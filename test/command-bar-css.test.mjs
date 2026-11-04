@@ -158,7 +158,7 @@ test('reduced motion: every animation and transition lives under no-preference',
   const moving = SEC.filter((r) => !r.selectors[0].startsWith('@keyframes') && /(^|;)\s*(animation|transition)\s*:(?!\s*none)/.test(r.body));
   assert.ok(moving.length >= 3, 'the panel, the trigger and the caret move');
   assert.deepEqual(moving.filter((r) => r.media !== MOTION_OK).map((r) => r.selectors.join(',')), []);
-  assert.equal(RAW.split('@media (prefers-reduced-motion:reduce)').length - 1, 2, 'no new reduce block: motion is opt-in instead');
+  assert.doesNotMatch(section(), /prefers-reduced-motion:reduce/, 'no reduce block in this section: motion is opt-in instead');
 });
 
 test('tokens only: no hex, rgb or !important; every var() is a token', () => {
