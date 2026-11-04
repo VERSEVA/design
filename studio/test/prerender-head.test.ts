@@ -113,6 +113,29 @@ describe('pre-render heads', () => {
   }
 });
 
+describe('a row with a parent', () => {
+  it('carries the full breadcrumb chain in JSON-LD: Home > Gallery > the example > Code', () => {
+    const html = docs.get('/gallery/pulse/code')!;
+    const ld = JSON.parse(one(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g, 'JSON-LD'));
+    const crumbs = ld['@graph'].find((g: { '@type': string }) => g['@type'] === 'BreadcrumbList');
+    expect(crumbs.itemListElement.map((i: { position: number; name: string; item: string }) => [i.position, i.name, i.item])).toEqual([
+      [1, 'Home', `${SITE}/`],
+      [2, 'Gallery', `${SITE}/gallery`],
+      [3, 'Pulse · analytics', `${SITE}/gallery/pulse`],
+      [4, 'Code', `${SITE}/gallery/pulse/code`],
+    ]);
+  });
+
+  it('pre-renders every example and code route with its real content', () => {
+    for (const r of LIVE_ROUTES.filter((m) => m.parent)) {
+      const html = docs.get(r.path)!;
+      expect(html, r.path).toContain(`<div id="studio-root" data-path="${r.path}">`);
+      if (r.path.endsWith('/code')) expect(decode(html.match(/<code id="srccode">([\s\S]*?)<\/code>/)![1]), r.path).toMatch(/^<!DOCTYPE html>/);
+      else expect(html, r.path).toMatch(/<iframe[^>]*class="gex-frame"[^>]*src="\/examples\/[a-z0-9-]+\.html"/);
+    }
+  });
+});
+
 describe('404.html', () => {
   const html = renderNotFound(template);
 

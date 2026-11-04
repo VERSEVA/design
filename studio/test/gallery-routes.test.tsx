@@ -118,6 +118,16 @@ describe('gallery links stay in the shell', () => {
     expect(exampleLink('nope.html', base, ORIGIN)).toBeNull();
   });
 
+  it('answers an unknown example or code path with the not-found page', async () => {
+    for (const p of ['/gallery/bogus', '/gallery/bogus/code']) {
+      window.history.replaceState(null, '', p);
+      const { container, unmount } = render(<App />);
+      expect(container.querySelector('h1')?.textContent, p).toBe('Page not found');
+      expect(container.querySelector('.gex-frame, [data-chapter="code"]'), p).toBeNull();
+      unmount();
+    }
+  });
+
   it('lands a cold deep link on a code route', async () => {
     window.history.replaceState(null, '', '/gallery/store/code');
     const { container } = render(<App />);
