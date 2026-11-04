@@ -22,6 +22,10 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
   onCleanup(() => { frames.forEach(cancelAnimationFrame); timers.forEach(clearTimeout); });
   /* Children the script replaces (the ticker, the resolved skeleton) come back on cleanup. */
   const keep = (el: Element) => { const kids = [...el.childNodes]; onCleanup(() => el.replaceChildren(...kids)); };
+  /* Inline styles the demos write (magnet transform and transition, spotlight --mx/--my,
+     the replay's emptied animation, the curves' --trav) go back to what was rendered. */
+  const styles = [...root.querySelectorAll('*')].map((el) => [el, el.getAttribute('style')] as const);
+  onCleanup(() => styles.forEach(([el, v]) => { if (v === null) el.removeAttribute('style'); else el.setAttribute('style', v); }));
 
   /* theme.js exposed the wipe sitewide; the studio provides it while this chapter is mounted. */
   const prevWipe = window.versevaThemeWipe;
@@ -32,7 +36,7 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
 
   // The curves race: same distance, same 600ms, five different personalities.
   const rows = [...root.querySelectorAll<HTMLElement>('#curves .curve')];
-  onCleanup(() => rows.forEach((c) => { c.classList.remove('go'); c.style.removeProperty('--trav'); }));
+  onCleanup(() => rows.forEach((c) => c.classList.remove('go')));
   const fireCurves = () => {
     rows.forEach((c) => {
       const track = c.querySelector<HTMLElement>('.track')!;

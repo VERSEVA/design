@@ -64,8 +64,18 @@ describe('data-viz chapter script', () => {
 describe('motion chapter script', () => {
   const pristine = () => new DOMParser().parseFromString(renderToStaticMarkup(<Motion />), 'text/html').querySelector('.chap')!;
 
-  it('is idempotent under StrictMode and leaves the markup exactly as rendered on unmount', () => {
+  it('is idempotent under StrictMode and leaves the markup exactly as rendered on unmount', async () => {
     const { container, unmount } = render(<StrictMode><Motion /></StrictMode>);
+    const magnet = container.querySelector('[data-magnet]')!;
+    fireEvent.pointerEnter(magnet);
+    fireEvent.pointerMove(magnet, { clientX: 40, clientY: 20 });
+    fireEvent.pointerLeave(magnet);
+    fireEvent.pointerMove(container.querySelector('[data-spot] .spot')!, { clientX: 30, clientY: 30 });
+    fireEvent.click(container.querySelector('[data-replay]')!);
+    fireEvent.click(container.querySelector('#firecurves')!);
+    await new Promise((r) => setTimeout(r, 60));
+    expect(magnet.getAttribute('style')).toContain('transform');
+    expect((container.querySelector('[data-spot] .spot') as HTMLElement).style.getPropertyValue('--mx')).not.toBe('');
     const comps = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.demo') && c.querySelector('.codewrap'));
     expect(container.querySelectorAll('.codetoggle').length).toBe(comps.length);
     expect(container.querySelectorAll('#tickdemo .td').length).toBe(3);
@@ -117,8 +127,7 @@ describe('motion chapter script', () => {
       parsed.innerHTML = MOTION_CODE[i];
       expect(canon(spec), `sample ${i}`).toBe(canon(parsed));
     });
-    const code = container.querySelector('#numbers .codewrap code') ?? container.querySelectorAll('.codewrap code')[6];
-    expect(code!.textContent).toContain('class="td"');
+    expect(container.querySelector('#numbers .codewrap code')!.textContent).toContain('class="td"');
   });
 });
 
