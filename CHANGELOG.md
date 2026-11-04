@@ -47,7 +47,8 @@
   Overview hero keeps its theme picker). The npm link left the bar.
 - **Sidebar.** Studio, Chapters and Gallery are collapsible groups (open state persists; the group holding the
   active item stays open), Gallery lists its examples, counts stay neutral badges, and the active item carries the
-  nav bloom. Per-chapter section anchors left the sidebar for the On this page rail and the command bar.
+  nav bloom. Per-chapter section anchors left the sidebar for the On this page rail and the command bar. The sidebar stays fixed below the header while the page scrolls (expanded and rail), scrolls its own list when
+  it is longer than the viewport, and keeps the collapse toggle in view at its foot.
 - **Phone shell from 900px.** The page and section select and the stacked header now apply below 900px (was 760px).
 - **Lazy chunks.** The command bar (studio and /widgets), the color panel and the search commands load on first
   intent; their triggers stay in the main chunk, which measures 147.1 kB gzip under the unchanged 150 kB budget.
