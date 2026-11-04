@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import { StudioHeader } from './shell/StudioHeader';
 import { StudioSelect, StudioSidebar } from './shell/StudioSidebar';
 import { routeFor } from './shell/routes';
-import { usePath } from './shell/router';
+import { scrollToHash, usePath } from './shell/router';
+import { useStickyOffset } from './shell/stickyOffset';
 
 function setDescription(content: string) {
   let meta = document.head.querySelector<HTMLMetaElement>('meta[name="description"]');
@@ -15,6 +16,9 @@ export function App() {
   const route = routeFor(path);
   const main = useRef<HTMLElement>(null);
   const first = useRef(true);
+  useStickyOffset();
+  /* Cold deep link: after every child effect (chapter scripts) and the sticky offset. */
+  useEffect(() => { scrollToHash(); }, []);
 
   useEffect(() => {
     document.title = route.title;

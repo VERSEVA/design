@@ -64,12 +64,7 @@ export function NativeChapter({ slug, script, children }: { slug: string; script
     const ac = new AbortController();
     const cleanups: Array<() => void> = [];
     script?.(el, ac.signal, (fn) => cleanups.push(fn));
-    /* A deep link (/decks#structure) lands on its section once the script has laid the page out. */
-    /* A malformed escape (#%) must not throw out of the effect and unmount the studio: use the raw id. */
-    const raw = window.location.hash.slice(1);
-    let id = raw;
-    try { id = decodeURIComponent(raw); } catch { /* keep raw */ }
-    if (id) document.getElementById(id)?.scrollIntoView();
+    /* A cold deep link (/decks#structure) is App's: its effect runs after this one, once the script has laid the page out. */
     return () => { ac.abort(); cleanups.forEach((fn) => fn()); };
   }, [script]);
 

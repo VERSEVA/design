@@ -77,7 +77,7 @@ const LEFT_BEHIND: Record<string, string> = {
 /* What native.css says that site.css does not, and why. Keyed by media|selector. */
 const ADDED: Record<string, { decls: string[]; why: string }> = {
   '|.chap': { decls: ['max-width: var(--container-content)', 'margin: 0 auto', 'padding: 0 var(--s-5) var(--s-9)', 'color: var(--text-1)', 'font-family: var(--font-sans)', 'font-size: 15px', 'line-height: 1.6'], why: 'the legacy body and .shell, as the port root' },
-  '|[id]': { decls: ['scroll-margin-top: 80px'], why: 'the embed markers scrolled clear of the sticky studio header' },
+  '|[id]': { decls: ['scroll-margin-top: var(--studio-scroll-pad)'], why: 'the embed markers scrolled clear of the sticky studio header; the pad is its real height' },
   '|.docgrid': { decls: ['grid-template-columns: minmax(0, 1fr)'], why: 'the embed fold collapsed the docnav column; ports strip the docnav' },
   '|.swatch': { decls: ['flex: initial'], why: 'studio.css .swatch sets flex: none' },
   '@media (max-width: 760px)|.seg button': { decls: ['min-height: auto'], why: 'studio.css raises shell .seg buttons to 44px on phones' },

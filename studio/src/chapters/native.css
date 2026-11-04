@@ -7,7 +7,7 @@
 /* the legacy <body> and .shell */
 .chap { max-width: var(--container-content); margin: 0 auto; padding: 0 var(--s-5) var(--s-9); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.6; }
 :where(.chap) * { margin: 0; box-sizing: border-box; }
-.chap [id] { scroll-margin-top: 80px; }
+.chap [id] { scroll-margin-top: var(--studio-scroll-pad); }
 
 .chap .hero { padding: var(--s-8) 0 var(--s-6); }
 .chap .hero h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(34px, 5.5vw, 54px); letter-spacing: -0.025em; line-height: 1.06; }

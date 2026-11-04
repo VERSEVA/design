@@ -14,6 +14,16 @@ export function navigate(href: string) {
   else window.scrollTo(0, 0);
 }
 
+/* A cold deep link (/foundations#motion) lands once the page has rendered. A malformed
+   escape (#%) must not throw out of an effect and unmount the studio: use the raw id. */
+export function scrollToHash() {
+  const raw = window.location.hash.slice(1);
+  if (!raw) return;
+  let id = raw;
+  try { id = decodeURIComponent(raw); } catch { /* keep raw */ }
+  document.getElementById(id)?.scrollIntoView();
+}
+
 const snapshot = () => window.location.pathname;
 export function usePath(): string {
   return useSyncExternalStore((l) => { listeners.add(l); return () => listeners.delete(l); }, snapshot, () => '/');
