@@ -10,21 +10,34 @@ const read = (p: string) => fs.readFileSync(path.join(repo, p), 'utf8');
 
 interface Rule { media: string; selectors: string[]; decls: string[] }
 
-/* A small CSS reader: rules with their @media context; @keyframes skipped. */
-export function rules(css: string): Rule[] {
+/* A small CSS reader: rules with their at-rule context. @media, @supports, @container
+   and @layer blocks are walked (nested contexts join with a space); @keyframes and
+   @font-face are skipped (keyframes() reads keyframes); any other at-rule throws unless
+   the caller allows it, so nothing can hide a rule from the scope check. */
+const GROUPING = new Set(['media', 'supports', 'container', 'layer']);
+const SKIPPED = new Set(['keyframes', 'font-face']);
+export function rules(css: string, allowAt: string[] = []): Rule[] {
   const src = css.replace(/\/\*[\s\S]*?\*\//g, '');
   const out: Rule[] = [];
   const walk = (s: string, media: string) => {
     let i = 0;
     while (i < s.length) {
+      while (i < s.length && /\s/.test(s[i])) i++;
+      if (i >= s.length) break;
       const open = s.indexOf('{', i);
+      const semi = s.indexOf(';', i);
+      if (s[i] === '@' && semi >= 0 && (open < 0 || semi < open)) throw new Error(`unknown at-rule: ${s.slice(i, semi + 1)}`);
       if (open < 0) break;
       const head = s.slice(i, open).trim();
       let depth = 1, j = open + 1;
       while (depth && j < s.length) { if (s[j] === '{') depth++; else if (s[j] === '}') depth--; j++; }
       const body = s.slice(open + 1, j - 1);
-      if (head.startsWith('@media')) walk(body, head.replace(/\s+/g, ' '));
-      else if (!head.startsWith('@')) {
+      if (head.startsWith('@')) {
+        const name = head.slice(1).match(/^[\w-]+/)![0];
+        const at = head.replace(/\s+/g, ' ');
+        if (GROUPING.has(name)) walk(body, media ? `${media} ${at}` : at);
+        else if (!SKIPPED.has(name) && !allowAt.includes(name)) throw new Error(`unknown at-rule: @${name}`);
+      } else {
         out.push({
           media,
           selectors: head.split(',').map((x) => x.trim().replace(/\s+/g, ' ')),
@@ -67,6 +80,30 @@ const ADDED: Record<string, { decls: string[]; why: string }> = {
 };
 /* site.css declarations a port overrides on purpose. */
 const REPLACED: Record<string, string[]> = { '|.docgrid': ['grid-template-columns: 190px minmax(0, 1fr)'], '@media (max-width: 900px)|.docgrid': ['grid-template-columns: 1fr'] };
+
+describe('the CSS reader', () => {
+  it('walks @supports, @container and @layer the way it walks @media', () => {
+    expect(rules('@supports (display:grid){.vcard{color:red}}')).toEqual([{ media: '@supports (display:grid)', selectors: ['.vcard'], decls: ['color: red'] }]);
+    expect(rules('@container (min-width: 1px){.a{color:red}}')[0].media).toBe('@container (min-width: 1px)');
+    expect(rules('@layer base{.a{color:red}}')[0].media).toBe('@layer base');
+    expect(rules('@media (max-width: 9px){@supports (gap:1px){.a{color:red}}}')[0].media).toBe('@media (max-width: 9px) @supports (gap:1px)');
+  });
+
+  it('skips @keyframes and @font-face, and stops on any other at-rule', () => {
+    expect(rules('@keyframes k{from{opacity:0}}@font-face{font-family:x}.a{color:red}').map((r) => r.selectors)).toEqual([['.a']]);
+    for (const css of ['@property --x{syntax:"*";inherits:false}', '@scope (.a){.b{color:red}}', '@import "x.css";.a{color:red}', '@layer a, b;.a{color:red}']) {
+      expect(() => rules(css), css).toThrow(/at-rule/);
+    }
+    expect(rules('@property --x{syntax:"*";inherits:false}.a{color:red}', ['property']).map((r) => r.selectors)).toEqual([['.a']]);
+  });
+
+  it('fails the scope check on a rule inside @supports or @container', () => {
+    for (const css of ['@supports (display:grid){.vcard{color:red}}', '@container (min-width: 1px){.vcard{color:red}}']) {
+      const bad = rules(`[data-chapter="data-viz"] .a{color:red}\n${css}`).flatMap((r) => r.selectors).filter((x) => !x.startsWith('[data-chapter="data-viz"] '));
+      expect(bad, css).toEqual(['.vcard']);
+    }
+  });
+});
 
 describe('native.css against site.css', () => {
   const site = rules(read('site/site.css'));
@@ -128,7 +165,7 @@ const both = (a: string, b: string) => { try { return legacyEls.some((el) => el.
 
 describe('the .chap scope against components.css', () => {
   it('never flips a winner on a legacy element: a components.css rule that beat site.css still beats the port, and vice versa', () => {
-    const comp = rules(read('components.css'));
+    const comp = rules(read('components.css'), ['property']);
     const native = rules(read('studio/src/chapters/native.css'));
     const flips: string[] = [];
     for (const n of native) for (const scoped of n.selectors) {
@@ -174,4 +211,29 @@ describe('per-chapter CSS', () => {
     const bad = rules(fs.readFileSync(path.join(dir, f), 'utf8')).flatMap((r) => r.selectors).filter((s) => !s.startsWith(`[data-chapter="${slug}"] `));
     expect(bad).toEqual([]);
   });
+
+  /* The legacy page's own <style>, rule for rule and in order, with the scope removed.
+     @keyframes are compared too: rules() skips them, keyframes() reads them. */
+  const legacyStyle = (slug: string) => [...read(`site/${slug}.html`).matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
+  const flat = (css: string, scope = '') => [
+    ...rules(css).map((r) => `${r.media}|${r.selectors.map((s) => (scope && s.startsWith(scope) ? s.slice(scope.length) : s)).join(', ')} { ${r.decls.join('; ')} }`),
+    ...keyframes(css),
+  ];
+  it.each(files.length ? files : ['(none yet)'])('%s declares exactly what its legacy page\'s <style> declares', (f) => {
+    if (f === '(none yet)') return;
+    const slug = f.replace(/\.css$/, '');
+    const got = flat(fs.readFileSync(path.join(dir, f), 'utf8'), `[data-chapter="${slug}"] `);
+    expect(got.join('\n')).toBe(flat(legacyStyle(slug)).join('\n'));
+  });
 });
+
+export function keyframes(css: string): string[] {
+  const src = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const out: string[] = [];
+  for (const m of src.matchAll(/@keyframes\s+([\w-]+)\s*\{/g)) {
+    let depth = 1, j = m.index! + m[0].length;
+    while (depth && j < src.length) { if (src[j] === '{') depth++; else if (src[j] === '}') depth--; j++; }
+    out.push(`@keyframes ${m[1]} ${src.slice(m.index! + m[0].length, j - 1).replace(/\s+/g, ' ').replace(/\s*([{};:,])\s*/g, '$1').trim()}`);
+  }
+  return out;
+}
