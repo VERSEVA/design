@@ -1,6 +1,9 @@
 // Ported from site/web-ui.html (frozen): same copy, same specimens, same anchors.
 import { NativeChapter } from '../NativeChapter';
 
+/* sha256 of site/web-ui.html; the parity test fails if the frozen page changes. */
+export const FROZEN = '04e77ca367d9aabc69697eedc91c6663a362c3b1912f103197214ced3b9085c3';
+
 export function Page() {
   return (
     <NativeChapter slug="web-ui">
