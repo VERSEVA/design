@@ -4,10 +4,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { App } from '../src/App';
 import { navigate } from '../src/shell/router';
-import { NATIVE_CHAPTERS } from '../src/shell/routes';
+import { NATIVE_CHAPTERS, NATIVE_FROZEN } from '../src/shell/routes';
 import chapters from '../src/data/chapters.json';
 
 const site = path.resolve(__dirname, '../../site');
@@ -52,12 +53,20 @@ function canon(node: Node, file: string, extraIds: Set<string>, pre = false): st
   return `<${tag}${attrs.length ? ' ' + attrs.join(' ') : ''}>${kids}</${tag}>`;
 }
 
+/* What a port may leave out of the legacy body, and why. Nothing else may differ. */
+export const STRIPPED: ReadonlyArray<{ selector: string; why: string }> = [
+  { selector: 'header.topbar', why: 'the studio header replaces the legacy top bar' },
+  { selector: 'aside.docnav', why: 'the studio sidebar lists the same anchors; the embed hid it too' },
+];
+
 function legacyBody(file: string): Element {
   const doc = new DOMParser().parseFromString(fs.readFileSync(path.join(site, file), 'utf8'), 'text/html');
   const shell = doc.querySelector('.shell')!;
-  shell.querySelector('header.topbar')?.remove();
+  for (const { selector } of STRIPPED) shell.querySelectorAll(selector).forEach((n) => n.remove());
   return shell;
 }
+
+const sha256 = (file: string) => createHash('sha256').update(fs.readFileSync(path.join(site, file))).digest('hex');
 
 describe('ported chapters', () => {
   beforeEach(() => { window.history.replaceState(null, '', '/'); });
@@ -78,6 +87,17 @@ describe('ported chapters', () => {
         const want = [...legacy.childNodes].map((n) => canon(n, c.file, new Set())).join('');
         const got = [...chap.childNodes].map((n) => canon(n, c.file, extra)).join('');
         expect(got).toBe(want);
+      });
+
+      it('pins the frozen site/' + c.file + ' by hash, so the legacy copy cannot change under the port', () => {
+        expect(NATIVE_FROZEN[c.slug], 'pages/' + c.slug + '.tsx must export FROZEN').toMatch(/^[0-9a-f]{64}$/);
+        expect(sha256(c.file)).toBe(NATIVE_FROZEN[c.slug]);
+      });
+
+      it('leaves out only the written strip list', () => {
+        const Page = NATIVE_CHAPTERS[c.slug];
+        const { container } = render(<Page />);
+        for (const { selector } of STRIPPED) expect(container.querySelector(`.chap ${selector}`), selector).toBeNull();
       });
 
       it('carries every sidebar anchor on the heading it names, in order', () => {

@@ -1,6 +1,9 @@
 // Ported from site/decks.html (frozen): same copy, same specimens, same anchors.
 import { NativeChapter } from '../NativeChapter';
 
+/* sha256 of site/decks.html; the parity test fails if the frozen page changes. */
+export const FROZEN = '56cae7239d8e68092e66ee3b7c748fdb19eb3b67ba152d74fb4c070bd880eb36';
+
 export function Page() {
   return (
     <NativeChapter slug="decks">

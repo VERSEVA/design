@@ -21,10 +21,15 @@ const STUDIO_VIEWS: Record<string, View> = {
   '/assets': { sections: ASSETS, count: libCount || null, Page: AssetLibraryPage },
 };
 
-/* Ported chapters: one module per chapter at chapters/pages/<slug>.tsx, exporting Page. */
-const PORTED = import.meta.glob<{ Page: () => React.ReactElement }>('../chapters/pages/*.tsx', { eager: true });
+/* Ported chapters: one module per chapter at chapters/pages/<slug>.tsx, exporting Page
+   and FROZEN (the sha256 of the site/*.html it was ported from; see NativeChapter.tsx). */
+const PORTED = import.meta.glob<{ Page: () => React.ReactElement; FROZEN?: string }>('../chapters/pages/*.tsx', { eager: true });
+const slugOf = (file: string) => file.replace(/^.*\/|\.tsx$/g, '');
 export const NATIVE_CHAPTERS: Readonly<Record<string, () => React.ReactElement>> = Object.fromEntries(
-  Object.entries(PORTED).map(([file, mod]) => [file.replace(/^.*\/|\.tsx$/g, ''), mod.Page]),
+  Object.entries(PORTED).map(([file, mod]) => [slugOf(file), mod.Page]),
+);
+export const NATIVE_FROZEN: Readonly<Record<string, string | undefined>> = Object.fromEntries(
+  Object.entries(PORTED).map(([file, mod]) => [slugOf(file), mod.FROZEN]),
 );
 
 /* The legacy chapters, folded in: same shell, same URL scheme, anchors from their h2s.

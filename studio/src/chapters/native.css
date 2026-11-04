@@ -86,6 +86,11 @@
 .chap .render img { display: block; width: 100%; height: auto; }
 .chap .render figcaption { font-size: 12px; color: var(--text-2); padding: var(--s-2) var(--s-3); }
 
+/* The docnav is stripped from ports (the studio sidebar replaces it), so the grid
+   keeps the one column the embed's fold gave it */
+.chap .docgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-7); align-items: start; }
+.chap .doccol { min-width: 0; }
+
 .chap .codetoggle { display: flex; justify-content: flex-end; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); padding: var(--s-2) var(--s-3); }
 .chap .codetoggle.opened { border-radius: 0; }
 
