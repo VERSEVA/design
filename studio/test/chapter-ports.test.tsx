@@ -3,6 +3,8 @@
 // and an id on every sidebar anchor. Editing a frozen site/*.html fails this too.
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { vi } from 'vitest';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -78,10 +80,10 @@ describe('ported chapters', () => {
 
   for (const c of ported) {
     describe(c.slug, () => {
+      /* The markup before any chapter script runs, as the legacy HTML is before its own. */
       it('renders the frozen legacy body element for element', () => {
         const Page = NATIVE_CHAPTERS[c.slug];
-        const { container } = render(<Page />);
-        const chap = container.querySelector('.chap')!;
+        const chap = new DOMParser().parseFromString(renderToStaticMarkup(<Page />), 'text/html').querySelector('.chap')!;
         const legacy = legacyBody(c.file);
         const extra = new Set(c.sections.map((s) => s.id).filter((id) => !legacy.querySelector(`[id="${id}"]`)));
         const want = [...legacy.childNodes].map((n) => canon(n, c.file, new Set())).join('');
@@ -109,6 +111,16 @@ describe('ported chapters', () => {
           expect(el, s.id).not.toBeNull();
           expect(el === heads[i] || el!.contains(heads[i]), s.id).toBe(true);
         });
+      });
+
+      it('lands a cold deep link on its last sidebar anchor', async () => {
+        const id = c.sections[c.sections.length - 1].id;
+        window.history.replaceState(null, '', `/${c.slug}#${id}`);
+        const spy = vi.spyOn(Element.prototype, 'scrollIntoView');
+        render(<App />);
+        await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+        expect(spy.mock.contexts.filter((el) => (el as Element).id === id).length, id).toBe(1);
+        spy.mockRestore();
       });
 
       it('mounts in the studio shell with no iframe embed', async () => {
