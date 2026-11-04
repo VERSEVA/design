@@ -100,6 +100,3 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 @media (max-width: 420px) {
   .lockup .badge { display: none; }
 }
-
-/* PLANTED: sideways overflow to prove CI fails; reverted in the next commit. */
-#studio-root::before { content: ""; display: block; width: 900px; height: 1px; }
