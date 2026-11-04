@@ -34,6 +34,9 @@ export default defineConfig({
   // The package's react/ kit lives outside studio/; resolve its react from here.
   resolve: { alias: [{ find: /^react(\/.*)?$/, replacement: `${here}node_modules/react$1` }] },
   build: { outDir: 'dist', emptyOutDir: true, assetsDir: '_s' },
+  // The pre-render bundle (vite build --ssr) carries its own react and react-dom, so the
+  // aliased react above and react-dom/server are one copy.
+  ssr: { noExternal: true },
   server: { port: 4393, strictPort: true, fs: { allow: ['..'] } },
   test: { environment: 'jsdom', globals: true, testTimeout: 30_000, setupFiles: ['test/setup.ts'], include: ['test/**/*.test.{ts,tsx}'] },
 });

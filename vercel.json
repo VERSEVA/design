@@ -1,52 +1,6 @@
 {
   "buildCommand": "npm run studio:build && npm run assemble",
   "outputDirectory": "out",
-  "rewrites": [
-    {
-      "source": "/foundations",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/assets",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/widgets",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/components",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/web-ui",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/data-viz",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/motion",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/decks",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/docs-pdf",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/distribute",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/gallery",
-      "destination": "/index.html"
-    }
-  ],
   "redirects": [
     {
       "source": "/index.html",

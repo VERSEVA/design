@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node scripts/tokens-model.mjs && node scripts/chapters-model.mjs && vite",
     "prebuild": "node scripts/tokens-model.mjs && node scripts/chapters-model.mjs",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --pool=forks"
   },

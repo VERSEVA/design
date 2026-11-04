@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
 import { Badge } from '../../../react/badge';
-import { evaluatePairs } from '../contrast';
-import { useThemeTick } from '../theme';
+import { evaluatePairs, pendingPairs } from '../contrast';
+import { useHydrated, useThemeTick } from '../theme';
 import { Section } from './Specimen';
 
 export function ContrastSection() {
   const tick = useThemeTick();
-  const rows = useMemo(() => evaluatePairs(document.documentElement), [tick]);
-  const failing = rows.filter((r) => !r.pass).length;
+  const live = useHydrated();
+  /* Ratios are measured on the live page, so the pre-render lists the pairs unmeasured. */
+  const rows = useMemo(() => (live ? evaluatePairs(document.documentElement) : pendingPairs()), [tick, live]);
+  const failing = live ? rows.filter((r) => !r.pass).length : 0;
   return (
     <Section id="contrast" title="Contrast" count={rows.length}>
       <div className="fd-scroll">
@@ -19,9 +21,9 @@ export function ContrastSection() {
             {rows.map((r) => (
               <tr key={`${r.fg} ${r.bg}`} data-pair={`${r.fg}/${r.bg}`}>
                 <td className="mono">{r.fg} on {r.bg}</td>
-                <td className="num mono">{r.ratio.toFixed(2)}</td>
+                <td className="num mono">{live ? r.ratio.toFixed(2) : ''}</td>
                 <td className="num mono">{r.floor}</td>
-                <td><Badge tone={r.pass ? 'ok' : 'err'}>{r.pass ? 'Pass' : 'Fail'}</Badge></td>
+                <td>{live && <Badge tone={r.pass ? 'ok' : 'err'}>{r.pass ? 'Pass' : 'Fail'}</Badge>}</td>
               </tr>
             ))}
           </tbody>

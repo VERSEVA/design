@@ -71,10 +71,10 @@ describe('routes table', () => {
     expect(rows).toEqual(CHAPTERS.map((c: { slug: string; label: string }) => [`/${c.slug}`, c.label]));
   });
 
-  it('rewrites exactly the live routes except / in vercel.json', () => {
+  it('pre-renders the live routes instead of rewriting them in vercel.json', () => {
     const v = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../vercel.json'), 'utf8'));
-    const sources = v.rewrites.map((r: { source: string }) => r.source).sort();
-    expect(sources).toEqual(LIVE_ROUTES.map((r) => r.path).filter((p) => p !== '/').sort());
+    const shell = (v.rewrites ?? []).filter((r: { destination: string }) => r.destination === '/index.html').map((r: { source: string }) => r.source);
+    expect(shell).toEqual([]);
   });
 
   it('starts index.html on the Overview row', () => {

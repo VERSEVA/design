@@ -3,24 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VERSEVA Design: tokens, components and widgets</title>
-<meta name="description" content="VERSEVA Design: an open design system with tokens, components, widgets, motion and an asset library. MIT licensed on npm as @verseva/design.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <script>
+/* Before any stylesheet: theme attributes and .js land before first paint.
+   components.css gates the line reveal's hidden start on .js (as site/theme.js did).
+   Same reading as theme.ts readStored: '' and 'dark' are dark, 'light' is light, else system. */
 (() => {
   const r = document.documentElement;
-  /* As site/theme.js did: components.css gates the line reveal's hidden start on .js. */
   r.classList.add('js');
   try {
     const b = localStorage.getItem('verseva-brand');
     const m = localStorage.getItem('verseva-theme');
     if (b && ['cobalt', 'forest', 'slate', 'violet'].includes(b)) r.dataset.brand = b;
-    const light = m === 'light' || ((m === 'system' || m === null) && matchMedia('(prefers-color-scheme: light)').matches);
+    const light = m === 'light' || (m !== 'dark' && m !== '' && matchMedia('(prefers-color-scheme: light)').matches);
     if (light) r.dataset.theme = 'light';
   } catch (e) {}
 })();
 </script>
+<title>VERSEVA Design: tokens, components and widgets</title>
+<meta name="description" content="VERSEVA Design: an open design system with tokens, components, widgets, motion and an asset library. MIT licensed on npm as @verseva/design.">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B0D10">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F5F8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..700&family=Manrope:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 </head>
 <body>
 <div id="studio-root"></div>

@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import tokens from '../data/tokens.json';
-import { useThemeTick } from '../theme';
+import { useHydrated, useThemeTick } from '../theme';
 
 export type Token = (typeof tokens)[number];
 
@@ -19,13 +19,18 @@ export const FAMILY_LABEL: Record<string, string> = {
 
 export const tokensOf = (...families: string[]): Token[] => tokens.filter((t) => families.includes(t.family));
 
-/** Live values from the computed style of <html>, re-read on every vsv-theme flip. */
+const declared = (name: string) => (tokens.find((t) => t.name === name) as { dark?: string } | undefined)?.dark ?? '';
+
+/** Live values from the computed style of <html>, re-read on every vsv-theme flip.
+    Before mount (pre-render, hydration) it reads the declared dark value instead. */
 export function useLive(): (name: string) => string {
   const tick = useThemeTick();
+  const live = useHydrated();
   return useMemo(() => {
+    if (!live) return declared;
     const style = getComputedStyle(document.documentElement);
     return (name: string) => style.getPropertyValue(name).trim();
-  }, [tick]);
+  }, [tick, live]);
 }
 
 type Kind = 'color' | 'image' | 'shadow' | 'radius' | 'space' | 'font' | 'weight' | 'value';
