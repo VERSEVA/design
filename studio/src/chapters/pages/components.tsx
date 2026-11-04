@@ -176,6 +176,10 @@ export function Page() {
     <NativeChapter slug="components" script={script}>
       <section className="hero">
         <h1>Components</h1>
+        {/* Deviation widgets-link (test/chapter-ports DEVIATIONS): labels only. */}
+        <div className="chips">
+          <a className="btn btn-secondary sm" href="/widgets">Widgets</a>
+        </div>
       </section>
       <div className="docgrid">
         <div className="doccol">
@@ -574,63 +578,66 @@ export function Page() {
           <section className="comp" id="table">
             <h2>Table</h2>
             <div className="demo">
-              <div className="specimen">
-                <table className="table" aria-label="Identity cell specimen">
-                  <thead>
-                    <tr>
-                      <th>Member</th>
-                      <th>Role</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <span className="ident">
-                          <b>Avery Lane</b>
-                          <small>avery@example.test</small>
-                        </span>
-                      </td>
-                      <td>Admin</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <span className="ident">
-                          <b>alexandria.konstantinopoulou@long-department.example.test</b>
-                          <small>alexandria.konstantinopoulou@long-department.example.test</small>
-                        </span>
-                      </td>
-                      <td>Editor</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Quote</th>
-                      <th>Client</th>
-                      <th>Status</th>
-                      <th className="num">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Q-2081</td>
-                      <td>Northline Foods</td>
-                      <td>
-                        <span className="badge ok">Verified</span>
-                      </td>
-                      <td className="num">48,220.00</td>
-                    </tr>
-                    <tr>
-                      <td>Q-2080</td>
-                      <td>Harbor Botanics</td>
-                      <td>
-                        <span className="badge warn">Pending</span>
-                      </td>
-                      <td className="num">12,940.00</td>
-                    </tr>
-                  </tbody>
-                </table>
+              {/* Deviation table-tscroll: the 541px specimen scrolls in place at 375px, not the page. */}
+              <div className="tscroll">
+                <div className="specimen">
+                  <table className="table" aria-label="Identity cell specimen">
+                    <thead>
+                      <tr>
+                        <th>Member</th>
+                        <th>Role</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <span className="ident">
+                            <b>Avery Lane</b>
+                            <small>avery@example.test</small>
+                          </span>
+                        </td>
+                        <td>Admin</td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span className="ident">
+                            <b>alexandria.konstantinopoulou@long-department.example.test</b>
+                            <small>alexandria.konstantinopoulou@long-department.example.test</small>
+                          </span>
+                        </td>
+                        <td>Editor</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Quote</th>
+                        <th>Client</th>
+                        <th>Status</th>
+                        <th className="num">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Q-2081</td>
+                        <td>Northline Foods</td>
+                        <td>
+                          <span className="badge ok">Verified</span>
+                        </td>
+                        <td className="num">48,220.00</td>
+                      </tr>
+                      <tr>
+                        <td>Q-2080</td>
+                        <td>Harbor Botanics</td>
+                        <td>
+                          <span className="badge warn">Pending</span>
+                        </td>
+                        <td className="num">12,940.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
             <div className="codewrap">
