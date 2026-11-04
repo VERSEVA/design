@@ -67,6 +67,12 @@ describe('ask detection', () => {
     assert.equal(isQuestion('what\u2019s due today'), true);
     assert.equal(isQuestion('who\u2019s on call'), true);
   });
+  test('a full-width question mark (CJK input) counts, alone or trailing', () => {
+    assert.equal(isQuestion('\uFF1F'), true, 'lone full-width');
+    assert.equal(isQuestion('?'), true, 'lone ASCII');
+    assert.equal(isQuestion('revenue this month\uFF1F'), true);
+    assert.equal(normalize('due\uFF1F'), 'due?');
+  });
   test('words that only start like a question word are not questions', () => {
     for (const s of ['whatever', 'issue refund', 'invoices', 'howl', 'canvas', 'dodo']) assert.equal(isQuestion(s), false, s);
   });

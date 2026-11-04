@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
   ACTIVITY_LABELS, DONE_LEAVE_MS, activityEvents, activityState, announcement, currentStep, dedupeActivities, failedCount,
-  leadActivity, leaveExpired, moreCount, nextLeaveIn, percent, pruneLeft, restartStamps, ringOffset, trackDone, visibleActivities,
+  leadActivity, leaveExpired, moreCount, nextLeaveIn, percent, pruneCancelled, pruneLeft, restartStamps, ringOffset, trackDone, visibleActivities,
 } from './activity-state';
 import type { Activity, ActivityEvent, ActivityLabels, DoneStamps } from './activity-state';
 import { withDefaults } from './console-state';
@@ -36,11 +36,6 @@ const icon = (d: React.ReactNode, cls?: string) => (
 );
 const CHECK = <path d="m5 12.5 4.5 4.5L19 7.5" />;
 const CROSS = <path d="M7 7l10 10M17 7 7 17" />;
-
-function isProduction(): boolean {
-  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
-  return env?.NODE_ENV === 'production';
-}
 
 function focusNextControl(root: HTMLElement | null) {
   const bar = root?.closest('.tbar-end') ?? root?.parentElement;
@@ -78,7 +73,7 @@ export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, o
 
   const dupKey = duplicates.join('|');
   React.useEffect(() => {
-    if (!dupKey || isProduction()) return;
+    if (!dupKey) return;
     console.warn(`LiveActivity: duplicate activity id "${dupKey.split('|').join('", "')}"; the last one pushed wins.`);
   }, [dupKey]);
 
@@ -87,8 +82,7 @@ export function LiveActivity({ activities, onCancel, onRetry, onDone, onLeave, o
     if (prev.current === list) return;
     const events: ActivityEvent[] = activityEvents(prev.current, list, cancelled.current);
     prev.current = list;
-    const ids = new Set(list.map((a) => a.id));
-    for (const id of cancelled.current) if (!ids.has(id)) cancelled.current.delete(id);
+    cancelled.current = pruneCancelled(cancelled.current, list);
     stamps.current = trackDone(stamps.current, list, Date.now());
     setLeft((l) => {
       const pruned = pruneLeft(l, list);

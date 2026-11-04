@@ -116,6 +116,30 @@ describe('LiveActivity', () => {
     expect(container.querySelector('[role="status"]')?.textContent).toBe('');
   });
 
+  it('a Cancel request is forgotten once its job stops running, so a later removal is not a false cancel', () => {
+    const { container, rerender } = render(<Bar activities={[job('a', 0.4)]} onCancel={() => {}} />);
+    fireEvent.click(container.querySelector('.lact')!);
+    fireEvent.click([...container.querySelectorAll('.lact-item button')].find((b) => b.textContent === 'Cancel')!);
+    rerender(<Bar activities={[job('a', 0.4, { error: 'Cancel failed' })]} onCancel={() => {}} />);
+    rerender(<Bar activities={[job('a', 0.1)]} onCancel={() => {}} />);
+    rerender(<Bar activities={[]} onCancel={() => {}} />);
+    expect(container.querySelector('[role="status"]')?.textContent).not.toContain('cancelled');
+  });
+
+  it('warns about duplicate ids even when globalThis.process reports production (no Node env check in a browser part)', () => {
+    const g = globalThis as { process?: { env?: Record<string, string | undefined> } };
+    const before = g.process?.env?.NODE_ENV;
+    if (g.process?.env) g.process.env.NODE_ENV = 'production';
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      render(<Bar activities={[job('a', 0.2), job('a', 0.4)]} />);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('duplicate activity id "a"'));
+    } finally {
+      warn.mockRestore();
+      if (g.process?.env) g.process.env.NODE_ENV = before;
+    }
+  });
+
   it('onLeave fires once under StrictMode', async () => {
     vi.useFakeTimers();
     const onLeave = vi.fn();
