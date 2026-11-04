@@ -3,7 +3,7 @@ import { onStudioLink } from './router';
 
 export function NotFoundPage() {
   return (
-    <section className="section">
+    <section className="section notfound">
       <h1>Page not found</h1>
       <a className="btn btn-primary" href="/" onClick={onStudioLink}>Go to Overview</a>
     </section>
