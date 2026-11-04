@@ -36,7 +36,8 @@ function canon(node: Node, file: string, extraIds: Set<string>, pre = false): st
   if (node.nodeType === 3) {
     const t = (node as Text).data;
     if (pre) return t;
-    return t.trim() ? t.replace(/\s+/g, ' ') : '';
+    /* ASCII whitespace only: \s and trim() also eat U+00A0, and a legacy &nbsp; must survive the port. */
+    return /[^ \t\n\r\f]/.test(t) ? t.replace(/[ \t\n\r\f]+/g, ' ') : '';
   }
   if (node.nodeType !== 1) return '';
   const el = node as Element;

@@ -1326,8 +1326,8 @@ export function Page() {
             <h2>Callout</h2>
             <div className="demo">
               <div className="specimen">
-                <div className="callout"><b>Heads up.</b>{" The rate card moved to v18; open quotes keep their issued rates."}</div>
-                <div className="callout warn"><b>Rush window.</b>{" This date is inside the 10-day floor and needs a ruling."}</div>
+                <div className="callout"><b>Heads up.</b>{"\u00a0The rate card moved to v18; open quotes keep their issued rates."}</div>
+                <div className="callout warn"><b>Rush window.</b>{"\u00a0This date is inside the 10-day floor and needs a ruling."}</div>
               </div>
             </div>
             <div className="codewrap">
