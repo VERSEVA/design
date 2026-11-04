@@ -18,6 +18,7 @@ const { JSDOM, VirtualConsole } = createRequire(path.join(studio, 'package.json'
 /** @type {Record<string, string[]>} */
 export const ALLOWED_JSDOM_ERRORS = {
   'data-viz': [],
+  motion: [],
 };
 
 /* Browsers write numbers set through the CSSOM with 6 significant digits
