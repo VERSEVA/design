@@ -395,6 +395,96 @@ color-alone).
 - **Takeaway caption, mandatory:** label the MEANING, not the axis.
 - **Hover:** per-mark tooltips; ≥2 series get a legend.
 
+## Widgets: `.wgrid`, `.wtile`, `.wstack`, `.wgal` (1.6.0)
+
+An adaptive home: a grid of tiles, each picking its view from its size. React parts
+(`npx verseva add widget-grid smart-stack`) render exactly this DOM; the rules live in
+`react/widget-state.ts`, pure and tested.
+
+**Grid and sizes**
+
+| Columns | Viewport | Largest size | Notes |
+|---|---|---|---|
+| 4 | 1100px and up | XL | |
+| 2 | 560 to 1099px | L | XL shows its L view |
+| 1 | under 560px | M | L and XL show their M view |
+
+S is 1x1, M 2x1, L 2x2, XL 4x2 on 180px rows with `--s-4` gaps (`--s-3` in one column). A size
+that does not fit drops to the largest supported size that does (`fitSize`); the tile carries the
+fitted size in `data-size`. Flow is sparse (`grid-auto-flow: row`, never dense), so DOM order,
+focus order and visual order agree.
+
+**Anatomy**
+
+| Part | Classes | Holds |
+|---|---|---|
+| Grid | `.wgrid` (`[data-editing]`), a polite live region | `role="region"` named Widgets |
+| Tile | `.wtile[data-size]` (`[data-focus]`, `[data-dragging]`, `aria-busy`, `aria-disabled`), `.wtile-body` | `role="group"` with `aria-roledescription="widget"`, named "Revenue, large"; glass at `--r-lg` |
+| Content | `.wtile-hd` (+ `svg`), `.wtile-meta`, `.wtile-num`, `.wtile-sub`, `.wtile-rows` > `.wtile-row` (+ `b`, `.wtile-val`), `.wtile-foot` | Header, numeral, caption, rows, footer |
+| Loading | `.wtile-skel` > `.skel`, `.wtile-skel-num`, `.wtile-skel-plot` | A copy of the widget's layout at its size |
+| Error | `.wtile-err` > `.wtile-errline` (+ `svg`), Retry `.btn.btn-secondary.sm` | The failure line (`role="alert"`) and Retry |
+| Empty grid | `.wgrid-empty` (`b` + `.btn.btn-secondary`) | "No widgets" and Add widget, labels only |
+| Edit controls | `.wtile-x`, `.wtile-handle`, `.wtile-edit` > `.wtile-move` + `.wtile-sizes`, `.wgrid-add` | Remove, touch drag handle, Move up and down, size buttons, Add widget slot |
+| Undo | `.wgrid-undo` > `.toast` + `.btn.btn-ghost.sm` | One toast after a remove; waits while hovered or focused |
+| Smart stack | `.wstack` > `.wstack-pages` > `.wstack-page[data-pos]`, `.wstack-nav` > `.wstack-pause` + `.wstack-dot` | Several widgets in one slot |
+| Gallery | `.scrim` + `.drawer` > `.drawer-bd` > `ul.wgal` > `.wgal-item` (`.wgal-icon`, `.wgal-name` + `small`, `.wgal-sizes`) | Every kind with its sizes as add buttons |
+
+**Accent budget (law 3, one accent per view).** Charts in a tile draw on the text ladder: the viz
+kit's accent marks (`.bar .fill`, `.hbar .htrack i`, `.ring .ringfill`, the heat and activity
+levels, the legend, and any SVG `stroke`, `fill` or `stop-color` of `var(--data-3)`) are recoloured
+to `--text-1`, `--text-2` and a 30% `--text-1` mix in every tile except the one the product marks
+`focus`. The second series keeps `--data-alt`. An inline `style` that names an accent rung (for
+example `Bars` with `level`) cannot be recoloured, so it spends the accent wherever it renders.
+`test/widgets-css.test.mjs` fails a new accent rule without a neutraliser;
+`studio/test/widget-grid.test.tsx` counts accent-bearing elements across a rendered grid (at most
+one tile, the focus one).
+
+**Edit mode** (an Edit button the product owns, a 550ms long-press on a tile, or the command bar;
+Esc leaves unless a dialog is open)
+
+- Jiggle is rotation only (`wtile-jiggle`, `--dur-3`), off under reduced motion. Content goes to
+  .4 and is `inert`; tiles become tab stops with `aria-keyshortcuts`.
+- Remove badge top left; after a remove focus moves to the next widget (else the previous, else
+  Add widget) and Undo lives in the toast.
+- Size control: `aria-pressed` buttons (not a tablist). Sizes that do not fit stay visible with
+  `aria-disabled` and do nothing.
+- Reorder three ways: HTML drag on the tile (pointer devices); the handle (`pointer: coarse` only,
+  `touch-action: none`, pointer capture) plus Move up and Move down (one slot); Alt+Arrow on a
+  focused tile, Left and Right one slot, Up and Down to the widget in the row above or below.
+- Every hit area is 44px: the 28px badges sit in 44px buttons, stack dots are 44px buttons.
+- Announcements: "Revenue moved to position 3 of 8", "Revenue resized to large", "Revenue
+  removed", "Revenue restored", "Revenue added".
+
+**Smart stack.** Wheel (non-passive, 450ms step), a 30px vertical swipe, the dots, or a timer
+(6s) that pauses on hover, on focus inside, through the visible pause button, while the page is
+hidden, and from outside (`paused`, e.g. in edit mode); no timer and no pause button under reduced
+motion (WCAG 2.2.2). `aria-roledescription` carousel and slide; hidden pages are `inert`; the
+pages announce politely only after a person moves them. The tile body drops its padding around a
+stack. A one-row tile holds three pages (pause plus three 44px dots).
+
+**Material and contrast.** The tile restates the glass material at `--r-lg` (like `.cside`, it
+does not compose `.glass`). No `--text-3` anywhere in the section: on glass the floor is
+`--text-2`. Edit controls sit on opaque `--surface-2` pills; the remove hover is `--danger` on
+`--danger-bg` over `--surface` (a gated pair).
+
+**States**
+
+| Part | Hover | Focus-visible | Press | Disabled | Other |
+|---|---|---|---|---|---|
+| Tile | `--hairline-strong` border | 2px `--focus` at 2px (edit mode) | scale .98, jiggle stops | `aria-disabled` at .45, body inert | `aria-busy` skeleton; error line + Retry |
+| Remove, handle | danger wash / `--surface` | 2px `--focus` inset | badge scales .92 | .45 | |
+| Size, move buttons | 6% `--text-1` wash | 2px `--focus` inset | sits down 1px | `aria-disabled` at .45, no wash | pressed: `--surface` + `--e-1` |
+| Add slot | `--text-1`, `--text-2` border | 2px `--focus` at 2px | sits down 1px | .45 | |
+| Stack dot, pause | dot to `--text-1` / `--text-1` | 2px `--focus` inset | dot .8 / scale .94 | .45 | current dot `--text-1`, taller (shape, not colour alone) |
+| Gallery size buttons | `--surface-2` | 2px `--focus` inset | sits down 1px | `aria-disabled` at .45 | |
+
+**React contract.** `WidgetDefinition { kind, name, icon?, sizes, render(size, state), skeleton? }`
+where `state` is `{ size, focus, editing, columns }`; layout `{ id, kind, size }[]`, controlled
+(`layout` + `onLayoutChange`) or uncontrolled (`defaultLayout`, stored under
+`verseva.widgets.layout` after mount; `storageKey={null}` turns it off). `status` maps an id to
+`{ loading?, error?, disabled? }`; `onRetry(id)`. `parseLayout` drops items with an unknown kind,
+an unsupported size or a duplicate id, and returns null for anything that is not a JSON array.
+
 ## Specimen rule
 
 Every component appears in the studio in every contract state, per theme. A theme that styles a

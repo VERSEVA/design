@@ -26,7 +26,11 @@
     { "name": "accordion", "file": "react/accordion.tsx", "kind": "component", "deps": ["cx"], "description": "Content accordion on native details/summary" },
     { "name": "tooltip", "file": "react/tooltip.tsx", "kind": "component", "deps": ["cx"], "description": "Hover/focus label on the inverse ground" },
     { "name": "viz", "file": "react/viz.tsx", "kind": "component", "deps": ["cx"], "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning" },
-    { "name": "motion", "file": "react/motion.tsx", "kind": "component", "deps": ["cx"], "description": "The motion kit: Stagger, Reveal (masked lines), Spotlight (group), Magnetic, NumberRoll; enter on entrance, settle on back, reduced-motion honored" }
+    { "name": "motion", "file": "react/motion.tsx", "kind": "component", "deps": ["cx"], "description": "The motion kit: Stagger, Reveal (masked lines), Spotlight (group), Magnetic, NumberRoll; enter on entrance, settle on back, reduced-motion honored" },
+    { "name": "widget-state", "file": "react/widget-state.ts", "kind": "util", "deps": [], "description": "Widget grid logic: fit a size to 4/2/1 columns, sparse placement, reorder with 2D keyboard moves, add, remove, undo, serialize and parse with validation" },
+    { "name": "widget-gallery", "file": "react/widget-gallery.tsx", "kind": "component", "deps": ["widget-state", "cx"], "description": "Add-widget drawer: every kind with its sizes as add buttons; sizes that do not fit stay listed, aria-disabled" },
+    { "name": "smart-stack", "file": "react/smart-stack.tsx", "kind": "component", "deps": ["cx"], "description": "Several widgets in one slot: wheel, swipe, dots, a timer with a visible pause; off under reduced motion" },
+    { "name": "widget-grid", "file": "react/widget-grid.tsx", "kind": "component", "deps": ["widget-state", "widget-gallery", "cx"], "description": "Widget home: tiles pick their view from their size (S, M, L, XL); edit mode removes with Undo, resizes, reorders by drag, touch, buttons or Alt+Arrow, adds from the gallery; one focus widget spends the accent" }
   ],
   "themes": [
     { "name": "cobalt", "file": "themes/cobalt.css", "description": "Blue accent preset, contrast-gate proven both themes" },
