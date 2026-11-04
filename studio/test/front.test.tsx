@@ -264,6 +264,20 @@ describe('front door', () => {
       expect(pct(container)).toMatch(/^\d+%$/);
     });
 
+    it('Cancel with the panel open: one working Restart, in the panel; the tile Restart only once the panel shuts', () => {
+      vi.useFakeTimers();
+      const { container } = render(<FrontDoorPage />);
+      act(() => { cap(container).click(); });
+      act(() => { panelButton(container, 'Cancel')!.click(); });
+      const restarts = () => [...container.querySelectorAll<HTMLButtonElement>('.hero-live .jobcap button')].filter((b) => b.textContent === 'Restart' && !b.closest('[hidden]'));
+      expect(restarts().map((b) => [!!b.closest('.lact-panel'), b.disabled])).toEqual([[true, false]]);
+      fireEvent.keyDown(container.querySelector('.hero-live .lact-wrap')!, { key: 'Escape' });
+      expect(restarts().map((b) => [!!b.closest('.lact-panel'), b.disabled])).toEqual([[false, false]]);
+      act(() => { restarts()[0].click(); });
+      act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 4); });
+      expect(pct(container)).toMatch(/^\d+%$/);
+    });
+
     it('Cancel stops the job; a Restart brings it back', () => {
       vi.useFakeTimers();
       const { container } = render(<FrontDoorPage />);
@@ -274,6 +288,7 @@ describe('front door', () => {
       act(() => { cancel!.click(); });
       act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 10); });
       expect(container.querySelector('.hero-live .lact-list')).toBeNull();
+      fireEvent.keyDown(container.querySelector('.hero-live .lact-wrap')!, { key: 'Escape' });
       const again = [...container.querySelectorAll<HTMLButtonElement>('.hero-live .jobcap > button')].find((b) => b.textContent === 'Restart');
       expect(again, 'a Restart after Cancel').toBeTruthy();
       act(() => { again!.click(); });

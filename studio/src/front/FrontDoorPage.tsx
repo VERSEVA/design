@@ -74,6 +74,9 @@ const PICK = new Set(['revenue', 'live']);
 function LiveHome({ live }: { live: boolean }) {
   const { job, restart, cancel } = useDemoJob(live);
   const [engaged, setEngaged] = useState(false);
+  const [panel, setPanel] = useState(false);
+  const onOpenChange = (o: boolean) => { setPanel(o); if (o) setEngaged(true); };
+  const again = <button type="button" className="btn btn-secondary sm" onClick={restart}>Restart</button>;
   const p = job?.progress ?? 0;
   const step = STEPS[Math.min(STEPS.length - 1, Math.floor(p * STEPS.length))];
   const defs: WidgetDefinition[] = [
@@ -83,9 +86,10 @@ function LiveHome({ live }: { live: boolean }) {
       render: () => (
         <>
           <div className="wtile-hd">{jobIcon}Jobs<span className="wtile-meta">{!job ? 'Cancelled' : job.done ? 'Done' : step}</span></div>
-          <div className="jobcap" onClickCapture={(e) => { if ((e.target as Element).closest('button.lact')) setEngaged(true); }}>
-            <LiveActivity activities={job ? [job] : []} onCancel={cancel} onClearDone={restart} leaveDelay={1e9} labels={engaged ? SPOKEN : QUIET} />
-            {!job && <button type="button" className="btn btn-secondary sm" onClick={restart}>Restart</button>}
+          <div className="jobcap">
+            {/* With no job the panel offers the one Restart (its empty state); the tile's shows only with the panel shut. */}
+            <LiveActivity activities={job ? [job] : []} onCancel={cancel} onClearDone={job ? restart : undefined} emptyAction={again} onOpenChange={onOpenChange} leaveDelay={1e9} labels={engaged ? SPOKEN : QUIET} />
+            {!job && !panel && again}
           </div>
           {job && <div className="wtile-sub">{`${Math.min(STEPS.length, Math.floor(p * STEPS.length) + 1)} of ${STEPS.length} steps`}</div>}
         </>
