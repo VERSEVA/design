@@ -64,6 +64,14 @@
 
 - **On this page marks the deep-linked section on a page too short to scroll** (Decks at 1440x900: both tiles in
   one row below the line marked Slide anatomy for `/decks#structure`).
+- **Gallery: the filter shows its result.** A filtered-out tile is no longer rendered (its `display:none` lost to the
+  package `.wtile` display in the built CSS, so all 8 stayed on screen). Each filter's subset is sized to fill every
+  row at 4 and 2 columns (its own sizes when they fit, else an XL first on an odd count and Ms in pairs), and the
+  result is announced politely ("2 examples").
+- **Gallery: a thumbnail that does not load shows the tile error with Retry.** A missing example answers with the
+  studio shell (404.html); the tile no longer nests a studio in its thumbnail.
+- **Gallery: the details bento has no holes** (Count-up stat and Skeleton to loaded take M), and the gallery joins the
+  chapter copy guard (no em dash, no doctrine sublabels, every legacy text accounted for).
 - **The studio side nav stays fixed while the page scrolls.** Expanded and collapsed to the rail, it sits below the
   header at full height, scrolls its own list when that is longer than the viewport, and keeps the collapse toggle
   in view at its foot (the expanded toggle had scrolled out of reach on long pages).

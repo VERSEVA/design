@@ -37,31 +37,22 @@ function schedule() {
   }
 }
 
-function useSlot(box: React.RefObject<HTMLElement | null>, off: boolean): boolean {
+function useSlot(box: React.RefObject<HTMLElement | null>): boolean {
   const [live, setLive] = useState(false);
-  const slot = useRef<Slot | null>(null);
   useEffect(() => {
     const el = box.current;
     if (!el) return;
     const s: Slot = { visible: false, live: false, at: 0, set: setLive };
-    slot.current = s;
     slots.add(s);
     const io = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver((entries) => {
       for (const e of entries) s.visible = e.isIntersecting;
       schedule();
     }, { rootMargin: '120px 0px' });
     if (io) io.observe(el); else { s.visible = true; schedule(); }
-    return () => { io?.disconnect(); slots.delete(s); slot.current = null; schedule(); };
+    /* Unmounted (a filter hides the tile, a route leaves): the slot goes back to the pool. */
+    return () => { io?.disconnect(); slots.delete(s); schedule(); };
   }, [box]);
-  /* A tile the filter hides gives its slot back. */
-  useEffect(() => {
-    const s = slot.current;
-    if (!s || !off) return;
-    s.visible = false;
-    if (s.live) { s.live = false; setLive(false); }
-    schedule();
-  }, [off]);
-  return live && !off;
+  return live;
 }
 
 /* ---- holding an example's animation-frame loop ---- */
@@ -74,6 +65,11 @@ function gateOf(w: Window): Gate | null {
   const g: Gate = { held: false, queue: [], raf };
   w.requestAnimationFrame = (cb) => { if (g.held) { g.queue.push(cb); return 0; } return raf(cb); };
   return (k.__vsvGate = g);
+}
+
+/* A missing example is answered with 404.html, the studio shell; a frame that cannot be read failed too. */
+function failed(f: HTMLIFrameElement): boolean {
+  try { return !f.contentDocument || !!f.contentDocument.getElementById('studio-root'); } catch { return true; }
 }
 
 /* Still: every CSS animation at its end state (the studio's pause sheet) and the loop held. */
@@ -91,10 +87,12 @@ function apply(f: HTMLIFrameElement, play: boolean, settled: boolean) {
   } catch { /* cross-origin frame: leave it alone */ }
 }
 
-export function Thumb({ slug, title, off = false }: { slug: string; title: string; off?: boolean }) {
+export function Thumb({ slug, title, onFail }: { slug: string; title: string; onFail?: () => void }) {
   const box = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
-  const live = useSlot(box, off);
+  const live = useSlot(box);
+  const fail = useRef(onFail);
+  fail.current = onFail;
   const paused = usePauseMotion();
   const [hover, setHover] = useState(false);
   const [focus, setFocus] = useState(false);
@@ -123,6 +121,7 @@ export function Thumb({ slug, title, off = false }: { slug: string; title: strin
     let timer: ReturnType<typeof setTimeout> | undefined;
     const sync = () => apply(f, state.current.play, state.current.settled);
     const onLoad = () => {
+      if (failed(f)) { fail.current?.(); return; }
       state.current.settled = false;
       f.dataset.loaded = '';
       sync();

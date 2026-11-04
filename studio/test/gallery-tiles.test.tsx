@@ -250,6 +250,41 @@ describe('hover or focus plays a thumbnail', () => {
   });
 });
 
+describe('a thumbnail that does not load', () => {
+  /* A missing example is answered with 404.html, the studio shell: the frame holds #studio-root. */
+  async function load(c: HTMLElement, i: number, html: string) {
+    const box = thumbs(c)[i];
+    see([box], true);
+    const f = box.querySelector('iframe')!;
+    const d = f.contentDocument!;
+    if (!d.documentElement) d.append(d.createElement('html'));
+    if (!d.body) d.documentElement.append(d.createElement('body'));
+    d.body.innerHTML = html;
+    await act(async () => { f.dispatchEvent(new Event('load')); });
+    return box.closest<HTMLElement>('.gtile') ?? c.querySelectorAll<HTMLElement>('.gtile')[i];
+  }
+
+  it('shows the tile error with Retry, not the studio shell nested in the tile', async () => {
+    const { container } = render(<Gallery />);
+    const tile = await load(container, 1, '<div id="studio-root"><div class="studio"></div></div>');
+    const err = tile.querySelector('.stile-spec .wtile-err[role="alert"]')!;
+    expect(err).not.toBeNull();
+    expect(err.textContent).toContain('Preview did not load');
+    expect(tile.querySelector('iframe')).toBeNull();
+    expect(tile.querySelector('.stile-foot')).toBeNull();
+    await act(async () => { fireEvent.click(err.querySelector('button')!); });
+    expect(tile.querySelector('.wtile-err')).toBeNull();
+    expect(tile.querySelector('.gthumb')).not.toBeNull();
+  });
+
+  it('keeps an example that loads', async () => {
+    const { container } = render(<Gallery />);
+    const tile = await load(container, 1, '<main class="wrap"></main>');
+    expect(tile.querySelector('.wtile-err')).toBeNull();
+    expect(tile.querySelector('.gthumb iframe[data-loaded]')).not.toBeNull();
+  });
+});
+
 describe('the tag filter', () => {
   it('shows only the tiles with the chip\'s tag, as neutral selection with a count on every chip', () => {
     const { container } = render(<Gallery />);
@@ -260,7 +295,8 @@ describe('the tag filter', () => {
       const n = f === 'all' ? GALLERY.length : GALLERY.filter((g) => META[g.slug].filters.includes(f)).length;
       expect(c.querySelector('.cnt')!.textContent, f).toBe(String(n));
     }
-    const shown = () => tiles(container).filter((t) => !t.classList.contains('gtile-off')).map((t) => t.querySelector('.stile-name')!.textContent);
+    /* A filtered-out tile is not rendered: no class to lose to the package's .wtile display. */
+    const shown = () => tiles(container).map((t) => t.querySelector('.stile-name')!.textContent);
     expect(shown().length).toBe(GALLERY.length);
     fireEvent.click(container.querySelector('#gfilter [data-f="light"]')!);
     expect(shown()).toEqual(['Redline Supply · storefront', 'Ledgerline · landing']);
@@ -271,8 +307,16 @@ describe('the tag filter', () => {
     expect(shown().length).toBe(GALLERY.length);
   });
 
-  it('hides a filtered-out tile from layout and from assistive tech', () => {
-    expect(GALLERY_CSS).toMatch(/\.gtile-off\s*\{[^}]*display:\s*none/);
+  it('announces the result politely, and nothing before a chip is pressed', () => {
+    const { container } = render(<Gallery />);
+    const status = container.querySelector('#gfilter-status')!;
+    expect([status.getAttribute('aria-live'), status.classList.contains('sr-only'), status.textContent]).toEqual(['polite', true, '']);
+    fireEvent.click(container.querySelector('#gfilter [data-f="light"]')!);
+    expect(status.textContent).toBe('2 examples');
+    fireEvent.click(container.querySelector('#gfilter [data-f="3d"]')!);
+    expect(status.textContent).toBe('1 example');
+    fireEvent.click(container.querySelector('#gfilter [data-f="all"]')!);
+    expect(status.textContent).toBe(`${GALLERY.length} examples`);
   });
 
   it('frees the slot of a thumbnail the filter hides', () => {
