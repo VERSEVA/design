@@ -1,6 +1,6 @@
 // WCAG 2.4.1 beyond ported chapters: sidebar anchors (router.navigate) and anchors
 // inside a chapter still in an iframe (ChapterPage) move focus as well as scroll.
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, fireEvent, act } from '@testing-library/react';
 import { App } from '../src/App';
 import { ChapterPage } from '../src/chapters/ChapterPage';
@@ -8,7 +8,12 @@ import { ChapterPage } from '../src/chapters/ChapterPage';
 const tick = () => act(async () => { await new Promise((r) => setTimeout(r, 20)); });
 
 describe('anchor focus', () => {
-  beforeEach(() => { window.history.replaceState(null, '', '/'); localStorage.clear(); });
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/'); localStorage.clear();
+    /* ChapterPage measures the frame on load; jsdom has no ResizeObserver. */
+    vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} unobserve() {} });
+  });
+  afterEach(() => { vi.unstubAllGlobals(); });
 
   it('a Foundations sidebar anchor moves focus to its section', async () => {
     window.history.replaceState(null, '', '/foundations');
