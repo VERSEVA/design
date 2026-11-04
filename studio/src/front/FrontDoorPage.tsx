@@ -77,6 +77,14 @@ function LiveHome({ live }: { live: boolean }) {
   const [panel, setPanel] = useState(false);
   const onOpenChange = (o: boolean) => { setPanel(o); if (o) setEngaged(true); };
   const again = <button type="button" className="btn btn-secondary sm" onClick={restart}>Restart</button>;
+  /* Escape shuts the panel; with no job its capsule goes, so focus lands on the tile's Restart. */
+  const tileRestart = useRef<HTMLButtonElement>(null);
+  const escaped = useRef(false);
+  useEffect(() => {
+    if (panel || !escaped.current) return;
+    escaped.current = false;
+    if (!job) tileRestart.current?.focus();
+  }, [panel, job]);
   const p = job?.progress ?? 0;
   const step = STEPS[Math.min(STEPS.length - 1, Math.floor(p * STEPS.length))];
   const defs: WidgetDefinition[] = [
@@ -86,10 +94,10 @@ function LiveHome({ live }: { live: boolean }) {
       render: () => (
         <>
           <div className="wtile-hd">{jobIcon}Jobs<span className="wtile-meta">{!job ? 'Cancelled' : job.done ? 'Done' : step}</span></div>
-          <div className="jobcap">
+          <div className="jobcap" onKeyDownCapture={(e) => { if (e.key === 'Escape' && panel) escaped.current = true; }}>
             {/* With no job the panel offers the one Restart (its empty state); the tile's shows only with the panel shut. */}
             <LiveActivity activities={job ? [job] : []} onCancel={cancel} onClearDone={job ? restart : undefined} emptyAction={again} onOpenChange={onOpenChange} leaveDelay={1e9} labels={engaged ? SPOKEN : QUIET} />
-            {!job && !panel && again}
+            {!job && !panel && <button ref={tileRestart} type="button" className="btn btn-secondary sm" onClick={restart}>Restart</button>}
           </div>
           {job && <div className="wtile-sub">{`${Math.min(STEPS.length, Math.floor(p * STEPS.length) + 1)} of ${STEPS.length} steps`}</div>}
         </>
