@@ -10,6 +10,8 @@
 <script>
 (() => {
   const r = document.documentElement;
+  /* As site/theme.js did: components.css gates the line reveal's hidden start on .js. */
+  r.classList.add('js');
   try {
     const b = localStorage.getItem('verseva-brand');
     const m = localStorage.getItem('verseva-theme');

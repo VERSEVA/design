@@ -1,10 +1,16 @@
 // Chapter scripts: what a ported page's legacy inline script became. Each one is
 // idempotent across StrictMode's mount, cleanup, mount, and does what it did on the legacy page.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
+import fs from 'node:fs';
+import path from 'node:path';
 import { StrictMode } from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { Page as DataViz } from '../src/chapters/pages/data-viz';
 import CODE from '../src/chapters/pages/data-viz.code.json';
+import { Page as Motion } from '../src/chapters/pages/motion';
+import MOTION_CODE from '../src/chapters/pages/motion.code.json';
+import { chapterThemeWipe } from '../src/chapters/themeWipe';
 
 describe('data-viz chapter script', () => {
   it('adds one code toggle per demo, even under StrictMode, and removes them on unmount', () => {
@@ -54,6 +60,84 @@ describe('data-viz chapter script', () => {
       b.innerHTML = html;
       expect(canon(a), html).not.toBe(canon(b));
     }
+  });
+});
+
+describe('motion chapter script', () => {
+  const pristine = () => new DOMParser().parseFromString(renderToStaticMarkup(<Motion />), 'text/html').querySelector('.chap')!;
+
+  it('is idempotent under StrictMode and leaves the markup exactly as rendered on unmount', async () => {
+    const { container, unmount } = render(<StrictMode><Motion /></StrictMode>);
+    const magnet = container.querySelector('[data-magnet]')!;
+    fireEvent.pointerEnter(magnet);
+    fireEvent.pointerMove(magnet, { clientX: 40, clientY: 20 });
+    fireEvent.pointerLeave(magnet);
+    fireEvent.pointerMove(container.querySelector('[data-spot] .spot')!, { clientX: 30, clientY: 30 });
+    fireEvent.click(container.querySelector('[data-replay]')!);
+    fireEvent.click(container.querySelector('#firecurves')!);
+    await new Promise((r) => setTimeout(r, 60));
+    expect(magnet.getAttribute('style')).toContain('transform');
+    expect((container.querySelector('[data-spot] .spot') as HTMLElement).style.getPropertyValue('--mx')).not.toBe('');
+    const comps = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.demo') && c.querySelector('.codewrap'));
+    expect(container.querySelectorAll('.codetoggle').length).toBe(comps.length);
+    expect(container.querySelectorAll('#tickdemo .td').length).toBe(3);
+    expect(window.versevaThemeWipe).toBe(chapterThemeWipe);
+    fireEvent.click(container.querySelector('#growfire')!);
+    fireEvent.click(container.querySelector('#skload')!);
+    fireEvent.click(container.querySelector('#attnfire')!);
+    fireEvent.click(container.querySelector('#tickroll')!);
+    const chap = container.querySelector('.chap')!;
+    unmount();
+    expect(window.versevaThemeWipe).toBeUndefined();
+    expect(canon(chap)).toBe(canon(pristine()));
+  });
+
+  it('gets the .js root class the legacy theme.js set, so the line reveal starts hidden and slides in', () => {
+    const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
+    const head = new DOMParser().parseFromString(html, 'text/html').querySelector('head script:not([src])')!.textContent!;
+    document.documentElement.classList.remove('js');
+    new Function(head)();
+    expect(document.documentElement.classList.contains('js')).toBe(true);
+  });
+
+  it('runs the demos as the legacy page did', () => {
+    const { container } = render(<Motion />);
+    const tick = container.querySelector('#tickdemo')!;
+    const digits = () => [...tick.querySelectorAll<HTMLElement>('.td')].map((c) => c.style.getPropertyValue('--d')).join('');
+    expect([digits(), tick.querySelector('.sr-only')!.textContent]).toEqual(['112', '112']);
+    fireEvent.click(container.querySelector('#tickroll')!);
+    expect([digits(), tick.querySelector('.sr-only')!.textContent]).toEqual(['148', '148']);
+    const grow = container.querySelector('#growfire')!;
+    fireEvent.click(grow);
+    expect([container.querySelector('#growdemo')!.classList.contains('open'), grow.textContent, grow.getAttribute('aria-expanded')]).toEqual([true, 'Close it', 'true']);
+    const sk = container.querySelector<HTMLButtonElement>('#skload')!;
+    fireEvent.click(sk);
+    expect([container.querySelector('#skdemo .mcard b')!.textContent, sk.disabled]).toEqual(['Q-2081 · Northline', true]);
+    const attn = container.querySelector('#attndemo')!;
+    fireEvent.click(container.querySelector('#attnfire')!);
+    expect(attn.classList.contains('attn')).toBe(true);
+  });
+
+  it('hands the wipe demo click to window.versevaThemeWipe, as theme.js did', () => {
+    const { container } = render(<Motion />);
+    const spy = vi.fn();
+    window.versevaThemeWipe = spy;
+    fireEvent.click(container.querySelector('#wipedemo')!, { clientX: 12, clientY: 34 });
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0][0]).toMatchObject({ clientX: 12, clientY: 34 });
+    window.versevaThemeWipe = chapterThemeWipe;
+  });
+
+  it('has one generated sample per specimen, each the same markup, attributes and text as its specimen once the script has drawn it', () => {
+    const { container } = render(<Motion />);
+    const specs = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.codewrap code')).map((c) => c.querySelector('.specimen')!);
+    expect(MOTION_CODE.length).toBe(specs.length);
+    specs.forEach((spec, i) => {
+      const parsed = document.createElement('div');
+      parsed.innerHTML = MOTION_CODE[i];
+      expect(canon(spec), `sample ${i}`).toBe(canon(parsed));
+    });
+    expect(container.querySelector('#numbers .codewrap code')!.textContent).toContain('class="td"');
   });
 });
 
