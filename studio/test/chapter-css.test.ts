@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import chapters from '../src/data/chapters.json';
+import { REDESIGNED } from './redesigned';
 
 const repo = path.resolve(__dirname, '../..');
 const read = (p: string) => fs.readFileSync(path.join(repo, p), 'utf8');
@@ -254,7 +255,9 @@ describe('per-chapter CSS', () => {
     ...rules(css).map((r) => `${r.media}|${r.selectors.map((s) => (scope && s.startsWith(scope) ? s.slice(scope.length) : s)).join(', ')} { ${r.decls.join('; ')} }`),
     ...keyframes(css),
   ];
-  it.each(files.length ? files : ['(none yet)'])('%s declares exactly what its legacy page\'s <style> declares', (f) => {
+  /* A redesigned chapter's CSS lays out its new presentation; only its scope is held (test/redesigned.ts). */
+  const legacyParity = files.filter((f) => !REDESIGNED[f.replace(/\.css$/, '')]);
+  it.each(legacyParity.length ? legacyParity : ['(none yet)'])('%s declares exactly what its legacy page\'s <style> declares', (f) => {
     if (f === '(none yet)') return;
     const slug = f.replace(/\.css$/, '');
     const got = flat(fs.readFileSync(path.join(dir, f), 'utf8'), `[data-chapter="${slug}"] `);

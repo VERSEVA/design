@@ -1,12 +1,30 @@
-// Ported from site/components.html (frozen): same copy, same specimens, same anchors.
-// The legacy inline script runs as the chapter script: scoped to the chapter root,
-// listeners on the abort signal, and every change it makes to the DOM undone on
-// cleanup. The docnav scrollspy is left out with the docnav (the studio sidebar spies).
+// Components: every specimen as a studio tile (1.7.0 redesign), in the /widgets language.
+// The specimens are the frozen site/components.html markup; the tiles around them are new.
+// The legacy inline script runs as the chapter script for the demos (tabs, menus, erase,
+// bulk, accordion nav): scoped to the chapter root, listeners on the abort signal, and
+// every change it makes to the DOM undone on cleanup. Code panels are the tiles' own.
 import type React from 'react';
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
+import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
 import './components.css';
 /* Built by studio/scripts/chapter-code.mjs from the frozen page: the exact code samples its script showed. */
 import CODE from './components.code.json';
+
+/* The sections with a specimen, in page order: CODE[i] is the sample of SAMPLED[i]. */
+export const SAMPLED = ['spacing', 'button', 'field', 'switch', 'permission-picking', 'sel-two-line', 'card', 'glass', 'badge', 'toast', 'modal', 'erase', 'table', 'table-pin', 'bulk', 'stat', 'chart', 'seg', 'fchip', 'search', 'rows', 'kv', 'tline', 'skeleton', 'select', 'tabs', 'menu', 'rowmenu', 'tooltip', 'crumbsdoc', 'pagerdoc', 'progressdoc', 'calloutdoc', 'emptydoc', 'accdoc', 'topnav', 'sidenav', 'sheet', 'navshell', 'accordion-nav', 'shell', 'shell-rail', 'switcher', 'capsule', 'topbar', 'notifications', 'whatsnew', 'panel-states', 'drawer-states'];
+const sample = (id: string) => CODE[SAMPLED.indexOf(id)];
+
+export const INSTALL = "<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/tokens.css\">\n<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/components.css\">\n\n<!-- consumer surfaces boot light (law 9): -->\n<html data-theme=\"light\">\n\n<!-- enforce before you ship: -->\nnpx verseva-gate --tokens node_modules/@verseva/design/tokens.css src\n\n<!-- React, source-distribution (the shadcn model): components land in\n     YOUR project as source you own -->\nnpx verseva init\nnpx verseva add button field toast console-nav\nnpx verseva block add quote-tool";
+
+/* One header icon per category. */
+const ICON = {
+  setup: tileIcon(<><path d="m8 8-4 4 4 4" /><path d="m16 8 4 4-4 4" /></>),
+  control: tileIcon(<><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></>),
+  surface: tileIcon(<><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M4 10h16" /></>),
+  data: tileIcon(<><path d="M4 19h16" /><path d="M7 16v-5M12 16V7M17 16v-8" /></>),
+  nav: tileIcon(<><path d="M4 6h16M4 12h10M4 18h6" /></>),
+  console: tileIcon(<><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M9 4v16" /></>),
+};
 
 /* Every attribute of every element, and the live state of every input, as rendered;
    put back on cleanup so a remount (route change, StrictMode) starts from the same DOM. */
@@ -31,45 +49,7 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
     el.addEventListener(type, fn as EventListener, { signal });
   /* Children the script replaces (inline menu values, the bulk count) come back on cleanup. */
   const keep = (el: Element) => { const kids = [...el.childNodes]; onCleanup(() => el.replaceChildren(...kids)); };
-  const timers = new Set<ReturnType<typeof setTimeout>>();
-  onCleanup(() => timers.forEach(clearTimeout));
   snapshot(root, onCleanup);
-  const added: Element[] = [];
-  onCleanup(() => added.forEach((el) => el.remove()));
-
-  root.querySelectorAll('.comp').forEach((comp) => {
-    const demo = comp.querySelector('.demo');
-    const cw = comp.querySelector<HTMLElement>('.codewrap');
-    if (!demo || !cw) return;
-    cw.hidden = true;
-    const bar = document.createElement('div');
-    bar.className = 'codetoggle';
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn btn-ghost sm';
-    btn.textContent = 'Show code';
-    btn.setAttribute('aria-expanded', 'false');
-    on(btn, 'click', () => {
-      const show = cw.hidden;
-      cw.hidden = !show;
-      bar.classList.toggle('opened', show);
-      btn.textContent = show ? 'Hide code' : 'Show code';
-      btn.setAttribute('aria-expanded', String(show));
-    });
-    bar.append(btn);
-    demo.after(bar);
-    bar.after(cw);
-    added.push(bar);
-  });
-
-  /* Each sample is the text the legacy page built from its specimen (see components.code.json). */
-  let n = 0;
-  root.querySelectorAll('.comp').forEach((comp) => {
-    const code = comp.querySelector('.codewrap code');
-    if (!code || !comp.querySelector('.specimen')) return;
-    const text = CODE[n++];
-    if (!code.textContent!.trim()) { code.textContent = text; onCleanup(() => { code.textContent = ''; }); }
-  });
 
   root.querySelectorAll('.tabbar').forEach((bar) => {
     on(bar, 'click', (e) => {
@@ -148,54 +128,27 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
       nav.hidden = !open;
     });
   });
-
-  root.querySelectorAll<HTMLButtonElement>('.copybtn').forEach((btn) => {
-    let t: ReturnType<typeof setTimeout> | undefined;
-    const label = btn.textContent; onCleanup(() => { btn.textContent = label; });
-    on(btn, 'click', async () => {
-      const code = btn.parentElement!.querySelector('code')!;
-      try {
-        await navigator.clipboard.writeText(code.textContent!);
-        btn.textContent = 'Copied';
-      } catch {
-        btn.textContent = 'Select + copy';
-      }
-      if (signal.aborted) return;
-      if (t) { clearTimeout(t); timers.delete(t); }
-      t = setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
-      timers.add(t);
-    });
-  });
 };
-
-/* sha256 of site/components.html; the parity test fails if the frozen page changes. */
-export const FROZEN = '3f30fa54d95e237ca98e5b20c444fadf4b229f8679f62f74b7d6d40e4eea4919';
 
 export function Page() {
   return (
     <NativeChapter slug="components" script={script}>
       <section className="hero">
         <h1>Components</h1>
-        {/* Deviation widgets-link (test/chapter-ports DEVIATIONS): labels only. */}
+        {/* Labels only (ruling 2026-11-04). */}
         <div className="chips">
           <a className="btn btn-secondary sm" href="/widgets">Widgets</a>
         </div>
       </section>
       <div className="docgrid">
-        <div className="doccol">
-          <section className="comp" id="install">
-            <h2>Install</h2>
+        <SpecimenGrid className="doccol">
+          <SpecimenTile id="install" name="Install" icon={ICON.setup} size="m" code={INSTALL}>
             <div className="demo">
               <span className="badge ok">npm i @verseva/design</span>
               <span className="badge neutral">or vendor the two css files</span>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code id="install-code">{"<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/tokens.css\">\n<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/components.css\">\n\n<!-- consumer surfaces boot light (law 9): -->\n<html data-theme=\"light\">\n\n<!-- enforce before you ship: -->\nnpx verseva-gate --tokens node_modules/@verseva/design/tokens.css src\n\n<!-- React, source-distribution (the shadcn model): components land in\n     YOUR project as source you own -->\nnpx verseva init\nnpx verseva add button field toast console-nav\nnpx verseva block add quote-tool"}</code></pre>
-            </div>
-          </section>
-          <section className="comp" id="spacing">
-            <h2>Spacing utilities</h2>
+          </SpecimenTile>
+          <SpecimenTile id="spacing" name="Spacing utilities" icon={ICON.setup} size="m" code={sample('spacing')}>
             <div className="demo">
               <div className="specimen">
                 <div>
@@ -215,13 +168,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="button">
-            <h2>Button</h2>
+          </SpecimenTile>
+          <SpecimenTile id="button" name="Button" icon={ICON.control} size="m" meta="8 variants" code={sample('button')}>
             <div className="demo">
               <div className="specimen">
                 <button className="btn btn-primary" type="button">Primary</button>
@@ -241,13 +189,8 @@ export function Page() {
                 <button className="btn btn-secondary" type="button"><span className="spinner"></span>Working</button>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="field">
-            <h2>Field</h2>
+          </SpecimenTile>
+          <SpecimenTile id="field" name="Field" icon={ICON.control} size="m" meta="2 states" code={sample('field')}>
             <div className="demo">
               <div className="specimen">
                 <div className="field">
@@ -264,13 +207,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="switch">
-            <h2>Checkbox + switch</h2>
+          </SpecimenTile>
+          <SpecimenTile id="switch" name="Checkbox + switch" icon={ICON.control} size="m" meta="2 variants" code={sample('switch')}>
             <div className="demo">
               <div className="specimen">
                 <label className="sel"><input type="checkbox" defaultChecked />Include freight</label>
@@ -278,13 +216,8 @@ export function Page() {
                 <label className="sel switch-wrap"><input className="sw" type="checkbox" defaultChecked /><span className="switch"></span>Provenance on</label>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="permission-picking">
-            <h2>Permission picking</h2>
+          </SpecimenTile>
+          <SpecimenTile id="permission-picking" name="Permission picking" icon={ICON.control} size="m" meta="2 states" code={sample('permission-picking')}>
             <div className="demo">
               <div className="specimen" style={{ maxWidth: "620px" }}>
                 <div className="searchblock">
@@ -319,13 +252,8 @@ export function Page() {
                 </label>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="sel-two-line">
-            <h2>Two-line choice</h2>
+          </SpecimenTile>
+          <SpecimenTile id="sel-two-line" name="Two-line choice" icon={ICON.control} size="m" meta="3 variants" code={sample('sel-two-line')}>
             <div className="demo">
               <div className="specimen">
                 <fieldset>
@@ -357,13 +285,8 @@ export function Page() {
                 </fieldset>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="card">
-            <h2>Card</h2>
+          </SpecimenTile>
+          <SpecimenTile id="card" name="Card" icon={ICON.surface} size="m" code={sample('card')}>
             <div className="demo">
               <div className="specimen">
                 <div className="card">
@@ -378,13 +301,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="glass">
-            <h2>Glass panel</h2>
+          </SpecimenTile>
+          <SpecimenTile id="glass" name="Glass panel" icon={ICON.surface} size="xl" meta="3 variants" code={sample('glass')}>
             <div className="demo">
               <div className="specimen" style={{ flex: "1 1 100%" }}>
                 <section className="glass">
@@ -458,13 +376,8 @@ export function Page() {
                 </section>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="badge">
-            <h2>Badge</h2>
+          </SpecimenTile>
+          <SpecimenTile id="badge" name="Badge" icon={ICON.surface} size="s" meta="4 variants" code={sample('badge')}>
             <div className="demo">
               <div className="specimen">
                 <span className="badge ok">Verified</span>
@@ -476,26 +389,16 @@ export function Page() {
                 <span className="badge neutral">Draft</span>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="toast">
-            <h2>Toast</h2>
+          </SpecimenTile>
+          <SpecimenTile id="toast" name="Toast" icon={ICON.surface} size="s" meta="2 variants" code={sample('toast')}>
             <div className="demo">
               <div className="specimen">
                 <div className="toast ok"><span className="dot"></span>Quote issued to Northline Foods.<button type="button">×</button></div>
                 <div className="toast err"><span className="dot"></span>Blocked: rush ruling still open.<button type="button">×</button></div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="modal">
-            <h2>Modal</h2>
+          </SpecimenTile>
+          <SpecimenTile id="modal" name="Modal" icon={ICON.surface} size="m" code={sample('modal')}>
             <div className="demo">
               <div className="specimen">
                 <div className="modal">
@@ -510,13 +413,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="erase">
-            <h2>Confirm to erase</h2>
+          </SpecimenTile>
+          <SpecimenTile id="erase" name="Confirm to erase" icon={ICON.surface} size="xl" meta="3 states" code={sample('erase')}>
             <div className="demo">
               <div className="specimen">
                 <div className="modal erase" role="alertdialog" aria-labelledby="erase-t" aria-describedby="erase-d">
@@ -570,15 +468,10 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="table">
-            <h2>Table</h2>
+          </SpecimenTile>
+          <SpecimenTile id="table" name="Table" icon={ICON.data} size="xl" code={sample('table')}>
             <div className="demo">
-              {/* Deviation table-tscroll: the 541px specimen scrolls in place at 375px, not the page. */}
+              {/* The 541px specimen scrolls in place at 375px, not the page. */}
               <div className="tscroll">
                 <div className="specimen">
                   <table className="table" aria-label="Identity cell specimen">
@@ -640,15 +533,10 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="table-pin">
-            <h2>Pinned table header</h2>
+          </SpecimenTile>
+          <SpecimenTile id="table-pin" name="Pinned table header" icon={ICON.data} size="xl" code={sample('table-pin')}>
             <div className="demo">
-              {/* Deviation table-pin-min-width: the .pin.box scrolls the table at 375px, not the page. */}
+              {/* min-width: 0 lets the .pin.box scroll the table at 375px, not the page. */}
               <div className="specimen" style={{ flex: "1 1 100%", minWidth: 0 }}>
                 <div className="pin box" style={{ maxHeight: "240px" }}>
                   <table className="table">
@@ -730,15 +618,10 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="bulk">
-            <h2>Bulk selection</h2>
+          </SpecimenTile>
+          <SpecimenTile id="bulk" name="Bulk selection" icon={ICON.data} size="xl" code={sample('bulk')}>
             <div className="demo">
-              {/* Deviation bulk-tscroll: the 320px table scrolls in place at phone widths, not the page. */}
+              {/* The 320px table scrolls in place at phone widths, not the page. */}
               <div className="tscroll" style={{ flex: "1 1 100%" }}>
                 <div className="specimen" style={{ flex: "1 1 100%" }}>
                   <div className="glass bulk-demo">
@@ -841,13 +724,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="stat">
-            <h2>Stat tile</h2>
+          </SpecimenTile>
+          <SpecimenTile id="stat" name="Stat tile" icon={ICON.data} size="xl" meta="3 variants" code={sample('stat')}>
             <div className="demo">
               <div className="specimen">
                 <div className="statrow">
@@ -866,13 +744,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="chart">
-            <h2>Chart card</h2>
+          </SpecimenTile>
+          <SpecimenTile id="chart" name="Chart card" icon={ICON.data} size="l" code={sample('chart')}>
             <div className="demo">
               <div className="specimen">
                 <div className="chartcard">
@@ -900,13 +773,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="seg">
-            <h2>Segmented control</h2>
+          </SpecimenTile>
+          <SpecimenTile id="seg" name="Segmented control" icon={ICON.control} size="m" code={sample('seg')}>
             <div className="demo">
               <div className="specimen">
                 <div className="seg">
@@ -916,13 +784,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="fchip">
-            <h2>Filter chips</h2>
+          </SpecimenTile>
+          <SpecimenTile id="fchip" name="Filter chips" icon={ICON.control} size="m" meta="3 chips" code={sample('fchip')}>
             <div className="demo">
               <div className="specimen">
                 <div className="chiprow">
@@ -934,13 +797,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="search">
-            <h2>Search</h2>
+          </SpecimenTile>
+          <SpecimenTile id="search" name="Search" icon={ICON.control} size="m" code={sample('search')}>
             <div className="demo">
               <div className="specimen">
                 <div className="searchbox">
@@ -949,13 +807,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="rows">
-            <h2>List rows + identity</h2>
+          </SpecimenTile>
+          <SpecimenTile id="rows" name="List rows + identity" icon={ICON.data} size="m" meta="2 variants" code={sample('rows')}>
             <div className="demo">
               <div className="specimen">
                 <div className="lrows">
@@ -983,13 +836,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="kv">
-            <h2>Read-only field list</h2>
+          </SpecimenTile>
+          <SpecimenTile id="kv" name="Read-only field list" icon={ICON.data} size="xl" meta="2 variants" code={sample('kv')}>
             <div className="demo">
               <div className="specimen">
                 <section className="glass">
@@ -1040,13 +888,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="tline">
-            <h2>Timeline</h2>
+          </SpecimenTile>
+          <SpecimenTile id="tline" name="Timeline" icon={ICON.data} size="xl" code={sample('tline')}>
             <div className="demo">
               <div className="specimen" style={{ flex: "1 1 100%" }}>
                 <section className="glass">
@@ -1108,13 +951,8 @@ export function Page() {
                 </section>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="skeleton">
-            <h2>Skeleton</h2>
+          </SpecimenTile>
+          <SpecimenTile id="skeleton" name="Skeleton" icon={ICON.surface} size="m" code={sample('skeleton')}>
             <div className="demo">
               <div className="specimen">
                 <div className="lrows" aria-hidden="true">
@@ -1128,13 +966,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="select">
-            <h2>Select + textarea</h2>
+          </SpecimenTile>
+          <SpecimenTile id="select" name="Select + textarea" icon={ICON.control} size="m" meta="2 variants" code={sample('select')}>
             <div className="demo">
               <div className="specimen">
                 <div className="field">
@@ -1153,13 +986,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="tabs">
-            <h2>Tabs</h2>
+          </SpecimenTile>
+          <SpecimenTile id="tabs" name="Tabs" icon={ICON.control} size="m" code={sample('tabs')}>
             <div className="demo">
               <div className="specimen">
                 <div className="tabbar" role="tablist">
@@ -1171,13 +999,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="menu">
-            <h2>Menu</h2>
+          </SpecimenTile>
+          <SpecimenTile id="menu" name="Menu" icon={ICON.control} size="m" code={sample('menu')}>
             <div className="demo">
               <div className="specimen">
                 <div className="menu">
@@ -1192,13 +1015,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="rowmenu">
-            <h2>Row menu</h2>
+          </SpecimenTile>
+          <SpecimenTile id="rowmenu" name="Row menu" icon={ICON.control} size="xl" meta="2 variants" code={sample('rowmenu')}>
             <div className="demo rowmenu-demo">
               <div className="specimen">
                 <div className="menu inline">
@@ -1256,13 +1074,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="tooltip">
-            <h2>Tooltip</h2>
+          </SpecimenTile>
+          <SpecimenTile id="tooltip" name="Tooltip" icon={ICON.control} size="s" code={sample('tooltip')}>
             <div className="demo">
               <div className="specimen">
                 <span className="tip">
@@ -1271,13 +1084,8 @@ export function Page() {
                 </span>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="crumbsdoc">
-            <h2>Breadcrumbs</h2>
+          </SpecimenTile>
+          <SpecimenTile id="crumbsdoc" name="Breadcrumbs" icon={ICON.nav} size="s" code={sample('crumbsdoc')}>
             <div className="demo">
               <div className="specimen">
                 <nav className="crumbs" aria-label="Breadcrumb">
@@ -1289,13 +1097,8 @@ export function Page() {
                 </nav>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="pagerdoc">
-            <h2>Pagination</h2>
+          </SpecimenTile>
+          <SpecimenTile id="pagerdoc" name="Pagination" icon={ICON.nav} size="m" code={sample('pagerdoc')}>
             <div className="demo">
               <div className="specimen">
                 <nav className="pager" aria-label="Pagination">
@@ -1311,13 +1114,8 @@ export function Page() {
                 </nav>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="progressdoc">
-            <h2>Progress</h2>
+          </SpecimenTile>
+          <SpecimenTile id="progressdoc" name="Progress" icon={ICON.data} size="m" code={sample('progressdoc')}>
             <div className="demo">
               <div className="specimen">
                 <div className="field">
@@ -1328,26 +1126,16 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="calloutdoc">
-            <h2>Callout</h2>
+          </SpecimenTile>
+          <SpecimenTile id="calloutdoc" name="Callout" icon={ICON.surface} size="m" meta="2 variants" code={sample('calloutdoc')}>
             <div className="demo">
               <div className="specimen">
                 <div className="callout"><b>Heads up.</b>{"\u00a0The rate card moved to v18; open quotes keep their issued rates."}</div>
                 <div className="callout warn"><b>Rush window.</b>{"\u00a0This date is inside the 10-day floor and needs a ruling."}</div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="emptydoc">
-            <h2>Empty state</h2>
+          </SpecimenTile>
+          <SpecimenTile id="emptydoc" name="Empty state" icon={ICON.surface} size="m" code={sample('emptydoc')}>
             <div className="demo">
               <div className="specimen">
                 <div className="empty">
@@ -1359,13 +1147,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="accdoc">
-            <h2>Content accordion</h2>
+          </SpecimenTile>
+          <SpecimenTile id="accdoc" name="Content accordion" icon={ICON.surface} size="m" code={sample('accdoc')}>
             <div className="demo">
               <div className="specimen">
                 <div className="acc">
@@ -1380,13 +1163,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="topnav">
-            <h2>Top navigation</h2>
+          </SpecimenTile>
+          <SpecimenTile id="topnav" name="Top navigation" icon={ICON.nav} size="xl" code={sample('topnav')}>
             <div className="demo">
               <div className="specimen">
                 <div className="topnav">
@@ -1397,13 +1175,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="sidenav">
-            <h2>Console navigation · flat</h2>
+          </SpecimenTile>
+          <SpecimenTile id="sidenav" name="Console navigation · flat" icon={ICON.nav} size="m" code={sample('sidenav')}>
             <div className="demo">
               <div className="specimen">
                 <button type="button" className="switcher">
@@ -1433,13 +1206,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="sheet">
-            <h2>Sheet</h2>
+          </SpecimenTile>
+          <SpecimenTile id="sheet" name="Sheet" icon={ICON.surface} size="m" code={sample('sheet')}>
             <div className="demo">
               <div className="specimen">
                 <div className="sheet">
@@ -1455,13 +1223,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="navshell">
-            <h2>Navshell</h2>
+          </SpecimenTile>
+          <SpecimenTile id="navshell" name="Navshell" icon={ICON.nav} size="m" code={sample('navshell')}>
             <div className="demo">
               <div className="phoneframe">
                 <div className="specimen">
@@ -1497,13 +1260,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="accordion-nav">
-            <h2>Console navigation · accordion</h2>
+          </SpecimenTile>
+          <SpecimenTile id="accordion-nav" name="Console navigation · accordion" icon={ICON.nav} size="m" code={sample('accordion-nav')}>
             <div className="demo">
               <div className="specimen">
                 <div>
@@ -1535,13 +1293,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="shell">
-            <h2>Console shell</h2>
+          </SpecimenTile>
+          <SpecimenTile id="shell" name="Console shell" icon={ICON.console} size="xl" code={sample('shell')}>
             <div className="demo">
               <div className="specimen">
                 <div className="shellframe">
@@ -1702,13 +1455,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="shell-rail">
-            <h2>Console shell · rail</h2>
+          </SpecimenTile>
+          <SpecimenTile id="shell-rail" name="Console shell · rail" icon={ICON.console} size="xl" code={sample('shell-rail')}>
             <div className="demo">
               <div className="specimen">
                 <div className="shellframe">
@@ -1869,13 +1617,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="switcher">
-            <h2>Org switcher</h2>
+          </SpecimenTile>
+          <SpecimenTile id="switcher" name="Org switcher" icon={ICON.console} size="l" code={sample('switcher')}>
             <div className="demo">
               <div className="specimen">
                 <div className="shellframe side">
@@ -1947,13 +1690,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="capsule">
-            <h2>Account capsule</h2>
+          </SpecimenTile>
+          <SpecimenTile id="capsule" name="Account capsule" icon={ICON.console} size="l" code={sample('capsule')}>
             <div className="demo">
               <div className="specimen">
                 <div className="shellframe side">
@@ -2041,13 +1779,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="topbar">
-            <h2>Top bar</h2>
+          </SpecimenTile>
+          <SpecimenTile id="topbar" name="Top bar" icon={ICON.console} size="xl" code={sample('topbar')}>
             <div className="demo">
               <div className="specimen">
                 <div className="shellframe short">
@@ -2146,13 +1879,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="notifications">
-            <h2>Notifications</h2>
+          </SpecimenTile>
+          <SpecimenTile id="notifications" name="Notifications" icon={ICON.console} size="xl" code={sample('notifications')}>
             <div className="demo">
               <div className="specimen">
                 <div className="shellframe short tall">
@@ -2251,13 +1979,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="whatsnew">
-            <h2>What's new</h2>
+          </SpecimenTile>
+          <SpecimenTile id="whatsnew" name="What's new" icon={ICON.console} size="xl" code={sample('whatsnew')}>
             <div className="demo">
               <div className="specimen">
                 <div inert className="shellframe">
@@ -2348,13 +2071,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="panel-states">
-            <h2>Notification states</h2>
+          </SpecimenTile>
+          <SpecimenTile id="panel-states" name="Notification states" icon={ICON.console} size="xl" meta="3 states" code={sample('panel-states')}>
             <div className="demo">
               <div className="specimen">
                 <div className="shellframe states">
@@ -2428,13 +2146,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-          <section className="comp" id="drawer-states">
-            <h2>What's new states</h2>
+          </SpecimenTile>
+          <SpecimenTile id="drawer-states" name="What's new states" icon={ICON.console} size="xl" meta="3 states" code={sample('drawer-states')}>
             <div className="demo">
               <div className="specimen">
                 <div inert className="shellframe states">
@@ -2505,12 +2218,8 @@ export function Page() {
                 </div>
               </div>
             </div>
-            <div className="codewrap">
-              <button className="btn btn-secondary sm copybtn" type="button">Copy</button>
-              <pre><code></code></pre>
-            </div>
-          </section>
-        </div>
+          </SpecimenTile>
+        </SpecimenGrid>
       </div>
       <footer className="site">
         <span>VERSEVA · open source · MIT</span>

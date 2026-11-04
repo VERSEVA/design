@@ -1,6 +1,7 @@
 // A ported chapter must be the frozen legacy page, element for element: same
 // tags, attributes, copy and specimens, with legacy links mapped to studio routes
 // and an id on every sidebar anchor. Editing a frozen site/*.html fails this too.
+// A chapter in REDESIGNED (test/redesigned.ts) keeps every test here but the parity ones.
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, act, fireEvent } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -12,6 +13,7 @@ import { App } from '../src/App';
 import { navigate } from '../src/shell/router';
 import { NATIVE_CHAPTERS, NATIVE_FROZEN } from '../src/shell/routes';
 import chapters from '../src/data/chapters.json';
+import { REDESIGNED } from './redesigned';
 
 const site = path.resolve(__dirname, '../../site');
 const ORIGIN = 'https://design.verseva.com';
@@ -71,46 +73,7 @@ export const STRIPPED: ReadonlyArray<{ selector: string; why: string }> = [
 /* What a port changes on purpose, per chapter, and why: each is applied to the legacy
    body before the comparison, so the port may differ by exactly these and nothing else.
    The frozen site/*.html stays as it is. */
-export const DEVIATIONS: Readonly<Record<string, ReadonlyArray<{ id: string; why: string; apply: (shell: Element) => void }>>> = {
-  components: [
-    {
-      id: 'widgets-link',
-      why: 'a labels-only link to /widgets in the hero (ruling 2026-11-04)',
-      apply: (shell) => shell.querySelector('.hero')!.insertAdjacentHTML('beforeend', '<div class="chips"><a class="btn btn-secondary sm" href="/widgets">Widgets</a></div>'),
-    },
-    {
-      id: 'table-tscroll',
-      why: 'the 541px #table specimen scrolled the page sideways at 375px; it sits in the .tscroll scroller (ruling 2026-11-04)',
-      apply: (shell) => {
-        const spec = shell.querySelector('#table .demo > .specimen')!;
-        const wrap = spec.ownerDocument.createElement('div');
-        wrap.className = 'tscroll';
-        spec.replaceWith(wrap);
-        wrap.append(spec);
-      },
-    },
-    {
-      id: 'bulk-tscroll',
-      why: 'the #bulk table is 320px wide at phone widths, past its 275px demo box, and scrolled the page sideways below 372px; it sits in the .tscroll scroller (1.6.1 production verification)',
-      apply: (shell) => {
-        const spec = shell.querySelector('#bulk .demo > .specimen')!;
-        const wrap = spec.ownerDocument.createElement('div');
-        wrap.className = 'tscroll';
-        wrap.setAttribute('style', 'flex:1 1 100%');
-        spec.replaceWith(wrap);
-        wrap.append(spec);
-      },
-    },
-    {
-      id: 'table-pin-min-width',
-      why: 'the #table-pin specimen (a flex item) took its table\'s width and scrolled the page sideways at 375px; min-width: 0 lets the .pin.box scroll it instead (ruling 2026-11-04)',
-      apply: (shell) => {
-        const spec = shell.querySelector('#table-pin .demo > .specimen')!;
-        spec.setAttribute('style', `${spec.getAttribute('style')};min-width:0`);
-      },
-    },
-  ],
-};
+export const DEVIATIONS: Readonly<Record<string, ReadonlyArray<{ id: string; why: string; apply: (shell: Element) => void }>>> = {};
 
 function legacyBody(file: string, slug?: string): Element {
   const doc = new DOMParser().parseFromString(fs.readFileSync(path.join(site, file), 'utf8'), 'text/html');
@@ -134,6 +97,15 @@ describe('ported chapters', () => {
     for (const slug of Object.keys(DEVIATIONS)) expect(NATIVE_CHAPTERS[slug], slug).toBeDefined();
   });
 
+  it('retires parity only for ported chapters, each with a written reason, and none with a deviation or a FROZEN pin left', () => {
+    for (const [slug, why] of Object.entries(REDESIGNED)) {
+      expect(NATIVE_CHAPTERS[slug], slug).toBeDefined();
+      expect(why.length, slug).toBeGreaterThan(20);
+      expect(DEVIATIONS[slug], slug).toBeUndefined();
+      expect(NATIVE_FROZEN[slug], `pages/${slug}.tsx must not export FROZEN once redesigned`).toBeUndefined();
+    }
+  });
+
   it('opens /widgets from the Components hero without leaving the shell', async () => {
     const { container } = render(<App />);
     await act(async () => { navigate('/components'); });
@@ -146,8 +118,10 @@ describe('ported chapters', () => {
 
   for (const c of ported) {
     describe(c.slug, () => {
+      /* Retired, not skipped: a redesigned chapter registers no parity test at all. */
+      const parity = REDESIGNED[c.slug] ? ((..._: unknown[]) => {}) : it;
       /* The markup before any chapter script runs, as the legacy HTML is before its own. */
-      it('renders the frozen legacy body element for element', () => {
+      parity('renders the frozen legacy body element for element', () => {
         const Page = NATIVE_CHAPTERS[c.slug];
         const chap = new DOMParser().parseFromString(renderToStaticMarkup(<Page />), 'text/html').querySelector('.chap')!;
         const legacy = legacyBody(c.file, c.slug);
@@ -164,7 +138,7 @@ describe('ported chapters', () => {
         expect(before.innerHTML).not.toBe(html);
       });
 
-      it('pins the frozen site/' + c.file + ' by hash, so the legacy copy cannot change under the port', () => {
+      parity('pins the frozen site/' + c.file + ' by hash, so the legacy copy cannot change under the port', () => {
         expect(NATIVE_FROZEN[c.slug], 'pages/' + c.slug + '.tsx must export FROZEN').toMatch(/^[0-9a-f]{64}$/);
         expect(sha256(c.file)).toBe(NATIVE_FROZEN[c.slug]);
       });

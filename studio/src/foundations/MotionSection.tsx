@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../../../react/button';
 import { usePauseMotion } from '../theme';
-import { FAMILY_LABEL, Section, Specimen, tokensOf, useLive } from './Specimen';
+import { SpecimenTile } from '../tiles/SpecimenTile';
+import { FAMILY_ICON, FAMILY_LABEL, Section, Specimen, tokenCss, tokensOf, useLive } from './Specimen';
 
 /** cubic-bezier(x1, y1, x2, y2) as an SVG path in a 100-unit box, y up. */
 export function easePath(value: string): string | null {
@@ -31,18 +32,16 @@ export function MotionSection() {
 
   return (
     <Section id="motion" title="Motion" count={all.length}>
-      <div className="fd-group">
-        <h3 className="fd-sub">Duration <span className="cnt mono muted">{durs.length}</span></h3>
-        <div className="grid">
+      <SpecimenTile name="Duration" level={3} icon={FAMILY_ICON.motion} meta={`${durs.length} tokens`} size="xl" code={tokenCss(durs)}>
+        <div className="fd-cells">
           {durs.map((t) => <Specimen key={t.name} t={t} value={live(t.name)} />)}
         </div>
-      </div>
-      <div className="fd-group">
-        <div className="fd-subrow">
-          <h3 className="fd-sub">{FAMILY_LABEL.motion} curves <span className="cnt mono muted">{eases.length}</span></h3>
-          <Button variant="secondary" size="sm" onClick={replay}>Replay</Button>
-        </div>
-        <div className="grid">
+      </SpecimenTile>
+      <SpecimenTile
+        name={`${FAMILY_LABEL.motion} curves`} level={3} icon={FAMILY_ICON.motion} meta={`${eases.length} tokens`} size="xl" code={tokenCss(eases)}
+        actions={<Button variant="secondary" size="sm" onClick={replay}>Replay</Button>}
+      >
+        <div className="fd-cells">
           {eases.map((t) => {
             const value = live(t.name);
             const d = easePath(value);
@@ -62,7 +61,7 @@ export function MotionSection() {
             );
           })}
         </div>
-      </div>
+      </SpecimenTile>
     </Section>
   );
 }
