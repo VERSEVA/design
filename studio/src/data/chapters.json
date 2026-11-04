@@ -25,6 +25,14 @@
         "label": "Checkbox + switch"
       },
       {
+        "id": "permission-picking",
+        "label": "Permission picking"
+      },
+      {
+        "id": "sel-two-line",
+        "label": "Two-line choice"
+      },
+      {
         "id": "card",
         "label": "Card"
       },

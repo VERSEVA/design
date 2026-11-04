@@ -58,7 +58,7 @@ const section = () => {
 const SECTION = section();
 const RULES = parseRules(SECTION);
 const OUTSIDE = parseRules(RAW.replace(SECTION, ''));
-/* Reduced motion lives in the one shared block at the end of components.css (console-shell test). */
+/* Reduced motion: the section carries its own block (1.6.0 sections are self-contained). */
 const rmBody = (sel) => parseRules(RAW).filter((r) => r.media === `@media${RM}` && r.selectors.includes(sel)).map((r) => r.body).join(';');
 const SELECTORS = new Set(RULES.flatMap((r) => r.selectors));
 const bodyOf = (sel, media = null) => RULES.filter((r) => r.media === media && r.selectors.includes(sel)).map((r) => r.body).join(';');

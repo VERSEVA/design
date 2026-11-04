@@ -2,6 +2,18 @@
 
 ## 1.6.0 · unreleased
 
+### Added
+
+- **Live activity capsule `.lact` and panel `.lact-panel`.** A glass capsule for long jobs in the top bar's
+  `.tbar-end`, before the bell: the running job closest to done with its ring and percent, `+n` running. Ring and
+  bar are `--text-1` while running, `--success` done, `--danger` on error (no accent). The panel lists every job
+  with its step, bar, Cancel, and Retry on error; a bottom sheet under 900px. Done jobs leave after 6 seconds, never
+  while the panel is open, and hand off to a notification; errors stay. Polite announcements at start, done, cancel
+  and 25% steps; failures as alerts. React: `npx verseva add live-activity` (`activity-state` holds the rules).
+  New global classes: `.lact`, `.lact-wrap`, `.lact-ring`, `.lact-track`, `.lact-arc`, `.lact-ti`, `.lact-tx`,
+  `.lact-name`, `.lact-pc`, `.lact-more`, `.lact-panel`, `.lact-list`, `.lact-item`, `.lact-top`, `.lact-bar`,
+  `.lact-step`, `.lact-err`, `.lact-acts`. New keyframes: `dc-lact-turn`, `dc-lact-slide`.
+
 ### Added: widgets
 
 - **Widget grid `.wgrid` and tile `.wtile[data-size]`.** 4 columns, 2 under 1100px, 1 under 560px; S 1x1, M 2x1,

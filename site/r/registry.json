@@ -175,6 +175,24 @@
       "description": "Console shell layout: glass sidebar, 72px rail on the [ key, rail labels on hover and focus"
     },
     {
+      "name": "activity-state",
+      "file": "react/activity-state.ts",
+      "kind": "util",
+      "deps": [],
+      "description": "Live activity logic: lead job, +n running, done-leave timing, 25% announcements"
+    },
+    {
+      "name": "live-activity",
+      "file": "react/live-activity.tsx",
+      "kind": "component",
+      "deps": [
+        "activity-state",
+        "console-state",
+        "cx"
+      ],
+      "description": "Live activity capsule for the top bar: ring and percent of the job closest to done, +n, panel with steps, Cancel and Retry"
+    },
+    {
       "name": "tabs",
       "file": "react/tabs.tsx",
       "kind": "component",

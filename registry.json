@@ -21,6 +21,8 @@
     { "name": "console-topbar", "file": "react/console-topbar.tsx", "kind": "component", "deps": ["menu", "console-state", "cx"], "description": "Console top bar: breadcrumb, search with the K chord, notifications with a count, guides menu" },
     { "name": "whats-new", "file": "react/whats-new.tsx", "kind": "component", "deps": ["console-state", "cx"], "description": "What's new drawer and platform stamp: releases newest first, New, Improved, Fixed; unread until opened" },
     { "name": "console-shell", "file": "react/console-shell.tsx", "kind": "component", "deps": ["console-state", "cx"], "description": "Console shell layout: glass sidebar, 72px rail on the [ key, rail labels on hover and focus" },
+    { "name": "activity-state", "file": "react/activity-state.ts", "kind": "util", "deps": [], "description": "Live activity logic: lead job, +n running, done-leave timing, 25% announcements" },
+    { "name": "live-activity", "file": "react/live-activity.tsx", "kind": "component", "deps": ["activity-state", "console-state", "cx"], "description": "Live activity capsule for the top bar: ring and percent of the job closest to done, +n, panel with steps, Cancel and Retry" },
     { "name": "tabs", "file": "react/tabs.tsx", "kind": "component", "deps": ["cx"], "description": "In-page section tabs; accent underline, never a hairline" },
     { "name": "menu", "file": "react/menu.tsx", "kind": "component", "deps": ["cx"], "description": "Dropdown menu; checkable items and custom triggers; closes on select, Escape, outside click" },
     { "name": "accordion", "file": "react/accordion.tsx", "kind": "component", "deps": ["cx"], "description": "Content accordion on native details/summary" },

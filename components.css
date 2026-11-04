@@ -841,6 +841,11 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 @media (max-width:1099.98px){.wgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 2}}
 @media (max-width:559.98px){.wgrid{grid-template-columns:minmax(0,1fr);gap:var(--s-3)}.wtile[data-size]{grid-column:span 1;grid-row:span 1}.wtile-body{padding:var(--s-3)}}
+@media (prefers-reduced-motion:reduce){
+  .wtile,.wgrid-add,.wtile-sizes button,.wtile-move button,.wgal-sizes button,.wtile-x::before,.wtile-handle::before,.wstack-dot::before,.wstack-page{transition:none}
+  .wgrid[data-editing] .wtile,.wgrid[data-editing] .wtile:nth-child(2n){animation:none}
+  .wgrid[data-editing] .wtile:active,.wgrid-add:active,.wstack-pause:active{transform:none}
+}
 
 /* ---- Spacing utilities (the seam law's handrail). Rhythm stays at class
    level, and these ARE classes: mt-5 means margin-top: var(--s-5), straight
@@ -955,7 +960,68 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
   .switcher,.acct,.collapse-row,.ibtn,.platform,button.notif,a.notif{transition:none}
   .switcher:active,button.acct:active,.collapse-row:active,.ibtn:active,.platform:active{transform:none}
   .scrim,.drawer{animation:none}
-  .wtile,.wgrid-add,.wtile-sizes button,.wtile-move button,.wgal-sizes button,.wtile-x::before,.wtile-handle::before,.wstack-dot::before,.wstack-page{transition:none}
-  .wgrid[data-editing] .wtile,.wgrid[data-editing] .wtile:nth-child(2n){animation:none}
-  .wgrid[data-editing] .wtile:active,.wgrid-add:active,.wstack-pause:active{transform:none}
+}
+
+/* ---- Live activity (1.6.0): top bar capsule and its panel of jobs ---- */
+/* Capsule: the lead job's ring, name and percent, +n running. Sits in .tbar-end before the bell. */
+.lact-wrap[hidden],.lact[hidden]{display:none}
+.lact{display:inline-flex;align-items:center;gap:var(--s-2);height:34px;max-width:260px;min-width:0;padding:0 var(--s-3) 0 var(--s-2);border-radius:var(--r-pill);border:1px solid var(--glass-border);background:var(--surface-body),var(--glass-fill-3);box-shadow:var(--glass-inset),var(--e-1);color:var(--text-1);font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;transition:border-color var(--dur-2) var(--ease-standard),transform var(--dur-1) var(--ease-standard)}
+.lact:hover,.lact[aria-expanded="true"]{border-color:var(--hairline-strong)}
+.lact:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.lact:active{transform:scale(.97)}
+.lact:disabled,.lact[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.lact[data-state="done"]{border-color:color-mix(in srgb,var(--success) 45%,transparent)}
+.lact[data-state="error"]{border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
+.lact-ring{position:relative;width:20px;height:20px;flex:none;display:grid;place-items:center}
+.lact-ring svg{position:absolute;inset:0;width:20px;height:20px;transform:rotate(-90deg)}
+.lact-track,.lact-arc{fill:none;stroke-width:2.5}
+.lact-track{stroke:var(--data-0)}
+.lact-arc{stroke:var(--text-1);stroke-linecap:round;transition:stroke-dashoffset var(--dur-3) var(--ease-standard)}
+.lact-ring .lact-ti{position:relative;width:12px;height:12px;opacity:0;transform:scale(.4);transition:opacity var(--dur-2) var(--ease-standard),transform var(--dur-3) var(--ease-back)}
+.lact[data-state="done"] .lact-arc{stroke:var(--success)}
+.lact[data-state="error"] .lact-arc{stroke:var(--danger)}
+.lact[data-state="done"] .lact-ti{opacity:1;transform:none;color:var(--success)}
+.lact[data-state="error"] .lact-ti{opacity:1;transform:none;color:var(--danger)}
+/* Loading: progress not known yet, a quarter arc turns */
+.lact[data-state="pending"] .lact-ring svg{animation:dc-lact-turn calc(var(--dur-4) * 2.5) linear infinite}
+@keyframes dc-lact-turn{from{transform:rotate(-90deg)}to{transform:rotate(270deg)}}
+.lact-tx{display:flex;align-items:baseline;gap:6px;min-width:0}
+.lact-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.lact-pc{min-width:3ch;color:var(--text-2);font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
+.lact-more{flex:none;padding:1px 7px;border-radius:var(--r-pill);background:var(--surface-2);color:var(--text-2);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* Panel: one row per job, updated in place; Cancel while running, Retry on error */
+.menu-list.lact-panel{width:360px}
+.lact-list{list-style:none;margin:0;padding:var(--s-2);display:grid;gap:var(--s-2);max-height:min(420px,calc(100dvh - 140px));overflow-y:auto;border-top:1px solid var(--hairline)}
+.lact-item{display:grid;gap:6px;padding:var(--s-3);border-radius:var(--r-md);background:var(--surface-2)}
+.lact-top{display:flex;align-items:center;gap:var(--s-2);min-width:0;font-size:13px}
+.lact-top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.lact-top svg{width:14px;height:14px;flex:none}
+.lact-item .lact-pc{margin-left:auto;font-size:12px}
+.lact-step,.lact-err{font-size:12px;color:var(--text-2)}
+.lact-item[data-state="error"] .lact-err{color:var(--text-1)}
+.lact-bar{height:4px;border-radius:2px;background:var(--data-0);overflow:hidden}
+.lact-bar i{display:block;height:100%;border-radius:2px;background:var(--text-1);transform-origin:left center;transition:transform var(--dur-3) var(--ease-standard)}
+.lact-item[data-state="done"] .lact-bar i{background:var(--success)}
+.lact-item[data-state="error"] .lact-bar i{background:var(--danger)}
+.lact-item[data-state="done"] .lact-top svg{color:var(--success)}
+.lact-item[data-state="error"] .lact-top svg{color:var(--danger)}
+.lact-item[data-state="pending"] .lact-bar i{width:30%;animation:dc-lact-slide calc(var(--dur-4) * 3) var(--ease-standard) infinite}
+@keyframes dc-lact-slide{from{transform:translateX(-100%)}to{transform:translateX(340%)}}
+.lact-acts{display:flex;gap:var(--s-2)}
+.lact-panel .panel-empty{border-top:1px solid var(--hairline)}
+
+/* Touch reaches 44px; under 900px the panel is a bottom sheet; under 600px the name is read, not shown */
+@media (pointer:coarse){.lact{height:44px}}
+@media (max-width:899.98px){
+  .lact{max-width:180px}
+  .menu-list.lact-panel,.tbar .lact-wrap .menu-list.lact-panel{position:fixed;top:auto;bottom:0;left:0;right:0;width:auto;max-height:70dvh;overflow-y:auto;border-radius:var(--r-lg) var(--r-lg) 0 0;padding-bottom:env(safe-area-inset-bottom)}
+  .lact-panel::before{content:"";display:block;width:36px;height:4px;margin:10px auto 0;border-radius:var(--r-pill);background:var(--text-3)}
+  .lact-list{max-height:none}
+}
+@media (max-width:599.98px){.lact-name{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
+@media (prefers-reduced-motion:reduce){
+  .lact,.lact-arc,.lact-ring .lact-ti,.lact-bar i{transition:none}
+  .lact:active{transform:none}
+  .lact[data-state="pending"] .lact-ring svg,.lact-item[data-state="pending"] .lact-bar i{animation:none}
 }
