@@ -156,6 +156,11 @@ export const COPY: Record<string, { dropped: string[]; changed: Record<string, s
   },
   distribute: { dropped: [], changed: {} },
   'docs-pdf': { dropped: [], changed: {} },
+  /* The legacy code panel's Copy button: the tile's own Copy shows only while its code is open. The Data
+     viz ruling (law 3) changed colours and classes, no copy, so its changed list is empty. */
+  'data-viz': { dropped: ['Copy'], changed: {} },
+  motion: { dropped: ['Copy'], changed: {} },
+  decks: { dropped: [], changed: {} },
 };
 const norm = (t: string) => t.replace(/\s+/g, ' ').trim();
 const texts = (root: Node) => {
