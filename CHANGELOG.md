@@ -105,7 +105,9 @@
   Other chapters keep their parity tests.
 - The class-name rule now covers the studio tile CSS.
 
-## 1.6.1 · unreleased
+## 1.6.1 · 2026-11-05
+
+The one-site release: every chapter and gallery example is a native, pre-rendered studio page with its own head, old links land in the studio, the studio has a new shell (search, one-button mode, custom color, icon rail), and the 1.6.0 accessibility, accent and React 18 findings are fixed. Package changes: `.badge.bloom` is neutral, the React parts run on React 18 and 19, and `verseva add` warns below React 18; no class or token is renamed.
 
 ### Added
 
