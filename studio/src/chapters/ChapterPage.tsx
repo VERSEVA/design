@@ -84,11 +84,13 @@ export function ChapterPage({ chapter }: { chapter: Chapter }) {
     const onTheme = () => { syncFrame(f); syncNested(); };
     f.addEventListener('load', onLoad);
     window.addEventListener('vsv-theme', onTheme);
+    window.addEventListener('vsv-motion', onTheme);
     window.addEventListener('resize', layout);
     if (f.contentDocument?.readyState === 'complete' && f.contentDocument.body?.childElementCount) onLoad();
     return () => {
       f.removeEventListener('load', onLoad);
       window.removeEventListener('vsv-theme', onTheme);
+      window.removeEventListener('vsv-motion', onTheme);
       window.removeEventListener('resize', layout);
       ro?.disconnect();
     };
