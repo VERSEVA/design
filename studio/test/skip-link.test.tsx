@@ -41,7 +41,8 @@ describe('skip link', () => {
 
   it('is visually hidden until focused, then shows with the focus ring', () => {
     const css = fs.readFileSync(path.join(__dirname, '../src/studio.css'), 'utf8').replace(/\s+/g, ' ');
-    const rule = (sel: string) => css.match(new RegExp(`${sel.replace(/[.:()]/g, '\\$&')} \\{([^}]*)\\}`))?.[1] ?? '';
+    /* the rule body after a literal selector, up to its closing brace */
+    const rule = (sel: string) => { const at = css.indexOf(`${sel} {`); return at < 0 ? '' : css.slice(at + sel.length + 2, css.indexOf('}', at)); };
     expect(rule('.studio-skip:not(:focus)')).toContain('clip-path: inset(50%)');
     expect(rule('.studio-skip:focus-visible')).toContain('box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--focus)');
   });
