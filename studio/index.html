@@ -14,10 +14,33 @@
     const b = localStorage.getItem('verseva-brand');
     const m = localStorage.getItem('verseva-theme');
     if (b && ['cobalt', 'forest', 'slate', 'violet'].includes(b)) r.dataset.brand = b;
-    /* The Mode control draws this option until it hydrates (studio.css, .modeswitch[data-pending]). */
+    /* The mode button draws this mode's icon from it (studio.css, .modebtn .mi-*). */
     r.dataset.mode = m === 'light' || m === 'system' ? m : m === 'dark' || m === '' ? 'dark' : 'system';
     const light = r.dataset.mode === 'light' || (r.dataset.mode === 'system' && matchMedia('(prefers-color-scheme: light)').matches);
     if (light) r.dataset.theme = 'light';
+    /* A custom accent (shell/accent.ts): only six-digit hex values reach the style text. */
+    if (b === 'custom') {
+      const c = JSON.parse(localStorage.getItem('verseva-custom') || 'null');
+      const hex = (v) => typeof v === 'string' && /^#[0-9A-Fa-f]{6}$/.test(v);
+      const ok = (o) => !!o && hex(o.accent) && hex(o.hover) && hex(o.ink);
+      if (c && ok(c.dark) && ok(c.light)) {
+        const blk = (o) => '--accent:' + o.accent + ';--accent-hover:' + o.hover + ';--accent-ink:' + o.ink + ';--focus:' + o.accent;
+        const st = document.createElement('style');
+        st.id = 'vsv-custom';
+        st.textContent = ':root[data-brand="custom"]{' + blk(c.dark) + '}:root[data-brand="custom"][data-theme="light"]{' + blk(c.light) + '}';
+        document.head.appendChild(st);
+        r.dataset.brand = 'custom';
+      }
+    }
+  } catch (e) {}
+  /* The sidebar rail and the shut nav groups (shell/nav.ts), drawn by studio.css from <html>. */
+  try {
+    if (localStorage.getItem('verseva-rail') === '1') r.dataset.rail = 'collapsed';
+    const shut = JSON.parse(localStorage.getItem('verseva-nav-shut') || '[]');
+    if (Array.isArray(shut)) {
+      const ids = shut.filter((x) => typeof x === 'string' && /^[a-z]+$/.test(x));
+      if (ids.length) r.dataset.navShut = ids.join(' ');
+    }
   } catch (e) {}
 })();
 </script>

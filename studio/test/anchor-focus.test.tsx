@@ -15,11 +15,11 @@ describe('anchor focus', () => {
   });
   afterEach(() => { vi.unstubAllGlobals(); });
 
-  it('a Foundations sidebar anchor moves focus to its section', async () => {
+  it('a Foundations On this page anchor moves focus to its section', async () => {
     window.history.replaceState(null, '', '/foundations');
     const { container } = render(<App />);
     await tick();
-    const link = container.querySelector<HTMLAnchorElement>('.studio-side a[href="/foundations#motion"]')!;
+    const link = container.querySelector<HTMLAnchorElement>('.pagetoc a[href="/foundations#motion"]')!;
     expect(link).not.toBeNull();
     fireEvent.click(link, { button: 0 });
     await tick();

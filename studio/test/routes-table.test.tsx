@@ -45,13 +45,16 @@ describe('routes table', () => {
     expect(chapterRows).toEqual(chapters.map((c) => `/${c.slug}`).sort());
   });
 
-  it('lists the top-level routes in the sidebar, in router order; rows with a parent stay out', () => {
+  it('lists the top-level routes in the sidebar, then the gallery examples; code rows stay out', () => {
     const { container } = render(<App />);
-    const side = container.querySelector('.studio-side')!;
-    const pages = [...side.querySelectorAll('.snav-page > a')].map((a) => a.getAttribute('href'));
-    expect(pages).toEqual(ROUTES.filter((r) => !r.parent).map((r) => r.path));
+    const side = container.querySelector('.studio-side .side-full')!;
+    const pages = [...side.querySelectorAll('.snav-page > a')].map((a) => a.getAttribute('href') ?? '');
+    const top = ROUTES.filter((r) => !r.parent).map((r) => r.path);
+    const examples = ROUTES.filter((r) => r.parent === '/gallery').map((r) => r.path);
+    expect(pages).toEqual([...top.filter((p) => p !== '/gallery'), '/gallery', ...examples]);
+    expect(pages.some((p) => p.endsWith('/code'))).toBe(false);
     const labels = [...side.querySelectorAll('.snav-page > a > span:first-child')].map((s) => s.textContent);
-    expect(labels).toEqual(TOP_ROUTES.map((r) => r.label));
+    expect(labels.slice(0, TOP_ROUTES.length - 1)).toEqual(TOP_ROUTES.filter((r) => r.path !== '/gallery').map((r) => r.label));
     expect(TOP_ROUTES.length).toBeLessThan(LIVE_ROUTES.length);
   });
 

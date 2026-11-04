@@ -19,7 +19,7 @@ const reduce = (on: boolean) => {
 };
 
 function Tree() {
-  return <div className="studio"><StudioHeader showPicker /><main><WidgetsPage /></main></div>;
+  return <div className="studio"><StudioHeader /><main><WidgetsPage /></main></div>;
 }
 
 describe('hydration under reduced motion', () => {

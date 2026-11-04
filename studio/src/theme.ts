@@ -2,7 +2,7 @@
 // Shares the 'verseva-theme' key with the legacy site so a choice carries over.
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
-export type Brand = '' | 'cobalt' | 'forest' | 'slate' | 'violet';
+export type Brand = '' | 'cobalt' | 'forest' | 'slate' | 'violet' | 'custom';
 export type Mode = 'light' | 'dark' | 'system';
 export interface ThemeState { brand: Brand; mode: Mode }
 
@@ -18,10 +18,12 @@ export const MODES: ReadonlyArray<{ value: Mode; label: string }> = [
   { value: 'dark', label: 'Dark' },
   { value: 'system', label: 'System' },
 ];
+/** The mode button's cycle: light, dark, system, light. */
+export const NEXT_MODE: Readonly<Record<Mode, Mode>> = { light: 'dark', dark: 'system', system: 'light' };
 
 const BRAND_KEY = 'verseva-brand';
 const MODE_KEY = 'verseva-theme';
-const isBrand = (v: unknown): v is Brand => BRANDS.some((b) => b.value === v);
+const isPreset = (v: unknown): v is Brand => BRANDS.some((b) => b.value === v);
 
 const read = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
 const write = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* storage blocked */ } };
@@ -30,7 +32,10 @@ export function readStored(): ThemeState {
   const b = read(BRAND_KEY);
   const m = read(MODE_KEY);
   const mode: Mode = m === 'light' || m === 'system' ? m : m === 'dark' || m === '' ? 'dark' : 'system';
-  return { brand: isBrand(b) ? b : '', mode };
+  /* Custom stands only when the head script validated the stored values and wrote their style. */
+  const custom = b === 'custom' && typeof document !== 'undefined' && document.documentElement.dataset.brand === 'custom';
+  const brand: Brand = custom ? 'custom' : b !== 'custom' && isPreset(b) ? b : '';
+  return { brand, mode };
 }
 
 export function resolveMode(mode: Mode): 'light' | 'dark' {

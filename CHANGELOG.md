@@ -21,6 +21,36 @@
   `/gallery/<slug>/code`; any other `code.html` request goes to `/gallery`. Every `/site/<page>.html` 308s to its
   studio route (`/site/index.html` to `/`, `/site/examples.html` to `/gallery`), as the root copies already did. The
   registry JSON (`/r/*`, `/site/r/*`), `/examples/**`, `/site/examples/**`, `site.css` and `theme.js` stay files.
+- **Studio command bar.** The top bar search (⌘K / Ctrl K) opens the package command bar over every route and
+  every chapter and page section, built from the routes table and the section ids. A result navigates in the shell
+  and lands focus on its section. Below 900px the search is an icon button and the bar is a full-height sheet.
+- **Custom accent.** The color dot opens a popover with the five presets and Custom: a hue control and a hex field.
+  Any pick is derived to `--accent`, `--accent-hover`, `--accent-ink` and `--focus` for dark and light, gated live
+  (ink on accent and hover at 4.5:1, the accent and its hover on bg at 3:1, the accent on both surfaces at 3:1, text on the
+  accent tint at 4.5:1; hover steps away from the page, as the presets do), and
+  moved in OKLCH lightness to the nearest passing value when it fails, with the adjusted value and a pass or fail per
+  check shown. The hue control changes only the hue of the original pick, so stepping back returns it. The popover
+  traps focus while open. A chunk that fails to load shows a Retry in place. The choice persists and applies before first paint. Copy theme copies a ready
+  `[data-brand="custom"]` theme file in the presets' shape (contrast-gate clean).
+- **Icon rail.** The sidebar collapses to a 72px rail: one icon per Studio page and one per group, a tooltip on each,
+  and a keyboard-operable flyout per group (arrows, Home, End, Enter, Esc back to the icon). The rail state persists
+  and applies before first paint.
+- **On this page.** Chapter and Foundations pages carry a right rail of their sections from 1200px, with scroll-spy
+  (`aria-current="location"`) and focus moved on click.
+
+### Changed
+
+- **Top bar.** The studio header is the package three-column `.tbar`: lockup and version, the search trigger,
+  then color, mode, pause motion and GitHub. Mode is one icon button that cycles light, dark and system, named
+  "Theme: current. Switch to next", announced politely, and drawn from the head script's `data-mode` so it never
+  shows a wrong icon. The five brand chips and the Light / Dark / System segmented control left the top bar (the
+  Overview hero keeps its theme picker). The npm link left the bar.
+- **Sidebar.** Studio, Chapters and Gallery are collapsible groups (open state persists; the group holding the
+  active item stays open), Gallery lists its examples, counts stay neutral badges, and the active item carries the
+  nav bloom. Per-chapter section anchors left the sidebar for the On this page rail and the command bar.
+- **Phone shell from 900px.** The page and section select and the stacked header now apply below 900px (was 760px).
+- **Lazy chunks.** The command bar (studio and /widgets), the color panel and the search commands load on first
+  intent; their triggers stay in the main chunk, which measures 147.1 kB gzip under the unchanged 150 kB budget.
 
 ### Fixed
 
