@@ -282,6 +282,24 @@
         "cx"
       ],
       "description": "Widget home: tiles pick their view from their size (S, M, L, XL); edit mode removes with Undo, resizes, reorders by drag, touch, buttons or Alt+Arrow, adds from the gallery; one focus widget spends the accent"
+    },
+    {
+      "name": "command-state",
+      "file": "react/command-state.ts",
+      "kind": "util",
+      "deps": [],
+      "description": "Command bar logic: filtering, group order, ask detection, wrapping selection"
+    },
+    {
+      "name": "command-bar",
+      "file": "react/command-bar.tsx",
+      "kind": "component",
+      "deps": [
+        "command-state",
+        "console-state",
+        "cx"
+      ],
+      "description": "Command bar on the K chord: actions, go-to and recent filtered as you type; an Ask row only with onAsk, the answer streamed in place"
     }
   ],
   "themes": [
