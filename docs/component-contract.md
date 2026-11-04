@@ -316,15 +316,15 @@ either), optional `onPin({ question, text, widget })`. `open`, `onOpenChange` or
 |---|---|---|
 | Trigger | `button.searchbox.cmdk-trigger` | Search icon, label, K chord; sits in the top bar's search slot |
 | Overlay | `.cmdk-ovl` > `.cmdk` | Scrim and a 620px glass panel at `--r-lg`, 12vh from the top |
-| Field | `.cmdk-field`, `.cmdk-input`, `.cmdk-mode`, `.cmdk-kbd` | Combobox input, "Ask" chip while the Ask row shows, esc chip |
+| Field | `.cmdk-field`, `.cmdk-input`, `.cmdk-mode`, `.cmdk-kbd`, `.cmdk-close` | Combobox input, "Ask" chip while the Ask row shows, esc chip; on phone a 44px Close (`aria-label="Close"`) replaces the esc chip |
 | Results | `ul.cmdk-list` > `.cmdk-group` + `ul[role=group]` > `.cmdk-opt` (`.ask`), `.cmdk-label`, `.cmdk-hint`; `.cmdk-empty` | Ask row first in its own group, then groups in the order they first appear |
 | Answer | `.cmdk-ans` > `.cmdk-q`, `.cmdk-load` (`.skel` x3), `.cmdk-a` + `.cmdk-caret`, `.cmdk-err`, `.cmdk-widget`, `.cmdk-acts` | Question, loading lines, streamed text, error with Retry, widget preview, Pin to Home and Ask another |
 | Footer | `.cmdk-ft` | Key hints; `aria-hidden`, gone on phone |
 
 **Rules**
 
-- **Filtering:** every word of the query must appear in the label, group or keywords; case and
-  accents fold. Commands keep their order inside a group.
+- **Filtering:** every word of the query must appear in the label, group or keywords; case,
+  accents and curly apostrophes fold. Commands keep their order inside a group.
 - **Ask row:** shows for a trailing `?`, a leading question word (what, how, why, when, where,
   which, who, is, are, do, does, did, can, could, should, will, would and kin), Tab, or no
   matches. Never without `onAsk` and never on an empty query. Without `onAsk`, no matches is the
@@ -350,7 +350,7 @@ either), optional `onPin({ question, text, widget })`. `open`, `onOpenChange` or
 
 Reduced motion: motion is opt-in under `prefers-reduced-motion:no-preference` (panel rise,
 scrim fade, option and trigger transitions, caret blink); otherwise the bar appears in place and
-the caret holds still. Phone (below 600px): a full-height sheet with no radius and no footer.
+the caret holds still. Phone (below 600px): a full-height sheet with no radius and no footer; Close in the field row closes it.
 Options are at least 44px tall. `.cmdk-ovl` stacks at 19, above the drawer (17) and the skip
 link (18).
 
@@ -359,16 +359,17 @@ link (18).
 | Part | Roles and names | Keyboard and focus |
 |---|---|---|
 | Trigger | `button`, name = its label, `aria-haspopup="dialog"`, `aria-keyshortcuts` | Click or Meta+K / Ctrl+K opens; the chord also closes, also while typing elsewhere, and stands down while another `aria-modal` dialog is open |
-| Panel | `role="dialog"` `aria-modal="true"` `aria-label="Command bar"` | Opening focuses the field; Tab and Shift+Tab stay inside; Escape or a scrim click closes; focus returns to what opened it |
+| Panel | `role="dialog"` `aria-modal="true"` `aria-label="Command bar"` | Opening focuses the field; Tab and Shift+Tab stay inside; Escape, Close or a scrim click closes; focus returns to what opened it; keys do nothing during IME composition |
 | Field | `role="combobox"`, `aria-controls` the listbox, `aria-expanded`, `aria-autocomplete="list"`, `aria-activedescendant` the active option | Up and Down move; Enter runs; Tab (with text, before an answer) forces the Ask row |
 | Results | `role="listbox"` named "Commands"; groups `role="group"` named by their heading; `role="option"` + `aria-selected`, `aria-disabled` | Pointer movement selects; a click runs; options never take focus |
-| Status | one visually hidden `role="status"` | Reads the result count as you type, nothing while an answer streams, then the finished answer once |
+| Status | one visually hidden `role="status"` | Reads the result count (commands only, never the Ask row) as you type, nothing while an answer streams, then the finished answer once |
 | Answer | `section` named "Answer", `aria-busy` while loading or streaming; error `role="alert"` | Retry and Ask another return focus to the field |
 
 **Top bar:** `.tbar` becomes a three-column grid only when it holds a `.searchbox` as a direct
 child (`.tbar:has(>.searchbox)`): breadcrumb left, search centred at up to 360px, actions right
-at their natural width. Under 900px the search takes the free track. Every other top bar keeps
-the 1.3 flex row.
+at their natural width. Under 900px the search takes the free track; under 600px the breadcrumb
+hides and the search takes the first track. This applies to every top bar with a search,
+shipped 1.3 consoles included. Every other top bar keeps the 1.3 flex row.
 
 **Placement:** render `CommandBar` as a sibling of the shell, never inside `.tbar` (its sticky
 stacking context would trap the overlay); put `CommandBarTrigger` in the top bar's `search`

@@ -155,4 +155,37 @@ describe('CommandBar', () => {
     expect(container.querySelector('.cmdk-ans')).toBeNull();
     expect(options(container).map((o) => o.textContent)).toContain('Invoices');
   });
+
+  it('the Close button in the field row closes and returns focus to the trigger', () => {
+    const { container, getByRole } = render(<Harness />);
+    const trigger = getByRole('button', { name: 'Search or ask' });
+    fireEvent.click(trigger);
+    const close = getByRole('button', { name: 'Close' });
+    expect(close.closest('.cmdk-field')).not.toBeNull();
+    expect(close.classList.contains('cmdk-close')).toBe(true);
+    fireEvent.click(close);
+    expect(container.querySelector('.cmdk')).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('keys do nothing during IME composition: Enter, arrows and Escape', () => {
+    const run = vi.fn();
+    const { container, getByRole } = render(<Harness run={run} />);
+    fireEvent.click(getByRole('button', { name: 'Search or ask' }));
+    fireEvent.keyDown(input(container), { key: 'ArrowDown', isComposing: true });
+    expect(options(container)[0].getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(input(container), { key: 'Enter', isComposing: true });
+    fireEvent.keyDown(input(container), { key: 'Enter', keyCode: 229 });
+    expect(run).not.toHaveBeenCalled();
+    fireEvent.keyDown(input(container), { key: 'Escape', isComposing: true });
+    expect(container.querySelector('.cmdk')).not.toBeNull();
+  });
+
+  it('the results count leaves the Ask row out', () => {
+    const { container, getByRole } = render(<Harness onAsk={() => ({ text: 'ok' })} />);
+    fireEvent.click(getByRole('button', { name: 'Search or ask' }));
+    type(container, 'zebra');
+    expect(options(container)).toHaveLength(1);
+    expect(container.querySelector('[role="status"]')?.textContent).toBe('0 results');
+  });
 });

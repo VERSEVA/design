@@ -822,11 +822,13 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 /* ---- Command bar (1.6.0): .cmdk, its trigger, the three-column top bar ---- */
 /* Three columns only when the bar holds a search: breadcrumb left, search centred, actions right. Other bars keep the 1.3 flex row. */
-.tbar:has(>.searchbox){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px) minmax(max-content,1fr);column-gap:var(--s-3)}
-.tbar:has(>.searchbox)>.crumbs{grid-column:1;min-width:0;overflow:hidden;white-space:nowrap}
+.tbar:has(>.searchbox){display:grid;grid-template-columns:minmax(auto,1fr) minmax(0,360px) minmax(max-content,1fr);column-gap:var(--s-3)}
+.tbar:has(>.searchbox)>.crumbs{grid-column:1;overflow:hidden;white-space:nowrap}
 .tbar:has(>.searchbox)>.searchbox{grid-column:2;width:100%;margin-inline:0}
 .tbar:has(>.searchbox)>.tbar-end{grid-column:3;justify-self:end;margin-left:0}
 @media (max-width:899.98px){.tbar:has(>.searchbox){grid-template-columns:minmax(0,max-content) minmax(0,1fr) max-content}}
+/* Phone: the breadcrumb hides, so the search takes the first track and no empty column or gap is left */
+@media (max-width:599.98px){.tbar:has(>.searchbox){grid-template-columns:minmax(0,1fr) max-content}.tbar:has(>.searchbox)>.searchbox{grid-column:1}.tbar:has(>.searchbox)>.tbar-end{grid-column:2}}
 /* Trigger: a .searchbox that is a button and opens the bar */
 .cmdk-trigger{font:inherit;font-size:.875rem;text-align:left;cursor:pointer}
 .cmdk-trigger>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2)}
@@ -843,6 +845,7 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .cmdk-input{flex:1;min-width:0;border:0;background:transparent;color:var(--text-1);font:inherit;font-size:17px;outline:none}
 .cmdk-input::placeholder{color:var(--text-2)}
 .cmdk-mode{font-size:11px;font-weight:600;padding:2px 9px;border-radius:var(--r-pill);background:var(--surface-2);color:var(--text-1)}
+.cmdk-close{display:none}
 .cmdk-kbd{font-family:var(--font-mono);font-size:10px;border:1px solid var(--hairline);border-radius:calc(var(--r-sm) / 2);padding:2px 6px;background:var(--surface-2);color:var(--text-2)}
 /* Listbox: groups, options, the Ask row (the view's one accent) */
 .cmdk-list{list-style:none;margin:0;padding:var(--s-2);overflow-y:auto;overscroll-behavior:contain}
@@ -879,8 +882,8 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .cmdk-err svg{width:16px;height:16px;flex:none;color:var(--danger)}
 .cmdk-ft{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-5);padding:var(--s-3) var(--s-5);border-top:1px solid var(--hairline);font-size:12px;color:var(--text-2)}
 .cmdk-ft .cmdk-kbd{margin-right:var(--s-1)}
-/* Phone: a full-height sheet; the key hints go */
-@media (max-width:599.98px){.cmdk-ovl{padding:0;align-items:stretch}.cmdk{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}.cmdk-ft{display:none}}
+/* Phone: a full-height sheet; the key hints go and a 44px Close takes the esc chip's place */
+@media (max-width:599.98px){.cmdk-ovl{padding:0;align-items:stretch}.cmdk{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}.cmdk-ft{display:none}.cmdk-field>.cmdk-kbd{display:none}.cmdk-close{display:grid;width:44px;height:44px;margin-right:calc(var(--s-2) * -1)}}
 /* Motion is opt-in: under reduced motion the bar appears in place and the caret holds still */
 @media (prefers-reduced-motion:no-preference){
   .cmdk-ovl:not([hidden]){animation:dc-fade var(--dur-1) var(--ease-standard)}

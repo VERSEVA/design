@@ -215,6 +215,27 @@ test('three-column top bar: every other bar keeps the 1.3 flex layout', () => {
   assert.deepEqual(elsewhere, [], 'no unscoped .tbar grid anywhere');
 });
 
+test('three-column top bar: the breadcrumb keeps its 150px floor, so the search shrinks before the page name clips', () => {
+  assert.match(bodyOf('.tbar .crumbs', null, ALL), /min-width:150px/);
+  assert.match(bodyOf('.tbar:has(>.searchbox)'), /grid-template-columns:minmax\(auto,1fr\) minmax\(0,360px\) minmax\(max-content,1fr\)/);
+  assert.doesNotMatch(bodyOf('.tbar:has(>.searchbox)>.crumbs'), /min-width/);
+});
+
+test('three-column top bar: on phone the hidden breadcrumb leaves no empty track', () => {
+  assert.match(bodyOf('.tbar .crumbs', PHONE, ALL), /display:none/, 'crumbs still hide under 600px');
+  assert.match(bodyOf('.tbar:has(>.searchbox)', PHONE), /grid-template-columns:minmax\(0,1fr\) max-content/);
+  assert.match(bodyOf('.tbar:has(>.searchbox)>.searchbox', PHONE), /grid-column:1/);
+  assert.match(bodyOf('.tbar:has(>.searchbox)>.tbar-end', PHONE), /grid-column:2/);
+});
+
+test('phone close: a 44px Close button in the field row shows on the sheet; the esc chip goes', () => {
+  assert.ok(sels.has('.cmdk-close'), '.cmdk-close rule');
+  assert.match(bodyOf('.cmdk-close'), /display:none/, 'hidden above the phone sheet');
+  assert.match(bodyOf('.cmdk-close', PHONE), /display:grid/);
+  assert.match(bodyOf('.cmdk-close', PHONE), /width:44px;height:44px/);
+  assert.match(bodyOf('.cmdk-field>.cmdk-kbd', PHONE), /display:none/);
+});
+
 test('three-column top bar: under 900px the search takes the free track', () => {
   assert.match(bodyOf('.tbar:has(>.searchbox)', '@media (max-width:899.98px)'), /grid-template-columns:minmax\(0,max-content\) minmax\(0,1fr\) max-content/);
 });

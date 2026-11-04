@@ -12,10 +12,16 @@
   New global classes: `.cmdk`, `.cmdk-ovl`, `.cmdk-field`, `.cmdk-input`, `.cmdk-mode`,
   `.cmdk-kbd`, `.cmdk-list`, `.cmdk-group`, `.cmdk-opt` (modifier `.ask`), `.cmdk-label`,
   `.cmdk-hint`, `.cmdk-empty`, `.cmdk-ans`, `.cmdk-q`, `.cmdk-a`, `.cmdk-caret`, `.cmdk-load`,
-  `.cmdk-widget`, `.cmdk-acts`, `.cmdk-err`, `.cmdk-ft`, `.cmdk-trigger`; keyframes `cmdk-in`,
+  `.cmdk-widget`, `.cmdk-acts`, `.cmdk-err`, `.cmdk-ft`, `.cmdk-trigger`, `.cmdk-close`; keyframes `cmdk-in`,
   `cmdk-blink`.
 - **Three-column top bar.** `.tbar` is a grid (breadcrumb, centred search, actions) only when it
   holds a `.searchbox`; every other top bar keeps the 1.3 layout.
+
+### Changed
+
+- **Console top bars with a search now centre it.** Every `.tbar` that holds a `.searchbox`
+  (including 1.3 consoles built on `ConsoleTopbar` with `ConsoleSearch`) takes the three-column
+  layout; on phone the search fills the space the hidden breadcrumb leaves.
 
 ## 1.5.0 · 2026-11-01
 

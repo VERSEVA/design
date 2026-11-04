@@ -3,7 +3,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ASK_GROUP, normalize, isQuestion, matches, filterCommands, groupOrder, shouldAsk,
-  buildSections, moveSelection, firstSelectable, isAsyncIterable,
+  buildSections, moveSelection, firstSelectable, isAsyncIterable, resultCount,
 } from '../react/command-state.ts';
 
 const C = [
@@ -62,6 +62,11 @@ describe('ask detection', () => {
     assert.equal(shouldAsk('invoices', 1, { canAsk: true, forced: true }), true, 'Tab');
     assert.equal(shouldAsk('zebra', 0, { canAsk: true }), true, 'no matches');
   });
+  test('a curly apostrophe (iOS smart punctuation) folds to a straight one', () => {
+    assert.equal(normalize('What\u2019s due'), "what's due");
+    assert.equal(isQuestion('what\u2019s due today'), true);
+    assert.equal(isQuestion('who\u2019s on call'), true);
+  });
   test('words that only start like a question word are not questions', () => {
     for (const s of ['whatever', 'issue refund', 'invoices', 'howl', 'canvas', 'dodo']) assert.equal(isQuestion(s), false, s);
   });
@@ -93,6 +98,14 @@ describe('ask detection', () => {
   test('forced ask keeps the matches under the Ask row', () => {
     const r = buildSections(C, 'invoice', { canAsk: true, forced: true });
     assert.deepEqual(flat(r), ['ask:invoice', 'New invoice', 'Invoices']);
+  });
+});
+
+describe('results count', () => {
+  test('counts commands only, never the Ask row', () => {
+    assert.equal(resultCount(buildSections(C, 'zebra', { canAsk: true })), 0);
+    assert.equal(resultCount(buildSections(C, 'invoice', { canAsk: true, forced: true })), 2);
+    assert.equal(resultCount(buildSections(C, 'invoice', { canAsk: false })), 2);
   });
 });
 

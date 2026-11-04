@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { buildSections, firstSelectable, isAsyncIterable, moveSelection } from './command-state';
+import { buildSections, firstSelectable, isAsyncIterable, moveSelection, resultCount } from './command-state';
 import type { BarOption } from './command-state';
 import { isSearchShortcut, shortcutLabel, withDefaults } from './console-state';
 import { cx } from './cx';
@@ -63,6 +63,7 @@ export const COMMAND_BAR_LABELS = {
   run: 'run',
   askKey: 'ask',
   close: 'close',
+  closeButton: 'Close',
 };
 export type CommandBarLabels = typeof COMMAND_BAR_LABELS;
 
@@ -74,6 +75,7 @@ const icon = (d: React.ReactNode) => (
 );
 const SEARCH = icon(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>);
 const SPARKLE = icon(<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" />);
+const CLOSE = icon(<path d="M18 6 6 18M6 6l12 12" />);
 const ALERT = icon(<><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></>);
 const FOCUSABLE = 'input:not([disabled]),button:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])';
 
@@ -81,6 +83,11 @@ function isApplePlatform(): boolean {
   if (typeof navigator === 'undefined') return false;
   const nav = navigator as Navigator & { userAgentData?: { platform?: string } };
   return /mac|iphone|ipad|ipod/i.test(nav.userAgentData?.platform || nav.platform || '');
+}
+
+/** IME composition (CJK, dictation): keys belong to the composer, not the bar. */
+function composing(e: React.KeyboardEvent): boolean {
+  return e.nativeEvent.isComposing || e.keyCode === 229;
 }
 
 /** Another aria-modal dialog is open (not this bar): the shortcut stands down. */
@@ -262,9 +269,10 @@ export function CommandBar({
   const busy = ask?.status === 'loading' || ask?.status === 'streaming';
   const status = asking
     ? (ask.status === 'done' ? ask.text : '')
-    : (query.trim() ? L.count(options.length) : '');
+    : (query.trim() ? L.count(resultCount(result)) : '');
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (composing(e)) return;
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); return; }
     if (e.key !== 'Tab') return;
     if (e.target === inputRef.current && !e.shiftKey && !asking && canAsk && query.trim() && !forced) {
@@ -281,6 +289,7 @@ export function CommandBar({
   };
 
   const onInputKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (composing(e)) return;
     if (asking) {
       if (e.key === 'Enter' && ask.status === 'error') { e.preventDefault(); void startAsk(ask.question); }
       return;
@@ -327,6 +336,7 @@ export function CommandBar({
           />
           {result.asking && !asking && <span className="cmdk-mode" aria-hidden="true">{L.askMode}</span>}
           <kbd className="cmdk-kbd" aria-hidden="true">esc</kbd>
+          <button type="button" className="ibtn cmdk-close" aria-label={L.closeButton} onClick={close}>{CLOSE}</button>
         </div>
 
         <span className="sr-only" role="status">{status}</span>

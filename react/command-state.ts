@@ -26,16 +26,16 @@ export interface AskRule {
 
 export const ASK_GROUP = 'Ask';
 
-/** Leading words that make the query a question. Whole words only ("whatever" is not one). */
+/** Leading words that make the query a question, with or without a contraction ("who's"). Whole words only ("whatever" is not one). */
 export const QUESTION_WORDS = [
-  'what', 'whats', "what's", 'how', 'why', 'when', 'where', 'which', 'who', 'whom', 'whose',
+  'what', 'whats', 'how', 'why', 'when', 'where', 'which', 'who', 'whom', 'whose',
   'is', 'are', 'was', 'were', 'do', 'does', 'did', 'can', 'could', 'should', 'will', 'would',
 ];
-const QUESTION_WORD = new RegExp(`^(${QUESTION_WORDS.map((w) => w.replace(/'/g, "'?")).join('|')})(\\s|$)`);
+const QUESTION_WORD = new RegExp(`^(${QUESTION_WORDS.join('|')})('(s|re|ll|d|ve))?(\\s|$)`);
 
-/** Lowercase, accents stripped, whitespace collapsed and trimmed. */
+/** Lowercase, accents stripped, curly apostrophes straightened (iOS smart punctuation), whitespace collapsed and trimmed. */
 export function normalize(s: string): string {
-  return String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return String(s ?? '').replace(/[\u2018\u2019\u02bc]/g, "'").normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 export function isQuestion(query: string): boolean {
@@ -91,6 +91,11 @@ export function buildSections<T extends CommandLike>(commands: T[], query: strin
     sections.push({ group, options: list });
   }
   return { sections, options, asking };
+}
+
+/** Matching commands, never the Ask row: what the results count reads. */
+export function resultCount<T extends CommandLike>(result: BarResult<T>): number {
+  return result.options.filter((o) => o.kind === 'command').length;
 }
 
 /** Next selectable index from current by delta, wrapping and skipping disabled options; -1 when none. */
