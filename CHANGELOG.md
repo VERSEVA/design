@@ -55,8 +55,10 @@
   `inert`, so edit mode and hidden stack pages were not inert there. A new registry util, `inert`
   (`react/inert.ts`), renders `inert` on both: `true` on React 19, `""` on React 18. Re-add the two parts
   (`npx verseva add widget-grid smart-stack`, which brings `inert`). Every registry React part now
-  type-checks against `@types/react` 18 and 19 in CI, and `package.json` declares React
-  `^18.0.0 || ^19.0.0` as an optional peer (the CSS needs no React).
+  type-checks against `@types/react` 18 and 19 in CI. React 18 or later is needed for the React parts
+  only; the CSS, tokens and preset need no React, and the package declares no React peer, so it installs
+  into any project. `verseva add` warns in one line when it copies React parts into a project on an
+  older React.
 - **Skip to content (WCAG 2.4.1).** Every studio route opens with a "Skip to content" link, the first
   focusable element of the shell, hidden until focused, with the focus ring. It moves focus to the page's
   main content, in the pre-rendered HTML and after hydration.
