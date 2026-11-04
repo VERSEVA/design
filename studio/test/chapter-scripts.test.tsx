@@ -94,7 +94,7 @@ describe('motion chapter script', () => {
 
   it('gets the .js root class the legacy theme.js set, so the line reveal starts hidden and slides in', () => {
     const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
-    const head = html.match(/<script>([\s\S]*?)<\/script>/)![1];
+    const head = new DOMParser().parseFromString(html, 'text/html').querySelector('head script:not([src])')!.textContent!;
     document.documentElement.classList.remove('js');
     new Function(head)();
     expect(document.documentElement.classList.contains('js')).toBe(true);
