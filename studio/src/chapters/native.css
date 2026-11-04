@@ -103,3 +103,7 @@
 .chap .shellframe.short { height: auto; }
 .chap .shellframe.short.tall { height: 500px; }
 .chap .shellframe.states { height: 340px; padding: var(--s-3); }
+
+/* studio.css raises .seg buttons to 44px below 760px for the shell's own controls;
+   a chapter specimen keeps the package's size, as it did in the embed */
+@media (max-width: 760px) { .chap .seg button { min-height: auto; } }
