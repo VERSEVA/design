@@ -1,6 +1,6 @@
 // Keeps same-origin example frames on the studio theme: brand + mode attributes
 // on each frame document, plus the four preset sheets injected once per frame.
-import { getTheme, setAttrs, type ThemeState } from '../theme';
+import { applyMotionPause, getTheme, setAttrs, type ThemeState } from '../theme';
 
 export const FRAME_THEMES = ['cobalt', 'forest', 'slate', 'violet'] as const;
 
@@ -22,6 +22,7 @@ export function syncFrame(f: HTMLIFrameElement, state: ThemeState = getTheme()) 
     if (!d?.documentElement) return;
     injectThemes(d);
     setAttrs(d.documentElement, state);
+    applyMotionPause(d);
   } catch { /* cross-origin frame: leave it alone */ }
 }
 
@@ -38,11 +39,13 @@ export function watchFrames(root: ParentNode): () => void {
   const fitAll = () => frames.forEach(fitFrame);
   frames.forEach((f) => { f.addEventListener('load', onLoad); syncFrame(f); fitFrame(f); });
   window.addEventListener('vsv-theme', onTheme);
+  window.addEventListener('vsv-motion', onTheme);
   const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fitAll);
   frames.forEach((f) => f.parentElement && ro?.observe(f.parentElement));
   return () => {
     frames.forEach((f) => f.removeEventListener('load', onLoad));
     window.removeEventListener('vsv-theme', onTheme);
+    window.removeEventListener('vsv-motion', onTheme);
     ro?.disconnect();
   };
 }

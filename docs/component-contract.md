@@ -591,7 +591,8 @@ example `Bars` with `level`) cannot be recoloured, so it spends the accent where
 `studio/test/widget-grid.test.tsx` counts accent-bearing elements across a rendered grid (at most
 one tile, the focus one) and across a whole console view, against the law 3 budget: the one primary
 action, the active nav bloom, and at most one focus widget's data marks. Counts, badges and dots
-(`.ibtn .num`, `.ibtn .dot`, `.notif .udot`, `.mhint .newdot`) are neutral on the text ladder.
+(`.ibtn .num`, `.ibtn .dot`, `.notif .udot`, `.mhint .newdot`) and the What's new New tag (`.badge.bloom`) are
+neutral on the text ladder.
 
 **Edit mode** (an Edit button the product owns, a 550ms long-press on a tile, or the command bar).
 Esc leaves when focus is in the grid, on the Edit toggle (`toggleRef`) or nowhere, never from another

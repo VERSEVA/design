@@ -86,10 +86,31 @@ export function wipe(e: { clientX?: number; clientY?: number } | null, fn: () =>
   }).catch(() => {});
 }
 
-/* Page-level motion pause (WCAG 2.2.2); reduced motion starts it paused. */
+/* Page-level motion pause (WCAG 2.2.2); reduced motion starts it paused.
+   The control stops every auto-moving element: JS loops read isMotionPaused, and
+   every CSS animation on the page and in same-origin example frames runs to its end
+   state at once under data-motion="paused" on the root plus one injected sheet.
+   Not animation:none (resume would restart one-shot entrances) and not
+   play-state:paused (a route mounted while paused would hold rise at opacity 0). */
 let paused = false;
 const pauseListeners = new Set<() => void>();
-export function setMotionPaused(v: boolean) { paused = v; pauseListeners.forEach((l) => l()); }
+const PAUSE_CSS = ':root[data-motion="paused"] *, :root[data-motion="paused"] *::before, :root[data-motion="paused"] *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; }';
+export function applyMotionPause(d: Document) {
+  if (!d.querySelector('style[data-vsv-pause]')) {
+    const st = d.createElement('style');
+    st.dataset.vsvPause = '';
+    st.textContent = PAUSE_CSS;
+    (d.head ?? d.documentElement).appendChild(st);
+  }
+  if (paused) d.documentElement.dataset.motion = 'paused';
+  else delete d.documentElement.dataset.motion;
+}
+export function setMotionPaused(v: boolean) {
+  paused = v;
+  if (typeof document !== 'undefined') applyMotionPause(document);
+  pauseListeners.forEach((l) => l());
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('vsv-motion'));
+}
 export function isMotionPaused() {
   return paused || (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 }

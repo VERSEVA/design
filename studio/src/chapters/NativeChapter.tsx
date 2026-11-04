@@ -10,7 +10,7 @@
 // What replaces the embed's behaviour lives here: deep-link scroll, link routing,
 // and the inline script run after mount.
 import { useEffect, useRef, type MouseEvent, type ReactNode } from 'react';
-import { navigate } from '../shell/router';
+import { jumpTo, navigate } from '../shell/router';
 import { resolveChapterLink } from './links';
 import chapters from '../data/chapters.json';
 import './chapters.css';
@@ -41,7 +41,7 @@ function onChapterClick(e: MouseEvent<HTMLElement>, file: string) {
   }
   const t = resolveChapterLink(href, window.location.origin, file);
   if (t.kind === 'route') { e.preventDefault(); navigate(t.to); }
-  else if (t.kind === 'anchor') { e.preventDefault(); document.getElementById(t.id)?.scrollIntoView({ behavior: 'smooth' }); }
+  else if (t.kind === 'anchor') { e.preventDefault(); jumpTo(document.getElementById(t.id)); }
 }
 
 export function NativeChapter({ slug, script, children }: { slug: string; script?: ChapterScript; children: ReactNode }) {
@@ -54,12 +54,7 @@ export function NativeChapter({ slug, script, children }: { slug: string; script
     const ac = new AbortController();
     const cleanups: Array<() => void> = [];
     script?.(el, ac.signal, (fn) => cleanups.push(fn));
-    /* A deep link (/decks#structure) lands on its section once the script has laid the page out. */
-    /* A malformed escape (#%) must not throw out of the effect and unmount the studio: use the raw id. */
-    const raw = window.location.hash.slice(1);
-    let id = raw;
-    try { id = decodeURIComponent(raw); } catch { /* keep raw */ }
-    if (id) document.getElementById(id)?.scrollIntoView();
+    /* A cold deep link (/decks#structure) is App's: its effect runs after this one, once the script has laid the page out. */
     return () => { ac.abort(); cleanups.forEach((fn) => fn()); };
   }, [script]);
 

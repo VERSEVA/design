@@ -27,7 +27,7 @@ test('pressed filter chip and hot counts spend no accent', () => {
 });
 
 test('counts, badges and unread dots spend no accent (law 3 budget, 2026-10-31)', () => {
-  for (const sel of ['.ibtn .num', '.ibtn .dot', '.notif .udot', '.mhint .newdot']) assert.doesNotMatch(rule(sel), /--accent/, sel);
+  for (const sel of ['.ibtn .num', '.ibtn .dot', '.notif .udot', '.mhint .newdot', '.badge.bloom']) assert.doesNotMatch(rule(sel), /--accent/, sel);
   assert.doesNotMatch(CSS, /:has\(\.wtile\[data-focus\]\)/, 'no focus-conditional chrome rules');
 });
 

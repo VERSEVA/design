@@ -4,7 +4,7 @@
 // sidebar anchors and scrollspy work exactly as on native studio pages.
 import { useEffect, useRef } from 'react';
 import { syncFrame } from '../front/frameSync';
-import { navigate } from '../shell/router';
+import { focusTarget, navigate } from '../shell/router';
 import { resolveChapterLink } from './links';
 import './chapters.css';
 
@@ -63,7 +63,13 @@ export function ChapterPage({ chapter }: { chapter: Chapter }) {
         if (t.kind === 'native') return;
         e.preventDefault();
         if (t.kind === 'route') navigate(t.to);
-        else if (t.kind === 'anchor') document.getElementById(t.id)?.scrollIntoView({ behavior: 'smooth' });
+        else if (t.kind === 'anchor') {
+          /* Scroll by the studio marker when there is one (it carries the scroll margin), focus the frame's own element. */
+          const inner = d.getElementById(t.id);
+          const marker = document.getElementById(t.id);
+          (marker ?? inner)?.scrollIntoView({ behavior: 'smooth' });
+          focusTarget(inner ?? marker);
+        }
         else window.location.href = t.href;
       });
       ro?.disconnect();
@@ -84,11 +90,13 @@ export function ChapterPage({ chapter }: { chapter: Chapter }) {
     const onTheme = () => { syncFrame(f); syncNested(); };
     f.addEventListener('load', onLoad);
     window.addEventListener('vsv-theme', onTheme);
+    window.addEventListener('vsv-motion', onTheme);
     window.addEventListener('resize', layout);
     if (f.contentDocument?.readyState === 'complete' && f.contentDocument.body?.childElementCount) onLoad();
     return () => {
       f.removeEventListener('load', onLoad);
       window.removeEventListener('vsv-theme', onTheme);
+      window.removeEventListener('vsv-motion', onTheme);
       window.removeEventListener('resize', layout);
       ro?.disconnect();
     };

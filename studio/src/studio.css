@@ -16,6 +16,15 @@ a:where(:not(.chap *)) { color: inherit; }
 img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)) { display: block; max-width: 100%; }
 
 /* ---- shell ---- */
+/* Sticky chrome: the header (and on phones the page select) stays on top, so every
+   scroll margin reads one variable built from their real heights. shell/stickyOffset.ts
+   measures both and writes them here; these values are the first-paint fallbacks. */
+:root {
+  --studio-head-h: 66px;
+  --studio-select-h: 0px;
+  --studio-scroll-pad: calc(var(--studio-head-h) + var(--studio-select-h) + var(--s-4));
+  --attn-scroll: var(--studio-scroll-pad);
+}
 .studio-head {
   position: sticky; top: 0; z-index: 20;
   display: flex; align-items: center; gap: var(--s-3);
@@ -40,7 +49,7 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 .studio-select select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .studio-body { display: grid; grid-template-columns: 232px minmax(0, 1fr); max-width: 1440px; margin: 0 auto; }
-.studio-side { position: sticky; top: 65px; align-self: start; height: calc(100dvh - 65px); overflow-y: auto; padding: var(--s-5) var(--s-4); border-right: 1px solid var(--hairline-soft); }
+.studio-side { position: sticky; top: var(--studio-head-h); align-self: start; height: calc(100dvh - var(--studio-head-h)); overflow-y: auto; padding: var(--s-5) var(--s-4); border-right: 1px solid var(--hairline-soft); }
 .studio-side .sgroup + .sgroup { margin-top: var(--s-6); }
 .snav .anchors { margin: 2px 0 var(--s-2) var(--s-3); gap: 0; }
 .snav .anchors a { padding: 5px 9px; font-size: .78125rem; color: var(--text-3); }
@@ -52,7 +61,7 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 /* ---- page rhythm (SEAM LAW: sections breathe) ---- */
 .page { padding-top: var(--s-8); }
 .display { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: -.03em; line-height: .98; font-size: clamp(2.4rem, 5.6vw, 4.6rem); max-width: 16ch; }
-.section { padding-top: var(--s-8); scroll-margin-top: 80px; }
+.section { padding-top: var(--s-8); scroll-margin-top: var(--studio-scroll-pad); }
 .section > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 1.5rem; letter-spacing: -.02em; margin-bottom: var(--s-5); display: flex; align-items: baseline; gap: var(--s-3); }
 .section > h2 .cnt { font-family: var(--font-mono); font-size: .75rem; color: var(--text-3); font-weight: 400; letter-spacing: 0; }
 .grid { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
@@ -64,6 +73,7 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
   .studio-main { padding: 0 var(--s-5) var(--s-8); }
 }
 @media (max-width: 760px) {
+  :root { --studio-head-h: 191px; --studio-select-h: 61px; }
   .studio-body { grid-template-columns: minmax(0, 1fr); }
   .studio-side { display: none; }
   .studio-select { display: block; position: sticky; z-index: 15; }
@@ -72,7 +82,7 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
   .studio-head .modeswitch .seg { display: flex; width: 100%; }
   .studio-head .modeswitch .seg button { flex: 1; }
   .studio-head .picker { order: 6; width: 100%; }
-  .studio-select { top: 113px; }
+  .studio-select { top: var(--studio-head-h); }
   .studio-main { padding: 0 var(--s-4) var(--s-8); }
   .seg button { min-height: 44px; }
   .page { padding-top: var(--s-6); }

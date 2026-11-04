@@ -8,6 +8,7 @@ import { WidgetGrid } from '../../react/widget-grid';
 import type { WidgetDefinition } from '../../react/widget-grid';
 import { SmartStack } from '../../react/smart-stack';
 import { ConsoleTopbar } from '../../react/console-topbar';
+import { WhatsNew } from '../../react/whats-new';
 import { Sparkline, Bars, HBars, Ring, ActivityStrip, LineChart } from '../../react/viz';
 import type { LayoutItem } from '../../react/widget-state';
 
@@ -149,6 +150,7 @@ function ConsoleView({ focus }: { focus?: string }) {
       />
       <button type="button" className="btn btn-primary">New invoice</button>
       <WidgetGrid definitions={DEFS} layout={ALL} columns={4} focus={focus} storageKey={null} />
+      <WhatsNew open onClose={() => {}} version="1.6.0" lastSeen={null} releases={[{ version: '1.6.0', date: '2026-11-01', changes: [{ kind: 'new', text: 'Live activity' }, { kind: 'improved', text: 'Rail' }, { kind: 'fixed', text: 'Focus' }] }]} />
     </div>
   );
 }
@@ -159,6 +161,7 @@ describe('accent budget across the console view (law 3)', () => {
       const { container } = render(<ConsoleView focus={focus} />);
       expect(container.querySelector('.ibtn .num')?.textContent).toBe('1');
       expect(container.querySelector('.ibtn .dot')).not.toBeNull();
+      expect(container.querySelector('.drawer .badge.bloom')?.textContent).toBe('New');
       const b = accentBudget(container);
       expect(b.other).toEqual([]);
       expect(b.primary).toBe(1);

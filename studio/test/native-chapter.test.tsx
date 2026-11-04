@@ -70,6 +70,40 @@ describe('NativeChapter', () => {
     window.removeEventListener('click', record);
   });
 
+  it('an in-page anchor moves focus to its target as well as scrolling (WCAG 2.4.1), making it focusable when needed', () => {
+    const { container } = render(
+      <NativeChapter slug="decks">
+        <a id="skip" href="#plain-target">Skip</a>
+        <div id="plain-target"><p>content</p></div>
+        <a id="skip2" href="#own-target">Skip</a>
+        <div id="own-target" tabIndex={-1} />
+        <a id="skip3" href="#btn-target">Skip</a>
+        <button id="btn-target" type="button">already focusable</button>
+      </NativeChapter>,
+    );
+    const target = container.querySelector<HTMLElement>('#plain-target')!;
+    fireEvent.click(container.querySelector('#skip')!, { button: 0 });
+    expect(target.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(target);
+    fireEvent.click(container.querySelector('#skip2')!, { button: 0 });
+    expect(document.activeElement?.id).toBe('own-target');
+    fireEvent.click(container.querySelector('#skip3')!, { button: 0 });
+    expect(document.activeElement?.id).toBe('btn-target');
+    expect(container.querySelector('#btn-target')!.hasAttribute('tabindex')).toBe(false);
+  });
+
+  it('the skip-link specimens (#sh-main, #shr-main) move focus into their content region', async () => {
+    window.history.replaceState(null, '', '/components');
+    const { container } = render(<App />);
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+    for (const id of ['sh-main', 'shr-main']) {
+      const skip = container.querySelector<HTMLAnchorElement>(`.chap a.skip[href="#${id}"]`)!;
+      expect(skip, id).not.toBeNull();
+      fireEvent.click(skip, { button: 0 });
+      expect(document.activeElement?.id, id).toBe(id);
+    }
+  });
+
   it('runs a chapter script after mount and leaves no listener, timer or cleanup behind on unmount', () => {
     vi.useFakeTimers();
     const onWin = vi.fn();

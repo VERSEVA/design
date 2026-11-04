@@ -13,6 +13,7 @@ import { ActivityStrip, Bars, HBars, LineChart, Ring, Sparkline, Trend } from '.
 import { addWidget, move } from '../../../react/widget-state';
 import type { LayoutItem, WidgetSize } from '../../../react/widget-state';
 import { navigate } from '../shell/router';
+import { usePauseMotion } from '../theme';
 import './widgets.css';
 
 export const SECTIONS: ReadonlyArray<{ id: string; label: string }> = [
@@ -94,11 +95,17 @@ const LIVE_PAGES = (size: WidgetSize) => [
     : <><Hd i={I.live} label="Approvals" meta="4" /><Rows rows={[[<b key="a">Q-2081</b>, '₱240k'], [<b key="b">PO-77</b>, '₱88k'], [<b key="c">SOW-12</b>, '₱410k']]} /></> },
 ];
 
+/* The stack rotates on its own, so the studio's Pause motion stops it too (WCAG 2.2.2). */
+function LiveStack({ size, editing }: { size: WidgetSize; editing: boolean }) {
+  const still = usePauseMotion();
+  return <SmartStack label="Live now" pages={LIVE_PAGES(size)} paused={editing || still} />;
+}
+
 export const DEFINITIONS: WidgetDefinition[] = [
   { kind: 'revenue', name: 'Revenue', icon: I.revenue, sizes: ['s', 'm', 'l', 'xl'], render: revenueView },
   {
     kind: 'live', name: 'Live now', icon: I.live, sizes: ['s', 'm'],
-    render: (size, st) => <SmartStack label="Live now" pages={LIVE_PAGES(size)} paused={st.editing} />,
+    render: (size, st) => <LiveStack size={size} editing={st.editing} />,
   },
   {
     kind: 'runway', name: 'Runway', icon: I.runway, sizes: ['s', 'm'],
