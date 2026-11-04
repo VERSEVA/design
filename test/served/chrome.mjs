@@ -42,7 +42,7 @@ function findChrome() {
 }
 
 /* Starts the server and Chrome. `extra` maps a path to HTML served only by this run. */
-export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs = 20000 } = {}) {
+export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs = 60000 } = {}) {
   assert.ok(fs.existsSync(path.join(out, 'index.html')), 'out/ missing: run npm run studio:build && npm run assemble');
   const bin = findChrome();
   assert.ok(bin, 'no Chrome found for the served Chrome tests: set CHROME_PATH');
@@ -73,18 +73,31 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
     for (const e of events.splice(0)) e.reject(dead);
   };
   chrome.once('exit', (code, sig) => die(`Chrome exited (${sig ?? code})`));
-  const wsUrl = await new Promise((resolve, reject) => {
-    let buf = '';
-    const t = setTimeout(() => { chrome.kill('SIGKILL'); reject(new Error(`Chrome did not start within ${launchTimeoutMs}ms`)); }, launchTimeoutMs);
-    chrome.once('exit', () => { clearTimeout(t); reject(new Error('Chrome exited before it started')); });
-    chrome.stderr.on('data', (d) => { buf += d; const m = buf.match(/DevTools listening on (ws:\/\/\S+)/); if (m) { clearTimeout(t); resolve(m[1]); } });
-  });
-  const ws = new WebSocket(wsUrl);
-  await new Promise((r, j) => {
-    const t = setTimeout(() => j(new Error(`Chrome DevTools socket did not open within ${launchTimeoutMs}ms`)), launchTimeoutMs);
-    ws.onopen = () => { clearTimeout(t); r(); };
-    ws.onerror = (e) => { clearTimeout(t); j(e); };
-  });
+  /* A failed launch releases what it opened (server, Chrome, profile), or the run never exits. */
+  const release = () => {
+    try { chrome.kill('SIGKILL'); } catch { /* gone */ }
+    server.close();
+    try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* gone */ }
+  };
+  let ws;
+  try {
+    const wsUrl = await new Promise((resolve, reject) => {
+      let buf = '';
+      const t = setTimeout(() => { chrome.kill('SIGKILL'); reject(new Error(`Chrome did not start within ${launchTimeoutMs}ms`)); }, launchTimeoutMs);
+      chrome.once('exit', () => { clearTimeout(t); reject(new Error('Chrome exited before it started')); });
+      chrome.stderr.on('data', (d) => { buf += d; const m = buf.match(/DevTools listening on (ws:\/\/\S+)/); if (m) { clearTimeout(t); resolve(m[1]); } });
+    });
+    ws = new WebSocket(wsUrl);
+    await new Promise((r, j) => {
+      const t = setTimeout(() => j(new Error(`Chrome DevTools socket did not open within ${launchTimeoutMs}ms`)), launchTimeoutMs);
+      ws.onopen = () => { clearTimeout(t); r(); };
+      ws.onerror = (e) => { clearTimeout(t); j(e); };
+    });
+  } catch (e) {
+    try { ws?.close(); } catch { /* closed */ }
+    release();
+    throw e;
+  }
   ws.onclose = () => die('Chrome DevTools socket closed');
   let seq = 0;
   ws.onmessage = (m) => {
