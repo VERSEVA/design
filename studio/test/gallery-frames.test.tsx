@@ -1,7 +1,7 @@
 // Gallery frames behave like the studio's own: they follow the theme and brand,
 // an example frame is as tall as its document (one scrollbar, the page's), and its
-// source ships inside the bundle, generated from the served file.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+// source is the served file, loaded as its own chunk.
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { render, act, fireEvent } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
@@ -12,10 +12,10 @@ import { applyTheme } from '../src/theme';
 import { GalleryCodePage } from '../src/gallery/GalleryCodePage';
 import { GalleryExamplePage } from '../src/gallery/GalleryExamplePage';
 import { Page as Gallery } from '../src/chapters/pages/gallery';
-import SOURCES from '../src/gallery/sources.json';
-import { gallerySources, format } from '../scripts/gallery-sources.mjs';
+import { SOURCE_SLUGS, loadSource } from '../src/gallery/sources';
 
 const repo = path.resolve(__dirname, '../..');
+const served = (slug: string) => fs.readFileSync(path.join(repo, 'site/examples', `${slug}.html`), 'utf8');
 
 /* jsdom loads no subresources: give a frame an empty document to work on. */
 function frameDoc(f: HTMLIFrameElement) {
@@ -107,32 +107,89 @@ describe('gallery code route', () => {
     expect(window.location.pathname).toBe('/gallery/pulse');
   });
 
-  it('renders each source on the server, with no fetch', () => {
+  it('pre-renders each code page with its whole source escaped in the HTML, with no fetch', async () => {
     const fetch = vi.spyOn(globalThis, 'fetch');
-    for (const slug of Object.keys(SOURCES)) {
-      const html = renderToStaticMarkup(<GalleryCodePage slug={slug} />);
+    const { renderDocument } = await import('../src/entry-server');
+    const template = fs.readFileSync(path.join(repo, 'studio/index.html'), 'utf8');
+    for (const slug of SOURCE_SLUGS) {
+      /* jsdom has a document, so the router reads the URL (the build machine has none) */
+      window.history.replaceState(null, '', `/gallery/${slug}/code`);
+      const html = renderDocument(template, `/gallery/${slug}/code`);
+      expect(html, slug).not.toContain('<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">');
       const code = new DOMParser().parseFromString(html, 'text/html').querySelector('#srccode')!.textContent;
-      expect(code, slug).toBe((SOURCES as Record<string, string>)[slug]);
+      expect(code, slug).toBe(served(slug));
     }
-    render(<GalleryCodePage slug="store" />);
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('copies the inlined source', async () => {
+  it('on a client visit, loads the source chunk into an empty, busy box, then shows it', async () => {
+    vi.resetModules();
+    const { GalleryCodePage: Fresh } = await import('../src/gallery/GalleryCodePage');
+    const { container } = render(<Fresh slug="quote-tool" />);
+    const pre = container.querySelector('pre')!;
+    expect([pre.textContent, pre.getAttribute('aria-busy'), container.querySelector<HTMLButtonElement>('#copysrc')!.disabled]).toEqual(['', 'true', true]);
+    await vi.waitFor(() => expect(container.querySelector('#srccode')!.textContent).toBe(served('quote-tool')));
+    expect([pre.hasAttribute('aria-busy'), container.querySelector<HTMLButtonElement>('#copysrc')!.disabled]).toEqual([false, false]);
+  });
+
+  it('copies the loaded source', async () => {
+    await loadSource('landing');
     const write = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: write }, configurable: true });
     const { container } = render(<GalleryCodePage slug="landing" />);
     await act(async () => { fireEvent.click(container.querySelector('#copysrc')!); });
-    expect(write).toHaveBeenCalledWith((SOURCES as Record<string, string>).landing);
+    expect(write).toHaveBeenCalledWith(served('landing'));
     expect(container.querySelector('#copysrc')!.textContent).toBe('Copied');
   });
 });
 
+describe('a source chunk that fails on a client visit', () => {
+  it('shows a label and Retry, rejects nothing unhandled, and Retry refetches', async () => {
+    vi.resetModules();
+    const sources = await import('../src/gallery/sources');
+    const { GalleryCodePage: Fresh } = await import('../src/gallery/GalleryCodePage');
+    const ok = sources.BY_SLUG.store;
+    let fail = true;
+    const chunk = vi.fn(() => (fail ? Promise.reject(new Error('500 /_s/store.js')) : ok()));
+    sources.BY_SLUG.store = chunk;
+    const unhandled = vi.fn();
+    process.on('unhandledRejection', unhandled);
+    try {
+      const { container } = render(<Fresh slug="store" />);
+      await vi.waitFor(() => expect(container.querySelector('.srcerr')).not.toBeNull());
+      expect(container.querySelector('.srcerr [role="alert"]')!.textContent).toBe('Source failed to load');
+      expect(container.querySelector('pre')).toBeNull();
+      expect(container.querySelector<HTMLButtonElement>('#copysrc')!.disabled).toBe(true);
+      await new Promise((r) => setTimeout(r, 0));
+      expect(unhandled).not.toHaveBeenCalled();
+      fail = false;
+      await act(async () => { fireEvent.click(container.querySelector('#retrysrc')!); });
+      await vi.waitFor(() => expect(container.querySelector('#srccode')?.textContent).toBe(served('store')));
+      expect(chunk).toHaveBeenCalledTimes(2);
+      expect(container.querySelector('.srcerr')).toBeNull();
+    } finally {
+      process.off('unhandledRejection', unhandled);
+    }
+  });
+
+  it('forgets a failed load, so the next load fetches again', async () => {
+    vi.resetModules();
+    const sources = await import('../src/gallery/sources');
+    const ok = sources.BY_SLUG.pulse;
+    const chunk = vi.fn().mockRejectedValueOnce(new Error('500')).mockImplementation(ok);
+    sources.BY_SLUG.pulse = chunk;
+    await expect(sources.loadSource('pulse')).rejects.toThrow('500');
+    expect(await sources.loadSource('pulse')).toBe(served('pulse'));
+    expect(chunk).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('gallery sources', () => {
-  it('sources.json is byte for byte what the generator writes from site/examples/*.html, the files assemble serves at /examples', () => {
-    expect(format(gallerySources(path.join(repo, 'site/examples')))).toBe(fs.readFileSync(path.join(repo, 'studio/src/gallery/sources.json'), 'utf8'));
+  beforeAll(() => Promise.all(SOURCE_SLUGS.map(loadSource)));
+  it('loads one source per site/examples/*.html, byte for byte the file assemble serves at /examples', async () => {
     const files = fs.readdirSync(path.join(repo, 'site/examples')).filter((f) => f.endsWith('.html')).sort();
-    expect(Object.keys(SOURCES).map((s) => `${s}.html`).sort()).toEqual(files);
-    for (const f of files) expect((SOURCES as Record<string, string>)[f.replace(/\.html$/, '')]).toBe(fs.readFileSync(path.join(repo, 'site/examples', f), 'utf8'));
+    expect(SOURCE_SLUGS.map((s) => `${s}.html`)).toEqual(files);
+    for (const slug of SOURCE_SLUGS) expect(await loadSource(slug), slug).toBe(served(slug));
+    expect(await loadSource('nope')).toBeUndefined();
   });
 });

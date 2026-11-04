@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const out = path.join(root, 'out');
@@ -21,9 +21,7 @@ export const PROBED = ['/components', '/gallery', ...routes.filter((r) => r.path
 const WIDTH = 375;
 /* Example files that are wider than a 375px phone on their own, and why they are not fixed here.
    An entry that stops overflowing fails, so the list cannot go stale. */
-export const FRAME_OVERFLOW_ALLOWED = {
-  '/examples/landing.html': 'the example file itself is 433px wide at 375px standalone (its top-bar buttons); a fix belongs in site/examples/landing.html, out of this port',
-};
+export const FRAME_OVERFLOW_ALLOWED = {};
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.woff2': 'font/woff2' };
 
@@ -149,9 +147,21 @@ test('the probe sees a wide page', { timeout: 60000 }, async () => {
   assert.ok(r.scrollWidth > r.clientWidth, `the frozen site/components.html overflows at ${WIDTH}px, so the probe must see it (got ${r.scrollWidth} vs ${r.clientWidth})`);
 });
 
-test('every /examples/*.html is served byte for byte as the studio inlines it', () => {
-  const sources = JSON.parse(fs.readFileSync(path.join(root, 'studio/src/gallery/sources.json'), 'utf8'));
-  for (const [slug, text] of Object.entries(sources)) {
-    assert.equal(fs.readFileSync(path.join(out, 'examples', `${slug}.html`), 'utf8'), text, slug);
+/* React's text escapes, undone: the pre-rendered #srccode back to the string it was given. */
+const unescapeText = (h) => h.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&amp;/g, '&');
+
+test('every /examples/*.html is served byte for byte as its code page and its source chunk show it', async () => {
+  const slugs = fs.readdirSync(path.join(root, 'site/examples')).filter((f) => f.endsWith('.html')).map((f) => f.replace(/\.html$/, '')).sort();
+  const chunks = fs.readdirSync(path.join(out, '_s'));
+  for (const slug of slugs) {
+    const served = fs.readFileSync(path.join(out, 'examples', `${slug}.html`), 'utf8');
+    const page = fs.readFileSync(path.join(out, 'gallery', slug, 'code', 'index.html'), 'utf8');
+    const m = page.match(/<code id="srccode">([\s\S]*?)<\/code>/);
+    assert.ok(m, `${slug}: pre-rendered code page has no #srccode`);
+    assert.equal(unescapeText(m[1]), served, `${slug}: pre-rendered code page`);
+    const chunk = chunks.filter((f) => new RegExp(`^${slug}-[A-Za-z0-9_-]{8}\\.js$`).test(f));
+    assert.equal(chunk.length, 1, `${slug}: one source chunk in out/_s (got ${chunk.join(', ') || 'none'})`);
+    const { default: text } = await import(pathToFileURL(path.join(out, '_s', chunk[0])).href);
+    assert.equal(text, served, `${slug}: source chunk ${chunk[0]}`);
   }
 });

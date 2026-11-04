@@ -18,6 +18,7 @@
   .nav .mark { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 16px; }
   .nav nav { flex: 1; display: flex; gap: var(--s-4); }
   .nav nav a { font-size: 13.5px; color: var(--text-2); text-decoration: none; }
+  @media (max-width: 599.98px) { .nav { flex-wrap: wrap; row-gap: var(--s-2); } .nav .mark { flex: 1; } .nav nav { order: 1; flex-basis: 100%; } }
   .hero { padding: var(--s-9) 0 var(--s-7); max-width: 46rem; }
   .hero h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(38px, 6vw, 60px); letter-spacing: -0.025em; line-height: 1.05; }
   .hero p { color: var(--text-2); font-size: 17px; max-width: 52ch; padding-top: var(--s-4); }
