@@ -20,7 +20,13 @@
   .overlay h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(40px, 7vw, 84px); letter-spacing: -0.03em; line-height: 1.02; max-width: 14ch; }
   .overlay p { color: var(--text-2); font-size: 17px; max-width: 44ch; padding-top: var(--s-4); }
   .overlay .cta { display: flex; gap: var(--s-3); padding-top: var(--s-5); pointer-events: auto; }
-  .hint { position: absolute; z-index: 2; left: 50%; bottom: var(--s-5); transform: translateX(-50%); font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+  .hint { position: absolute; z-index: 2; left: 50%; bottom: var(--s-5); transform: translateX(-50%); font-family: var(--font-mono); font-size: 11px; color: var(--text-3); white-space: nowrap; padding: var(--s-1) var(--s-3); border-radius: var(--r-pill); background: color-mix(in srgb, var(--bg) 90%, transparent); }
+  /* A directional scrim between the scene and the copy: the ground colour holds behind the text
+     and fades out over the knot, so the copy keeps its contrast in both themes. */
+  .stage::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 90%, transparent) 0%, color-mix(in srgb, var(--bg) 90%, transparent) 58%, transparent 84%); }
+  @media (max-width: 760px) {
+    .stage::before { background: linear-gradient(180deg, transparent 8%, color-mix(in srgb, var(--bg) 90%, transparent) 22%, color-mix(in srgb, var(--bg) 90%, transparent) 78%, transparent 92%); }
+  }
   .below { max-width: var(--container-content); margin: 0 auto; padding: var(--s-9) var(--s-6); display: grid; gap: var(--s-5); }
   .below h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 24px; letter-spacing: -0.015em; }
   .trio { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s-4); }
@@ -74,15 +80,14 @@
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   const scene = new THREE.Scene();
-  scene.background = tok('--bg');
-  scene.fog = new THREE.Fog(tok('--bg'), 8, 22);
+  scene.fog = new THREE.Fog(0, 8, 22);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
   camera.position.set(0, 0.4, 9);
 
   const knot = new THREE.Mesh(
     new THREE.TorusKnotGeometry(2.1, 0.62, 220, 36),
-    new THREE.MeshStandardMaterial({ color: tok('--surface-2'), metalness: 0.55, roughness: 0.32 })
+    new THREE.MeshStandardMaterial({ metalness: 0.55, roughness: 0.32 })
   );
   knot.position.x = 2.2;
   scene.add(knot);
@@ -94,16 +99,37 @@
     arr[i * 3] = r * Math.sin(p) * Math.cos(t); arr[i * 3 + 1] = r * Math.cos(p) * 0.6; arr[i * 3 + 2] = r * Math.sin(p) * Math.sin(t) - 4;
   }
   pts.setAttribute('position', new THREE.BufferAttribute(arr, 3));
-  const dots = new THREE.Points(pts, new THREE.PointsMaterial({ color: tok('--text-3'), size: 0.035, transparent: true, opacity: 0.7 }));
+  const dots = new THREE.Points(pts, new THREE.PointsMaterial({ size: 0.035, transparent: true, opacity: 0.7 }));
   scene.add(dots);
 
-  scene.add(new THREE.AmbientLight(tok('--text-3'), 0.5));
-  const key = new THREE.DirectionalLight(tok('--text-1'), 1.1);
+  const ambient = new THREE.AmbientLight(0, 0.5);
+  scene.add(ambient);
+  const key = new THREE.DirectionalLight(0, 1.1);
   key.position.set(-4, 6, 6);
   scene.add(key);
-  const rim = new THREE.PointLight(tok('--accent'), 260, 40);
+  const rim = new THREE.PointLight(0, 260, 40);
   rim.position.set(6.5, -1.5, 3.5);
   scene.add(rim);
+
+  /* The scene takes its colours from the tokens, and takes them again whenever the theme or brand
+     changes (the studio flips a frame after load) or a theme sheet lands. In light the glass is
+     lit from the surface tones, so the knot stays light behind dark copy; in dark it stays dark. */
+  function retheme() {
+    const light = document.documentElement.dataset.theme === 'light';
+    scene.background = tok('--bg');
+    scene.fog.color = tok('--bg');
+    knot.material.color = tok('--surface-2');
+    knot.material.metalness = light ? 0.15 : 0.55;
+    dots.material.color = tok('--text-3');
+    ambient.color = light ? tok('--surface') : tok('--text-3');
+    ambient.intensity = light ? 1.6 : 0.5;
+    key.color = light ? tok('--surface') : tok('--text-1');
+    rim.color = tok('--accent');
+    rim.intensity = light ? 90 : 260;
+    renderer.render(scene, camera);
+  }
+  new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-brand'] });
+  document.addEventListener('load', (e) => { if (e.target instanceof HTMLLinkElement) retheme(); }, true);
 
   let dragX = 0, dragY = 0, tx = 0, ty = 0, dragging = false, px = 0, py = 0;
   canvas.addEventListener('pointerdown', (e) => { dragging = true; px = e.clientX; py = e.clientY; });
@@ -123,6 +149,7 @@
   }
   addEventListener('resize', size);
   size();
+  retheme();
 
   renderer.setAnimationLoop((t) => {
     if (!reduced) { knot.rotation.y = t * 0.00012; dots.rotation.y = t * 0.00003; }

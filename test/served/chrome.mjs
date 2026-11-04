@@ -139,6 +139,8 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
         if (exceptionDetails) throw new Error(exceptionDetails.exception?.description ?? exceptionDetails.text);
         return result.value;
       },
+      /* A PNG of the viewport, base64. */
+      shot: () => send('Page.captureScreenshot', { format: 'png' }, sessionId).then((r) => r.data),
       close: () => send('Target.closeTarget', { targetId }),
     };
   }
