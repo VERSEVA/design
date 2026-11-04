@@ -3,6 +3,7 @@
 // it, for a returning visitor whose stored theme differs from the server default.
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from '@testing-library/react';
+import fs from 'node:fs';
 import { LIVE_ROUTES, topOf } from '../src/shell/routes-table';
 
 /* Server and client each get a fresh module graph, as on the build machine and in the browser. */
@@ -43,7 +44,7 @@ function stubOs(light: boolean) {
   })) as unknown as typeof window.matchMedia;
 }
 
-/** Pre-render `renderPath` on a fresh server graph, load it at `url`, boot it as main.tsx does. */
+/** Pre-render `renderPath` on a fresh server graph, load it at `url`, boot it as main.tsx does (ready, then boot). */
 async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[number]) {
   const { renderApp } = await fresh<Server>('../src/entry-server');
   const html = serverHtml(renderApp, renderPath);
@@ -64,7 +65,8 @@ async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[num
   const recoverable: unknown[] = [];
   vi.spyOn(console, 'error').mockImplementation((...a: unknown[]) => { errors.push(a.map(String).join(' ')); });
 
-  const { boot } = await fresh<Client>('../src/boot');
+  const { boot, ready } = await fresh<Client>('../src/boot');
+  await ready(el);
   await act(async () => {
     unmount = boot(el, { onRecoverableError: (e) => recoverable.push(e) });
   });
@@ -93,6 +95,13 @@ describe('hydration', () => {
           const top = topOf(path);
           expect(el.querySelector(`.snav-page [aria-current="${top === path ? 'page' : 'true'}"]`)?.getAttribute('href')).toBe(top);
           expect(el.querySelector<HTMLSelectElement>('.studio-select select')!.value).toBe(top);
+          /* A code page hydrates with its whole source in place: no empty box, nothing pending. */
+          const code = path.match(/^\/gallery\/([a-z0-9-]+)\/code$/);
+          if (code) {
+            expect(el.querySelector('#srccode')!.textContent).toBe(fs.readFileSync(`${__dirname}/../../site/examples/${code[1]}.html`, 'utf8'));
+            expect(el.querySelector('pre')!.hasAttribute('aria-busy')).toBe(false);
+            expect(el.querySelector<HTMLButtonElement>('#copysrc')!.disabled).toBe(false);
+          }
         });
       }
       it('404.html hydrates at an unknown path', async () => {

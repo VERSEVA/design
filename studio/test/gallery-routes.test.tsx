@@ -15,6 +15,7 @@ import { ROUTE_TABLE, LIVE_ROUTES } from '../src/shell/routes-table';
 import { exampleLink, GALLERY } from '../src/gallery/examples';
 import { Page as Gallery } from '../src/chapters/pages/gallery';
 import { GalleryCodePage, FROZEN_CODE } from '../src/gallery/GalleryCodePage';
+import { loadSource } from '../src/gallery/sources';
 import { createHash } from 'node:crypto';
 
 const repo = path.resolve(__dirname, '../..');
@@ -162,6 +163,7 @@ describe('the code route against the legacy code.html', () => {
     await legacy.fetched;
     await new Promise((r) => setTimeout(r, 0));
     legacy.querySelector('header.topbar')!.remove();
+    await loadSource(slug);
     const { container } = render(<GalleryCodePage slug={slug} />);
     await tick();
     const chap = container.querySelector('.chap')!;

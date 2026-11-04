@@ -1,4 +1,5 @@
-import { boot } from './boot';
+import { boot, ready } from './boot';
 import './studio.css';
 
-boot(document.getElementById('studio-root')!);
+const el = document.getElementById('studio-root')!;
+void ready(el).then(() => boot(el));

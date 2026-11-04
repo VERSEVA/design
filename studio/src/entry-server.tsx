@@ -6,6 +6,10 @@ import { App } from './App';
 import { setServerPath } from './shell/router';
 import { LIVE_ROUTES } from './shell/routes-table';
 import { headFor } from './shell/head';
+import { primeSources } from './gallery/sources';
+
+/* The pre-render holds every gallery source, so each code page ships its full text in the HTML. */
+primeSources(import.meta.glob<string>('../../site/examples/*.html', { query: '?raw', import: 'default', eager: true }));
 
 export const PRERENDER_PATHS: ReadonlyArray<string> = LIVE_ROUTES.map((r) => r.path);
 
