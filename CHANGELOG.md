@@ -1,8 +1,27 @@
 # Changelog
 
-## 1.6.0 · unreleased
+## 1.6.0 · 2026-11-04
+
+A widget home, a live activity capsule and a command bar, each as CSS recipes, React parts (`npx verseva add`) and a pure state module, with live specimens at design.verseva.com/widgets. No 1.5 class or token is renamed; two visible changes are listed under Changed and Fixed.
 
 ### Added
+
+- **Widget grid `.wgrid` and tile `.wtile[data-size]`.** 4 columns, 2 under 1100px, 1 under 560px; S 1x1, M 2x1,
+  L 2x2, XL 4x2, each tile rendering the view for its fitted size (XL drops to L at 2 columns, L and XL to M at 1).
+  Glass at `--r-lg`; hover, focus-visible, press, disabled, loading (`.skel` copy), error with Retry, empty grid and
+  reduced-motion states. Accent budget: charts in a tile draw on the text ladder; only the one `focus` widget keeps
+  the accent.
+- **Edit mode.** Rotation-only jiggle, remove with Undo, `aria-pressed` size buttons (sizes that do not fit stay,
+  `aria-disabled`), reorder by drag, a touch handle, Move up and Move down, or Alt+Arrow; 44px hit areas; polite
+  announcements; Esc leaves.
+- **Smart stack `.wstack`** with a visible pause; the timer stops on hover, focus and under reduced motion.
+- **Gallery drawer content `.wgal`** for adding widgets.
+- **React parts** `widget-grid`, `smart-stack`, `widget-gallery` and the pure `widget-state` (`npx verseva add widget-grid`).
+- **New global classes:** `.wgrid`, `.wgrid-empty`, `.wgrid-add`, `.wgrid-undo`, `.wtile`, `.wtile-body`, `.wtile-hd`,
+  `.wtile-meta`, `.wtile-num`, `.wtile-sub`, `.wtile-foot`, `.wtile-rows`, `.wtile-row`, `.wtile-val`, `.wtile-skel`,
+  `.wtile-skel-num`, `.wtile-skel-plot`, `.wtile-err`, `.wtile-errline`, `.wtile-x`, `.wtile-edit`, `.wtile-handle`,
+  `.wtile-sizes`, `.wtile-move`, `.wstack`, `.wstack-pages`, `.wstack-page`, `.wstack-nav`, `.wstack-dot`,
+  `.wstack-pause`, `.wstack-step`, `.wgal`, `.wgal-item`, `.wgal-icon`, `.wgal-name`, `.wgal-sizes`. Keyframes: `wtile-jiggle`.
 
 - **Live activity capsule `.lact` and panel `.lact-panel`.** A glass capsule for long jobs in the top bar's
   `.tbar-end`, before the bell: the running job closest to done with its ring and percent, `+n` running. Ring and
@@ -31,25 +50,6 @@
 - **Console top bars with a search now centre it.** Every `.tbar` that holds a `.searchbox`
   (including 1.3 consoles built on `ConsoleTopbar` with `ConsoleSearch`) takes the three-column
   layout; on phone the search fills the space the hidden breadcrumb leaves.
-
-### Added: widgets
-
-- **Widget grid `.wgrid` and tile `.wtile[data-size]`.** 4 columns, 2 under 1100px, 1 under 560px; S 1x1, M 2x1,
-  L 2x2, XL 4x2, each tile rendering the view for its fitted size (XL drops to L at 2 columns, L and XL to M at 1).
-  Glass at `--r-lg`; hover, focus-visible, press, disabled, loading (`.skel` copy), error with Retry, empty grid and
-  reduced-motion states. Accent budget: charts in a tile draw on the text ladder; only the one `focus` widget keeps
-  the accent.
-- **Edit mode.** Rotation-only jiggle, remove with Undo, `aria-pressed` size buttons (sizes that do not fit stay,
-  `aria-disabled`), reorder by drag, a touch handle, Move up and Move down, or Alt+Arrow; 44px hit areas; polite
-  announcements; Esc leaves.
-- **Smart stack `.wstack`** with a visible pause; the timer stops on hover, focus and under reduced motion.
-- **Gallery drawer content `.wgal`** for adding widgets.
-- **React parts** `widget-grid`, `smart-stack`, `widget-gallery` and the pure `widget-state` (`npx verseva add widget-grid`).
-- **New global classes:** `.wgrid`, `.wgrid-empty`, `.wgrid-add`, `.wgrid-undo`, `.wtile`, `.wtile-body`, `.wtile-hd`,
-  `.wtile-meta`, `.wtile-num`, `.wtile-sub`, `.wtile-foot`, `.wtile-rows`, `.wtile-row`, `.wtile-val`, `.wtile-skel`,
-  `.wtile-skel-num`, `.wtile-skel-plot`, `.wtile-err`, `.wtile-errline`, `.wtile-x`, `.wtile-edit`, `.wtile-handle`,
-  `.wtile-sizes`, `.wtile-move`, `.wstack`, `.wstack-pages`, `.wstack-page`, `.wstack-nav`, `.wstack-dot`,
-  `.wstack-pause`, `.wstack-step`, `.wgal`, `.wgal-item`, `.wgal-icon`, `.wgal-name`, `.wgal-sizes`. Keyframes: `wtile-jiggle`.
 
 ### Fixed
 
