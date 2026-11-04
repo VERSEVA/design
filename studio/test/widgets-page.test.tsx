@@ -74,7 +74,8 @@ describe('/widgets', () => {
   it('ask: the answer streams, then Pin to Home puts the revenue widget first on Home', async () => {
     const { container, getByRole } = await open();
     fireEvent.click(getByRole('button', { name: 'Search or ask' }));
-    const input = container.querySelector<HTMLInputElement>('.cmdk-input')!;
+    /* the bar is its own chunk, loaded on first open */
+    const input = await waitFor(() => { const el = container.querySelector<HTMLInputElement>('.cmdk-input'); if (!el) throw new Error('bar did not open'); return el; }, { timeout: 5000 });
     fireEvent.change(input, { target: { value: 'what was revenue this month?' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     const pin = await waitFor(() => getByRole('button', { name: 'Pin to Home' }), { timeout: 8000 });
@@ -127,6 +128,7 @@ describe('/widgets', () => {
   it('the demo commands carry no key hints (no sequences are wired)', async () => {
     const { container, getByRole } = await open();
     fireEvent.click(getByRole('button', { name: 'Search or ask' }));
+    await waitFor(() => { if (!container.querySelector('.cmdk [role="option"]')) throw new Error('bar did not open'); }, { timeout: 5000 });
     expect(container.querySelectorAll('.cmdk [role="option"]').length).toBeGreaterThan(0);
     expect(container.querySelectorAll('.cmdk .cmdk-hint')).toHaveLength(0);
   });

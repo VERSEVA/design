@@ -5,6 +5,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from '@testing-library/react';
 import fs from 'node:fs';
 import { LIVE_ROUTES, topOf } from '../src/shell/routes-table';
+import { navActive } from '../src/shell/nav';
 
 /* Server and client each get a fresh module graph, as on the build machine and in the browser. */
 const fresh = async <T,>(spec: string): Promise<T> => { vi.resetModules(); return import(/* @vite-ignore */ spec) as Promise<T>; };
@@ -31,11 +32,14 @@ afterEach(() => {
 });
 
 /* Returning visitors: a stored light + brand choice, a stored dark choice, and system on a light OS. */
-const VISITORS = [
-  { name: 'stored light, cobalt', store: { 'verseva-brand': 'cobalt', 'verseva-theme': 'light' }, osLight: false, theme: 'light', mode: 'Light' },
-  { name: 'stored dark', store: { 'verseva-theme': 'dark' }, osLight: true, theme: undefined, mode: 'Dark' },
-  { name: 'system on a light OS', store: { 'verseva-theme': 'system' }, osLight: true, theme: 'light', mode: 'System' },
+const BASE = [
+  { name: 'stored light, cobalt', store: { 'verseva-brand': 'cobalt', 'verseva-theme': 'light' }, osLight: false, theme: 'light', mode: 'light', label: 'Theme: light. Switch to dark' },
+  { name: 'stored dark', store: { 'verseva-theme': 'dark' }, osLight: true, theme: undefined, mode: 'dark', label: 'Theme: dark. Switch to system' },
+  { name: 'system on a light OS', store: { 'verseva-theme': 'system' }, osLight: true, theme: 'light', mode: 'system', label: 'Theme: system. Switch to light' },
 ] as const;
+/* Each visitor with the sidebar expanded and collapsed to the rail (stored, applied by the head script). */
+const VISITORS = BASE.flatMap((v) => [false, true].map((rail) => ({ ...v, rail, name: `${v.name}, ${rail ? 'rail' : 'expanded'}`, store: rail ? { ...v.store, 'verseva-rail': '1' } : v.store })));
+const headScript = new DOMParser().parseFromString(fs.readFileSync(`${__dirname}/../index.html`, 'utf8'), 'text/html').querySelector('head script:not([src])')!.textContent!;
 
 function stubOs(light: boolean) {
   window.matchMedia = ((q: string) => ({
@@ -49,12 +53,16 @@ async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[num
   const { renderApp } = await fresh<Server>('../src/entry-server');
   const html = serverHtml(renderApp, renderPath);
   expect(html).toMatch(/<h1/);
-  /* the server cannot know the stored mode: the Mode control ships pending */
-  expect(html).toMatch(/class="modeswitch" data-pending=""/);
+  /* the server cannot know the stored mode: the mode button ships pending, its icon drawn from <html data-mode> */
+  expect(html).toMatch(/class="ibtn modebtn" data-pending=""/);
 
   for (const [k, val] of Object.entries(v.store)) localStorage.setItem(k, val);
   stubOs(v.osLight);
   window.history.replaceState(null, '', url);
+  for (const k of ['mode', 'theme', 'brand', 'rail', 'navShut']) delete document.documentElement.dataset[k];
+  new Function(headScript)();
+  expect(document.documentElement.dataset.mode).toBe(v.mode);
+  expect(document.documentElement.dataset.rail).toBe(v.rail ? 'collapsed' : undefined);
   document.body.innerHTML = `<div id="studio-root" data-path="${renderPath}">${html}</div>`;
   const el = document.getElementById('studio-root')!;
   const first = el.firstElementChild;
@@ -78,9 +86,12 @@ async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[num
   expect(el.querySelector('h1')).toBe(h1);
   /* and the visitor's theme is applied after hydration */
   expect(document.documentElement.dataset.theme).toBe(v.theme);
-  /* and the Mode control settles on the stored mode, no longer pending */
-  expect(el.querySelector('.modeswitch')!.hasAttribute('data-pending')).toBe(false);
-  expect([...el.querySelectorAll('.modeswitch [aria-selected="true"]')].map((b) => b.textContent)).toEqual([v.mode]);
+  /* and the mode button settles on the stored mode, no longer pending */
+  const btn = el.querySelector('.modebtn')!;
+  expect(btn.hasAttribute('data-pending')).toBe(false);
+  expect(btn.getAttribute('aria-label')).toBe(v.label);
+  /* the rail state is the head script's, untouched by hydration */
+  expect(document.documentElement.dataset.rail).toBe(v.rail ? 'collapsed' : undefined);
   return el;
 }
 
@@ -118,7 +129,8 @@ describe('hydration', () => {
           const el = await hydrate(path, path, v);
           /* A row with a parent (a gallery example or its code) marks its top-level row instead. */
           const top = topOf(path);
-          expect(el.querySelector(`.snav-page [aria-current="${top === path ? 'page' : 'true'}"]`)?.getAttribute('href')).toBe(top);
+          const nav = navActive(path);
+          expect(el.querySelector(`.side-full .snav-page [aria-current="${nav === path ? 'page' : 'true'}"]`)?.getAttribute('href')).toBe(nav);
           expect(el.querySelector<HTMLSelectElement>('.studio-select select')!.value).toBe(top);
           /* A code page hydrates with its whole source in place: no empty box, nothing pending. */
           const code = path.match(/^\/gallery\/([a-z0-9-]+)\/code$/);
@@ -141,7 +153,7 @@ describe('hydration', () => {
       it('a direct hit on /foundations/index.html is the Foundations page', async () => {
         const el = await hydrate('/foundations', '/foundations/index.html', v);
         expect(el.querySelector('h1')?.textContent).toBe('Foundations');
-        expect(el.querySelector('.snav-page [aria-current="page"]')?.getAttribute('href')).toBe('/foundations');
+        expect(el.querySelector('.side-full .snav-page [aria-current="page"]')?.getAttribute('href')).toBe('/foundations');
       });
     });
   }

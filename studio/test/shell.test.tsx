@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { App } from '../src/App';
 import { navigate } from '../src/shell/router';
 
@@ -18,12 +18,11 @@ describe('studio shell', () => {
     expect(side.querySelector('a[href="/"]')?.getAttribute('aria-current')).toBeNull();
   });
 
-  it('lists the active page anchors in the sidebar', () => {
+  it('lists no page anchors in the sidebar (the On this page rail and the command bar carry them)', () => {
     window.history.replaceState(null, '', '/assets');
     render(<App />);
     const side = screen.getByRole('navigation', { name: 'Studio' });
-    const anchors = [...side.querySelectorAll('a[href^="/assets#"]')].map((a) => a.getAttribute('href'));
-    expect(anchors).toEqual(['/assets#objects', '/assets#loops']);
+    expect(side.querySelector('a[href^="/assets#"]')).toBeNull();
   });
 
   it('offers a select navigator carrying pages and chapters', () => {
@@ -45,12 +44,4 @@ describe('studio shell', () => {
     expect(document.title).toBe('Foundations: color, type, radius and motion tokens');
   });
 
-  it('moves the mode tab with arrow keys', () => {
-    render(<App />);
-    const tabs = screen.getAllByRole('tab').filter((t) => ['Light', 'Dark', 'System'].includes(t.textContent ?? ''));
-    const selected = () => tabs.find((t) => t.getAttribute('aria-selected') === 'true')?.textContent;
-    const start = selected();
-    fireEvent.keyDown(tabs[0].parentElement!, { key: 'ArrowRight' });
-    expect(selected()).not.toBe(start);
-  });
 });

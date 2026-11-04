@@ -19,7 +19,7 @@ const block = (css: string, sel: string) => {
   const i = css.indexOf(`${sel} {`);
   return i < 0 ? '' : css.slice(i, css.indexOf('}', i));
 };
-const mobile = STUDIO.slice(STUDIO.indexOf('@media (max-width: 760px)'));
+const mobile = STUDIO.slice(STUDIO.indexOf('@media (max-width: 899.98px)'));
 
 describe('sticky offset: one variable for every scroll margin', () => {
   it('every scroll-margin-top in the studio reads --studio-scroll-pad, never a pixel literal', () => {
@@ -66,7 +66,7 @@ describe('sticky offset: measured live', () => {
     const root = document.documentElement.style;
     expect(root.getPropertyValue('--studio-head-h')).toBe('191px');
     expect(root.getPropertyValue('--studio-select-h')).toBe('61px');
-    expect(observed.map((e) => e.className)).toEqual(expect.arrayContaining(['studio-head', 'studio-select']));
+    expect(observed.flatMap((e) => [...e.classList])).toEqual(expect.arrayContaining(['studio-head', 'studio-select']));
     heights.set('.studio-head', 65).set('.studio-select', 0);
     act(() => fire());
     expect(root.getPropertyValue('--studio-head-h')).toBe('65px');

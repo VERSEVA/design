@@ -79,12 +79,12 @@ describe('gallery links stay in the shell', () => {
     expect(window.location.pathname).toBe('/gallery');
   });
 
-  it('marks Gallery in the sidebar on its child routes, and lists no child rows there', async () => {
+  it('marks the example in the sidebar on its code route, and lists no code rows there', async () => {
     const { container } = render(<App />);
     await act(async () => { navigate('/gallery/store/code'); });
-    const side = container.querySelector('.studio-side')!;
-    expect(side.querySelector('a.active')!.getAttribute('href')).toBe('/gallery');
-    expect([...side.querySelectorAll('.snav-page > a')].some((a) => a.getAttribute('href')!.startsWith('/gallery/'))).toBe(false);
+    const side = container.querySelector('.studio-side .side-full')!;
+    expect([...side.querySelectorAll('a.active')].map((a) => a.getAttribute('href'))).toEqual(['/gallery/store']);
+    expect([...side.querySelectorAll('.snav-page > a')].some((a) => a.getAttribute('href')!.endsWith('/code'))).toBe(false);
     expect((container.querySelector('.studio-select select') as HTMLSelectElement).value).toBe('/gallery');
   });
 

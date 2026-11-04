@@ -5,7 +5,7 @@ import type { WidgetDefinition, WidgetStatus } from '../../../react/widget-grid'
 import { SmartStack } from '../../../react/smart-stack';
 import { LiveActivity } from '../../../react/live-activity';
 import type { Activity } from '../../../react/live-activity';
-import { CommandBar, CommandBarTrigger } from '../../../react/command-bar';
+import { LazyCommandBar as CommandBar, SearchTrigger as CommandBarTrigger } from '../shell/LazyCommandBar';
 import type { AskResult, Command } from '../../../react/command-bar';
 import { ConsoleTopbar } from '../../../react/console-topbar';
 import type { NotificationItem } from '../../../react/console-topbar';
