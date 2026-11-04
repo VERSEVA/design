@@ -76,14 +76,21 @@ describe('/widgets', () => {
     fireEvent.click(getByRole('button', { name: 'Search or ask' }));
     /* the bar is its own chunk, loaded on first open */
     const input = await waitFor(() => { const el = container.querySelector<HTMLInputElement>('.cmdk-input'); if (!el) throw new Error('bar did not open'); return el; }, { timeout: 5000 });
-    fireEvent.change(input, { target: { value: 'what was revenue this month?' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
-    const pin = await waitFor(() => getByRole('button', { name: 'Pin to Home' }), { timeout: 8000 });
-    expect(container.querySelector('.cmdk-a')?.textContent).toContain('₱1.84M');
-    fireEvent.click(pin);
-    const home = tiles(grid(container, 'Home widgets'));
-    expect(home).toHaveLength(7);
-    expect(home[0].getAttribute('aria-label')).toBe('Revenue, medium');
+    /* The answer streams on timers (700ms, then 60ms a word): drive them on a fake clock, not the wall clock. */
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      fireEvent.change(input, { target: { value: 'what was revenue this month?' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+      const pin = getByRole('button', { name: 'Pin to Home' });
+      expect(container.querySelector('.cmdk-a')?.textContent).toContain('₱1.84M');
+      fireEvent.click(pin);
+      const home = tiles(grid(container, 'Home widgets'));
+      expect(home).toHaveLength(7);
+      expect(home[0].getAttribute('aria-label')).toBe('Revenue, medium');
+    } finally {
+      vi.useRealTimers();
+    }
   }, 15000);
 
   it('states: loading, error with Retry, empty grid, five activity rows, three bar states', async () => {

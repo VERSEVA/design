@@ -15,6 +15,15 @@
 - **Entry tiles** into Components, Widgets, Foundations and Gallery, labels and counts only, in the `/widgets` tile
   language, routed in the shell. The theme picker, token readout, frame stage and counts row leave the home (the
   header's color popover and Foundations carry them); the home no longer loads the 3D stage.
+- **Studio specimen tiles.** Components and Foundations take the /widgets tile language: the package `.wgrid`
+  bento and `.wtile` glass at `--r-lg`, with a header (category icon, name, neutral meta count), the live specimen
+  in the body, and Show code with Copy in the footer. Tiles size to their content (S, M, L, XL; rows hug the
+  specimen), XL drops to the M span under 1100px and every tile to one column under 560px. The tile carries the
+  loading, empty and error states, and is one component (`studio/src/tiles/SpecimenTile.tsx`) for the chapters
+  and the gallery to follow.
+- **Components: 50 sections as tiles.** Section ids, deep links, the On this page rail and the demos are
+  unchanged; each code panel shows the generated, byte-checked sample from `chapter-code.mjs`.
+- **Foundations: each token family is a tile,** with its declarations (`:root` and the light flip) as its code.
 
 ### Fixed
 
@@ -39,6 +48,11 @@
   spend), the hero's animations (running, transform and opacity only, stopped by Pause motion and by reduced
   motion), Get started in Chrome (copied and denied, focus on `#install`), the budget with the job panel open, and the 375px fold at 667, 812 and 360 by 640. The served harness takes
   `reducedMotion`.
+- The Components port's element-for-element parity with `site/components.html` (markup, `<style>` and the
+  FROZEN pin) is retired, as the redesign changes its presentation on purpose (`studio/test/redesigned.ts`). The
+  tile contract test (`specimen-tile.test.tsx`) replaces it; the specimen-to-sample and chapter script tests stay.
+  Other chapters keep their parity tests.
+- The class-name rule now covers the studio tile CSS.
 
 ## 1.6.1 · unreleased
 

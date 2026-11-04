@@ -1,0 +1,39 @@
+/* Specimen tiles: the /widgets tile (.wgrid, .wtile in components.css) for studio pages.
+   Only what a specimen adds is here; every value is a token. */
+
+/* Rows hug their specimens: a tile's height is its content, never a fixed 180px.
+   XL takes one content row (nothing sits beside it); L keeps its two, beside two Ms. */
+.wgrid.sgrid { grid-auto-rows: auto; }
+.sgrid > .stile[data-size="xl"] { grid-row: span 1; }
+
+/* The body clips sideways only, so a menu, tooltip or popover can still drop below the tile. */
+.stile > .wtile-body { gap: var(--s-3); overflow: visible; overflow-x: clip; }
+
+/* The name is the primary label: heavier and darker than the meta beside it. */
+.stile-name { margin: 0; min-width: 0; font: inherit; font-size: .875rem; font-weight: 600; letter-spacing: -.005em; color: var(--text-1); overflow-wrap: anywhere; }
+
+.stile-spec { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.stile-spec > * { min-width: 0; }
+.stile-empty { flex: 1; display: flex; align-items: center; min-height: var(--s-8); font-size: .8125rem; color: var(--text-2); }
+
+.stile-foot { justify-content: flex-end; flex-wrap: wrap; }
+
+/* Inset panel, concentric with the tile: inner radius = tile radius - tile padding. */
+.stile-code { margin: 0; max-height: 360px; overflow: auto; padding: var(--s-3) var(--s-4); border: 1px solid var(--hairline); border-radius: calc(var(--r-lg) - var(--s-4)); background: var(--surface-2); color: var(--text-1); font-family: var(--font-mono); font-size: .75rem; line-height: 1.7; white-space: pre; tab-size: 2; }
+.stile-code:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.stile-code code { font: inherit; color: inherit; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .stile-code { animation: stile-in var(--dur-2) var(--ease-entrance) both; }
+}
+@keyframes stile-in { from { opacity: 0; transform: translateY(calc(var(--s-1) * -1)); } }
+
+@media (max-width: 559.98px) {
+  .stile-code { padding: var(--s-3); border-radius: calc(var(--r-lg) - var(--s-3)); }
+}
+
+/* A loaded sample on its way: the panel's own shape, three lines of skeleton. */
+.stile-code-wait { display: grid; gap: var(--s-2); }
+.stile-code-wait .skel:nth-child(2) { width: 80%; }
+.stile-code-wait .skel:nth-child(3) { width: 55%; }
+.stile-code-err { flex: none; }

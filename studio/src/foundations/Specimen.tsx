@@ -1,6 +1,7 @@
 import { useMemo, type ReactNode } from 'react';
 import tokens from '../data/tokens.json';
 import { useHydrated, useThemeTick } from '../theme';
+import { SpecimenGrid, SpecimenTile, tileIcon, type TileSize } from '../tiles/SpecimenTile';
 
 export type Token = (typeof tokens)[number];
 
@@ -16,6 +17,32 @@ export const FAMILY_LABEL: Record<string, string> = {
   motion: 'Motion',
   layout: 'Layout',
 };
+
+/* One header icon and one bento size per family. */
+export const FAMILY_ICON: Record<string, ReactNode> = {
+  canvas: tileIcon(<><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M4 14h16" /></>),
+  accent: tileIcon(<circle cx="12" cy="12" r="7" />),
+  status: tileIcon(<><circle cx="12" cy="12" r="8" /><path d="m8.5 12 2.5 2.5 4.5-5" /></>),
+  data: tileIcon(<><path d="M4 19h16" /><path d="M7 16v-5M12 16V7M17 16v-8" /></>),
+  material: tileIcon(<><path d="m12 4 8 4-8 4-8-4z" /><path d="m4 12 8 4 8-4M4 16l8 4 8-4" /></>),
+  radius: tileIcon(<path d="M5 19V11a6 6 0 0 1 6-6h8" />),
+  spacing: tileIcon(<><path d="M4 12h16" /><path d="m7 9-3 3 3 3M17 9l3 3-3 3" /></>),
+  layout: tileIcon(<><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M10 4v16" /></>),
+  type: tileIcon(<><path d="M5 6h14M12 6v13" /></>),
+  motion: tileIcon(<path d="M4 19c6 0 6-14 16-14" />),
+  contrast: tileIcon(<><circle cx="12" cy="12" r="8" /><path d="M12 4v16" /></>),
+};
+const FAMILY_SIZE: Record<string, TileSize> = { radius: 'm', spacing: 'm' };
+
+/** The family's declarations as tokens.css writes them: :root, then the light flip for what changes. */
+export function tokenCss(list: Token[]): string {
+  const block = (sel: string, rows: string[]) => `${sel} {\n${rows.join('\n')}\n}`;
+  const flips = list.filter((t) => t.light !== t.dark);
+  return [
+    block(':root', list.map((t) => `  ${t.name}: ${t.dark};`)),
+    ...(flips.length ? [block('[data-theme="light"]', flips.map((t) => `  ${t.name}: ${t.light};`))] : []),
+  ].join('\n');
+}
 
 export const tokensOf = (...families: string[]): Token[] => tokens.filter((t) => families.includes(t.family));
 
@@ -63,7 +90,7 @@ function Visual({ t }: { t: Token }) {
 
 export function Specimen({ t, value, children }: { t: Token; value: string; children?: ReactNode }) {
   return (
-    <div className="card fd-spec" data-token={t.name}>
+    <div className="fd-spec" data-token={t.name}>
       {children ?? <Visual t={t} />}
       <span className="mono fd-name">{t.name}</span>
       <span className="mono muted fd-value">{value}</span>
@@ -71,16 +98,15 @@ export function Specimen({ t, value, children }: { t: Token; value: string; chil
   );
 }
 
-export function Group({ family, children }: { family: string; children?: ReactNode }) {
+export function Group({ family, size, children }: { family: string; size?: TileSize; children?: ReactNode }) {
   const live = useLive();
   const list = tokensOf(family);
   return (
-    <div className="fd-group">
-      <h3 className="fd-sub">{FAMILY_LABEL[family]} <span className="cnt mono muted">{list.length}</span></h3>
-      <div className="grid">
+    <SpecimenTile name={FAMILY_LABEL[family]} level={3} icon={FAMILY_ICON[family]} meta={`${list.length} tokens`} size={size ?? FAMILY_SIZE[family] ?? 'xl'} code={tokenCss(list)}>
+      <div className="fd-cells">
         {children ?? list.map((t) => <Specimen key={t.name} t={t} value={live(t.name)} />)}
       </div>
-    </div>
+    </SpecimenTile>
   );
 }
 
@@ -88,7 +114,7 @@ export function Section({ id, title, count, children }: { id: string; title: str
   return (
     <section id={id} className="section">
       <h2>{title} <span className="cnt">{count}</span></h2>
-      {children}
+      <SpecimenGrid>{children}</SpecimenGrid>
     </section>
   );
 }

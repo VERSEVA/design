@@ -89,3 +89,14 @@ test('the rule sees through :is, :where, tags and generic compounds (review of P
   assert.equal(use.has('attrx'), false);
   assert.equal(use.has('sm'), false);
 });
+
+/* Studio tiles (1.7.0): the specimen tile's CSS is global on every studio page, so its new
+   classes meet the same rule, against the package's names as well as the generic list. */
+test('the studio tile CSS adds no generic standalone class and redefines no package class standalone', () => {
+  const tiles = classUse(fs.readFileSync(path.join(root, 'studio/src/tiles/tiles.css'), 'utf8'));
+  const pkg = classUse(css);
+  const bad = [...tiles].filter(([n, standalone]) => standalone && !pkg.has(n) && (GENERIC.has(n) || n.length <= 3)).map(([n]) => n);
+  assert.deepEqual(bad, [], `generic standalone classes in tiles.css: ${bad.join(', ')}`);
+  const own = [...tiles.keys()].filter((n) => !pkg.has(n));
+  assert.ok(own.length > 0 && own.every((n) => /^(stile|sgrid)(-|$)/.test(n)), `tiles.css classes outside the stile- prefix: ${own.join(', ')}`);
+});

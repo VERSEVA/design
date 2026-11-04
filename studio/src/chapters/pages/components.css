@@ -1,15 +1,9 @@
-/* The chapter's own <style> from site/components.html, scoped to its page. */
-[data-chapter="components"] .comp { padding-top: var(--s-7); }
-[data-chapter="components"] .comp > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; padding-bottom: var(--s-3); }
-[data-chapter="components"] .comp .note { font-size: 13px; color: var(--text-3); padding-bottom: var(--s-3); max-width: 62ch; }
-[data-chapter="components"] .demo { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s-5); display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: flex-start; }
-[data-chapter="components"] .codewrap { position: relative; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); }
-[data-chapter="components"] .codewrap pre { margin: 0; padding: var(--s-4) var(--s-5); overflow-x: auto; }
-[data-chapter="components"] .codewrap code { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-2); }
-[data-chapter="components"] .copybtn { position: absolute; top: var(--s-2); right: var(--s-2); }
-[data-chapter="components"] .phoneframe { position: relative; width: 320px; height: 300px; background: var(--bg); border: 1px solid var(--hairline-strong); border-radius: 26px; overflow: hidden; }
+/* The Components chapter, scoped to its page. The tiles come from tiles/tiles.css; these
+   rules lay out the specimens inside them (from site/components.html's <style>, minus the
+   spec box and code panel the tiles replace). */
+[data-chapter="components"] .demo { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: flex-start; }
+[data-chapter="components"] .phoneframe { position: relative; width: 320px; max-width: 100%; height: 300px; background: var(--bg); border: 1px solid var(--hairline-strong); border-radius: 26px; overflow: hidden; }
 [data-chapter="components"] .phoneframe .navshell { display: flex; position: absolute; }
-[data-chapter="components"] .toc { display: flex; flex-wrap: wrap; gap: var(--s-2); padding-top: var(--s-4); }
 [data-chapter="components"] .rowmenu-demo { min-height: 320px; }
 [data-chapter="components"] .rowmenu-demo .specimen { min-width: 220px; }
 [data-chapter="components"] .bulk-demo .bulkbar { position: static; margin-block: var(--s-4); }

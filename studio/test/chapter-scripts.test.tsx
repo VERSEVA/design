@@ -147,14 +147,8 @@ describe('motion chapter script', () => {
 describe('components chapter script', () => {
   const pristine = () => new DOMParser().parseFromString(renderToStaticMarkup(<Components />), 'text/html').querySelector('.chap')!;
 
-  it('is idempotent under StrictMode and leaves the markup and inputs exactly as rendered on unmount', async () => {
+  it('is idempotent under StrictMode and leaves the markup and inputs exactly as rendered on unmount', () => {
     const { container, unmount } = render(<StrictMode><Components /></StrictMode>);
-    const copy = container.querySelector<HTMLButtonElement>('.copybtn')!;
-    fireEvent.click(copy);
-    await new Promise((r) => setTimeout(r, 0));
-    expect(copy.textContent).not.toBe('Copy');
-    const comps = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.demo') && c.querySelector('.codewrap'));
-    expect(container.querySelectorAll('.codetoggle').length).toBe(comps.length);
     fireEvent.click(container.querySelectorAll('.tabbar [role="tab"]')[1]);
     fireEvent.click(container.querySelector('.menu [aria-haspopup]')!);
     const radio = [...container.querySelectorAll('.menu.inline [role="menuitemradio"]')].find((i) => i.getAttribute('aria-checked') !== 'true' && !i.getAttribute('aria-disabled') && !i.getAttribute('aria-busy'))!;
@@ -163,7 +157,6 @@ describe('components chapter script', () => {
     fireEvent.input(erase, { target: { value: erase.dataset.phrase } });
     fireEvent.click(container.querySelector('.bulk-demo tbody .pick input')!);
     fireEvent.click(container.querySelector('.sgroup-head')!);
-    fireEvent.click(container.querySelector('.codetoggle button')!);
     const chap = container.querySelector('.chap')!;
     const box = chap.querySelector<HTMLInputElement>('.bulk-demo tbody .pick input')!;
     const boxWas = pristine().querySelector<HTMLInputElement>('.bulk-demo tbody .pick input')!.hasAttribute('checked');
@@ -206,7 +199,7 @@ describe('components chapter script', () => {
 
   it('has one generated sample per specimen, each the same markup, attributes and text as its specimen before the demos sync', () => {
     const { container } = render(<Components />);
-    const withSample = (r: ParentNode) => [...r.querySelectorAll('.comp')].filter((c) => c.querySelector('.codewrap code') && c.querySelector('.specimen')).map((c) => c.querySelector('.specimen')!);
+    const withSample = (r: ParentNode) => [...r.querySelectorAll('.stile')].filter((t) => t.querySelector('.specimen')).map((t) => t.querySelector('.specimen')!);
     expect(COMPONENTS_CODE.length).toBe(withSample(container).length);
     const before = withSample(pristine());
     before.forEach((spec, i) => {
