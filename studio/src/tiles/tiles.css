@@ -31,3 +31,9 @@
 @media (max-width: 559.98px) {
   .stile-code { padding: var(--s-3); border-radius: calc(var(--r-lg) - var(--s-3)); }
 }
+
+/* A loaded sample on its way: the panel's own shape, three lines of skeleton. */
+.stile-code-wait { display: grid; gap: var(--s-2); }
+.stile-code-wait .skel:nth-child(2) { width: 80%; }
+.stile-code-wait .skel:nth-child(3) { width: 55%; }
+.stile-code-err { flex: none; }

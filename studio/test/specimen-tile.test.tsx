@@ -3,7 +3,7 @@
 // Components tiles replace the retired element-for-element parity with site/components.html
 // (test/redesigned.ts); the specimens inside them are still held to their generated samples.
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, act, fireEvent } from '@testing-library/react';
+import { render, act, fireEvent, waitFor } from '@testing-library/react';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SpecimenGrid, SpecimenTile, LABELS, type TileSize } from '../src/tiles/SpecimenTile';
@@ -94,6 +94,35 @@ describe('SpecimenTile code panel', () => {
     expect(t.querySelector('.stile-copy')!.textContent).toBe(LABELS.copy);
     fireEvent.click(btn);
     expect([t.querySelector('.stile-code'), t.querySelector('.stile-copy')]).toEqual([null, null]);
+  });
+
+  it('loads a sample on first intent: hover starts it, the panel shows a skeleton, then the text', async () => {
+    let resolve!: (t: string) => void;
+    const loader = vi.fn(() => new Promise<string>((r) => { resolve = r; }));
+    const { container } = render(<SpecimenTile id="t" name="T" code={loader}>x</SpecimenTile>);
+    const t = tile(container);
+    fireEvent.pointerEnter(toggle(t));
+    fireEvent.focus(toggle(t));
+    expect(loader).toHaveBeenCalledTimes(1);
+    fireEvent.click(toggle(t));
+    expect(loader).toHaveBeenCalledTimes(1);
+    expect([t.querySelector('.stile-code-wait[aria-busy="true"] .skel'), t.querySelector('pre'), t.querySelector('.stile-copy')].map(Boolean)).toEqual([true, false, false]);
+    await act(async () => { resolve(sample); });
+    expect(t.querySelector('pre.stile-code code')!.textContent).toBe(sample);
+    expect(t.querySelector('.stile-code-wait')).toBeNull();
+    expect(t.querySelector('.stile-copy')).not.toBeNull();
+  });
+
+  it('says when a loaded sample fails, and Retry loads it again', async () => {
+    const loader = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(sample);
+    const { container } = render(<SpecimenTile name="T" code={loader}>x</SpecimenTile>);
+    const t = tile(container);
+    await act(async () => { fireEvent.click(toggle(t)); });
+    const err = t.querySelector('.stile-code-err[role="alert"]')!;
+    expect(err.textContent).toContain(LABELS.codeError);
+    await act(async () => { fireEvent.click(err.querySelector('button')!); });
+    expect(loader).toHaveBeenCalledTimes(2);
+    expect(t.querySelector('pre.stile-code code')!.textContent).toBe(sample);
   });
 
   it('copies the exact sample, says so, then settles back', async () => {
@@ -202,10 +231,11 @@ describe('Components as tiles', () => {
     expect(SAMPLED.length).toBe(CODE.length);
   });
 
-  it('opens every tile\'s code as its generated sample, byte for byte (Install shows its commands)', () => {
+  it('opens every tile\'s code as its generated sample, byte for byte (Install shows its commands)', async () => {
     const { container } = render(<Components />);
     for (const t of container.querySelectorAll<HTMLElement>('section.stile')) {
       fireEvent.click(toggle(t));
+      await waitFor(() => expect(t.querySelector('.stile-code code'), t.id).not.toBeNull());
       const want = t.id === 'install' ? INSTALL : CODE[SAMPLED.indexOf(t.id)];
       expect(t.querySelector('.stile-code code')!.textContent, t.id).toBe(want);
       fireEvent.click(toggle(t));

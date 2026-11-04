@@ -7,12 +7,12 @@ import type React from 'react';
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
 import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
 import './components.css';
-/* Built by studio/scripts/chapter-code.mjs from the frozen page: the exact code samples its script showed. */
-import CODE from './components.code.json';
-
-/* The sections with a specimen, in page order: CODE[i] is the sample of SAMPLED[i]. */
+/* The sections with a specimen, in page order: sample i of components.code.json (built by
+   studio/scripts/chapter-code.mjs from the frozen page) is the sample of SAMPLED[i]. The samples
+   load on first intent, so they stay out of the main chunk. */
 export const SAMPLED = ['spacing', 'button', 'field', 'switch', 'permission-picking', 'sel-two-line', 'card', 'glass', 'badge', 'toast', 'modal', 'erase', 'table', 'table-pin', 'bulk', 'stat', 'chart', 'seg', 'fchip', 'search', 'rows', 'kv', 'tline', 'skeleton', 'select', 'tabs', 'menu', 'rowmenu', 'tooltip', 'crumbsdoc', 'pagerdoc', 'progressdoc', 'calloutdoc', 'emptydoc', 'accdoc', 'topnav', 'sidenav', 'sheet', 'navshell', 'accordion-nav', 'shell', 'shell-rail', 'switcher', 'capsule', 'topbar', 'notifications', 'whatsnew', 'panel-states', 'drawer-states'];
-const sample = (id: string) => CODE[SAMPLED.indexOf(id)];
+let samples: Promise<string[]> | undefined;
+const sample = (id: string) => () => (samples ??= import('./components.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
 
 export const INSTALL = "<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/tokens.css\">\n<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/components.css\">\n\n<!-- consumer surfaces boot light (law 9): -->\n<html data-theme=\"light\">\n\n<!-- enforce before you ship: -->\nnpx verseva-gate --tokens node_modules/@verseva/design/tokens.css src\n\n<!-- React, source-distribution (the shadcn model): components land in\n     YOUR project as source you own -->\nnpx verseva init\nnpx verseva add button field toast console-nav\nnpx verseva block add quote-tool";
 

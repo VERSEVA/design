@@ -31,8 +31,10 @@ export interface SpecimenTileProps {
   meta?: ReactNode;
   /** Bento span: S 1 column, M 2, L 2 by 2 rows, XL the full row. Under 1100px XL takes the 2 columns M does, under 560px every tile takes the one. Default m. */
   size?: TileSize;
-  /** The code sample behind Show code, exactly as given (generated samples pass through unchanged). Omit for no code footer. */
-  code?: string;
+  /** The code sample behind Show code, shown exactly as given. A loader keeps large sample sets out of the
+      page chunk: it starts on hover or focus of Show code, and the panel shows a skeleton, then the text or Retry.
+      Omit for no code footer. */
+  code?: string | (() => Promise<string>);
   /** Extra footer controls before Show code, e.g. a Replay button. */
   actions?: ReactNode;
   status?: TileStatus;
@@ -44,7 +46,7 @@ export interface SpecimenTileProps {
   children?: ReactNode;
 }
 
-export const LABELS = { show: 'Show code', hide: 'Hide code', copy: 'Copy', copied: 'Copied', copyFailed: 'Select + copy', retry: 'Retry', code: 'Code sample' };
+export const LABELS = { show: 'Show code', hide: 'Hide code', copy: 'Copy', copied: 'Copied', copyFailed: 'Select + copy', retry: 'Retry', code: 'Code sample', codeError: 'Code did not load.' };
 
 const ALERT = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>;
 
@@ -77,10 +79,25 @@ function Copy({ code, pre, labels }: { code: string; pre: RefObject<HTMLPreEleme
   );
 }
 
+/** A sample given as text, or loaded once on first intent; a failed load can be retried. */
+function useCode(code: SpecimenTileProps['code']) {
+  const [loaded, setLoaded] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const pending = useRef(false);
+  const load = () => {
+    if (typeof code !== 'function' || loaded != null || pending.current) return;
+    pending.current = true;
+    setFailed(false);
+    code().then(setLoaded, () => setFailed(true)).finally(() => { pending.current = false; });
+  };
+  return { text: typeof code === 'string' ? code : loaded, failed, load };
+}
+
 export function SpecimenTile({ id, name, level = 2, icon, meta, size = 'm', code, actions, status, onRetry, labels, className, children }: SpecimenTileProps) {
   const L = { ...LABELS, ...labels };
   const [open, setOpen] = useState(false);
   const pre = useRef<HTMLPreElement>(null);
+  const sample = useCode(code);
   const H = level === 2 ? 'h2' : 'h3';
   const codeId = id ? `${id}-code` : undefined;
   const state = status?.loading ? 'loading' : status?.error ? 'error' : status?.empty ? 'empty' : null;
@@ -119,15 +136,23 @@ export function SpecimenTile({ id, name, level = 2, icon, meta, size = 'm', code
           <div className="wtile-foot stile-foot">
             {actions}
             {code != null && (
-              <button type="button" className="btn btn-ghost sm stile-toggle" aria-expanded={open} aria-controls={open ? codeId : undefined} onClick={() => setOpen((o) => !o)}>
+              <button type="button" className="btn btn-ghost sm stile-toggle" aria-expanded={open} aria-controls={open ? codeId : undefined} onPointerEnter={sample.load} onFocus={sample.load} onClick={() => { sample.load(); setOpen((o) => !o); }}>
                 {open ? L.hide : L.show}
               </button>
             )}
-            {code != null && open && <Copy code={code} pre={pre} labels={L} />}
+            {open && sample.text != null && <Copy code={sample.text} pre={pre} labels={L} />}
           </div>
         )}
-        {code != null && open && !state && (
-          <pre ref={pre} id={codeId} className="stile-code" tabIndex={0} aria-label={L.code}><code>{code}</code></pre>
+        {code != null && open && !state && (sample.text != null
+          ? <pre ref={pre} id={codeId} className="stile-code" tabIndex={0} aria-label={L.code}><code>{sample.text}</code></pre>
+          : sample.failed
+            ? (
+              <div id={codeId} className="wtile-err stile-code-err" role="alert">
+                <span className="wtile-errline">{ALERT}{L.codeError}</span>
+                <button type="button" className="btn btn-secondary sm" onClick={sample.load}>{L.retry}</button>
+              </div>
+            )
+            : <div id={codeId} className="stile-code stile-code-wait" aria-busy="true" aria-label={L.code}><span className="skel" /><span className="skel" /><span className="skel" /></div>
         )}
       </div>
     </section>
