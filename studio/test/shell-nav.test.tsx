@@ -138,7 +138,8 @@ describe('command bar', () => {
     await act(async () => { fireEvent.keyDown(document, { key: 'k', ctrlKey: true }); });
     await barOpen();
     const input = container.querySelector<HTMLInputElement>('.cmdk-input')!;
-    expect(document.activeElement).toBe(input);
+    /* the bar focuses its field in an effect after the chunk mounts it */
+    await vi.waitFor(() => expect(document.activeElement).toBe(input), { timeout: 5000 });
     await act(async () => { fireEvent.change(input, { target: { value: 'motion foundations' } }); });
     /* the commands are their own chunk, loaded after mount */
     await vi.waitFor(() => { if (!container.querySelector('.cmdk-opt')) throw new Error('no options yet'); }, { timeout: 5000 });
