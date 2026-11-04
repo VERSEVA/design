@@ -34,15 +34,51 @@ describe('data-viz chapter script', () => {
     expect(container.querySelector('#vxlab')!.textContent).toBe('D1D30');
   });
 
-  it('has one generated sample per specimen, each the same markup as its specimen once the script has drawn it', () => {
+  it('has one generated sample per specimen, each the same markup, attributes and text as its specimen once the script has drawn it', () => {
     const { container } = render(<DataViz />);
     const specs = [...container.querySelectorAll('.comp')].filter((c) => c.querySelector('.codewrap code')).map((c) => c.querySelector('.specimen')!);
     expect(CODE.length).toBe(specs.length);
-    const tags = (root: ParentNode) => [...root.querySelectorAll('*')].map((e) => e.localName).join(',');
     specs.forEach((spec, i) => {
       const parsed = document.createElement('div');
       parsed.innerHTML = CODE[i];
-      expect(tags(parsed), `sample ${i}`).toBe(tags(spec));
+      expect(canon(spec), `sample ${i}`).toBe(canon(parsed));
     });
   });
+
+  it('compares attributes and text, so a changed one fails', () => {
+    const a = document.createElement('div'), b = document.createElement('div');
+    a.innerHTML = '<i style="width: 45%" class="x">4</i>';
+    b.innerHTML = '<i style="width:45%" class="x">4</i>';
+    expect(canon(a)).toBe(canon(b));
+    for (const html of ['<i style="width:46%" class="x">4</i>', '<i style="width:45%" class="y">4</i>', '<i style="width:45%" class="x">5</i>', '<i style="width:45%" class="x" hidden>4</i>']) {
+      b.innerHTML = html;
+      expect(canon(a), html).not.toBe(canon(b));
+    }
+  });
 });
+
+/* A specimen as text: every element's tag, attributes and text, whitespace between
+   elements dropped (the samples are indented, React output is not). Inline styles
+   are compared as declarations, with two serializer differences normalized: numbers
+   to the browser's 6 significant digits, and the flex shorthand to its longhands. */
+export function canon(root: Element): string {
+  const num = (v: string) => v.replace(/-?\d*\.\d+|-?\d+/g, (n) => String(Number(Number(n).toPrecision(6))));
+  const flex = (v: string) => {
+    const p = v.trim().split(/\s+/);
+    if (p.length === 1 && /^[\d.]+$/.test(p[0])) return `${p[0]} 1 0%`;
+    if (p.length === 2 && /^[\d.]+$/.test(p[1])) return `${p[0]} ${p[1]} 0%`;
+    return p.join(' ');
+  };
+  const style = (v: string) => v.split(';').map((d) => d.trim()).filter(Boolean).map((d) => {
+    const k = d.slice(0, d.indexOf(':')).trim(), val = d.slice(d.indexOf(':') + 1).trim().replace(/\s+/g, ' ');
+    return `${k}: ${num(k === 'flex' ? flex(val) : val)}`;
+  }).sort().join('; ');
+  const walk = (n: Node): string => {
+    if (n.nodeType === 3) { const t = n.textContent!.replace(/\s+/g, ' ').trim(); return t ? JSON.stringify(t) : ''; }
+    if (n.nodeType !== 1) return '';
+    const el = n as Element;
+    const attrs = [...el.attributes].map((a) => `${a.name}=${JSON.stringify(a.name === 'style' ? style(a.value) : a.value)}`).sort().join(' ');
+    return `<${el.localName}${attrs ? ' ' + attrs : ''}>${[...el.childNodes].map(walk).join('')}</${el.localName}>`;
+  };
+  return [...root.childNodes].map(walk).join('');
+}
