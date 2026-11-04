@@ -1,6 +1,7 @@
 // Front door: hero picker, live readout, the surfaces stage, counts, install.
 import { useEffect, useRef, useState } from 'react';
 import { ThemePicker } from '../shell/ThemePicker';
+import { onStudioLink } from '../shell/router';
 import { ThreeStage } from '../three/ThreeStage';
 import { ratio, type RGB } from '../contrast';
 import { BRANDS, useTheme, useThemeTick } from '../theme';
@@ -86,7 +87,7 @@ function FrameTile({ src, href, title, kind, w }: { src: string; href: string; t
   return (
     <div className={`card tile ${w}`}>
       <div className="frame" inert><iframe src={src} title={title} loading="lazy" tabIndex={-1} /></div>
-      <a className="cover" href={href} aria-label={`Open ${title}`} />
+      <a className="cover" href={href} onClick={onStudioLink} aria-label={`Open ${title}`} />
       <span className="badge tag"><b>{title}</b>{kind}</span>
     </div>
   );

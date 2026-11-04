@@ -51,6 +51,18 @@ describe('front door', () => {
     }
   });
 
+  it('a cover click routes through the studio router instead of reloading the page', () => {
+    const { container } = render(<FrontDoorPage />);
+    for (const a of container.querySelectorAll<HTMLAnchorElement>('a.cover')) {
+      window.history.replaceState(null, '', '/');
+      const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+      a.dispatchEvent(ev);
+      expect(ev.defaultPrevented, `${a.getAttribute('href')} reloads the page`).toBe(true);
+      expect(window.location.pathname).toBe(a.getAttribute('href'));
+    }
+    window.history.replaceState(null, '', '/');
+  });
+
   it('stages the three library objects with glb, thumb and loop', () => {
     const { container } = render(<FrontDoorPage />);
     const st = [...container.querySelectorAll('.stage-mock')].map((e) => [e.getAttribute('data-src'), e.getAttribute('data-thumb'), e.getAttribute('data-loop')]);
