@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import chapters from '../src/data/chapters.json';
 import { chapterCode, format, ALLOWED_JSDOM_ERRORS } from '../scripts/chapter-code.mjs';
 
 const repo = path.resolve(__dirname, '../..');
@@ -17,7 +18,8 @@ describe('generated chapter code samples', () => {
   });
 
   it.each(generated)('%s.code.json is what the generator writes from its frozen page', (slug) => {
-    const html = fs.readFileSync(path.join(repo, 'site', `${slug}.html`), 'utf8');
+    const file = chapters.find((c) => c.slug === slug)?.file ?? `${slug}.html`;
+    const html = fs.readFileSync(path.join(repo, 'site', file), 'utf8');
     expect(format(chapterCode(html, ALLOWED_JSDOM_ERRORS[slug]))).toBe(fs.readFileSync(path.join(pages, `${slug}.code.json`), 'utf8'));
   });
 

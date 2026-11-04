@@ -3,7 +3,7 @@
 // it, for a returning visitor whose stored theme differs from the server default.
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from '@testing-library/react';
-import { LIVE_ROUTES } from '../src/shell/routes-table';
+import { LIVE_ROUTES, topOf } from '../src/shell/routes-table';
 
 /* Server and client each get a fresh module graph, as on the build machine and in the browser. */
 const fresh = async <T,>(spec: string): Promise<T> => { vi.resetModules(); return import(/* @vite-ignore */ spec) as Promise<T>; };
@@ -89,8 +89,10 @@ describe('hydration', () => {
       for (const { path } of LIVE_ROUTES) {
         it(`${path} hydrates without a mismatch`, async () => {
           const el = await hydrate(path, path, v);
-          expect(el.querySelector('.snav-page [aria-current="page"]')?.getAttribute('href')).toBe(path);
-          expect(el.querySelector<HTMLSelectElement>('.studio-select select')!.value).toBe(path);
+          /* A row with a parent (a gallery example or its code) marks its top-level row instead. */
+          const top = topOf(path);
+          expect(el.querySelector(`.snav-page [aria-current="${top === path ? 'page' : 'true'}"]`)?.getAttribute('href')).toBe(top);
+          expect(el.querySelector<HTMLSelectElement>('.studio-select select')!.value).toBe(top);
         });
       }
       it('404.html hydrates at an unknown path', async () => {

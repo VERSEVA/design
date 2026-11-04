@@ -2,7 +2,7 @@
 // tags, attributes, copy and specimens, with legacy links mapped to studio routes
 // and an id on every sidebar anchor. Editing a frozen site/*.html fails this too.
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, act } from '@testing-library/react';
+import { render, act, fireEvent } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { vi } from 'vitest';
 import fs from 'node:fs';
@@ -26,6 +26,12 @@ export function portUrl(attr: string, value: string, file: string): string {
   const ch = chapters.find((c) => c.file === name && url.pathname === `/site/${name}`);
   if (attr === 'href' && ch) return `/${ch.slug}${url.hash}`;
   if (attr === 'href' && url.pathname === '/site/index.html') return `/${url.hash}`;
+  /* Gallery links stay in the shell: an example opens at /gallery/<slug>, its source at
+     /gallery/<slug>/code. Iframe src keeps the file, which serves as before. */
+  const ex = url.pathname.match(/^\/site\/examples\/([a-z0-9-]+)\.html$/);
+  if (attr === 'href' && ex) return `/gallery/${ex[1]}${url.hash}`;
+  const src = url.pathname === '/site/code.html' ? url.searchParams.get('f')?.match(/^examples\/([a-z0-9-]+)\.html$/) : null;
+  if (attr === 'href' && src) return `/gallery/${src[1]}/code`;
   return url.pathname.replace(/^\/site\//, '/') + url.search + url.hash;
 }
 
@@ -62,10 +68,43 @@ export const STRIPPED: ReadonlyArray<{ selector: string; why: string }> = [
   { selector: 'aside.docnav', why: 'the studio sidebar lists the same anchors; the embed hid it too' },
 ];
 
-function legacyBody(file: string): Element {
+/* What a port changes on purpose, per chapter, and why: each is applied to the legacy
+   body before the comparison, so the port may differ by exactly these and nothing else.
+   The frozen site/*.html stays as it is. */
+export const DEVIATIONS: Readonly<Record<string, ReadonlyArray<{ id: string; why: string; apply: (shell: Element) => void }>>> = {
+  components: [
+    {
+      id: 'widgets-link',
+      why: 'a labels-only link to /widgets in the hero (ruling 2026-11-04)',
+      apply: (shell) => shell.querySelector('.hero')!.insertAdjacentHTML('beforeend', '<div class="chips"><a class="btn btn-secondary sm" href="/widgets">Widgets</a></div>'),
+    },
+    {
+      id: 'table-tscroll',
+      why: 'the 541px #table specimen scrolled the page sideways at 375px; it sits in the .tscroll scroller (ruling 2026-11-04)',
+      apply: (shell) => {
+        const spec = shell.querySelector('#table .demo > .specimen')!;
+        const wrap = spec.ownerDocument.createElement('div');
+        wrap.className = 'tscroll';
+        spec.replaceWith(wrap);
+        wrap.append(spec);
+      },
+    },
+    {
+      id: 'table-pin-min-width',
+      why: 'the #table-pin specimen (a flex item) took its table\'s width and scrolled the page sideways at 375px; min-width: 0 lets the .pin.box scroll it instead (ruling 2026-11-04)',
+      apply: (shell) => {
+        const spec = shell.querySelector('#table-pin .demo > .specimen')!;
+        spec.setAttribute('style', `${spec.getAttribute('style')};min-width:0`);
+      },
+    },
+  ],
+};
+
+function legacyBody(file: string, slug?: string): Element {
   const doc = new DOMParser().parseFromString(fs.readFileSync(path.join(site, file), 'utf8'), 'text/html');
   const shell = doc.querySelector('.shell')!;
   for (const { selector } of STRIPPED) shell.querySelectorAll(selector).forEach((n) => n.remove());
+  for (const d of (slug && DEVIATIONS[slug]) || []) d.apply(shell);
   return shell;
 }
 
@@ -79,17 +118,38 @@ describe('ported chapters', () => {
     for (const slug of Object.keys(NATIVE_CHAPTERS)) expect(chapters.map((c) => c.slug)).toContain(slug);
   });
 
+  it('writes deviations only for ported chapters', () => {
+    for (const slug of Object.keys(DEVIATIONS)) expect(NATIVE_CHAPTERS[slug], slug).toBeDefined();
+  });
+
+  it('opens /widgets from the Components hero without leaving the shell', async () => {
+    const { container } = render(<App />);
+    await act(async () => { navigate('/components'); });
+    const link = container.querySelector<HTMLAnchorElement>('[data-chapter="components"] .hero a[href="/widgets"]')!;
+    expect(link.textContent).toBe('Widgets');
+    await act(async () => { fireEvent.click(link); });
+    expect(window.location.pathname).toBe('/widgets');
+    expect(container.querySelector('.studio-main h1')).not.toBeNull();
+  });
+
   for (const c of ported) {
     describe(c.slug, () => {
       /* The markup before any chapter script runs, as the legacy HTML is before its own. */
       it('renders the frozen legacy body element for element', () => {
         const Page = NATIVE_CHAPTERS[c.slug];
         const chap = new DOMParser().parseFromString(renderToStaticMarkup(<Page />), 'text/html').querySelector('.chap')!;
-        const legacy = legacyBody(c.file);
+        const legacy = legacyBody(c.file, c.slug);
         const extra = new Set(c.sections.map((s) => s.id).filter((id) => !legacy.querySelector(`[id="${id}"]`)));
         const want = [...legacy.childNodes].map((n) => canon(n, c.file, new Set())).join('');
         const got = [...chap.childNodes].map((n) => canon(n, c.file, extra)).join('');
         expect(got).toBe(want);
+      });
+
+      it.each((DEVIATIONS[c.slug] ?? []).map((d) => [d.id, d] as const))('changes the legacy body by its written deviation %s, so a stale entry fails', (_, d) => {
+        const before = legacyBody(c.file);
+        const html = before.innerHTML;
+        d.apply(before);
+        expect(before.innerHTML).not.toBe(html);
       });
 
       it('pins the frozen site/' + c.file + ' by hash, so the legacy copy cannot change under the port', () => {

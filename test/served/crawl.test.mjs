@@ -78,3 +78,12 @@ test('every in-site link from every route resolves, and legacy links are redirec
   assert.ok(checked > routes.length, `only ${checked} in-site links found`);
   assert.deepEqual(bad, []);
 });
+
+test('an unknown gallery example or code path is not served, so Vercel answers with 404.html', () => {
+  assert.ok(fs.existsSync(path.join(out, '404.html')), 'out/404.html missing');
+  for (const p of ['/gallery/bogus', '/gallery/bogus/code']) {
+    assert.equal(served(p), false, `${p} must not resolve to a file or a pre-rendered page`);
+    assert.equal(isRedirect(new URL(p, SITE)), false, `${p} must not redirect`);
+  }
+  for (const r of routes.filter((m) => m.parent)) assert.ok(fs.existsSync(pageFile(r.path)), `${r.path}: no pre-rendered page`);
+});

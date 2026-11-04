@@ -11,6 +11,7 @@ import CODE from '../src/chapters/pages/data-viz.code.json';
 import { Page as Motion } from '../src/chapters/pages/motion';
 import MOTION_CODE from '../src/chapters/pages/motion.code.json';
 import { chapterThemeWipe } from '../src/chapters/themeWipe';
+import { Page as Gallery } from '../src/chapters/pages/gallery';
 import { Page as Components } from '../src/chapters/pages/components';
 import COMPONENTS_CODE from '../src/chapters/pages/components.code.json';
 
@@ -213,6 +214,49 @@ describe('components chapter script', () => {
       parsed.innerHTML = COMPONENTS_CODE[i];
       expect(canon(spec), `sample ${i}`).toBe(canon(parsed));
     });
+  });
+});
+
+describe('gallery chapter script', () => {
+  const pristine = () => new DOMParser().parseFromString(renderToStaticMarkup(<Gallery />), 'text/html').querySelector('.chap')!;
+
+  it('filters the mock sites by tag, as the legacy page did', () => {
+    const { container } = render(<Gallery />);
+    const shown = () => [...container.querySelectorAll('.gallery .gcard:not(.hidden) b')].map((b) => b.textContent);
+    expect(shown().length).toBe(8);
+    fireEvent.click(container.querySelector('#gfilter [data-f="light"]')!);
+    expect(shown()).toEqual(['Redline Supply · storefront', 'Ledgerline · landing']);
+    expect([...container.querySelectorAll('#gfilter .fchip')].filter((c) => c.getAttribute('aria-pressed') === 'true').map((c) => c.getAttribute('data-f'))).toEqual(['light']);
+    fireEvent.click(container.querySelector('#gfilter [data-f="all"]')!);
+    expect(shown().length).toBe(8);
+  });
+
+  it('scales each preview to its box, flips the bloom, the switch word and the toast', () => {
+    const { container } = render(<Gallery />);
+    for (const f of container.querySelectorAll<HTMLIFrameElement>('.prevbox iframe')) expect(f.style.transform).toMatch(/^scale\(/);
+    fireEvent.click(container.querySelector('#bloom-a')!);
+    expect([container.querySelector('#bloom-a')!.classList.contains('on'), container.querySelector('#bloom-b')!.classList.contains('on')]).toEqual([true, false]);
+    fireEvent.click(container.querySelector('#switchdemo')!);
+    expect(container.querySelector('#switchword')!.textContent).toBe('Provenance off');
+    fireEvent.click(container.querySelector('#toastdemo')!);
+    expect(document.querySelector('#toastwrap .toast.ok')!.textContent).toBe('Saved. The word does the work; the dot just nods.');
+  });
+
+  it('is idempotent under StrictMode and leaves the markup exactly as rendered on unmount', async () => {
+    const { container, unmount } = render(<StrictMode><Gallery /></StrictMode>);
+    expect(container.querySelectorAll('#skelrow .skel').length).toBe(2);
+    fireEvent.click(container.querySelector('#gfilter [data-f="dark"]')!);
+    fireEvent.click(container.querySelector('#bloom-a')!);
+    fireEvent.click(container.querySelector('#countstat')!);
+    fireEvent.click(container.querySelector('#switchdemo')!);
+    fireEvent.click(container.querySelector('#toastdemo')!);
+    expect(document.querySelectorAll('#toastwrap').length).toBe(1);
+    await new Promise((r) => setTimeout(r, 30));
+    const chap = container.querySelector('.chap')!;
+    unmount();
+    expect(document.querySelector('#toastwrap')).toBeNull();
+    expect((chap.querySelector('#switchdemo') as HTMLInputElement).checked).toBe(true);
+    expect(canon(chap)).toBe(canon(pristine()));
   });
 });
 

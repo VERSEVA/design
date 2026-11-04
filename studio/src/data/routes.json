@@ -82,5 +82,133 @@
     "group": "Chapters",
     "title": "Gallery: example sites and apps built on VERSEVA Design",
     "description": "Example consoles, landing pages, stores and tools built on VERSEVA Design, with the source for each."
+  },
+  {
+    "path": "/gallery/three-hero",
+    "label": "Signal Foundry · 3D hero",
+    "group": "Chapters",
+    "parent": "/gallery",
+    "title": "Signal Foundry 3D hero: example on VERSEVA Design",
+    "description": "Signal Foundry 3D hero, a dark 3D hero in three.js with tokens read at runtime. A live example built on VERSEVA Design."
+  },
+  {
+    "path": "/gallery/three-hero/code",
+    "label": "Code",
+    "group": "Chapters",
+    "parent": "/gallery/three-hero",
+    "title": "Signal Foundry 3D hero: source code",
+    "description": "The full HTML source of the Signal Foundry 3D hero example, site/examples/three-hero.html, with a copy button."
+  },
+  {
+    "path": "/gallery/pulse",
+    "label": "Pulse · analytics",
+    "group": "Chapters",
+    "parent": "/gallery",
+    "title": "Pulse analytics: example on VERSEVA Design",
+    "description": "Pulse analytics, a dark analytics console: the viz kit assembled, with crosshair hover. A live example built on VERSEVA Design."
+  },
+  {
+    "path": "/gallery/pulse/code",
+    "label": "Code",
+    "group": "Chapters",
+    "parent": "/gallery/pulse",
+    "title": "Pulse analytics: source code",
+    "description": "The full HTML source of the Pulse analytics example, site/examples/pulse.html, with a copy button."
+  },
+  {
+    "path": "/gallery/launch",
+    "label": "Launch · the motion kit",
+    "group": "Chapters",
+    "parent": "/gallery",
+    "title": "Launch motion kit: example on VERSEVA Design",
+    "description": "Launch motion kit, a dark launch page with line reveal, theme wipe and rolling stats. A live example built on VERSEVA Design."
+  },
+  {
+    "path": "/gallery/launch/code",
+    "label": "Code",
+    "group": "Chapters",
+    "parent": "/gallery/launch",
+    "title": "Launch motion kit: source code",
+    "description": "The full HTML source of the Launch motion kit example, site/examples/launch.html, with a copy button."
+  },
+  {
+    "path": "/gallery/console",
+    "label": "Ops console",
+    "group": "Chapters",
+    "parent": "/gallery",
+    "title": "Ops console: example on VERSEVA Design",
+    "description": "Ops console, a dark operations console with org switcher and rail. A live example built on VERSEVA Design."
+  },
+  {
+    "path": "/gallery/console/code",
+    "label": "Code",
+    "group": "Chapters",
+    "parent": "/gallery/console",
+    "title": "Ops console: source code",
+    "description": "The full HTML source of the Ops console example, site/examples/console.html, with a copy button."
+  },
+  {
+    "path": "/gallery/quote-tool",
+    "label": "Quote tool",
+    "group": "Chapters",
+    "parent": "/gallery",
+    "title": "Quote tool: example on VERSEVA Design",
+    "description": "Quote tool, a dark quoting tool with live recompute and a state machine. A live example built on VERSEVA Design."
+  },
+  {
+    "path": "/gallery/quote-tool/code",
+    "label": "Code",
+    "group": "Chapters",
+    "parent": "/gallery/quote-tool",
+    "title": "Quote tool: source code",
+    "description": "The full HTML source of the Quote tool example, site/examples/quote-tool.html, with a copy button."
+  },
+  {
+    "path": "/gallery/store",
+    "label": "Redline Supply · storefront",
+    "group": "Chapters",
+    "parent": "/gallery",
+    "title": "Redline Supply storefront: example on VERSEVA Design",
+    "description": "Redline Supply storefront, a light storefront with a generated asset and a working cart. A live example built on VERSEVA Design."
+  },
+  {
+    "path": "/gallery/store/code",
+    "label": "Code",
+    "group": "Chapters",
+    "parent": "/gallery/store",
+    "title": "Redline Supply storefront: source code",
+    "description": "The full HTML source of the Redline Supply storefront example, site/examples/store.html, with a copy button."
+  },
+  {
+    "path": "/gallery/studio",
+    "label": "Foundry Nine · studio",
+    "group": "Chapters",
+    "parent": "/gallery",
+    "title": "Foundry Nine studio: example on VERSEVA Design",
+    "description": "Foundry Nine studio, a dark studio portfolio with generated covers and a tag filter. A live example built on VERSEVA Design."
+  },
+  {
+    "path": "/gallery/studio/code",
+    "label": "Code",
+    "group": "Chapters",
+    "parent": "/gallery/studio",
+    "title": "Foundry Nine studio: source code",
+    "description": "The full HTML source of the Foundry Nine studio example, site/examples/studio.html, with a copy button."
+  },
+  {
+    "path": "/gallery/landing",
+    "label": "Ledgerline · landing",
+    "group": "Chapters",
+    "parent": "/gallery",
+    "title": "Ledgerline landing page: example on VERSEVA Design",
+    "description": "Ledgerline landing page, a light landing page with a working modal and validation. A live example built on VERSEVA Design."
+  },
+  {
+    "path": "/gallery/landing/code",
+    "label": "Code",
+    "group": "Chapters",
+    "parent": "/gallery/landing",
+    "title": "Ledgerline landing page: source code",
+    "description": "The full HTML source of the Ledgerline landing page example, site/examples/landing.html, with a copy button."
   }
 ]

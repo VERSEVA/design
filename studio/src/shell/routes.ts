@@ -6,12 +6,15 @@ import { ChapterPage } from '../chapters/ChapterPage';
 import { WidgetsPage, SECTIONS as WIDGETS } from '../widgets/WidgetsPage';
 import { NotFoundPage } from './NotFoundPage';
 import { NOT_FOUND_HEAD } from './head';
-import { GROUPS, LIVE_ROUTES, type Group, type RouteMeta } from './routes-table';
+import { GalleryExamplePage } from '../gallery/GalleryExamplePage';
+import { GalleryCodePage } from '../gallery/GalleryCodePage';
+import { GALLERY } from '../gallery/examples';
+import { GROUPS, LIVE_ROUTES, topOf, type Group, type RouteMeta } from './routes-table';
 import tokens from '../data/tokens.json';
 import library from '../data/library.json';
 import chapters from '../data/chapters.json';
 
-export { GROUPS, type Group };
+export { GROUPS, topOf, type Group };
 export interface Section { id: string; label: string }
 export interface Route extends RouteMeta { sections: ReadonlyArray<Section>; count: number | null; Page: () => React.ReactElement }
 type View = Pick<Route, 'sections' | 'count' | 'Page'>;
@@ -44,8 +47,14 @@ const CHAPTER_VIEWS: Record<string, View> = Object.fromEntries(chapters.map((c) 
   Page: NATIVE_CHAPTERS[c.slug] ?? (() => React.createElement(ChapterPage, { chapter: c })),
 }]));
 
+/* Each gallery example and its source, under /gallery (rows with a parent in routes.json). */
+const GALLERY_VIEWS: Record<string, View> = Object.fromEntries(GALLERY.flatMap((g) => [
+  [`/gallery/${g.slug}`, { sections: [], count: null, Page: () => React.createElement(GalleryExamplePage, { slug: g.slug }) }],
+  [`/gallery/${g.slug}/code`, { sections: [], count: null, Page: () => React.createElement(GalleryCodePage, { slug: g.slug }) }],
+]));
+
 function viewFor(m: RouteMeta): View {
-  const v = STUDIO_VIEWS[m.path] ?? CHAPTER_VIEWS[m.path];
+  const v = STUDIO_VIEWS[m.path] ?? CHAPTER_VIEWS[m.path] ?? GALLERY_VIEWS[m.path];
   if (!v) throw new Error(`routes: no page for ${m.path}`);
   return v;
 }

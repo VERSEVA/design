@@ -12,8 +12,16 @@
   `icon.svg`, `apple-touch-icon.png`, 192 and 512 icons plus a maskable one, the `og.png` social card,
   `site.webmanifest`, `robots.txt` and `sitemap.xml` (every route).
 - **A studio 404 page.** Unknown paths return 404 with the studio shell and a way back to Overview (noindex).
+- **The gallery lives in the studio.** `/gallery` is a native page, and each example opens at `/gallery/<slug>`
+  (the example in a frame that fits its document and follows the studio theme and brand) with its source at
+  `/gallery/<slug>/code` (inlined at build time, pre-rendered, with Copy). Links inside an example route through
+  the studio. `/examples/*.html` still serve as files.
+- **Components links to Widgets** from its header.
 
 ### Fixed
+
+- **Components no longer scrolls sideways on phones.** The `#table` specimen sits in its `.tscroll` scroller and the
+  `#table-pin` specimen lets its `.pin.box` scroll, at 375px.
 
 - **Theme before first paint.** The inline head script runs ahead of every stylesheet, and the Mode control shows the
   stored mode from first paint instead of sliding from System after load.
