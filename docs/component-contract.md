@@ -300,6 +300,77 @@ carries `aria-hidden="true"`.
   `.platform`, `.tbar`, `.drawer`, `.scrim` and the rest) are global class names.
 - **Direction:** the shell is left-to-right in 1.3.0; right-to-left layout is a stage 2 item.
 
+## Live activity: `.lact`, `.lact-panel` (1.6.0)
+
+A capsule for long jobs (deploys, agent runs, imports) in the top bar's `.tbar-end`, before the
+notifications bell, with a panel listing every job. The React copy (`npx verseva add live-activity`)
+renders exactly this DOM; its rules live in `activity-state` (pure, tested).
+
+**Data:** products push `{ id, name, steps?, progress, done?, error? }[]`; `progress` is 0..1, and
+`null` or missing means not known yet (the loading state). `error` is a message or `true`.
+
+**Anatomy**
+
+| Part | Classes | Holds |
+|---|---|---|
+| Wrapper | `.menu.end.lact-wrap` | Hidden while there are no jobs and the panel is shut |
+| Capsule | `button.lact[data-state]`, `.lact-ring` (`.lact-track`, `.lact-arc`, `.lact-ti`), `.lact-tx` (`.lact-name`, `.lact-pc`), `.lact-more` | Glass pill, 34px: the lead job's ring, name and percent; `+n` running |
+| Panel | `.menu-list.panel.lact-panel`, `.panel-hd` (`h4`, Clear done), `ul.lact-list` > `li.lact-item[data-state]` | Non-modal dialog, 360px; one row per job |
+| Row | `.lact-top` (state icon, `b` name, `.lact-pc`), `.lact-bar` > `i`, `.lact-step` or `.lact-err`, `.lact-acts` | Name and percent, bar, current step or the failure line, Cancel (running) or Retry (error) |
+| Empty | `.lact-panel .panel-empty` | "No activity" when the last job goes while the panel is open |
+
+`data-state` is `pending`, `running`, `done` or `error` (`empty` on the capsule with no lead).
+
+**Rules**
+
+- **Lead:** the running job closest to done; a job with known progress beats a pending one; ties
+  keep list order. With nothing running, the first failed job leads, then the first done job.
+- **`+n`** counts running jobs other than the lead. Done and failed jobs never count.
+- **Percent** is floored, so a running job never reads 100% before it is done.
+- **Done leaves** the capsule 6 seconds after it finishes (`leaveDelay`), never while the panel is
+  open; it leaves when the panel closes if its time has passed. `onDone` fires once per job: write a
+  notification there so the result can be found later. `onLeave` tells the product it may drop it.
+- **Errors never auto-leave.** The row shows the failure line and Retry.
+- **Rows update in place** (keyed by `id`): the bar scales, the step and percent change, nothing
+  re-mounts.
+
+**Material, color and contrast**
+
+- The capsule restates the glass material (`--surface-body` over `--glass-fill-3`, `--glass-border`,
+  `--glass-inset`, `--e-1`) at `--r-pill`. The panel is the notifications panel's `--surface`, rows on
+  `--surface-2`.
+- **No accent** (law 3 budget). Ring and bar draw `--text-1` while running, `--success` when done,
+  `--danger` on error, on a `--data-0` track. Done and error also tint the capsule border and show a
+  check or cross: state is never color alone.
+- Capsule name `--text-1`, percent `--text-2`, both over the worst-case catch-light; row text
+  `--text-1`, step, failure line and `+n` `--text-2`. No `--text-3` text anywhere in the part.
+  `test/live-activity-css.test.mjs` measures every pair, both modes, base and the four presets.
+
+**States**
+
+| Part | Hover | Focus-visible | Press | Disabled | Loading | Done | Error | Empty |
+|---|---|---|---|---|---|---|---|---|
+| Capsule | `--hairline-strong` border; `aria-expanded="true"` holds it | 2px `--focus` at 2px | scale .97 | `:disabled` or `aria-disabled` at .45 | quarter arc turns, "Starting" | `--success` ring, border and check, "Done" | `--danger` ring, border and cross, "Failed" | hidden |
+| Row | buttons as `.btn` | buttons as `.btn` | as `.btn` | as `.btn` | a 30% sliver slides, no `aria-valuenow` | full `--success` bar, check, "Done" | full `--danger` bar, cross, failure line, Retry | `.panel-empty` |
+
+**Phone:** under 900px the panel is a bottom sheet (fixed to the bottom, top corners `--r-lg`, a grab
+bar, safe-area padding, up to 70dvh) and the capsule caps at 180px; under 600px the job name is
+visually hidden (the capsule's name still carries it). On a coarse pointer the capsule is 44px tall.
+
+**Motion:** the arc eases its `stroke-dashoffset` (`--dur-3`), the bar scales on `transform`, the
+check pops on `--ease-back`; no width animation. Reduced motion drops every transition, the press
+and both loading animations.
+
+**Accessibility**
+
+| Part | Roles and names | Keyboard and focus |
+|---|---|---|
+| Capsule | `button`, `aria-haspopup="dialog"`, `aria-expanded`, `aria-controls`; name "Live activity: {job}, {n}%, {m} more running, {k} failed"; the visible text, ring and `+n` are `aria-hidden` | Enter or Space opens the panel |
+| Panel | `role="dialog"` `aria-labelledby` its `h4`; each bar `role="progressbar"` named by its job with `aria-valuenow` (none while pending) | Opening focuses Clear done when enabled, else the first Cancel or Retry, else the panel; Escape closes and returns focus to the capsule (or the next top bar control when the capsule has gone); tabbing out or an outside pointer closes; after Cancel or Retry focus stays in the panel |
+| Live regions | a polite `role="status"` and a `role="alert"`, both visually hidden, outside the wrapper so they outlive the capsule | Status: "{job} started", "{job} done", "{job} cancelled" (a running job removed) and "{job} 25%", 50%, 75% only; alert: "{job} failed: {message}". A done or failed job leaving is silent |
+
+Every built-in string is a `labels` prop with English defaults (`ACTIVITY_LABELS`).
+
 ## Glass panel: `.glass`
 
 Law 1 on a content panel: `.navshell`'s container material verbatim (`--glass-fill-3`,
