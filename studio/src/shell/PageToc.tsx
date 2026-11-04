@@ -11,7 +11,8 @@ export const hasToc = (r: Route) => r.sections.length > 0 && (r.path === '/found
 /* rAF position watcher (IntersectionObserver pauses in hidden panes; see learnings). The last
    section counts as current once the page is scrolled to its end. Sections that are tiles in one
    bento row share a top: the first in the row holds, a later one wins only from >=1px lower, and
-   the location.hash target wins inside its row (and at the page end, while it is on screen). */
+   the location.hash target wins inside its row (and at the page end, or before any section reaches
+   the line, while it is on screen). */
 const hashId = () => {
   const raw = window.location.hash.slice(1);
   try { return decodeURIComponent(raw); } catch { return raw; }
@@ -38,6 +39,8 @@ export function useActiveAnchor(ids: ReadonlyArray<string>): string | null {
       const hash = hashId();
       const hashTop = tops.get(hash);
       if (hashTop !== undefined && Math.abs(hashTop - curTop) < 1) cur = hash;
+      /* Nothing has reached the line yet (a page too short to scroll): the hash target on screen wins. */
+      if (hashTop !== undefined && curTop === -Infinity && hashTop < window.innerHeight) cur = hash;
       const end = document.documentElement.scrollHeight > window.innerHeight && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
       if (end && ids.length) cur = hashTop !== undefined && hashTop >= curTop - 1 && hashTop < window.innerHeight ? hash : ids[ids.length - 1];
       setActive((p) => (p === cur ? p : cur));

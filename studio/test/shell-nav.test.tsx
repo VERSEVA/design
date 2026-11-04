@@ -228,6 +228,29 @@ describe('On this page', () => {
     vi.restoreAllMocks();
   });
 
+  it('scroll-spy marks the hash target on a page too short for any section to reach the line', async () => {
+    window.history.replaceState(null, '', '/decks');
+    const { container } = render(<App />);
+    /* Decks at 1440x900: both tiles share the first row, below the line, and the page cannot scroll. */
+    const tops = new Map<string, number>([['slide-anatomy', 213], ['structure', 213]]);
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      const top = tops.get(this.id) ?? 900;
+      return { top, bottom: top + 10, left: 0, right: 0, width: 0, height: 10, x: 0, y: top, toJSON() {} } as DOMRect;
+    });
+    const marked = async () => {
+      await act(async () => { window.dispatchEvent(new Event('scroll')); });
+      await tick();
+      return [...container.querySelectorAll('.pagetoc a[aria-current="location"]')].map((a) => a.getAttribute('href'));
+    };
+    expect(await marked()).toEqual(['/decks#slide-anatomy']);
+    await act(async () => { navigate('/decks#structure'); });
+    expect(await marked()).toEqual(['/decks#structure']);
+    /* A hash below the fold does not pull the mark. */
+    tops.set('structure', 2000);
+    expect(await marked()).toEqual(['/decks#slide-anatomy']);
+    vi.restoreAllMocks();
+  });
+
   it('a click moves focus to the section', async () => {
     window.history.replaceState(null, '', '/foundations');
     const { container } = render(<App />);

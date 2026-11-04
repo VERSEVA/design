@@ -59,6 +59,8 @@
 
 ### Fixed
 
+- **On this page marks the deep-linked section on a page too short to scroll** (Decks at 1440x900: both tiles in
+  one row below the line marked Slide anatomy for `/decks#structure`).
 - **The studio side nav stays fixed while the page scrolls.** Expanded and collapsed to the rail, it sits below the
   header at full height, scrolls its own list when that is longer than the viewport, and keeps the collapse toggle
   in view at its foot (the expanded toggle had scrolled out of reach on long pages).
