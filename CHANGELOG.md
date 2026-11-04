@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.6.1 · unreleased
+
+### Fixed
+
+- **What's new New tag spends no accent.** `.badge.bloom` moves from `--accent-bloom` to the text ladder:
+  `--text-1` at weight 600 on `--surface-2`, a step above Improved (`--text-2`). Law 3 budget: counts and info
+  badges are neutral. The console-view accent test now renders an open What's new drawer.
+- **Studio Pause motion stops every auto-moving element (WCAG 2.2.2).** The header control now stops every CSS
+  animation on the page and in same-origin example frames (marquee, border beam, spinners, shimmer) and the
+  Live now smart stack's rotation, as well as the 3D stage. Reduced motion is unchanged.
+- **In-page anchors move focus (WCAG 2.4.1).** Ported chapter anchors, including the skip-link specimens
+  (`#sh-main`, `#shr-main`), scroll and focus their target, adding `tabindex="-1"` where it is not focusable.
+- **Deep links clear the sticky studio header.** Every studio scroll margin reads one variable,
+  `--studio-scroll-pad`, built from the header's and the phone page select's measured heights (191px and 61px at
+  375px, 66px at 1280px), with per-breakpoint fallbacks. Cold deep links now land on their section.
+
 ## 1.6.0 · 2026-11-04
 
 A widget home, a live activity capsule and a command bar, each as CSS recipes, React parts (`npx verseva add`) and a pure state module, with live specimens at design.verseva.com/widgets. No 1.5 class or token is renamed; two visible changes are listed under Changed and Fixed.
