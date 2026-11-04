@@ -25,3 +25,5 @@
   .wx-xl { grid-template-columns: minmax(0, 1fr); }
 }
 .wx-xl > .wtile-rows { align-content: start; }
+/* The state rows name their state in the crumb; keep it on phones, where a console bar hides crumbs. */
+@media (max-width: 599.98px) { .wx-bars .tbar .crumbs { display: block; min-width: 0; } }

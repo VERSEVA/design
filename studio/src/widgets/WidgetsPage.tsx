@@ -154,7 +154,7 @@ function useJobs(onDone: (a: Activity) => void) {
     const t = setInterval(() => {
       setJobs((list) => list.map((j) => {
         if (j.done || j.error) return j;
-        const p = Math.min(1, (j.progress ?? 0) + 0.035 + ((n.current + j.id.length) % 3) * 0.01);
+        const p = Math.min(1, (j.progress ?? 0) + 0.016 + ((n.current + j.id.length) % 3) * 0.006);
         return p >= 1 ? { ...j, progress: 1, done: true } : { ...j, progress: p };
       }));
     }, 450);
