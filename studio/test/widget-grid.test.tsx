@@ -261,13 +261,17 @@ describe('WidgetGrid', () => {
     expect(new Set(tiles(container).map((t) => t.dataset.id)).size).toBe(4);
   });
 
-  it('a stored layout with nothing valid falls back to defaultLayout', () => {
+  it('an all-stale stored layout falls back to defaultLayout', () => {
     localStorage.setItem('verseva.widgets.layout', JSON.stringify([{ id: 'q', kind: 'gone', size: 's' }]));
     const { container } = render(<WidgetGrid definitions={DEFS} defaultLayout={L3} columns={4} />);
     expect(tiles(container).map((t) => t.dataset.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('a stored "[]" stays empty: removing every widget survives a reload', () => {
     localStorage.setItem('verseva.widgets.layout', '[]');
-    const { container: c2 } = render(<WidgetGrid definitions={DEFS} defaultLayout={L3} columns={4} />);
-    expect(tiles(c2).map((t) => t.dataset.id)).toEqual(['a', 'b', 'c']);
+    const { container } = render(<WidgetGrid definitions={DEFS} defaultLayout={L3} columns={4} />);
+    expect(tiles(container)).toHaveLength(0);
+    expect(container.querySelector('.wgrid-empty')).not.toBeNull();
   });
 
   it('the columns prop drives the CSS through data-cols', () => {

@@ -180,7 +180,7 @@ export function WidgetGrid({
   React.useEffect(() => {
     if (isControlled || storageKey === null) return;
     const stored = readLayout(safeStorage(), definitions, storageKey);
-    if (stored && stored.length) setOwn(stored);
+    if (stored) setOwn(stored);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

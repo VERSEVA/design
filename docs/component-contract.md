@@ -638,11 +638,11 @@ does not compose `.glass`). No `--text-3` anywhere in the section: on glass the 
 **React contract.** `WidgetDefinition { kind, name, icon?, sizes, render(size, state), skeleton? }`
 where `state` is `{ size, focus, editing, columns }`; layout `{ id, kind, size }[]`, controlled
 (`layout` + `onLayoutChange`) or uncontrolled (`defaultLayout`, stored under
-`verseva.widgets.layout` after mount; `storageKey={null}` turns it off; a stored layout with no valid
-item falls back to `defaultLayout`). `columns` forces a column count and writes `data-cols`, which
+`verseva.widgets.layout` after mount; `storageKey={null}` turns it off; a stored `[]` stays empty, a
+stored list with no valid item falls back to `defaultLayout`). `columns` forces a column count and writes `data-cols`, which
 the CSS follows over the breakpoints. Ids from `addWidget` are never reused. `status` maps an id to
 `{ loading?, error?, disabled? }`; `onRetry(id)`. `parseLayout` drops items with an unknown kind,
-an unsupported size or a duplicate id, and returns null for anything that is not a JSON array.
+an unsupported size or a duplicate id, and returns null for anything that is not a JSON array or for a non-empty list with no valid item.
 
 ## Specimen rule
 

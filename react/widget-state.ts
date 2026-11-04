@@ -191,7 +191,7 @@ export function serializeLayout(layout: readonly LayoutItem[]): string {
   return JSON.stringify(layout.map(({ id, kind, size }) => ({ id, kind, size })));
 }
 
-/** null for anything that is not a JSON array; otherwise the valid items (known kind, supported size, unique id). */
+/** null for anything that is not a JSON array, or a non-empty array with no valid item; otherwise the valid items (known kind, supported size, unique id). "[]" stays []. */
 export function parseLayout(text: string | null | undefined, specs: readonly WidgetSpec[]): LayoutItem[] | null {
   if (typeof text !== 'string') return null;
   let data: unknown;
@@ -207,7 +207,8 @@ export function parseLayout(text: string | null | undefined, specs: readonly Wid
     seen.add(id);
     out.push({ id, kind, size });
   }
-  return out;
+  // A stored "[]" is a choice (every widget removed); a list where nothing survives is stale.
+  return data.length > 0 && out.length === 0 ? null : out;
 }
 
 /** globalThis.localStorage when it is reachable and usable, else null. Never throws. */

@@ -257,6 +257,10 @@ describe('serialize and parse', () => {
     const text = JSON.stringify([null, 3, { id: '', kind: 'revenue', size: 's' }, { id: 5, kind: 'revenue', size: 's' }, { kind: 'revenue', size: 's' }, item('a'), item('a', 'runway', 'm'), { id: 'x'.repeat(65), kind: 'revenue', size: 's' }]);
     assert.deepEqual(parseLayout(text, SPECS), [item('a')]);
   });
+  test('a stored "[]" stays empty; a list where every item is stale is null', () => {
+    assert.deepEqual(parseLayout('[]', SPECS), []);
+    assert.equal(parseLayout(JSON.stringify([item('a', 'gone', 's'), item('b', 'runway', 'xl')]), SPECS), null);
+  });
   test('garbage is null', () => {
     for (const bad of ['', 'nope', '{"a":1}', '42', 'null', null, undefined]) assert.equal(parseLayout(bad, SPECS), null, String(bad));
   });
