@@ -21,11 +21,18 @@ const STUDIO_VIEWS: Record<string, View> = {
   '/assets': { sections: ASSETS, count: libCount || null, Page: AssetLibraryPage },
 };
 
-/* The legacy chapters, folded in: same shell, same URL scheme, anchors from their h2s. */
+/* Ported chapters: one module per chapter at chapters/pages/<slug>.tsx, exporting Page. */
+const PORTED = import.meta.glob<{ Page: () => React.ReactElement }>('../chapters/pages/*.tsx', { eager: true });
+export const NATIVE_CHAPTERS: Readonly<Record<string, () => React.ReactElement>> = Object.fromEntries(
+  Object.entries(PORTED).map(([file, mod]) => [file.replace(/^.*\/|\.tsx$/g, ''), mod.Page]),
+);
+
+/* The legacy chapters, folded in: same shell, same URL scheme, anchors from their h2s.
+   A ported chapter renders its own page; any other keeps the iframe embed as the fallback. */
 const CHAPTER_VIEWS: Record<string, View> = Object.fromEntries(chapters.map((c) => [`/${c.slug}`, {
   sections: c.sections,
   count: null,
-  Page: () => React.createElement(ChapterPage, { chapter: c }),
+  Page: NATIVE_CHAPTERS[c.slug] ?? (() => React.createElement(ChapterPage, { chapter: c })),
 }]));
 
 function viewFor(m: RouteMeta): View {
