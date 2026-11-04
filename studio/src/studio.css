@@ -7,12 +7,13 @@
 @import '../../themes/slate.css';
 @import '../../themes/violet.css';
 
-*, *::before, *::after { box-sizing: border-box; }
+/* Element resets stop at a ported chapter (.chap): its legacy site.css never had them (native.css carries what it did). */
+*, :where(:not(.chap *))::before, :where(:not(.chap *))::after { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 h1, h2, h3, h4, p { margin: 0; }
-a { color: inherit; }
-img, video, canvas { display: block; max-width: 100%; }
+a:where(:not(.chap *)) { color: inherit; }
+img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)) { display: block; max-width: 100%; }
 
 /* ---- shell ---- */
 .studio-head {
