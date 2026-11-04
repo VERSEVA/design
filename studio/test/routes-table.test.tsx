@@ -27,8 +27,16 @@ describe('routes table', () => {
   });
 
   it('keeps proposed routes out of the router', () => {
-    expect(ROUTE_TABLE.find((r) => r.path === '/widgets')?.proposed).toBe(true);
-    expect(ROUTES.map((r) => r.path)).not.toContain('/widgets');
+    const live = ROUTES.map((r) => r.path);
+    for (const r of ROUTE_TABLE.filter((m) => m.proposed)) expect(live).not.toContain(r.path);
+  });
+
+  it('serves /widgets live with its approved title and description', () => {
+    const w = ROUTE_TABLE.find((r) => r.path === '/widgets')!;
+    expect(w.proposed).toBeUndefined();
+    expect(w.title).toBe('Widgets: home screen widgets in four sizes');
+    expect(w.description).toBe('Home screen widgets in small, medium, large and extra large, each size with its own chart. Smart stacks, edit mode and drag to reorder.');
+    expect(ROUTES.map((r) => r.path)).toContain('/widgets');
   });
 
   it('lists the same routes in the router and the table, with a row for every chapter', () => {

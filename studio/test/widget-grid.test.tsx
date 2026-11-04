@@ -7,6 +7,7 @@ import axe from 'axe-core';
 import { WidgetGrid } from '../../react/widget-grid';
 import type { WidgetDefinition } from '../../react/widget-grid';
 import { SmartStack } from '../../react/smart-stack';
+import { ConsoleTopbar } from '../../react/console-topbar';
 import { Sparkline, Bars, HBars, Ring, ActivityStrip, LineChart } from '../../react/viz';
 import type { LayoutItem } from '../../react/widget-state';
 
@@ -107,6 +108,64 @@ describe('accent budget (law 3: one accent per view)', () => {
     const { container: c2 } = render(<div className="wgrid"><div className="wtile" data-id="y" data-focus=""><Sparkline values={[1, 2, 3]} /></div></div>);
     expect(accentTiles(c2)).toEqual(['y']);
   });
+});
+
+/* Law 3 budget across a whole console view (operator ruling 2026-10-31): the accent goes on the one primary action,
+   the active nav item or tab (the bloom) and, per the 1.6 spec, at most one focus widget's data marks. Counts, badges
+   and dots never carry it. Tile neutralisers are the non-accent rules keyed on the focus marker. */
+const VIEW_NEUTRAL = RULES.filter((r) => r.sel.includes('[data-focus]') && !ACCENT.test(r.body)).map((r) => r.sel);
+const NAV_BLOOM = '.snav a[aria-current="page"], .snav a.active, .tab.on';
+function accentBudget(root: HTMLElement) {
+  const tiles = new Set<string>();
+  const primary = new Set<Element>();
+  const nav = new Set<Element>();
+  const other = new Set<string>();
+  for (const el of root.querySelectorAll('*')) {
+    if (el.closest('[hidden]')) continue;
+    const neutral = VIEW_NEUTRAL.some((s) => safeMatch(el, s));
+    const byRule = ACCENT_SELS.some((s) => safeMatch(el, s));
+    const byAttr = ['stroke', 'fill', 'stop-color'].some((a) => ACCENT.test(el.getAttribute(a) ?? ''));
+    const byStyle = ACCENT.test(el.getAttribute('style') ?? '');
+    if (!(byStyle || ((byRule || byAttr) && !neutral))) continue;
+    const tile = el.closest<HTMLElement>('.wtile');
+    const btn = el.closest('.btn-primary');
+    const bloom = el.closest(NAV_BLOOM);
+    if (tile) tiles.add(tile.dataset.id ?? '?');
+    else if (btn) primary.add(btn);
+    else if (bloom) nav.add(bloom);
+    else other.add(el.getAttribute('class') || el.tagName.toLowerCase());
+  }
+  return { tiles: [...tiles], primary: primary.size, nav: nav.size, other: [...other].sort() };
+}
+
+function ConsoleView({ focus }: { focus?: string }) {
+  return (
+    <div className="cmain">
+      <nav className="snav" aria-label="Operate"><a href="#h" aria-current="page"><svg aria-hidden="true" /><span>Home</span></a><a href="#i">Invoices</a></nav>
+      <ConsoleTopbar
+        crumbs={[{ label: 'Home' }]}
+        notifications={[{ id: 'n1', text: 'Deploy studio done', at: 'Just now', unread: true }]}
+        whatsNew={{ version: '1.6.0', unread: true, onOpen: () => {} }}
+      />
+      <button type="button" className="btn btn-primary">New invoice</button>
+      <WidgetGrid definitions={DEFS} layout={ALL} columns={4} focus={focus} storageKey={null} />
+    </div>
+  );
+}
+
+describe('accent budget across the console view (law 3)', () => {
+  for (const focus of ['w0', undefined]) {
+    it(`${focus ? 'with' : 'without'} a focus widget: one primary, the nav bloom, at most one focus widget, and no badge, count or dot`, () => {
+      const { container } = render(<ConsoleView focus={focus} />);
+      expect(container.querySelector('.ibtn .num')?.textContent).toBe('1');
+      expect(container.querySelector('.ibtn .dot')).not.toBeNull();
+      const b = accentBudget(container);
+      expect(b.other).toEqual([]);
+      expect(b.primary).toBe(1);
+      expect(b.nav).toBe(1);
+      expect(b.tiles).toEqual(focus ? [focus] : []);
+    });
+  }
 });
 
 describe('WidgetGrid', () => {

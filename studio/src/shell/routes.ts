@@ -3,6 +3,7 @@ import { FrontDoorPage, SECTIONS as FRONT } from '../front/FrontDoorPage';
 import { FoundationsPage, SECTIONS as FOUNDATIONS } from '../foundations/FoundationsPage';
 import { AssetLibraryPage, SECTIONS as ASSETS } from '../library/AssetLibraryPage';
 import { ChapterPage } from '../chapters/ChapterPage';
+import { WidgetsPage, SECTIONS as WIDGETS } from '../widgets/WidgetsPage';
 import { GROUPS, LIVE_ROUTES, type Group, type RouteMeta } from './routes-table';
 import tokens from '../data/tokens.json';
 import library from '../data/library.json';
@@ -19,6 +20,7 @@ const STUDIO_VIEWS: Record<string, View> = {
   '/': { sections: FRONT, count: null, Page: FrontDoorPage },
   '/foundations': { sections: FOUNDATIONS, count: tokens.length || null, Page: FoundationsPage },
   '/assets': { sections: ASSETS, count: libCount || null, Page: AssetLibraryPage },
+  '/widgets': { sections: WIDGETS, count: null, Page: WidgetsPage },
 };
 
 /* Ported chapters: one module per chapter at chapters/pages/<slug>.tsx, exporting Page

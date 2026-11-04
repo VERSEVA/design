@@ -162,6 +162,13 @@ export function pruneLeft(left: Set<string>, list: Activity[]): Set<string> {
   return new Set([...left].filter((id) => done.has(id)));
 }
 
+/** Keep a Cancel request only while its job is present and still running; once it is done, failed or gone the request is spent. Returns the same set when nothing is dropped. */
+export function pruneCancelled(cancelled: ReadonlySet<string>, list: Activity[]): Set<string> {
+  const live = new Set(list.filter(running).map((a) => a.id));
+  const out = new Set([...cancelled].filter((id) => live.has(id)));
+  return out.size === cancelled.size ? (cancelled as Set<string>) : out;
+}
+
 export function visibleActivities(list: Activity[], left: Set<string>): Activity[] {
   return list.filter((a) => !(left.has(a.id) && activityState(a) === 'done'));
 }

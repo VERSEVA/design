@@ -25,8 +25,7 @@
     "label": "Widgets",
     "group": "Studio",
     "title": "Widgets: home screen widgets in four sizes",
-    "description": "Home screen widgets in small, medium, large and extra large, each size with its own chart. Smart stacks, edit mode and drag to reorder.",
-    "proposed": true
+    "description": "Home screen widgets in small, medium, large and extra large, each size with its own chart. Smart stacks, edit mode and drag to reorder."
   },
   {
     "path": "/components",

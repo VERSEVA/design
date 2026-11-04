@@ -33,9 +33,9 @@ export const QUESTION_WORDS = [
 ];
 const QUESTION_WORD = new RegExp(`^(${QUESTION_WORDS.join('|')})('(s|re|ll|d|ve))?(\\s|$)`);
 
-/** Lowercase, accents stripped, curly apostrophes straightened (iOS smart punctuation), whitespace collapsed and trimmed. */
+/** Lowercase, accents stripped, curly apostrophes straightened (iOS smart punctuation), the full-width question mark (CJK input) folded to "?", whitespace collapsed and trimmed. */
 export function normalize(s: string): string {
-  return String(s ?? '').replace(/[\u2018\u2019\u02bc]/g, "'").normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return String(s ?? '').replace(/[\u2018\u2019\u02bc]/g, "'").replace(/\uFF1F/g, '?').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 export function isQuestion(query: string): boolean {

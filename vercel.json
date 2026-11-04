@@ -11,6 +11,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/widgets",
+      "destination": "/index.html"
+    },
+    {
       "source": "/components",
       "destination": "/index.html"
     },

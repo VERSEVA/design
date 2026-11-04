@@ -6,7 +6,7 @@ import {
   activityState, clampProgress, percent, currentStep, ringOffset,
   leadActivity, moreCount, failedCount,
   trackDone, leaveExpired, nextLeaveIn, pruneLeft, visibleActivities, restartStamps, dedupeActivities,
-  activityEvents, announcement,
+  activityEvents, announcement, pruneCancelled,
 } from '../react/activity-state.ts';
 
 const job = (id, progress, extra = {}) => ({ id, name: `Job ${id}`, progress, ...extra });
@@ -160,6 +160,18 @@ describe('announcements', () => {
     assert.deepEqual(activityEvents([job('a', 0.2)], [], new Set(['a'])).map((e) => announcement(e, L)), ['Job a cancelled']);
     assert.deepEqual(say([job('a', 0.2)], [job('a', 0.2, { error: 'Timed out' })]), ['Job a failed: Timed out']);
     assert.deepEqual(say([job('a', 0.2)], [job('a', 0.2, { error: true })]), ['Job a failed']);
+  });
+});
+
+describe('cancel requests', () => {
+  test('pruneCancelled keeps an id only while its job is present and running', () => {
+    const list = [job('a', 0.4), job('b', 1, { done: true }), job('c', 0.4, { error: 'x' }), job('d', null)];
+    const out = pruneCancelled(new Set(['a', 'b', 'c', 'd', 'gone']), list);
+    assert.deepEqual([...out].sort(), ['a', 'd']);
+  });
+  test('pruneCancelled returns the same set when nothing is dropped', () => {
+    const set = new Set(['a']);
+    assert.equal(pruneCancelled(set, [job('a', 0.4)]), set);
   });
 });
 

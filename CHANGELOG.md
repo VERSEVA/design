@@ -51,6 +51,12 @@
   `.wtile-sizes`, `.wtile-move`, `.wstack`, `.wstack-pages`, `.wstack-page`, `.wstack-nav`, `.wstack-dot`,
   `.wstack-pause`, `.wstack-step`, `.wgal`, `.wgal-item`, `.wgal-icon`, `.wgal-name`, `.wgal-sizes`. Keyframes: `wtile-jiggle`.
 
+### Fixed
+
+- **Counts and unread dots are neutral (law 3).** `.ibtn .num`, `.ibtn .dot`, `.notif .udot` and `.mhint .newdot`
+  painted the accent, out of line with the law 3 budget since 1.4.0 (counts and info badges are neutral). They now
+  draw on the text ladder: `--text-1`, with `--bg` ink on the count.
+
 ## 1.5.0 · 2026-11-01
 
 ### Added

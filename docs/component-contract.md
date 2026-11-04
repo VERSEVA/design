@@ -383,7 +383,8 @@ Meta+K or Ctrl+K opens one bar for actions, go-to, recent items and questions. T
 
 **Contract:** `commands: { group, label, icon?, hint?, keywords?, disabled?, run }[]`, optional
 `onAsk(question, { signal }) => AsyncIterable<string> | { text, widget? }` (or a promise of
-either), optional `onPin({ question, text, widget })`. `open`, `onOpenChange` or `defaultOpen`;
+either; a `widget` property on the iterable shows once the stream ends), optional
+`onPin({ question, text, widget })`. `open`, `onOpenChange` or `defaultOpen`;
 `shortcut` (default true); every word a `labels` prop.
 
 **Anatomy**
@@ -588,7 +589,9 @@ to `--text-1`, `--text-2` and a 30% `--text-1` mix in every tile except the one 
 example `Bars` with `level`) cannot be recoloured, so it spends the accent wherever it renders.
 `test/widgets-css.test.mjs` fails a new accent rule without a neutraliser;
 `studio/test/widget-grid.test.tsx` counts accent-bearing elements across a rendered grid (at most
-one tile, the focus one).
+one tile, the focus one) and across a whole console view, against the law 3 budget: the one primary
+action, the active nav bloom, and at most one focus widget's data marks. Counts, badges and dots
+(`.ibtn .num`, `.ibtn .dot`, `.notif .udot`, `.mhint .newdot`) are neutral on the text ladder.
 
 **Edit mode** (an Edit button the product owns, a 550ms long-press on a tile, or the command bar).
 Esc leaves when focus is in the grid, on the Edit toggle (`toggleRef`) or nowhere, never from another
