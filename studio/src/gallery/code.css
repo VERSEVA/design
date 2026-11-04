@@ -1,5 +1,5 @@
 /* The gallery code route (1.7.0): the source in a studio tile, scoped to the route. */
 [data-chapter="code"] .srchead { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
 [data-chapter="code"] .srchead h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; flex: 1; }
-[data-chapter="code"] .srcpre { max-height: 74vh; }
+[data-chapter="code"] .srcpre { max-height: calc(100dvh - var(--s-10) * 3); min-height: var(--s-10); }
 [data-chapter="code"] .srcpre code { color: var(--text-2); }

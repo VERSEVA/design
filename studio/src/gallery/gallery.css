@@ -5,10 +5,12 @@
 .gtile .wtile-meta, .gex-tile .wtile-meta, .gsrc-tile .wtile-meta { flex-basis: 100%; margin-left: 0; white-space: normal; }
 .gtags { display: flex; flex-wrap: wrap; gap: var(--s-1); }
 .gtile-off { display: none; }
-.gtile .stile-foot { justify-content: flex-start; }
+.gtile .stile-foot, .gex-tile .stile-foot, .gsrc-tile .stile-foot { justify-content: flex-start; }
+.stile-foot a.btn { text-decoration: none; }
 
-/* The thumbnail: a reserved box at the tile's aspect, flush to the tile edges, inert. */
-.gthumb { --g-ar: 16 / 10; position: relative; display: block; aspect-ratio: var(--g-ar); margin-inline: calc(var(--s-4) * -1); overflow: hidden; background: var(--surface-2); border-block: 1px solid var(--hairline-soft); pointer-events: none; user-select: none; }
+/* The thumbnail: a reserved box at the tile's aspect, flush to the tile edges, inert. It grows
+   into a row a taller neighbour sets, so the tile has no void above its footer. */
+.gthumb { --g-ar: 16 / 10; flex: 1 0 auto; position: relative; display: block; aspect-ratio: var(--g-ar); margin-inline: calc(var(--s-4) * -1); overflow: hidden; background: var(--surface-2); border-block: 1px solid var(--hairline-soft); pointer-events: none; user-select: none; }
 .gtile[data-size="xl"] .gthumb { --g-ar: 21 / 9; }
 .gtile[data-size="s"] .gthumb { --g-ar: 4 / 3; }
 .gthumb iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; }
@@ -30,7 +32,6 @@
 .gex-head h1 { flex: 1; font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; }
 .gex-stage { margin-inline: calc(var(--s-4) * -1); border-block: 1px solid var(--hairline-soft); }
 .gex-frame { display: block; width: 100%; height: calc(100dvh - 240px); border: 0; background: var(--surface); }
-.gex-tile .stile-foot, .gsrc-tile .stile-foot { justify-content: flex-start; }
 /* Phones: the tile runs edge to edge, so the example gets the width it had on its own. */
 @media (max-width: 760px) {
   .gex-tile { margin-inline: calc(var(--s-4) * -1); border-radius: 0; border-inline-width: 0; }
