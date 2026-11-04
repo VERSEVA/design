@@ -5,6 +5,7 @@
 // /gallery/<slug>/code; the preview iframes keep loading /examples/*.html, which
 // serve as files.
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
+import { watchFrames } from '../../front/frameSync';
 import './gallery.css';
 
 /* sha256 of site/examples.html; the parity test fails if the frozen page changes. */
@@ -35,6 +36,8 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
   };
   on(window, 'resize', scalePreviews);
   scalePreviews();
+  /* The previews follow the studio theme and brand, as the iframe embed's nested frames did. */
+  onCleanup(watchFrames(root));
 
   on($('gfilter'), 'click', (e) => {
     const chip = (e.target as Element).closest<HTMLElement>('.fchip');

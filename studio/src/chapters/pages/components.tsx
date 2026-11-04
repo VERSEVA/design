@@ -648,7 +648,8 @@ export function Page() {
           <section className="comp" id="table-pin">
             <h2>Pinned table header</h2>
             <div className="demo">
-              <div className="specimen" style={{ flex: "1 1 100%" }}>
+              {/* Deviation table-pin-min-width: the .pin.box scrolls the table at 375px, not the page. */}
+              <div className="specimen" style={{ flex: "1 1 100%", minWidth: 0 }}>
                 <div className="pin box" style={{ maxHeight: "240px" }}>
                   <table className="table">
                     <thead>

@@ -1,11 +1,13 @@
 // A gallery example's source inside the studio shell, ported from site/code.html
 // (frozen): the same head, source box, buttons and footer that page showed once its
-// script had read ?f=. The slug comes from the route, the source from the served
-// /examples/<slug>.html, fetched after mount so the page renders on the server.
+// script had read ?f=. The slug comes from the route; the source is inlined at build
+// time (sources.json, generated from site/examples/*.html, the files served at
+// /examples), so the pre-rendered page holds the real text and nothing is fetched.
 import { useEffect, useRef, useState } from 'react';
 import { NativeChapter } from '../chapters/NativeChapter';
 import { onStudioLink } from '../shell/router';
 import { GALLERY } from './examples';
+import SOURCES from './sources.json';
 import './code.css';
 
 /* sha256 of site/code.html; the parity test fails if the frozen page changes. */
@@ -14,19 +16,10 @@ export const FROZEN_CODE = '488c27a0dd7cd4bc94537ee80cbfa86796378ccc1d4aaf992949
 export function GalleryCodePage({ slug }: { slug: string }) {
   const file = `examples/${slug}.html`;
   const label = GALLERY.find((g) => g.slug === slug)?.label ?? slug;
-  const [text, setText] = useState('Loading the source.');
+  const text = (SOURCES as Record<string, string>)[slug] ?? '';
   const [copy, setCopy] = useState('Copy');
   const reset = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    let live = true;
-    setText('Loading the source.');
-    fetch(`/${file}`, { cache: 'no-store' })
-      .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
-      .then((t) => { if (live) setText(t); })
-      .catch(() => { if (live) setText(`Could not load ${file}.`); });
-    return () => { live = false; };
-  }, [file]);
   useEffect(() => () => clearTimeout(reset.current), []);
 
   const onCopy = async () => {
@@ -58,7 +51,7 @@ export function GalleryCodePage({ slug }: { slug: string }) {
       </section>
       <div className="srcwrap">
         <div className="srcbtns">
-          <a className="btn btn-secondary sm" id="openlive" href={`/gallery/${slug}`}>Open live</a>
+          <a className="btn btn-secondary sm" id="openlive" href={`/gallery/${slug}`} onClick={onStudioLink}>Open live</a>
           {' '}
           <button className="btn btn-secondary sm" id="copysrc" type="button" onClick={onCopy}>{copy}</button>
         </div>

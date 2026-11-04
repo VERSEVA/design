@@ -3,12 +3,15 @@
 // through the studio, so the shell never gives way to the example's own page.
 import { useEffect, useRef } from 'react';
 import { navigate, onStudioLink } from '../shell/router';
+import { watchFrames } from '../front/frameSync';
 import { exampleLink, GALLERY } from './examples';
+import { fitToDocument } from './fitFrame';
 import './gallery.css';
 
 export function GalleryExamplePage({ slug }: { slug: string }) {
   const label = GALLERY.find((g) => g.slug === slug)?.label ?? slug;
   const frame = useRef<HTMLIFrameElement>(null);
+  const root = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const f = frame.current;
@@ -32,11 +35,14 @@ export function GalleryExamplePage({ slug }: { slug: string }) {
     };
     f.addEventListener('load', attach);
     attach();
-    return () => { f.removeEventListener('load', attach); doc?.removeEventListener('click', onClick); };
+    /* Theme and brand reach the frame as on every studio frame; the frame fits its document. */
+    const unwatch = root.current ? watchFrames(root.current) : () => {};
+    const unfit = fitToDocument(f);
+    return () => { f.removeEventListener('load', attach); doc?.removeEventListener('click', onClick); unwatch(); unfit(); };
   }, [slug]);
 
   return (
-    <section className="page gex" data-gallery={slug}>
+    <section ref={root} className="page gex" data-gallery={slug}>
       <nav className="crumbs pb-3" aria-label="Breadcrumb">
         <a href="/gallery" onClick={onStudioLink}>Gallery</a>
         <span className="sep" aria-hidden="true">/</span>
@@ -46,7 +52,10 @@ export function GalleryExamplePage({ slug }: { slug: string }) {
         <h1>{label}</h1>
         <a className="btn btn-secondary sm" href={`/gallery/${slug}/code`} onClick={onStudioLink}>Code</a>
       </div>
-      <iframe ref={frame} className="gex-frame" src={`/examples/${slug}.html`} title={label} />
+      {/* The stage is the frame's width, so watchFrames' fit leaves it at scale 1. */}
+      <div className="gex-stage">
+        <iframe ref={frame} className="gex-frame" src={`/examples/${slug}.html`} title={label} scrolling="no" />
+      </div>
     </section>
   );
 }

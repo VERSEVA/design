@@ -89,6 +89,14 @@ export const DEVIATIONS: Readonly<Record<string, ReadonlyArray<{ id: string; why
         wrap.append(spec);
       },
     },
+    {
+      id: 'table-pin-min-width',
+      why: 'the #table-pin specimen (a flex item) took its table\'s width and scrolled the page sideways at 375px; min-width: 0 lets the .pin.box scroll it instead (ruling 2026-11-04)',
+      apply: (shell) => {
+        const spec = shell.querySelector('#table-pin .demo > .specimen')!;
+        spec.setAttribute('style', `${spec.getAttribute('style')};min-width:0`);
+      },
+    },
   ],
 };
 

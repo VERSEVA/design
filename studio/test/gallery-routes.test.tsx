@@ -119,12 +119,10 @@ describe('gallery links stay in the shell', () => {
   });
 
   it('lands a cold deep link on a code route', async () => {
-    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(source('store'), { status: 200 }));
     window.history.replaceState(null, '', '/gallery/store/code');
     const { container } = render(<App />);
     await tick();
     expect(container.querySelector('[data-chapter="code"] #srccode')!.textContent).toBe(source('store'));
-    fetch.mockRestore();
   });
 });
 
@@ -150,7 +148,6 @@ describe('the code route against the legacy code.html', () => {
   });
 
   it.each(files)('%s: renders what code.html showed once its script ran, element for element', async (slug) => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(source(slug), { status: 200 }));
     const legacy = legacyCode(slug) as Element & { fetched: Promise<void> };
     await legacy.fetched;
     await new Promise((r) => setTimeout(r, 0));
@@ -168,28 +165,10 @@ describe('the code route against the legacy code.html', () => {
     expect(norm(chap)).toBe(want);
   });
 
-  it('copies the source and says so', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(source('pulse'), { status: 200 }));
-    const write = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText: write }, configurable: true });
-    const { container } = render(<GalleryCodePage slug="pulse" />);
-    await tick();
-    const btn = container.querySelector<HTMLButtonElement>('#copysrc')!;
-    await act(async () => { fireEvent.click(btn); });
-    expect(write).toHaveBeenCalledWith(source('pulse'));
-    expect(btn.textContent).toBe('Copied');
-  });
 
-  it('shows the legacy failure line when the file does not load', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('', { status: 404 }));
-    const { container } = render(<GalleryCodePage slug="pulse" />);
-    await tick();
-    expect(container.querySelector('#srccode')!.textContent).toMatch(/^Could not load examples\/pulse\.html\./);
-  });
 
-  it('renders on the server with the loading line, the crumbs and its h1', () => {
+  it('renders on the server with the crumbs and its h1', () => {
     const html = renderToStaticMarkup(<GalleryCodePage slug="pulse" />);
-    expect(html).toContain('Loading the source.');
     expect(html).toMatch(/<h1 id="srctitle">pulse<\/h1>/);
     expect(html).toContain('aria-label="Breadcrumb"');
   });

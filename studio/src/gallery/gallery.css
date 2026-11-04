@@ -1,4 +1,9 @@
 /* A gallery example in the shell: layout only, values from the tokens. */
 .gex-head { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; padding-bottom: var(--s-5); }
 .gex-head h1 { flex: 1; font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; }
-.gex-frame { display: block; width: 100%; height: calc(100dvh - 240px); min-height: 520px; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); }
+.gex-frame { display: block; width: 100%; height: calc(100dvh - 240px); border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); }
+/* Phones: the frame runs edge to edge, so the example gets the width it had on its own. */
+@media (max-width: 760px) {
+  .gex-stage { margin: 0 calc(var(--s-4) * -1); }
+  .gex-frame { border-width: 1px 0; border-radius: 0; }
+}
