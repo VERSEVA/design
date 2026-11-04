@@ -114,7 +114,7 @@ export function Page() {
             </table>
           </div>
         </SpecimenTile>
-        <SpecimenTile id="radius-press" name="Radius + press · amended 2026-08-31" icon={ICON.table} size="m" meta="6 surfaces">
+        <SpecimenTile id="radius-press" name="Radius + press" icon={ICON.table} size="m" meta="amended 2026-08-31">
           <div className="tscroll">
             <table className="ttable">
               <thead>
@@ -163,7 +163,7 @@ export function Page() {
       <section className="ch" id="contract-specimens">
         <h2>Contract specimens</h2>
         <SpecimenGrid>
-          <SpecimenTile name="Buttons" level={3} icon={ICON.control} size="m" meta="5 variants">
+          <SpecimenTile name="Buttons" level={3} icon={ICON.control} size="m" meta="5 buttons">
             <div className="demo">
               <button className="btn btn-primary" type="button">Primary</button>
               <button className="btn btn-secondary" type="button">Secondary</button>
