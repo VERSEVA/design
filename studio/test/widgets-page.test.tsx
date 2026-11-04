@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, fireEvent, act, waitFor, within } from '@testing-library/react';
 import axe from 'axe-core';
+import fs from 'node:fs';
+import path from 'node:path';
 import { App } from '../src/App';
 import { navigate } from '../src/shell/router';
 import { wait } from '../src/widgets/WidgetsPage';
@@ -96,6 +98,24 @@ describe('/widgets', () => {
     expect(rows.map((r) => r.querySelector('.lact')?.getAttribute('data-state') ?? null)).toEqual(['pending', 'running', 'done', 'error', 'empty']);
     expect(rows.map((r) => r.querySelector<HTMLElement>('.lact-wrap')!.hidden)).toEqual([false, false, false, false, true]);
     for (const name of ['No results', 'Loading', 'Error']) expect(getByRole('button', { name })).toBeTruthy();
+  });
+
+  it('home: the console specimen carries the .navshell phone nav, shown below 900px (spec: Phone)', async () => {
+    const { container } = await open();
+    const nav = container.querySelector<HTMLElement>('.wx-console > .navshell')!;
+    expect(nav, 'no .navshell in the console specimen').not.toBeNull();
+    expect(nav.tagName).toBe('NAV');
+    expect(nav.previousElementSibling?.classList.contains('wx-body')).toBe(true);
+    const tabs = [...nav.querySelectorAll<HTMLButtonElement>('.navmain > button.tab')];
+    expect(tabs.map((t) => t.textContent)).toEqual(['Home', 'Quotes', 'Trends', 'You']);
+    expect(tabs.filter((t) => t.classList.contains('on')).map((t) => t.getAttribute('aria-current'))).toEqual(['page']);
+    fireEvent.click(tabs[1]);
+    expect(tabs[1].classList.contains('on')).toBe(true);
+    expect(tabs[0].hasAttribute('aria-current')).toBe(false);
+    /* jsdom has no media queries: the rules that hold it through 899px and hide it from 900px */
+    const css = fs.readFileSync(path.join(__dirname, '../src/widgets/widgets.css'), 'utf8').replace(/\s+/g, ' ');
+    expect(css).toContain('@media (min-width: 768px) and (max-width: 899.98px) { .wx-console > .navshell { display: flex; } }');
+    expect(css).toContain('@media (min-width: 900px) { .wx-console > .navshell { display: none; } }');
   });
 
   it('has no axe violations', async () => {

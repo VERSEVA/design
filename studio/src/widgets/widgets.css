@@ -16,6 +16,13 @@
 .wx-label { font-size: .8125rem; color: var(--text-2); }
 .wx-bars { display: grid; gap: var(--s-3); }
 .wx-bars .tbar { border: 1px solid var(--hairline); border-radius: var(--r-md); }
+/* The console specimen's phone nav: the .navshell recipe, held inside the specimen (sticky, not
+   fixed) and shown below 900px, where a console hides its sidebar. */
+.wx-console > .navshell { position: sticky; left: auto; right: auto; bottom: var(--s-4); margin: 0 var(--s-3) var(--s-3); }
+:where(.wx-console > .navshell) button.tab { border: 0; font: inherit; }
+:where(.wx-console > .navshell) button.tab:not(.on) { background: none; }
+@media (min-width: 768px) and (max-width: 899.98px) { .wx-console > .navshell { display: flex; } }
+@media (min-width: 900px) { .wx-console > .navshell { display: none; } }
 @media (max-width: 899.98px) {
   .wx-body { padding: var(--s-4); }
   .wx-states { grid-template-columns: minmax(0, 1fr); }
