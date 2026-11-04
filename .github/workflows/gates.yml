@@ -16,3 +16,11 @@ jobs:
       - run: npm --prefix studio ci --no-audit --no-fund
       - run: npm run typecheck
       - run: npm --prefix studio test
+      # The served site: build, assemble out/ as Vercel serves it, then the served-paths contract,
+      # the link crawl, the main-chunk size and no-source checks, and the 375px overflow probe
+      # (headless Chrome, preinstalled on ubuntu-latest; the probe fails loudly when it finds none).
+      # test:served runs every test/served/*.test.mjs, so a new served test joins CI on its own.
+      - run: npm run studio:build
+      - run: npm run assemble
+      - run: echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV" && google-chrome --version
+      - run: npm run test:served
