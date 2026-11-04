@@ -7,6 +7,7 @@ import axe from 'axe-core';
 import { WidgetGrid } from '../../react/widget-grid';
 import type { WidgetDefinition } from '../../react/widget-grid';
 import { SmartStack } from '../../react/smart-stack';
+import { ConsoleTopbar } from '../../react/console-topbar';
 import { Sparkline, Bars, HBars, Ring, ActivityStrip, LineChart } from '../../react/viz';
 import type { LayoutItem } from '../../react/widget-state';
 
@@ -106,6 +107,52 @@ describe('accent budget (law 3: one accent per view)', () => {
     expect(accentTiles(container)).toEqual([]);
     const { container: c2 } = render(<div className="wgrid"><div className="wtile" data-id="y" data-focus=""><Sparkline values={[1, 2, 3]} /></div></div>);
     expect(accentTiles(c2)).toEqual(['y']);
+  });
+});
+
+/* Across a whole console view: chrome indicators too. Neutralisers are the non-accent rules keyed on the focus marker. */
+const VIEW_NEUTRAL = RULES.filter((r) => r.sel.includes('[data-focus]') && !ACCENT.test(r.body)).map((r) => r.sel);
+function accentOwners(root: HTMLElement): string[] {
+  const hit = new Set<string>();
+  for (const el of root.querySelectorAll('*')) {
+    if (el.closest('[hidden]')) continue;
+    const neutral = VIEW_NEUTRAL.some((s) => safeMatch(el, s));
+    const byRule = ACCENT_SELS.some((s) => safeMatch(el, s));
+    const byAttr = ['stroke', 'fill', 'stop-color'].some((a) => ACCENT.test(el.getAttribute(a) ?? ''));
+    const byStyle = ACCENT.test(el.getAttribute('style') ?? '');
+    if (byStyle || ((byRule || byAttr) && !neutral)) {
+      const t = el.closest<HTMLElement>('.wtile');
+      hit.add(t ? `tile:${t.dataset.id}` : `chrome:${el.getAttribute('class') || el.tagName.toLowerCase()}`);
+    }
+  }
+  return [...hit].sort();
+}
+
+function ConsoleView({ focus }: { focus?: string }) {
+  return (
+    <div className="cmain">
+      <nav className="snav" aria-label="Operate"><a href="#h" aria-current="page"><svg aria-hidden="true" /><span>Home</span></a><a href="#i">Invoices</a></nav>
+      <ConsoleTopbar
+        crumbs={[{ label: 'Home' }]}
+        notifications={[{ id: 'n1', text: 'Deploy studio done', at: 'Just now', unread: true }]}
+        whatsNew={{ version: '1.6.0', unread: true, onOpen: () => {} }}
+      />
+      <WidgetGrid definitions={DEFS} layout={ALL} columns={4} focus={focus} storageKey={null} />
+    </div>
+  );
+}
+
+describe('accent budget across the console view (law 3)', () => {
+  it('with a focus widget, it is the only accent: unread badge, unread dot and current nav item step to the text ladder', () => {
+    const { container } = render(<ConsoleView focus="w0" />);
+    expect(container.querySelector('.ibtn .num')?.textContent).toBe('1');
+    expect(accentOwners(container)).toEqual(['tile:w0']);
+  });
+  it('without a focus widget the chrome keeps its accent (control)', () => {
+    const { container } = render(<ConsoleView />);
+    const owners = accentOwners(container);
+    expect(owners.some((o) => o.startsWith('chrome:num'))).toBe(true);
+    expect(owners.some((o) => o.startsWith('tile:'))).toBe(false);
   });
 });
 

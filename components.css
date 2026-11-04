@@ -805,6 +805,12 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .wtile:not([data-focus]) [stroke="var(--data-3)"]{stroke:var(--text-1)}
 .wtile:not([data-focus]) [fill="var(--data-3)"]{fill:var(--text-1)}
 .wtile:not([data-focus]) [stop-color="var(--data-3)"]{stop-color:var(--text-1)}
+/* Law 3 across the console view: a focus widget is the view's one accent, so the chrome's own
+   accent marks (unread count, unread dot, current nav item) step to the text ladder while one is on the page. */
+:root:has(.wtile[data-focus]) .ibtn .num{background:var(--text-1);color:var(--bg)}
+:root:has(.wtile[data-focus]) .ibtn .dot{background:var(--text-1)}
+:root:has(.wtile[data-focus]) .snav a.active,:root:has(.wtile[data-focus]) .snav a[aria-current="page"]{background:var(--surface-2);box-shadow:none}
+:root:has(.wtile[data-focus]) .snav a.active svg,:root:has(.wtile[data-focus]) .snav a[aria-current="page"] svg{color:var(--text-1)}
 
 /* Smart stack: one slot, several widgets; scroll, swipe, dots or a timer with a visible pause */
 .wstack{position:relative;flex:1;min-height:0;display:flex;touch-action:pan-y}
