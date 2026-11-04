@@ -7,6 +7,7 @@ import { ROUTE_TABLE, LIVE_ROUTES, metaFor } from '../src/shell/routes-table';
 import chapters from '../src/data/chapters.json';
 import fs from 'node:fs';
 import path from 'node:path';
+import { CHAPTERS } from '../scripts/chapters-model.mjs';
 
 const description = () => document.querySelector('meta[name="description"]')?.getAttribute('content');
 
@@ -55,6 +56,17 @@ describe('routes table', () => {
       expect(description()).toBe(r.description);
     }
     expect(document.querySelectorAll('meta[name="description"]').length).toBe(1);
+  });
+
+  it('labels every chapter row as chapters-model does', () => {
+    const rows = LIVE_ROUTES.filter((r) => r.group === 'Chapters').map((r) => [r.path, r.label]);
+    expect(rows).toEqual(CHAPTERS.map((c: { slug: string; label: string }) => [`/${c.slug}`, c.label]));
+  });
+
+  it('rewrites exactly the live routes except / in vercel.json', () => {
+    const v = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../vercel.json'), 'utf8'));
+    const sources = v.rewrites.map((r: { source: string }) => r.source).sort();
+    expect(sources).toEqual(LIVE_ROUTES.map((r) => r.path).filter((p) => p !== '/').sort());
   });
 
   it('starts index.html on the Overview row', () => {
