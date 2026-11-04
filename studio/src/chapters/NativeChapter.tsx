@@ -41,7 +41,17 @@ function onChapterClick(e: MouseEvent<HTMLElement>, file: string) {
   }
   const t = resolveChapterLink(href, window.location.origin, file);
   if (t.kind === 'route') { e.preventDefault(); navigate(t.to); }
-  else if (t.kind === 'anchor') { e.preventDefault(); document.getElementById(t.id)?.scrollIntoView({ behavior: 'smooth' }); }
+  else if (t.kind === 'anchor') { e.preventDefault(); jumpTo(document.getElementById(t.id)); }
+}
+
+/* An in-page anchor scrolls AND moves focus (WCAG 2.4.1: a skip link must land the
+   keyboard there too). A target that is not focusable gets tabindex=-1 first. */
+const FOCUSABLE = 'a[href],button,input,select,textarea,summary,[contenteditable]';
+export function jumpTo(el: HTMLElement | null) {
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth' });
+  if (!el.hasAttribute('tabindex') && !el.matches(FOCUSABLE)) el.setAttribute('tabindex', '-1');
+  el.focus({ preventScroll: true });
 }
 
 export function NativeChapter({ slug, script, children }: { slug: string; script?: ChapterScript; children: ReactNode }) {
