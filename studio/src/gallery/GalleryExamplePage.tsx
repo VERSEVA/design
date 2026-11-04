@@ -1,11 +1,13 @@
-// One gallery example inside the studio shell: the example file in a frame, with
-// its breadcrumb and a link to its source. Links clicked inside the frame route
+// One gallery example inside the studio shell: the example file in a frame, in a studio
+// tile (the file and its tags in the header, Code in the footer), with its breadcrumb. Links clicked inside the frame route
 // through the studio, so the shell never gives way to the example's own page.
 import { useEffect, useRef } from 'react';
 import { navigate, onStudioLink } from '../shell/router';
 import { watchFrames } from '../front/frameSync';
 import { exampleLink, GALLERY } from './examples';
 import { fitToDocument } from './fitFrame';
+import { META } from './meta';
+import { SpecimenTile } from '../tiles/SpecimenTile';
 import './gallery.css';
 
 export function GalleryExamplePage({ slug }: { slug: string }) {
@@ -50,12 +52,19 @@ export function GalleryExamplePage({ slug }: { slug: string }) {
       </nav>
       <div className="gex-head">
         <h1>{label}</h1>
-        <a className="btn btn-secondary sm" href={`/gallery/${slug}/code`} onClick={onStudioLink}>Code</a>
       </div>
-      {/* The stage is the frame's width, so watchFrames' fit leaves it at scale 1. */}
-      <div className="gex-stage">
-        <iframe ref={frame} className="gex-frame" src={`/examples/${slug}.html`} title={label} scrolling="no" />
-      </div>
+      <SpecimenTile
+        className="gex-tile"
+        name={`examples/${slug}.html`}
+        meta={META[slug] && <span className="gtags">{META[slug].tags.map((t) => <span key={t} className="badge neutral">{t}</span>)}</span>}
+        size="xl"
+        actions={<a className="btn btn-secondary sm" href={`/gallery/${slug}/code`} onClick={onStudioLink}>Code</a>}
+      >
+        {/* The stage is the frame's width, so watchFrames' fit leaves it at scale 1. */}
+        <div className="gex-stage">
+          <iframe ref={frame} className="gex-frame" src={`/examples/${slug}.html`} title={label} scrolling="no" />
+        </div>
+      </SpecimenTile>
     </section>
   );
 }

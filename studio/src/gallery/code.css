@@ -1,8 +1,5 @@
-/* The page's own <style> from site/code.html, scoped to the gallery code route. */
+/* The gallery code route (1.7.0): the source in a studio tile, scoped to the route. */
 [data-chapter="code"] .srchead { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
 [data-chapter="code"] .srchead h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; flex: 1; }
-[data-chapter="code"] .srcfile { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
-[data-chapter="code"] .srcwrap { position: relative; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); overflow: hidden; }
-[data-chapter="code"] .srcwrap pre { margin: 0; padding: var(--s-5); overflow-x: auto; max-height: 74vh; }
-[data-chapter="code"] .srcwrap code { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-2); }
-[data-chapter="code"] .srcbtns { position: absolute; top: var(--s-2); right: var(--s-2); display: flex; gap: var(--s-2); }
+[data-chapter="code"] .srcpre { max-height: 74vh; }
+[data-chapter="code"] .srcpre code { color: var(--text-2); }

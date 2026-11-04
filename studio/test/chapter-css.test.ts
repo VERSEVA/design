@@ -264,11 +264,10 @@ describe('per-chapter CSS', () => {
     expect(got.join('\n')).toBe(flat(legacyStyle(slug)).join('\n'));
   });
 
-  /* The gallery code route is site/code.html ported: same scope rule, same <style>. */
-  it('gallery/code.css scopes every selector under [data-chapter="code"] and declares exactly what code.html\'s <style> declares', () => {
+  /* The gallery code route's <style> parity with site/code.html is retired (test/redesigned.ts REDESIGNED_ROUTES); its scope is held. */
+  it('gallery/code.css scopes every selector under [data-chapter="code"]', () => {
     const css = read('studio/src/gallery/code.css');
     expect(rules(css).flatMap((r) => r.selectors).filter((s) => !s.startsWith('[data-chapter="code"] '))).toEqual([]);
-    expect(flat(css, '[data-chapter="code"] ').join('\n')).toBe(flat(legacyStyle('code')).join('\n'));
   });
 });
 

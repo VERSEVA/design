@@ -24,6 +24,20 @@
 - **Components: 50 sections as tiles.** Section ids, deep links, the On this page rail and the demos are
   unchanged; each code panel shows the generated, byte-checked sample from `chapter-code.mjs`.
 - **Foundations: each token family is a tile,** with its declarations (`:root` and the light flip) as its code.
+- **Gallery: a bento of example tiles.** `/gallery` shows the 8 mock sites as XL, M and S tiles: the name and its
+  tags as neutral badges in the header, a live thumbnail in the body, Live (`/gallery/<slug>`) and Code
+  (`/gallery/<slug>/code`) in the footer. The tag filter chips stay, as neutral selection, with a count on each.
+  Thumbnails are the example files scaled from 1280px: inert, `aria-hidden`, no pointer events, themed and branded
+  with the studio. They load lazily (IntersectionObserver), at most 6 at once, 3 on phones, and sit still (CSS
+  animations at their end state, the example's animation-frame loop held) until their tile is hovered or holds
+  focus; never under Pause motion or reduced motion. Details and inspiration shots are tiles too.
+- **Gallery example and code routes in the tile language.** `/gallery/<slug>` puts its frame in a tile (the file
+  and tags in the header, Code in the footer) and `/gallery/<slug>/code` its source (Open live and Copy in the
+  footer, Retry in the body on a failed chunk). Height fitting, theme and brand following, one scrollbar, the
+  pre-rendered source, the breadcrumb JSON-LD and the 404s for unknown slugs are unchanged.
+- **Retired: gallery parity.** `/gallery` and the code route no longer match `site/examples.html` and
+  `site/code.html` element for element; both are logged in `studio/test/redesigned.ts` and held by
+  `gallery-tiles.test.tsx` and the served `gallery.test.mjs` instead.
 
 ### Fixed
 

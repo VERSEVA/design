@@ -1,11 +1,40 @@
-/* A gallery example in the shell: layout only, values from the tokens. */
+/* Gallery tiles, thumbnails and the example and code routes: layout only, values from the tokens. */
+
+/* Example tile header: the name, then its tags as a row of neutral badges, left-aligned. */
+.gtile > .wtile-body > .wtile-hd, .gex-tile > .wtile-body > .wtile-hd, .gsrc-tile > .wtile-body > .wtile-hd { flex-wrap: wrap; row-gap: var(--s-2); }
+.gtile .wtile-meta, .gex-tile .wtile-meta, .gsrc-tile .wtile-meta { flex-basis: 100%; margin-left: 0; white-space: normal; }
+.gtags { display: flex; flex-wrap: wrap; gap: var(--s-1); }
+.gtile-off { display: none; }
+.gtile .stile-foot { justify-content: flex-start; }
+
+/* The thumbnail: a reserved box at the tile's aspect, flush to the tile edges, inert. */
+.gthumb { --g-ar: 16 / 10; position: relative; display: block; aspect-ratio: var(--g-ar); margin-inline: calc(var(--s-4) * -1); overflow: hidden; background: var(--surface-2); border-block: 1px solid var(--hairline-soft); pointer-events: none; user-select: none; }
+.gtile[data-size="xl"] .gthumb { --g-ar: 21 / 9; }
+.gtile[data-size="s"] .gthumb { --g-ar: 4 / 3; }
+.gthumb iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; }
+.gthumb iframe[data-loaded] { opacity: 1; }
+.gthumb-ph { position: absolute; inset: 0; background: color-mix(in srgb, var(--text-1) 6%, transparent); }
+@media (prefers-reduced-motion: no-preference) {
+  .gthumb iframe { transition: opacity var(--dur-3) var(--ease-entrance); }
+}
+@media (max-width: 1099.98px) {
+  .gtile[data-size="xl"] .gthumb { --g-ar: 16 / 9; }
+}
+@media (max-width: 559.98px) {
+  .gthumb { margin-inline: calc(var(--s-3) * -1); }
+  .gtile[data-size] .gthumb { --g-ar: 16 / 10; }
+}
+
+/* A gallery example in the shell: the frame flush in its tile, as tall as its document. */
 .gex-head { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; padding-bottom: var(--s-5); }
 .gex-head h1 { flex: 1; font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; }
-.gex-frame { display: block; width: 100%; height: calc(100dvh - 240px); border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); }
-/* Phones: the frame runs edge to edge, so the example gets the width it had on its own. */
+.gex-stage { margin-inline: calc(var(--s-4) * -1); border-block: 1px solid var(--hairline-soft); }
+.gex-frame { display: block; width: 100%; height: calc(100dvh - 240px); border: 0; background: var(--surface); }
+.gex-tile .stile-foot, .gsrc-tile .stile-foot { justify-content: flex-start; }
+/* Phones: the tile runs edge to edge, so the example gets the width it had on its own. */
 @media (max-width: 760px) {
-  .gex-stage { margin: 0 calc(var(--s-4) * -1); }
-  .gex-frame { border-width: 1px 0; border-radius: 0; }
+  .gex-tile { margin-inline: calc(var(--s-4) * -1); border-radius: 0; border-inline-width: 0; }
 }
-/* The code route when its source chunk failed: a label and Retry, below the source buttons. */
-[data-chapter="code"] .srcerr { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-3); padding: var(--s-7) var(--s-5) var(--s-5); font-size: 13px; color: var(--text-2); }
+@media (max-width: 559.98px) {
+  .gex-stage { margin-inline: calc(var(--s-3) * -1); }
+}
