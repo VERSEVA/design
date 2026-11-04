@@ -28,7 +28,9 @@
     { "name": "accordion", "file": "react/accordion.tsx", "kind": "component", "deps": ["cx"], "description": "Content accordion on native details/summary" },
     { "name": "tooltip", "file": "react/tooltip.tsx", "kind": "component", "deps": ["cx"], "description": "Hover/focus label on the inverse ground" },
     { "name": "viz", "file": "react/viz.tsx", "kind": "component", "deps": ["cx"], "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning" },
-    { "name": "motion", "file": "react/motion.tsx", "kind": "component", "deps": ["cx"], "description": "The motion kit: Stagger, Reveal (masked lines), Spotlight (group), Magnetic, NumberRoll; enter on entrance, settle on back, reduced-motion honored" }
+    { "name": "motion", "file": "react/motion.tsx", "kind": "component", "deps": ["cx"], "description": "The motion kit: Stagger, Reveal (masked lines), Spotlight (group), Magnetic, NumberRoll; enter on entrance, settle on back, reduced-motion honored" },
+    { "name": "command-state", "file": "react/command-state.ts", "kind": "util", "deps": [], "description": "Command bar logic: filtering, group order, ask detection, wrapping selection" },
+    { "name": "command-bar", "file": "react/command-bar.tsx", "kind": "component", "deps": ["command-state", "console-state", "cx"], "description": "Command bar on the K chord: actions, go-to and recent filtered as you type; an Ask row only with onAsk, the answer streamed in place" }
   ],
   "themes": [
     { "name": "cobalt", "file": "themes/cobalt.css", "description": "Blue accent preset, contrast-gate proven both themes" },
