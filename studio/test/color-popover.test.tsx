@@ -154,4 +154,26 @@ describe('color popover', () => {
     expect(sw.classList.contains('empty')).toBe(false);
     expect(sw.classList.contains('swatch-none')).toBe(true);
   });
+
+  it('presets apply the exact theme values: Signature drops data-brand, and only Custom is derived', async () => {
+    const tokens = (await import('../src/data/tokens.json')).default as ReadonlyArray<{ name: string; dark: string; light: string; brands: Record<string, { dark: string; light: string }> }>;
+    const accent = tokens.find((t) => t.name === '--accent')!;
+    render(<App />);
+    await openPop();
+    const radios = () => [...pop()!.querySelectorAll<HTMLElement>('[role="radio"]')];
+    await act(async () => { fireEvent.click(radios().at(-1)!); });
+    await act(async () => { fireEvent.change(pop()!.querySelector('input[aria-label="Hex"]')!, { target: { value: '#FFFF00' } }); });
+    expect(root.dataset.brand).toBe('custom');
+    await act(async () => { fireEvent.click(radios()[0]); });
+    /* Signature: no brand attribute, so tokens.css :root and [data-theme="light"] values apply untouched */
+    expect(root.dataset.brand).toBeUndefined();
+    expect(getTheme().brand).toBe('');
+    /* the custom rules are scoped to data-brand="custom" only */
+    for (const sel of document.getElementById('vsv-custom')!.textContent!.match(/[^{}]+(?=\{)/g)!) expect(sel).toMatch(/\[data-brand="custom"\]/);
+    /* each preset swatch shows the theme's own value for the mode, never a derived one */
+    const sw = radios().map((r) => (r.querySelector('i') as HTMLElement).style.background);
+    const norm = (hex: string) => { const n = parseInt(hex.slice(1), 16); return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`; };
+    expect(sw[0]).toBe(norm(accent.dark));
+    BRANDS.slice(1).forEach((b, i) => expect(sw[i + 1]).toBe(norm(accent.brands[b.value].dark)));
+  });
 });
