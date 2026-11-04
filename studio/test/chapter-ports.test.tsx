@@ -90,6 +90,18 @@ export const DEVIATIONS: Readonly<Record<string, ReadonlyArray<{ id: string; why
       },
     },
     {
+      id: 'bulk-tscroll',
+      why: 'the #bulk table is 320px wide at phone widths, past its 275px demo box, and scrolled the page sideways below 372px; it sits in the .tscroll scroller (1.6.1 production verification)',
+      apply: (shell) => {
+        const spec = shell.querySelector('#bulk .demo > .specimen')!;
+        const wrap = spec.ownerDocument.createElement('div');
+        wrap.className = 'tscroll';
+        wrap.setAttribute('style', 'flex:1 1 100%');
+        spec.replaceWith(wrap);
+        wrap.append(spec);
+      },
+    },
+    {
       id: 'table-pin-min-width',
       why: 'the #table-pin specimen (a flex item) took its table\'s width and scrolled the page sideways at 375px; min-width: 0 lets the .pin.box scroll it instead (ruling 2026-11-04)',
       apply: (shell) => {
