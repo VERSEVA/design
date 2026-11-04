@@ -44,6 +44,18 @@
   and the On this page rail are unchanged; the bento has no holes at 4 and 2 columns. The legacy doctrine sublabels
   above the Web UI specimens are gone (labels and counts only). These pages have no generated code samples, so their
   tiles show no code.
+- **Data viz, Motion and Decks as tiles.** Data viz keeps law 3 the way a product must: one focus tile (Line + area)
+  spends the data accent and the other nine charts draw on the text ladder. Motion's Replay, Roll it, Point at it,
+  Resolve it and Open it sit in their tiles' footers; the theme wipe, the curves race and the Pause motion control
+  work as before. Decks: the slide and the structure table side by side. The Data viz and Motion samples load on
+  first intent (main chunk 141.22 to 137.56 kB gzip).
+- **Data viz recipes follow the data-intensity rule.** Bar magnitude goes through `data-l` (new `.bar .fill[data-l]`
+  rungs in `components.css`, with their text-ladder twins in a tile without `data-focus`), Stacked segments take
+  series identity (series one, `--data-alt`, a neutral third) instead of the magnitude ladder, the intensity legend
+  uses the same rungs as its cells, and the source dot uses a neutral token, not `--success`. No chart colour is
+  inline. The Data viz samples are generated from these specimens as drawn and held byte for byte
+  (`specimen-code.test.tsx`), so a sample cannot drift from what renders.
+- **`SpecimenTile` `focus` prop** (default true): false drops `data-focus`, so the package recolours the tile's charts.
 
 ### Fixed
 

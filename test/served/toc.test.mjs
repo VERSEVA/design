@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { start } from './chrome.mjs';
 
 /* The pages whose sections are tiles in a bento grid. */
-export const RAIL_PAGES = ['/components', '/foundations', '/web-ui', '/distribute', '/docs-pdf'];
+export const RAIL_PAGES = ['/components', '/foundations', '/web-ui', '/distribute', '/docs-pdf', '/data-viz', '/motion', '/decks'];
 export const RAIL_WIDTHS = [1440, 1280];
 
 let run;

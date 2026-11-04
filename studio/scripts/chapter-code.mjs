@@ -18,10 +18,13 @@ const { JSDOM, VirtualConsole } = createRequire(path.join(studio, 'package.json'
 /** @type {Record<string, string[]>} */
 export const ALLOWED_JSDOM_ERRORS = {
   components: [],
-  'data-viz': [],
   motion: [],
   gallery: ['Uncaught [ReferenceError: matchMedia is not defined]'],
 };
+
+/* Chapters whose samples come from their own specimens, not from a frozen page: their parity is
+   retired (test/redesigned.ts) and test/specimen-code.test.tsx generates and holds them. */
+export const FROM_SOURCE = ['data-viz'];
 
 /* Browsers write numbers set through the CSSOM with 6 significant digits
    (top: 33.5714%); jsdom writes them in full. The samples keep the browser form. */

@@ -47,6 +47,13 @@ describe('SpecimenTile anatomy', () => {
     expect(t.querySelector('h2, .wtile-meta, .wtile-foot, .stile-code')).toBeNull();
   });
 
+  it('keeps data-focus by default, and drops it with focus={false} so the package recolours its charts (law 3)', () => {
+    const { container, rerender } = render(<SpecimenTile name="A">x</SpecimenTile>);
+    expect(tile(container).hasAttribute('data-focus')).toBe(true);
+    rerender(<SpecimenTile name="A" focus={false}>x</SpecimenTile>);
+    expect(tile(container).hasAttribute('data-focus')).toBe(false);
+  });
+
   it('puts extra actions in the footer before Show code', () => {
     const { container } = render(<SpecimenTile name="Curves" code="c" actions={<button type="button">Replay</button>}>x</SpecimenTile>);
     expect([...tile(container).querySelectorAll('.wtile-foot button')].map((b) => b.textContent)).toEqual(['Replay', LABELS.show]);

@@ -582,7 +582,7 @@ focus order and visual order agree.
 | Gallery | `.scrim` + `.drawer` > `.drawer-bd` > `ul.wgal` > `.wgal-item` (`.wgal-icon`, `.wgal-name` + `small`, `.wgal-sizes`) | Every kind with its sizes as add buttons |
 
 **Accent budget (law 3, one accent per view).** Charts in a tile draw on the text ladder: the viz
-kit's accent marks (`.bar .fill`, `.hbar .htrack i`, `.ring .ringfill`, the heat and activity
+kit's accent marks (`.bar .fill` and its `data-l` rungs, `.hbar .htrack i`, `.ring .ringfill`, the heat and activity
 levels, the legend, and any SVG `stroke`, `fill` or `stop-color` of `var(--data-3)`) are recoloured
 to `--text-1`, `--text-2` and a 30% `--text-1` mix in every tile except the one the product marks
 `focus`. The second series keeps `--data-alt`. An inline `style` that names an accent rung (for

@@ -1,12 +1,9 @@
-/* The chapter's own <style> from site/data-viz.html, scoped to its page. */
-[data-chapter="data-viz"] .comp { padding-top: var(--s-7); }
-[data-chapter="data-viz"] .comp > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; padding-bottom: var(--s-3); }
-[data-chapter="data-viz"] .comp .note { font-size: 13px; color: var(--text-3); padding-bottom: var(--s-3); max-width: 62ch; }
-[data-chapter="data-viz"] .demo { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s-5); display: flex; flex-wrap: wrap; gap: var(--s-5); align-items: flex-start; }
-[data-chapter="data-viz"] .codewrap { position: relative; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); }
-[data-chapter="data-viz"] .codewrap pre { margin: 0; padding: var(--s-4) var(--s-5); overflow-x: auto; }
-[data-chapter="data-viz"] .codewrap code { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-2); }
-[data-chapter="data-viz"] .copybtn { position: absolute; top: var(--s-2); right: var(--s-2); }
+/* The Data viz chapter, scoped to its page. The tiles come from tiles/tiles.css; these rules lay
+   out the specimens inside them. Law 3: only the focus tile keeps the accent ladder; every rule
+   here that paints a --data rung has its text-ladder twin for a tile without data-focus. */
+[data-chapter="data-viz"] .demo { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: var(--s-5); align-items: flex-start; }
+/* Specimens that fill their tile: the stat row's own grid and the list rows. */
+[data-chapter="data-viz"] #stat .specimen, [data-chapter="data-viz"] #gates .specimen, [data-chapter="data-viz"] #meaning .specimen { flex: 1 1 100%; min-width: 0; }
 [data-chapter="data-viz"] .vcard { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-4); box-shadow: var(--e-1); min-width: 220px; }
 [data-chapter="data-viz"] .vcard .vh { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
 [data-chapter="data-viz"] .vcard .vh b { font-size: 13px; font-weight: 600; }
@@ -16,7 +13,6 @@
 [data-chapter="data-viz"] .goal { position: relative; }
 [data-chapter="data-viz"] .goal .goalline { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--text-3); opacity: .7; }
 [data-chapter="data-viz"] .stackcol { display: flex; flex-direction: column-reverse; width: 34px; height: 120px; gap: 2px; }
-[data-chapter="data-viz"] .stackcol i { border-radius: 3px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; color: var(--accent-ink); }
 [data-chapter="data-viz"] .stackrow { display: flex; gap: var(--s-4); align-items: flex-end; }
 [data-chapter="data-viz"] .stackrow .mlab { font-family: var(--font-mono); font-size: 9.5px; color: var(--chart-label); text-align: center; display: block; padding-top: 4px; }
 [data-chapter="data-viz"] .srcdot { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
@@ -24,3 +20,20 @@
 [data-chapter="data-viz"] .srcdot i.mom { background: var(--data-3); }
 [data-chapter="data-viz"] .vlegcol { flex-direction: column; align-items: flex-start; gap: 6px; }
 [data-chapter="data-viz"] .chips.tight { padding-top: 0; }
+/* Stacked segments: categories take series identity in fixed order (series one, --data-alt, a
+   neutral third), never the magnitude ladder. */
+[data-chapter="data-viz"] .stackcol i { border-radius: 3px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; }
+[data-chapter="data-viz"] .stackcol i.s1 { background: var(--data-3); color: var(--accent-ink); }
+[data-chapter="data-viz"] .stackcol i.s2 { background: var(--data-alt); color: var(--bg); }
+[data-chapter="data-viz"] .stackcol i.s3, [data-chapter="data-viz"] .vizlegend i.s3 { background: var(--data-0); color: var(--text-1); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+[data-chapter="data-viz"] .wtile:not([data-focus]) .stackcol i.s1 { background: var(--text-1); color: var(--bg); }
+/* The intensity legend: the same --data rungs as the cells it explains. */
+[data-chapter="data-viz"] .vizlegend i[data-l="0"] { background: var(--data-0); }
+[data-chapter="data-viz"] .vizlegend i[data-l="1"] { background: var(--data-1); }
+[data-chapter="data-viz"] .vizlegend i[data-l="2"] { background: var(--data-2); }
+[data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="1"] { background: color-mix(in srgb, var(--text-1) 30%, transparent); }
+[data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="2"] { background: var(--text-2); }
+/* Source dots: identity, not status. */
+[data-chapter="data-viz"] .srcdot i.neu { background: var(--text-3); }
+[data-chapter="data-viz"] .wtile:not([data-focus]) .srcdot i.mom { background: var(--text-1); }
+[data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="0"], [data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i.s3 { background: var(--data-0); }

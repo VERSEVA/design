@@ -1,12 +1,9 @@
-/* The chapter's own <style> from site/motion.html, scoped to its page. */
-[data-chapter="motion"] .comp { padding-top: var(--s-7); }
-[data-chapter="motion"] .comp > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 20px; letter-spacing: -0.015em; padding-bottom: var(--s-3); }
-[data-chapter="motion"] .comp .note { font-size: 13px; color: var(--text-3); padding-bottom: var(--s-3); max-width: 62ch; }
-[data-chapter="motion"] .demo { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s-5); display: flex; flex-wrap: wrap; gap: var(--s-5); align-items: flex-start; }
-[data-chapter="motion"] .codewrap { position: relative; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); }
-[data-chapter="motion"] .codewrap pre { margin: 0; padding: var(--s-4) var(--s-5); overflow-x: auto; }
-[data-chapter="motion"] .codewrap code { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--text-2); }
-[data-chapter="motion"] .copybtn { position: absolute; top: var(--s-2); right: var(--s-2); }
+/* The Motion chapter, scoped to its page. The tiles come from tiles/tiles.css; these rules lay out
+   the specimens inside them (from site/motion.html's <style>, minus the demo box and code panel the
+   tiles replace). Every demo animates transform and opacity only. */
+[data-chapter="motion"] .demo { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: var(--s-5); align-items: flex-start; }
+/* The staggered cards sit in a row, as they enter. */
+[data-chapter="motion"] #stagdemo { display: flex; flex-wrap: wrap; gap: var(--s-3); }
 [data-chapter="motion"] .replaybar { width: 100%; display: flex; justify-content: flex-end; }
 [data-chapter="motion"] .mcard { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-4); box-shadow: var(--e-1); min-width: 180px; }
 [data-chapter="motion"] .mcard b { font-size: 13.5px; font-weight: 600; display: block; }
