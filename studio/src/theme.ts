@@ -42,6 +42,7 @@ let current: ThemeState = { brand: '', mode: 'system' };
 const listeners = new Set<() => void>();
 
 export function setAttrs(el: HTMLElement, state: ThemeState = current) {
+  el.dataset.mode = state.mode;
   if (state.brand) el.dataset.brand = state.brand; else delete el.dataset.brand;
   if (resolveMode(state.mode) === 'light') el.dataset.theme = 'light'; else delete el.dataset.theme;
 }

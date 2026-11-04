@@ -14,7 +14,9 @@
     const b = localStorage.getItem('verseva-brand');
     const m = localStorage.getItem('verseva-theme');
     if (b && ['cobalt', 'forest', 'slate', 'violet'].includes(b)) r.dataset.brand = b;
-    const light = m === 'light' || (m !== 'dark' && m !== '' && matchMedia('(prefers-color-scheme: light)').matches);
+    /* The Mode control draws this option until it hydrates (studio.css, .modeswitch[data-pending]). */
+    r.dataset.mode = m === 'light' || m === 'system' ? m : m === 'dark' || m === '' ? 'dark' : 'system';
+    const light = r.dataset.mode === 'light' || (r.dataset.mode === 'system' && matchMedia('(prefers-color-scheme: light)').matches);
     if (light) r.dataset.theme = 'light';
   } catch (e) {}
 })();

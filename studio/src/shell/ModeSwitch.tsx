@@ -1,9 +1,11 @@
 // Light / Dark / System on the kit Segmented, plus roving arrow keys.
 import { Segmented } from '../../../react/segmented';
-import { MODES, applyTheme, useTheme, wipe, type Mode } from '../theme';
+import { MODES, applyTheme, useHydrated, useTheme, wipe, type Mode } from '../theme';
 
 export function ModeSwitch() {
   const theme = useTheme();
+  /* Until hydration the server's System is a placeholder; studio.css draws <html data-mode>. */
+  const hydrated = useHydrated();
   const labels = MODES.map((m) => m.label);
   const current = MODES.find((m) => m.value === theme.mode)!.label;
   const set = (label: string, e?: { clientX?: number; clientY?: number }) => {
@@ -24,7 +26,7 @@ export function ModeSwitch() {
     });
   };
   return (
-    <div className="modeswitch" onKeyDown={onKeyDown}>
+    <div className="modeswitch" data-pending={hydrated ? undefined : ''} onKeyDown={onKeyDown}>
       <Segmented options={labels} value={current} onChange={(l) => set(l)} aria-label="Mode" />
     </div>
   );

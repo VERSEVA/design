@@ -31,9 +31,9 @@ afterEach(() => {
 
 /* Returning visitors: a stored light + brand choice, a stored dark choice, and system on a light OS. */
 const VISITORS = [
-  { name: 'stored light, cobalt', store: { 'verseva-brand': 'cobalt', 'verseva-theme': 'light' }, osLight: false, theme: 'light' },
-  { name: 'stored dark', store: { 'verseva-theme': 'dark' }, osLight: true, theme: undefined },
-  { name: 'system on a light OS', store: { 'verseva-theme': 'system' }, osLight: true, theme: 'light' },
+  { name: 'stored light, cobalt', store: { 'verseva-brand': 'cobalt', 'verseva-theme': 'light' }, osLight: false, theme: 'light', mode: 'Light' },
+  { name: 'stored dark', store: { 'verseva-theme': 'dark' }, osLight: true, theme: undefined, mode: 'Dark' },
+  { name: 'system on a light OS', store: { 'verseva-theme': 'system' }, osLight: true, theme: 'light', mode: 'System' },
 ] as const;
 
 function stubOs(light: boolean) {
@@ -48,6 +48,8 @@ async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[num
   const { renderApp } = await fresh<Server>('../src/entry-server');
   const html = serverHtml(renderApp, renderPath);
   expect(html).toMatch(/<h1/);
+  /* the server cannot know the stored mode: the Mode control ships pending */
+  expect(html).toMatch(/class="modeswitch" data-pending=""/);
 
   for (const [k, val] of Object.entries(v.store)) localStorage.setItem(k, val);
   stubOs(v.osLight);
@@ -75,6 +77,9 @@ async function hydrate(renderPath: string, url: string, v: (typeof VISITORS)[num
   expect(el.querySelector('h1')).toBe(h1);
   /* and the visitor's theme is applied after hydration */
   expect(document.documentElement.dataset.theme).toBe(v.theme);
+  /* and the Mode control settles on the stored mode, no longer pending */
+  expect(el.querySelector('.modeswitch')!.hasAttribute('data-pending')).toBe(false);
+  expect([...el.querySelectorAll('.modeswitch [aria-selected="true"]')].map((b) => b.textContent)).toEqual([v.mode]);
   return el;
 }
 
@@ -85,12 +90,22 @@ describe('hydration', () => {
         it(`${path} hydrates without a mismatch`, async () => {
           const el = await hydrate(path, path, v);
           expect(el.querySelector('.snav-page [aria-current="page"]')?.getAttribute('href')).toBe(path);
+          expect(el.querySelector<HTMLSelectElement>('.studio-select select')!.value).toBe(path);
         });
       }
       it('404.html hydrates at an unknown path', async () => {
         const el = await hydrate('/404', '/gallery/x', v);
         expect(el.querySelector('h1')?.textContent).toBe('Page not found');
         expect(el.querySelector('.snav-page [aria-current="page"]')).toBeNull();
+        /* the phone route menu names no current route */
+        const sel = el.querySelector<HTMLSelectElement>('.studio-select select')!;
+        expect(sel.value).toBe('');
+        expect(sel.selectedOptions[0]?.textContent).toBe('Go to');
+      });
+      it('a direct hit on /foundations/index.html is the Foundations page', async () => {
+        const el = await hydrate('/foundations', '/foundations/index.html', v);
+        expect(el.querySelector('h1')?.textContent).toBe('Foundations');
+        expect(el.querySelector('.snav-page [aria-current="page"]')?.getAttribute('href')).toBe('/foundations');
       });
     });
   }
