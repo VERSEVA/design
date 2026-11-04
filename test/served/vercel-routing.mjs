@@ -25,11 +25,13 @@ function compile(source) {
   return { re: new RegExp(`^${re}$`), names };
 }
 
-const rules = (vercel.redirects ?? []).map((r) => ({ ...r, ...compile(r.source) }));
+/* A redirect matcher for a vercel.json-shaped config: (url) => { status, location } | null. */
+export function redirectsOf(config) {
+  const rules = (config.redirects ?? []).map((r) => ({ ...r, ...compile(r.source) }));
+  return (input) => match(rules, typeof input === 'string' ? new URL(input, SITE) : input);
+}
 
-/* The redirect a URL takes on Vercel, or null. `url` is a URL or a path with an optional query. */
-export function redirectFor(input) {
-  const url = typeof input === 'string' ? new URL(input, SITE) : input;
+function match(rules, url) {
   for (const r of rules) {
     const m = url.pathname.match(r.re);
     if (!m) continue;
@@ -49,6 +51,9 @@ export function redirectFor(input) {
   return null;
 }
 
+/* The redirect a URL takes on Vercel with this repo's vercel.json, or null. */
+export const redirectFor = redirectsOf(vercel);
+
 /* The file out/ serves for a path, or null (Vercel then answers with 404.html). */
 export function fileFor(out, pathname) {
   let p;
@@ -61,9 +66,9 @@ export function fileFor(out, pathname) {
 }
 
 /* What Vercel answers for a URL: { kind: 'redirect', status, location } | { kind: 'file', file } | { kind: '404' }. */
-export function resolve(out, input) {
+export function resolve(out, input, redirect = redirectFor) {
   const url = typeof input === 'string' ? new URL(input, SITE) : input;
-  const r = redirectFor(url);
+  const r = redirect(url);
   if (r) return { kind: 'redirect', ...r };
   const file = fileFor(out, url.pathname);
   return file ? { kind: 'file', file } : { kind: '404' };

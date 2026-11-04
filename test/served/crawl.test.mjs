@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { root, SITE, resolve, redirectFor } from './vercel-routing.mjs';
+import { root, SITE, resolve, redirectFor, redirectsOf } from './vercel-routing.mjs';
 
 const out = path.join(root, 'out');
 const routes = JSON.parse(fs.readFileSync(path.join(root, 'studio/src/data/routes.json'), 'utf8')).filter((r) => !r.proposed);
@@ -28,24 +28,35 @@ const served = (p) => resolve(out, p).kind === 'file';
 const links = (html) => [...html.matchAll(/<(a|iframe)\b[^>]*?\s(?:href|src)="([^"]*)"/g)].map((m) => [m[1], m[2].replace(/&amp;/g, '&')]);
 
 /* Crawls out/ from `starts` (paths); returns { bad, links, pages }. */
-export function crawl(dir, starts, { legacy = LEGACY, exempt = EXEMPT } = {}) {
+export function crawl(dir, starts, { legacy = LEGACY, exempt = EXEMPT, redirect = redirectFor } = {}) {
   const bad = [];
   const seen = new Set();
   let checked = 0;
   const pages = new Set();
-  const queue = starts.map((p) => ({ url: new URL(p, SITE), from: '(start)', hops: 0 }));
+  const queue = starts.map((p) => ({ url: new URL(p, SITE), from: '(start)' }));
   while (queue.length) {
-    const { url, from, hops } = queue.shift();
+    const { url, from } = queue.shift();
     const key = url.pathname + url.search;
     if (seen.has(key)) continue;
     seen.add(key);
     const label = `${from} -> ${key}`;
-    const r = resolve(dir, url);
+    const r = resolve(dir, url, redirect);
     if (legacy.has(url.pathname) && r.kind !== 'redirect') bad.push(`${label}: legacy page linked without a redirect`);
     if (r.kind === '404') { bad.push(`${label}: 404`); continue; }
     if (r.kind === 'redirect') {
-      if (hops >= 3) { bad.push(`${label}: redirect chain longer than 3`); continue; }
-      queue.push({ url: new URL(r.location, SITE), from: `${from} (via ${key})`, hops: hops + 1 });
+      /* a redirect lands in one hop: its target must not redirect again, and a repeat is a loop */
+      const chain = [key];
+      let to = new URL(r.location, SITE);
+      let next = resolve(dir, to, redirect);
+      while (next.kind === 'redirect' && !chain.includes(to.pathname + to.search)) {
+        chain.push(to.pathname + to.search);
+        to = new URL(next.location, SITE);
+        next = resolve(dir, to, redirect);
+      }
+      const end = to.pathname + to.search;
+      if (chain.includes(end)) { bad.push(`${label}: redirect loop ${[...chain, end].join(' -> ')}`); continue; }
+      if (chain.length > 1) { bad.push(`${label}: redirect chain ${[...chain, end].join(' -> ')}, more than one hop`); continue; }
+      queue.push({ url: to, from: `${from} (via ${key})` });
       continue;
     }
     if (!r.file.endsWith('.html')) continue;
@@ -61,7 +72,7 @@ export function crawl(dir, starts, { legacy = LEGACY, exempt = EXEMPT } = {}) {
       checked++;
       /* an example may load in a frame, but a link to one leaves the shell: link its gallery page */
       if (tag === 'a' && /^\/(site\/)?examples\/[^/]+\.html$/.test(next.pathname)) bad.push(`${key} -> ${href}: a link out of the shell to an example file`);
-      queue.push({ url: next, from: key, hops: 0 });
+      queue.push({ url: next, from: key });
     }
   }
   return { bad, links: checked, pages: pages.size };
@@ -99,20 +110,29 @@ test('the crawl from every route reaches only live pages, through redirects for 
   assert.deepEqual(bad, []);
 });
 
-test('the crawl is not vacuous: a planted 404, a page without the studio root, an unredirected legacy link and a link to an example file each fail', () => {
+test('the crawl is not vacuous: a planted 404, a page without the studio root, an unredirected legacy link, a link to an example file, a redirect chain and a redirect loop each fail', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vsv-crawl-'));
   try {
     const page = (body) => `<!doctype html><div id="studio-root" data-path="/">${body}</div>`;
-    fs.writeFileSync(path.join(dir, 'index.html'), page('<a href="/ok">ok</a><a href="/missing">gone</a><a href="/plain.html">plain</a><a href="/old.html">old</a><iframe src="/examples/x.html"></iframe><a href="/examples/x.html">x</a>'));
+    fs.writeFileSync(path.join(dir, 'index.html'), page('<a href="/ok">ok</a><a href="/missing">gone</a><a href="/plain.html">plain</a><a href="/old.html">old</a><iframe src="/examples/x.html"></iframe><a href="/examples/x.html">x</a><a href="/hop1">chain</a><a href="/loopa">loop</a><a href="/one">one hop</a>'));
     fs.mkdirSync(path.join(dir, 'ok'));
     fs.writeFileSync(path.join(dir, 'ok/index.html'), page('<a href="/">home</a>'));
     fs.writeFileSync(path.join(dir, 'plain.html'), '<!doctype html><p>no shell</p>');
     fs.writeFileSync(path.join(dir, 'old.html'), page(''));
     fs.mkdirSync(path.join(dir, 'examples'));
     fs.writeFileSync(path.join(dir, 'examples/x.html'), '<!doctype html><p>an example</p>');
-    const { bad } = crawl(dir, ['/'], { legacy: new Set(['/old.html']), exempt: (p) => p.startsWith('/examples/') });
+    const redirect = redirectsOf({ redirects: [
+      { source: '/hop1', destination: '/hop2', permanent: true },
+      { source: '/hop2', destination: '/', permanent: true },
+      { source: '/loopa', destination: '/loopb', permanent: true },
+      { source: '/loopb', destination: '/loopa', permanent: true },
+      { source: '/one', destination: '/ok', permanent: true },
+    ] });
+    const { bad } = crawl(dir, ['/'], { legacy: new Set(['/old.html']), exempt: (p) => p.startsWith('/examples/'), redirect });
     assert.deepEqual(bad.sort(), [
       '/ -> /examples/x.html: a link out of the shell to an example file',
+      '/ -> /hop1: redirect chain /hop1 -> /hop2 -> /, more than one hop',
+      '/ -> /loopa: redirect loop /loopa -> /loopb -> /loopa',
       '/ -> /missing: 404',
       '/ -> /old.html: legacy page linked without a redirect',
       '/ -> /plain.html: no id="studio-root"',

@@ -2,25 +2,32 @@ name: gates
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 jobs:
   test-and-gate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
       - run: npm test
       - run: npm run gate
+      # studio:build installs the studio deps (npm --prefix studio ci) once, builds and pre-renders
+      # studio/dist and gates it; the typecheck and the studio suite below reuse those deps.
+      - run: npm run studio:build
       # The studio suite carries the rendered checks (accent count, React parts, axe) and typechecks react/.
-      - run: npm --prefix studio ci --no-audit --no-fund
       - run: npm run typecheck
       - run: npm --prefix studio test
-      # The served site: build, assemble out/ as Vercel serves it, then the served-paths contract,
-      # the link crawl, the main-chunk size and no-source checks, and the 375px overflow probe
-      # (headless Chrome, preinstalled on ubuntu-latest; the probe fails loudly when it finds none).
-      # test:served runs every test/served/*.test.mjs, so a new served test joins CI on its own.
-      - run: npm run studio:build
+      # The served site: assemble out/ as Vercel serves it, then the served-paths contract, the link
+      # crawl, the main-chunk size and no-source checks, and the 375px overflow probe (headless Chrome,
+      # preinstalled on ubuntu-latest; the probe fails loudly when it finds none). test:served runs
+      # every test/served/*.test.mjs, so a new served test joins CI on its own.
       - run: npm run assemble
-      - run: echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV" && google-chrome --version
-      - run: npm run test:served
+      - name: served tests (Chrome)
+        run: |
+          export CHROME_PATH="$(command -v google-chrome)"
+          echo "Chrome: $CHROME_PATH"
+          "$CHROME_PATH" --version
+          npm run test:served

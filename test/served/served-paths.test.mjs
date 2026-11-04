@@ -7,6 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { root, resolve, fileFor } from './vercel-routing.mjs';
 
 const out = path.join(root, 'out');
@@ -52,6 +53,15 @@ test('every served path resolves as its declared kind', () => {
     }
   }
   assert.deepEqual(bad, []);
+});
+
+/* Every file the package ships (its `files` list, as npm pack reads it) is served, so each must be declared. */
+test('every file the package ships is declared in the fixture', () => {
+  const [pack] = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+  const shipped = pack.files.map((f) => `/${f.path}`);
+  assert.ok(shipped.length > 50, `npm pack listed only ${shipped.length} files`);
+  const undeclared = shipped.filter((p) => !paths[p]);
+  assert.deepEqual(undeclared, [], 'add these to test/fixtures/served-paths.json as "file"');
 });
 
 test('the registry JSON, the examples, site.css and theme.js are files', () => {
