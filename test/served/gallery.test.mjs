@@ -47,6 +47,11 @@ const HOVER = `(async () => {
   const tile = box.closest('.gtile');
   const f = box.querySelector('iframe');
   const motion = () => f.contentDocument.documentElement.dataset.motion ?? 'running';
+  const pre = { playing: box.dataset.playing !== undefined, motion: motion(), focus: tile.contains(document.activeElement), hover: tile.matches(':hover') };
+  /* The headless pointer may rest over a tile after load: start from no hover and no focus. */
+  tile.dispatchEvent(new PointerEvent('pointerleave'));
+  document.activeElement?.blur?.();
+  await sleep(100);
   const r = box.getBoundingClientRect();
   const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
   const out = { inert: box.inert, hidden: box.getAttribute('aria-hidden'), hitInThumb: box.contains(hit), still: motion() };
@@ -56,15 +61,16 @@ const HOVER = `(async () => {
   tile.dispatchEvent(new PointerEvent('pointerleave'));
   await sleep(100);
   out.left = motion();
-  return JSON.stringify(out);
+  return JSON.stringify({ out, pre });
 })()`;
 
 for (const reducedMotion of [false, true]) {
   test(`a thumbnail is inert, takes no pointer events, and plays on hover only with motion allowed (reduced motion ${reducedMotion})`, { timeout: 60000 }, async () => {
     const page = await run.page({ width: 1440, height: 900, reducedMotion });
     await page.goto('/gallery');
-    const r = JSON.parse(await page.evaluate(HOVER));
+    const { out: r, pre } = JSON.parse(await page.evaluate(HOVER));
     await page.close();
+    console.log('before idle reset', JSON.stringify(pre));
     assert.deepEqual(r, { inert: true, hidden: 'true', hitInThumb: false, still: 'paused', hovered: reducedMotion ? 'paused' : 'running', left: 'paused' });
   });
 }
