@@ -1,0 +1,114 @@
+/* Ported chapters: the legacy site.css content rules, scoped to .chap so they
+   reach only a ported chapter's body. Values are site.css's, verbatim. The
+   topbar, docnav and theme-control rules stay behind: the studio shell owns them.
+   One class of scope keeps site rules winning ties with components.css, as they
+   did when site.css loaded after it. */
+
+/* the legacy <body> and .shell */
+.chap { max-width: var(--container-content); margin: 0 auto; padding: 0 var(--s-5) var(--s-9); color: var(--text-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.6; }
+:where(.chap) * { margin: 0; box-sizing: border-box; }
+.chap [id] { scroll-margin-top: 80px; }
+
+.chap .hero { padding: var(--s-8) 0 var(--s-6); }
+.chap .hero h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(34px, 5.5vw, 54px); letter-spacing: -0.025em; line-height: 1.06; }
+.chap .chips { display: flex; gap: var(--s-2); flex-wrap: wrap; padding-top: var(--s-4); }
+.chap .chip { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-pill); padding: 3px 10px; }
+
+.chap section.ch { padding-top: var(--s-7); }
+.chap section.ch > h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: 22px; letter-spacing: -0.015em; padding-bottom: var(--s-4); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .chap .hero h1, .chap .hero .chips { animation: rise 0.55s var(--ease-entrance) backwards; }
+  .chap .hero .chips { animation-delay: 0.08s; }
+  .chap .gallery > *, .chap .spells > * { animation: rise 0.5s var(--ease-entrance) backwards; }
+  .chap .gallery > *:nth-child(2), .chap .spells > *:nth-child(2) { animation-delay: 0.05s; }
+  .chap .gallery > *:nth-child(3), .chap .spells > *:nth-child(3) { animation-delay: 0.1s; }
+  .chap .gallery > *:nth-child(4), .chap .spells > *:nth-child(4) { animation-delay: 0.15s; }
+  .chap .gallery > *:nth-child(5), .chap .spells > *:nth-child(5) { animation-delay: 0.2s; }
+  .chap .gallery > *:nth-child(6), .chap .spells > *:nth-child(6) { animation-delay: 0.25s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+}
+
+.chap ol.laws { list-style: none; counter-reset: law; display: grid; gap: var(--s-3); padding: 0; }
+.chap ol.laws li { counter-increment: law; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-4) var(--s-5) var(--s-4) 60px; position: relative; color: var(--text-2); font-size: 14px; }
+.chap ol.laws li::before { content: counter(law, decimal-leading-zero); position: absolute; left: var(--s-4); top: var(--s-4); font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+.chap ol.laws b { color: var(--text-1); font-weight: 600; }
+
+.chap ul.rules { list-style: none; padding: 0; display: grid; gap: var(--s-2); }
+.chap ul.rules li { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: var(--s-3) var(--s-4); color: var(--text-2); font-size: 13.5px; }
+.chap ul.rules b { color: var(--text-1); font-weight: 600; }
+
+.chap .ttable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.chap .ttable th { text-align: left; font-family: var(--font-sans); font-size: 12px; font-weight: 600; color: var(--text-2); padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--hairline); }
+.chap .ttable td { padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--hairline); color: var(--text-2); }
+.chap .ttable td:first-child { font-family: var(--font-mono); font-size: 12px; color: var(--text-1); }
+.chap .tscroll { overflow-x: auto; }
+
+.chap .swatch { display: inline-block; width: 20px; height: 20px; border-radius: 6px; border: 1px solid var(--hairline-strong); vertical-align: middle; flex: initial; }
+.chap .sw-bg { background: var(--bg); } .chap .sw-surface { background: var(--surface); } .chap .sw-surface2 { background: var(--surface-2); }
+.chap .sw-t1 { background: var(--text-1); } .chap .sw-t2 { background: var(--text-2); } .chap .sw-t3 { background: var(--text-3); }
+.chap .sw-accent { background: var(--accent); } .chap .sw-success { background: var(--success); } .chap .sw-warn { background: var(--warn); } .chap .sw-danger { background: var(--danger); }
+.chap .sw-d0 { background: var(--data-0); } .chap .sw-d1 { background: var(--data-1); } .chap .sw-d2 { background: var(--data-2); } .chap .sw-d3 { background: var(--data-3); }
+
+.chap .spec { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg); padding: var(--s-5); display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: center; }
+.chap .spec.col { flex-direction: column; align-items: stretch; }
+.chap .speclabel { font-size: 12px; color: var(--text-2); padding-bottom: var(--s-2); }
+.chap .specstack { display: grid; gap: var(--s-4); }
+
+.chap .dodont { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-4); }
+.chap .dd { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-4) var(--s-5); font-size: 13.5px; color: var(--text-2); }
+.chap .dd .tag { display: inline-block; font-size: 11px; font-weight: 600; border-radius: var(--r-pill); padding: 2px 10px; margin-bottom: var(--s-2); }
+.chap .dd.do .tag { color: var(--success); background: var(--success-bg); }
+.chap .dd.dont .tag { color: var(--danger); background: var(--danger-bg); }
+
+.chap pre.cmd { font-family: var(--font-mono); font-size: 12.5px; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-4) var(--s-5); overflow-x: auto; color: var(--text-1); line-height: 1.7; }
+
+.chap .slide-mock { background: var(--bg); border: 1px solid var(--hairline-strong); border-radius: var(--r-md); padding: var(--s-7) var(--s-6); box-shadow: var(--e-2); }
+.chap .slide-mock .kick { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); padding-bottom: var(--s-3); }
+.chap .slide-mock h3 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(22px, 3.5vw, 34px); letter-spacing: -0.02em; line-height: 1.1; }
+.chap .slide-mock p { color: var(--text-2); font-size: 14px; padding-top: var(--s-3); max-width: 46ch; }
+
+.chap .doc-mock { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-6); box-shadow: var(--e-1); max-width: 44rem; }
+.chap .doc-mock .meta { font-size: 11.5px; color: var(--text-3); display: flex; gap: var(--s-4); padding-bottom: var(--s-3); }
+.chap .doc-mock h3 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 22px; letter-spacing: -0.015em; }
+.chap .doc-mock p { color: var(--text-2); font-size: 13.5px; padding-top: var(--s-3); max-width: 65ch; }
+.chap .doc-mock .callout { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-sm); padding: var(--s-3) var(--s-4); color: var(--text-2); font-size: 13px; margin-top: var(--s-4); }
+
+.chap .gap-tight { display: grid; gap: var(--s-3); }
+.chap .pad-top { padding-top: var(--s-4); }
+
+.chap .skelstack { display: grid; gap: var(--s-2); }
+.chap .skel.w62 { width: 62%; }
+.chap .skel.w38 { width: 38%; }
+
+.chap .rendergrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--s-4); }
+.chap .render { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--e-1); }
+.chap .render img { display: block; width: 100%; height: auto; }
+.chap .render figcaption { font-size: 12px; color: var(--text-2); padding: var(--s-2) var(--s-3); }
+
+/* The docnav is stripped from ports (the studio sidebar replaces it), so the grid
+   keeps the one column the embed's fold gave it */
+.chap .docgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-7); align-items: start; }
+.chap .doccol { min-width: 0; }
+
+.chap .codetoggle { display: flex; justify-content: flex-end; border: 1px solid var(--hairline); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface); padding: var(--s-2) var(--s-3); }
+.chap .codetoggle.opened { border-radius: 0; }
+
+.chap .prevlink { display: block; text-decoration: none; }
+.chap .gcap .acts { display: flex; gap: var(--s-3); }
+
+.chap footer.site { padding-top: var(--s-8); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); color: var(--text-3); font-size: 12px; }
+.chap .badge-line { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 13px; color: var(--text-2); }
+
+/* Console shell specimens: a contained frame, so the sticky sidebar, the fixed rail tip, the panel and the drawer stay inside it */
+.chap .shellframe { position: relative; width: 100%; height: 560px; overflow: hidden; contain: layout; border: 1px solid var(--hairline-strong); border-radius: var(--r-lg); background: var(--bg); }
+.chap .shellframe .cshell { min-height: 100%; }
+.chap .shellframe .cside { height: calc(100% - var(--s-3) * 2); }
+.chap .shellframe.side { width: 276px; height: 520px; }
+.chap .shellframe.short { height: auto; }
+.chap .shellframe.short.tall { height: 500px; }
+.chap .shellframe.states { height: 340px; padding: var(--s-3); }
+
+/* studio.css raises .seg buttons to 44px below 760px for the shell's own controls;
+   a chapter specimen keeps the package's size, as it did in the embed */
+@media (max-width: 760px) { .chap .seg button { min-height: auto; } }
