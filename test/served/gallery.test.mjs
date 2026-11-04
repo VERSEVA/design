@@ -87,12 +87,13 @@ const FILTER = `(async () => {
     chip.click();
     await sleep(250);
     const grid = document.querySelector('#mock-sites ~ .sgrid');
-    const g = grid.getBoundingClientRect();
+    /* Layout boxes (offset*), not painted ones: a tile the filter brings in rises into place with a transform. */
+    const gw = grid.clientWidth;
     const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
-    const shown = [...grid.children].filter((t) => getComputedStyle(t).display !== 'none' && t.getBoundingClientRect().height > 0);
+    const shown = [...grid.children].filter((t) => getComputedStyle(t).display !== 'none' && t.offsetHeight > 0);
     const rows = new Map();
-    for (const t of shown) { const r = t.getBoundingClientRect(); const k = Math.round(r.top); rows.set(k, (rows.get(k) ?? -gap) + r.width + gap); }
-    const short = [...rows.values()].filter((w) => Math.abs(w - g.width) > 2).length;
+    for (const t of shown) rows.set(t.offsetTop, (rows.get(t.offsetTop) ?? -gap) + t.offsetWidth + gap);
+    const short = [...rows.values()].filter((w) => Math.abs(w - gw) > 2).length;
     out.push({ f: chip.dataset.f, want: Number(chip.querySelector('.cnt').textContent), shown: shown.length, short, said: document.querySelector('#gfilter-status')?.textContent ?? null });
   }
   return JSON.stringify(out);
