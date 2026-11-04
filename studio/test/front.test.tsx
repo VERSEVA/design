@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
 import fs from 'node:fs';
-import { FrontDoorPage, INSTALL, INSTALL_HREF, COPIED_HOLD_MS, JOB_TICK_MS } from '../src/front/FrontDoorPage';
+import { FrontDoorPage, INSTALL, INSTALL_HREF, COPIED_HOLD_MS, JOB_TICK_MS, JOB_CYCLES } from '../src/front/FrontDoorPage';
 import { applyTheme, setMotionPaused } from '../src/theme';
 
 const CSS = fs.readFileSync(`${__dirname}/../src/front/front.css`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
@@ -40,7 +40,7 @@ describe('front door', () => {
     expect(container.querySelectorAll('.btn-primary')).toHaveLength(1);
   });
 
-  it('Get started copies the install line, says Copied, then lands on the install section', () => {
+  it('Get started copies the install line, says Copied, then lands on the install section', async () => {
     vi.useFakeTimers();
     const writeText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
@@ -51,6 +51,7 @@ describe('front door', () => {
     expect(ev.defaultPrevented).toBe(true);
     expect(writeText).toHaveBeenCalledWith(INSTALL);
     expect(INSTALL).toBe('npm i @verseva/design');
+    await act(async () => {});
     expect(go.textContent).toBe('Copied');
     expect(container.querySelector('.hero [aria-live="polite"]')?.textContent).toBe('Copied');
     expect(window.location.pathname).toBe('/');
@@ -178,5 +179,106 @@ describe('front door', () => {
       expect(ev.defaultPrevented, `${t.getAttribute('href')} reloads the page`).toBe(true);
       expect(window.location.pathname).toBe(t.getAttribute('href'));
     }
+  });
+
+  describe('honest Copied', () => {
+    const click = () => {
+      const go = screen.getByRole('link', { name: 'Get started' });
+      const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+      act(() => { go.dispatchEvent(ev); });
+      return { go, ev };
+    };
+    const region = (c: HTMLElement) => c.querySelector('.hero [aria-live="polite"]')?.textContent;
+    const clip = (writeText: unknown) => Object.defineProperty(navigator, 'clipboard', { value: writeText === undefined ? undefined : { writeText }, configurable: true });
+
+    it('says Copied only once writeText resolves', async () => {
+      vi.useFakeTimers();
+      let done!: () => void;
+      clip(vi.fn(() => new Promise<void>((r) => { done = r; })));
+      const { container } = render(<FrontDoorPage />);
+      const { go } = click();
+      expect(go.textContent).toBe('Get started');
+      expect(region(container)).toBe('');
+      await act(async () => { done(); });
+      expect(go.textContent).toBe('Copied');
+      expect(region(container)).toBe('Copied');
+      act(() => { vi.advanceTimersByTime(COPIED_HOLD_MS); });
+      expect(window.location.pathname + window.location.hash).toBe(INSTALL_HREF);
+    });
+
+    for (const [name, writeText] of [
+      ['clipboard denied', vi.fn(() => Promise.reject(new DOMException('denied', 'NotAllowedError')))],
+      ['no navigator.clipboard', undefined],
+      ['writeText throws', vi.fn(() => { throw new TypeError('not allowed'); })],
+    ] as const) {
+      it(`${name}: no Copied, points at the command, still lands on the install section`, async () => {
+        vi.useFakeTimers();
+        clip(writeText);
+        const { container } = render(<FrontDoorPage />);
+        const { go, ev } = click();
+        await act(async () => {});
+        expect(ev.defaultPrevented).toBe(true);
+        expect(go.textContent).toBe('Command below');
+        expect(region(container)).toBe('Command below');
+        expect(container.textContent).not.toContain('Copied');
+        act(() => { vi.advanceTimersByTime(COPIED_HOLD_MS); });
+        expect(window.location.pathname + window.location.hash).toBe(INSTALL_HREF);
+      });
+    }
+  });
+
+  describe('quiet demo job', () => {
+    const status = (c: HTMLElement) => [...c.querySelectorAll('.hero-live .jobcap [role="status"], .hero-live .jobcap [role="alert"]')].map((e) => e.textContent).join('');
+    const cap = (c: HTMLElement) => c.querySelector<HTMLButtonElement>('.hero-live button.lact')!;
+    const panelButton = (c: HTMLElement, label: string) => [...c.querySelectorAll<HTMLButtonElement>('.hero-live .lact-panel button')].find((b) => b.textContent === label);
+    const REST_MS = JOB_CYCLES * 20_000;
+
+    it('says nothing on its own, across every cycle', () => {
+      vi.useFakeTimers();
+      const { container } = render(<FrontDoorPage />);
+      const heard: string[] = [];
+      for (let t = 0; t < REST_MS; t += JOB_TICK_MS) { act(() => { vi.advanceTimersByTime(JOB_TICK_MS); }); const s = status(container); if (s) heard.push(s); }
+      expect(heard).toEqual([]);
+    });
+
+    it('announces once the capsule panel is opened', () => {
+      vi.useFakeTimers();
+      const { container } = render(<FrontDoorPage />);
+      act(() => { cap(container).click(); });
+      const heard: string[] = [];
+      for (let t = 0; t < 20_000; t += JOB_TICK_MS) { act(() => { vi.advanceTimersByTime(JOB_TICK_MS); }); const s = status(container); if (s) heard.push(s); }
+      expect(heard.length).toBeGreaterThan(0);
+    });
+
+    it('rests after the last cycle; Restart in the panel starts it again', () => {
+      vi.useFakeTimers();
+      const { container } = render(<FrontDoorPage />);
+      act(() => { vi.advanceTimersByTime(REST_MS); });
+      expect(pct(container)).toBe('Done');
+      act(() => { cap(container).click(); });
+      const restart = panelButton(container, 'Restart');
+      expect(restart, 'Restart in the panel').toBeTruthy();
+      expect(restart!.disabled).toBe(false);
+      act(() => { restart!.click(); });
+      act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 4); });
+      expect(pct(container)).toMatch(/^\d+%$/);
+    });
+
+    it('Cancel stops the job; a Restart brings it back', () => {
+      vi.useFakeTimers();
+      const { container } = render(<FrontDoorPage />);
+      act(() => { cap(container).click(); });
+      const cancel = panelButton(container, 'Cancel');
+      expect(cancel).toBeTruthy();
+      expect(cancel!.className).not.toMatch(/primary/);
+      act(() => { cancel!.click(); });
+      act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 10); });
+      expect(container.querySelector('.hero-live .lact-list')).toBeNull();
+      const again = [...container.querySelectorAll<HTMLButtonElement>('.hero-live .jobcap > button')].find((b) => b.textContent === 'Restart');
+      expect(again, 'a Restart after Cancel').toBeTruthy();
+      act(() => { again!.click(); });
+      act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 4); });
+      expect(pct(container)).toMatch(/^\d+%$/);
+    });
   });
 });

@@ -43,8 +43,6 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 .studio-head .searchbtn { display: none; }
 .grow { flex: 1; }
 .swatch { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex: none; }
-.picker-lg .fchip { height: 44px; padding: 0 var(--s-4) 0 var(--s-2); font-size: .9375rem; }
-.picker-lg .swatch { width: 28px; height: 28px; }
 
 /* Mode: the icon comes from <html data-mode> (head script), never from React state. */
 .modebtn .mi { display: none; }

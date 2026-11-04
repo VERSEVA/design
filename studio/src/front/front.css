@@ -35,6 +35,9 @@
 .front .hero-live .wtile[data-id="job"] { z-index: 3; }
 .front .hero-live .wtile[data-id="job"] .wtile-body { overflow: visible; }
 .front .jobcap { display: flex; margin-top: auto; min-width: 0; }
+/* Law 3 on the home: the job's capsule, panel and Restart ring focus in --text-1, not the accent. */
+.front .jobcap .btn:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text-1); }
+.front .jobcap :is(.lact, .panel-hd button):focus-visible { outline-color: var(--text-1); }
 
 /* Entry tiles: links in the tile language of /widgets. */
 .front .entry { grid-auto-rows: auto; }
