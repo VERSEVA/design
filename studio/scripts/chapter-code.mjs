@@ -20,6 +20,7 @@ export const ALLOWED_JSDOM_ERRORS = {
   components: [],
   'data-viz': [],
   motion: [],
+  gallery: ['Uncaught [ReferenceError: matchMedia is not defined]'],
 };
 
 /* Browsers write numbers set through the CSSOM with 6 significant digits

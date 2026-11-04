@@ -1,0 +1,4 @@
+/* A gallery example in the shell: layout only, values from the tokens. */
+.gex-head { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; padding-bottom: var(--s-5); }
+.gex-head h1 { flex: 1; font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; }
+.gex-frame { display: block; width: 100%; height: calc(100dvh - 240px); min-height: 520px; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); }

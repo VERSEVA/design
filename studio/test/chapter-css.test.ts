@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import chapters from '../src/data/chapters.json';
 
 const repo = path.resolve(__dirname, '../..');
 const read = (p: string) => fs.readFileSync(path.join(repo, p), 'utf8');
@@ -163,7 +164,7 @@ const subject = (sel: string) => {
 const prop = (d: string) => d.split(':')[0].trim();
 
 /* Every element of every legacy chapter body: a flip only matters where some element matches both rules. */
-const CHAPTER_FILES = ['components', 'web-ui', 'data-viz', 'motion', 'decks', 'docs-pdf', 'distribute', 'examples'];
+const CHAPTER_FILES = ['components', 'web-ui', 'data-viz', 'motion', 'decks', 'docs-pdf', 'distribute', 'examples', 'code'];
 const legacyEls = CHAPTER_FILES.flatMap((f) => [...new DOMParser().parseFromString(read(`site/${f}.html`), 'text/html').querySelectorAll('.shell *')]);
 const both = (a: string, b: string) => { try { return legacyEls.some((el) => el.matches(a) && el.matches(b)); } catch { return true; } };
 
@@ -247,7 +248,8 @@ describe('per-chapter CSS', () => {
 
   /* The legacy page's own <style>, rule for rule and in order, with the scope removed.
      @keyframes are compared too: rules() skips them, keyframes() reads them. */
-  const legacyStyle = (slug: string) => [...read(`site/${slug}.html`).matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
+  const legacyFile = (slug: string) => chapters.find((c) => c.slug === slug)?.file ?? `${slug}.html`;
+  const legacyStyle = (slug: string) => [...read(`site/${legacyFile(slug)}`).matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
   const flat = (css: string, scope = '') => [
     ...rules(css).map((r) => `${r.media}|${r.selectors.map((s) => (scope && s.startsWith(scope) ? s.slice(scope.length) : s)).join(', ')} { ${r.decls.join('; ')} }`),
     ...keyframes(css),
@@ -257,6 +259,13 @@ describe('per-chapter CSS', () => {
     const slug = f.replace(/\.css$/, '');
     const got = flat(fs.readFileSync(path.join(dir, f), 'utf8'), `[data-chapter="${slug}"] `);
     expect(got.join('\n')).toBe(flat(legacyStyle(slug)).join('\n'));
+  });
+
+  /* The gallery code route is site/code.html ported: same scope rule, same <style>. */
+  it('gallery/code.css scopes every selector under [data-chapter="code"] and declares exactly what code.html\'s <style> declares', () => {
+    const css = read('studio/src/gallery/code.css');
+    expect(rules(css).flatMap((r) => r.selectors).filter((s) => !s.startsWith('[data-chapter="code"] '))).toEqual([]);
+    expect(flat(css, '[data-chapter="code"] ').join('\n')).toBe(flat(legacyStyle('code')).join('\n'));
   });
 });
 
