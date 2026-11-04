@@ -273,6 +273,7 @@ describe('front door', () => {
       expect(restarts().map((b) => [!!b.closest('.lact-panel'), b.disabled])).toEqual([[true, false]]);
       fireEvent.keyDown(container.querySelector('.hero-live .lact-wrap')!, { key: 'Escape' });
       expect(restarts().map((b) => [!!b.closest('.lact-panel'), b.disabled])).toEqual([[false, false]]);
+      expect(document.activeElement, 'Escape lands focus on the tile Restart, not the body').toBe(restarts()[0]);
       act(() => { restarts()[0].click(); });
       act(() => { vi.advanceTimersByTime(JOB_TICK_MS * 4); });
       expect(pct(container)).toMatch(/^\d+%$/);
