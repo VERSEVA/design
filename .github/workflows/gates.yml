@@ -7,9 +7,9 @@ permissions:
   contents: read
 concurrency:
   group: gates-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
-  test-and-gate:
+  checks:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -30,14 +30,62 @@ jobs:
       # The studio suite carries the rendered checks (accent count, React parts, axe) and typechecks react/.
       - run: npm run typecheck
       - run: npm --prefix studio test
-      # The served site: assemble out/ as Vercel serves it, then the served-paths contract, the link
-      # crawl, the main-chunk size and no-source checks, and the 375px overflow probe (headless Chrome,
-      # preinstalled on ubuntu-latest; the probe fails loudly when it finds none). test:served runs
-      # every test/served/*.test.mjs, so a new served test joins CI on its own.
+
+  # The served site, sharded so the Chrome suite (~9 min in one job) runs in parallel. Each shard
+  # builds and assembles out/ as Vercel serves it, then runs its slice of test/served/*.test.mjs:
+  # the served-paths contract, the link crawl, the main-chunk size and no-source checks, and the
+  # phone-width overflow probe (headless Chrome, preinstalled on ubuntu-latest; the probe fails
+  # loudly when it finds none). The overflow sweep is one width per shard; the "rest" shards split
+  # every other file (new ones included) with --test-shard and skip exactly the widths the overflow
+  # shards own, so a new width or a renamed sweep test falls through to a rest shard, never nowhere.
+  served:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: overflow-375
+            args: --test-name-pattern="no probed route scrolls sideways at 375px in " test/served/overflow.test.mjs
+          - shard: overflow-371
+            args: --test-name-pattern="no probed route scrolls sideways at 371px in " test/served/overflow.test.mjs
+          - shard: overflow-360
+            args: --test-name-pattern="no probed route scrolls sideways at 360px in " test/served/overflow.test.mjs
+          - shard: rest-1
+            args: --test-shard=1/2 --test-skip-pattern="no probed route scrolls sideways at (375|371|360)px in " test/served/*.test.mjs
+          - shard: rest-2
+            args: --test-shard=2/2 --test-skip-pattern="no probed route scrolls sideways at (375|371|360)px in " test/served/*.test.mjs
+    name: served (${{ matrix.shard }})
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: studio/package-lock.json
+      - run: npm run studio:build
       - run: npm run assemble
       - name: served tests (Chrome)
+        env:
+          ARGS: ${{ matrix.args }}
         run: |
           export CHROME_PATH="$(command -v google-chrome)"
           echo "Chrome: $CHROME_PATH"
           "$CHROME_PATH" --version
-          npm run test:served
+          eval "node --test --test-concurrency=1 $ARGS"
+
+  # The required check. Green only when every job above succeeded; a failed, cancelled or skipped
+  # job turns it red, so branch protection keeps requiring this one name.
+  test-and-gate:
+    if: always()
+    needs: [checks, served]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS"
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success")'
