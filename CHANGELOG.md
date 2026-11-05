@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.1 · unreleased
+
+### Fixed
+
+- **The studio side nav sits flush against the window's left edge.** The shell centred everything at 1440px, so on wide screens the nav, expanded or as the rail, floated in from the left. The body is now full bleed; only the content column is capped (1208px) and centred. A served test checks the nav's left edge at 1920 on `/` and `/components`, in both states.
+
 ## 1.7.0 · 2026-11-05
 
 The one-site release. Every chapter and gallery example is a native, pre-rendered studio page in one tile language, with its own head; old links land in the studio. The studio has a new shell (search, one-button mode, custom color, icon rail, sticky side nav, On this page) and a new home (live product hero, ambient Get started). Package changes: `.badge.bloom` is neutral; the React parts run on React 18 and 19 (`react/inert.ts`); `LiveActivity` gains optional `emptyAction` and `onOpenChange`; `verseva add` warns below React 18; the console and landing blocks hold at phone width. No class or token is renamed.
