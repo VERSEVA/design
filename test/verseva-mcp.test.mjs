@@ -3,15 +3,17 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import fs from 'node:fs';
+import os from 'node:os';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const bin = path.join(here, '..', 'bin', 'verseva-mcp.mjs');
 const fx = (...p) => path.join(here, 'fixtures', ...p);
 
 /** Drive the stdio server: send newline-delimited JSON-RPC, collect responses by id. */
-function session(requests, { timeoutMs = 15000 } = {}) {
+function session(requests, { timeoutMs = 15000, cwd } = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [bin], { stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [bin], { stdio: ['pipe', 'pipe', 'pipe'], cwd });
     const wanted = new Set(requests.filter((r) => r.id !== undefined).map((r) => r.id));
     const got = {};
     let buf = '';
@@ -85,6 +87,34 @@ test('add_component refuses a dir outside the project', async () => {
   ]);
   assert.equal(got[2].result.isError, true);
   assert.match(got[2].result.content[0].text, /outside the project/);
+});
+
+test('add_component refuses to write through a dangling symlink', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-mcp-'));
+  const proj = path.join(root, 'proj');
+  const dir = path.join(proj, 'src', 'components', 'verseva');
+  fs.mkdirSync(dir, { recursive: true });
+  const outside = path.join(root, 'outside.tsx');
+  fs.symlinkSync(outside, path.join(dir, 'button.tsx'));
+  const got = await session([
+    { id: 1, method: 'initialize', params: {} },
+    { id: 2, method: 'tools/call', params: { name: 'add_component', arguments: { name: 'button' } } },
+  ], { cwd: proj });
+  assert.equal(got[2].result.isError, true);
+  assert.match(got[2].result.content[0].text, /refused: .*symlink/);
+  assert.equal(fs.existsSync(outside), false);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test('add_component writes the component and its deps into an empty dir', async () => {
+  const proj = fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-mcp-'));
+  const got = await session([
+    { id: 1, method: 'initialize', params: {} },
+    { id: 2, method: 'tools/call', params: { name: 'add_component', arguments: { name: 'button' } } },
+  ], { cwd: proj });
+  assert.notEqual(got[2].result.isError, true);
+  for (const f of ['button.tsx', 'cx.ts']) assert.ok(fs.existsSync(path.join(proj, 'src', 'components', 'verseva', f)), f);
+  fs.rmSync(proj, { recursive: true, force: true });
 });
 
 test('run_gate proves a clean path and fails a dirty one', async () => {
