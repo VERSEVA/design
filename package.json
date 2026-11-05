@@ -11,6 +11,7 @@
     "access": "public"
   },
   "type": "module",
+  "packageManager": "npm@10.9.9",
   "exports": {
     "./tokens.css": "./tokens.css",
     "./components.css": "./components.css",
