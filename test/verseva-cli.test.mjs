@@ -131,6 +131,35 @@ test('mcp init writes the claude .mcp.json wiring', () => {
   assert.ok(cfg.mcpServers.verseva.args.includes('verseva-mcp'));
 });
 
+test('a malformed verseva.json fails list with one line naming the file', () => {
+  const cwd = tmp();
+  fs.writeFileSync(path.join(cwd, 'verseva.json'), '{"dir": "x",}');
+  const r = run(['list'], cwd);
+  assert.equal(r.code, 1);
+  assert.match(r.out, /verseva: verseva\.json is not valid JSON/);
+  assert.doesNotMatch(r.out, /^\s+at /m);
+});
+
+test('a malformed .mcp.json fails mcp init and is left byte-identical', () => {
+  const cwd = tmp();
+  const file = path.join(cwd, '.mcp.json');
+  fs.writeFileSync(file, '{,}');
+  const r = run(['mcp', 'init'], cwd);
+  assert.equal(r.code, 1);
+  assert.match(r.out, /verseva: \.mcp\.json is not valid JSON/);
+  assert.equal(fs.readFileSync(file, 'utf8'), '{,}');
+});
+
+test('a malformed package.json fails init and is not rewritten', () => {
+  const cwd = tmp();
+  const file = path.join(cwd, 'package.json');
+  fs.writeFileSync(file, '{"name": "x",}');
+  const r = run(['init'], cwd);
+  assert.equal(r.code, 1);
+  assert.match(r.out, /verseva: package\.json is not valid JSON/);
+  assert.equal(fs.readFileSync(file, 'utf8'), '{"name": "x",}');
+});
+
 test('a fetched/file item without embedded content is refused (no host-file read)', () => {
   const cwd = tmp();
   fs.writeFileSync(path.join(cwd, 'leak.json'), JSON.stringify({

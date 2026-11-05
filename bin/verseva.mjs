@@ -39,9 +39,17 @@ const dirFlag = valueOf('--dir');
 const words = args.filter((a, i) => !a.startsWith('--') && !flagValueIxs.has(i));
 const [cmd, ...rest] = words;
 
-const config = fs.existsSync('verseva.json')
-  ? JSON.parse(fs.readFileSync('verseva.json', 'utf8'))
-  : {};
+/** Parse a project JSON file, or exit 1 with one line naming it (never rewritten). */
+function readJson(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    console.error(`verseva: ${file} is not valid JSON (${e.message}); fix or remove it`);
+    process.exit(1);
+  }
+}
+
+const config = fs.existsSync('verseva.json') ? readJson('verseva.json') : {};
 
 /** Containment: written filenames flatten to basenames, extensions are
     allowlisted, and an existing symlink destination is refused outright
@@ -239,7 +247,7 @@ if (cmd === 'init') {
     console.log('  wrote   verseva.json');
   }
   if (fs.existsSync('package.json')) {
-    const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    const pkg = readJson('package.json');
     pkg.scripts ??= {};
     if (!pkg.scripts.gate) {
       pkg.scripts.gate = 'verseva-gate --tokens node_modules/@verseva/design/tokens.css src';
@@ -348,7 +356,7 @@ if (cmd === 'mcp' && rest[0] === 'init') {
     process.exit(1);
   }
   fs.mkdirSync(path.dirname(target.file) || '.', { recursive: true });
-  const existing = fs.existsSync(target.file) ? JSON.parse(fs.readFileSync(target.file, 'utf8')) : {};
+  const existing = fs.existsSync(target.file) ? readJson(target.file) : {};
   const key = client === 'vscode' ? 'servers' : 'mcpServers';
   existing[key] = { ...existing[key], ...target.shape[key] };
   fs.writeFileSync(target.file, JSON.stringify(existing, null, 2) + '\n');
