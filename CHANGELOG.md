@@ -1,9 +1,58 @@
 # Changelog
 
-## 1.7.0 · unreleased
+## 1.7.0 · 2026-11-05
+
+The one-site release. Every chapter and gallery example is a native, pre-rendered studio page in one tile language, with its own head; old links land in the studio. The studio has a new shell (search, one-button mode, custom color, icon rail, sticky side nav, On this page) and a new home (live product hero, ambient Get started). Package changes: `.badge.bloom` is neutral; the React parts run on React 18 and 19 (`react/inert.ts`); `LiveActivity` gains optional `emptyAction` and `onOpenChange`; `verseva add` warns below React 18; the console and landing blocks hold at phone width. No class or token is renamed.
+
+### Added
+
+- **design.verseva.com is pre-rendered.** Every route in the studio routes table ships its own HTML: real headings
+  without JS, a unique title and description, a canonical on design.verseva.com, Open Graph and Twitter tags, and
+  JSON-LD (BreadcrumbList, plus WebSite on home). Pages hydrate in place, and client navigation keeps the whole head
+  in step. The SPA rewrites in `vercel.json` are gone: each route is a file.
+- **SEO kit, generated at build time** from the emblem and the dark canvas tokens at full clear space: `favicon.ico`,
+  `icon.svg`, `apple-touch-icon.png`, 192 and 512 icons plus a maskable one, the `og.png` social card,
+  `site.webmanifest`, `robots.txt` and `sitemap.xml` (every route).
+- **A studio 404 page.** Unknown paths return 404 with the studio shell and a way back to Overview (noindex).
+- **The gallery lives in the studio.** `/gallery` is a native page, and each example opens at `/gallery/<slug>`
+  (the example in a frame that fits its document and follows the studio theme and brand) with its source at
+  `/gallery/<slug>/code` (pre-rendered, with Copy). Links inside an example route through
+  the studio. `/examples/*.html` still serve as files.
+- **Components links to Widgets** from its header.
+- **Old site links land in the studio.** `/code.html?f=examples/<slug>.html` (and `/site/code.html?f=`) 308s to
+  `/gallery/<slug>/code`; any other `code.html` request goes to `/gallery`. Every `/site/<page>.html` 308s to its
+  studio route (`/site/index.html` to `/`, `/site/examples.html` to `/gallery`), as the root copies already did. The
+  registry JSON (`/r/*`, `/site/r/*`), `/examples/**`, `/site/examples/**`, `site.css` and `theme.js` stay files.
+- **Studio command bar.** The top bar search (⌘K / Ctrl K) opens the package command bar over every route and
+  every chapter and page section, built from the routes table and the section ids. A result navigates in the shell
+  and lands focus on its section. Below 900px the search is an icon button and the bar is a full-height sheet.
+- **Custom accent.** The color dot opens a popover with the five presets and Custom: a hue control and a hex field.
+  Any pick is derived to `--accent`, `--accent-hover`, `--accent-ink` and `--focus` for dark and light, gated live
+  (ink on accent and hover at 4.5:1, the accent and its hover on bg at 3:1, the accent on both surfaces at 3:1, text on the
+  accent tint at 4.5:1; hover steps away from the page, as the presets do), and
+  moved in OKLCH lightness to the nearest passing value when it fails, with the adjusted value and a pass or fail per
+  check shown. The hue control changes only the hue of the original pick, so stepping back returns it. The popover
+  traps focus while open. A chunk that fails to load shows a Retry in place. The choice persists and applies before first paint. Copy theme copies a ready
+  `[data-brand="custom"]` theme file in the presets' shape (contrast-gate clean).
+- **Icon rail.** The sidebar collapses to a 72px rail: one icon per Studio page and one per group, a tooltip on each,
+  and a keyboard-operable flyout per group (arrows, Home, End, Enter, Esc back to the icon). The rail state persists
+  and applies before first paint.
+- **On this page.** Chapter and Foundations pages carry a right rail of their sections from 1200px, with scroll-spy
+  (`aria-current="location"`) and focus moved on click.
 
 ### Changed
 
+- **Top bar.** The studio header is the package three-column `.tbar`: lockup and version, the search trigger,
+  then color, mode, pause motion and GitHub. Mode is one icon button that cycles light, dark and system, named
+  "Theme: current. Switch to next", announced politely, and drawn from the head script's `data-mode` so it never
+  shows a wrong icon. The five brand chips and the Light / Dark / System segmented control left the top bar (the
+  Overview hero keeps its theme picker). The npm link left the bar.
+- **Sidebar.** Studio, Chapters and Gallery are collapsible groups (open state persists; the group holding the
+  active item stays open), Gallery lists its examples, counts stay neutral badges, and the active item carries the
+  nav bloom. Per-chapter section anchors left the sidebar for the On this page rail and the command bar.
+- **Phone shell from 900px.** The page and section select and the stacked header now apply below 900px (was 760px).
+- **Lazy chunks.** The command bar (studio and /widgets), the color panel and the search commands load on first
+  intent; their triggers stay in the main chunk, which measures 147.1 kB gzip under the unchanged 150 kB budget.
 - **Studio home (`/`) is a live product hero.** "One source. Every surface" with one primary action, **Get started**
   (copies `npm i @verseva/design`, shows Copied, then lands on `/components#install`), and a quieter **Browse**
   (`/components`). Beside it, a real widget home on the package parts (`.wgrid` tiles): the smart stack rotates with
@@ -62,105 +111,6 @@
 
 ### Fixed
 
-- **On this page marks the deep-linked section on a page too short to scroll** (Decks at 1440x900: both tiles in
-  one row below the line marked Slide anatomy for `/decks#structure`).
-- **Gallery: the filter shows its result.** A filtered-out tile is no longer rendered (its `display:none` lost to the
-  package `.wtile` display in the built CSS, so all 8 stayed on screen). Each filter's subset is sized to fill every
-  row at 4 and 2 columns (its own sizes when they fit, else an XL first on an odd count and Ms in pairs), and the
-  result is announced politely ("2 examples").
-- **Gallery: a thumbnail that does not load shows the tile error with Retry.** A missing example answers with the
-  studio shell (404.html); the tile no longer nests a studio in its thumbnail.
-- **Gallery: the details bento has no holes** (Count-up stat and Skeleton to loaded take M), and the gallery joins the
-  chapter copy guard (no em dash, no doctrine sublabels, every legacy text accounted for).
-- **3D hero example: the copy holds its contrast over the scene.** The scene read its colours once at load, so a
-  frame the studio flips to light after load kept a dark knot behind dark copy (about 1:1). It now re-reads the tokens
-  on every theme or brand change and when a theme sheet lands, with light-mode lighting from the surface tones. A
-  directional scrim in the ground colour sits between the scene and the copy (left to right on desktop, a band on
-  phones), and the hint sits on a pill. A served probe samples the scene behind every line of copy over several
-  frames, in both themes at 1440 and 375: headline and body at least 4.5:1, kicker and hint at least 3:1.
-- **The studio side nav stays fixed while the page scrolls.** Expanded and collapsed to the rail, it sits below the
-  header at full height, scrolls its own list when that is longer than the viewport, and keeps the collapse toggle
-  in view at its foot (the expanded toggle had scrolled out of reach on long pages).
-- **Home: the demo job is quiet.** It ticks visually but says nothing in its live region until the visitor opens the
-  capsule panel.
-- **Home: Copied is honest.** Get started says Copied only once `writeText` resolves. When the clipboard is denied or
-  missing, or `writeText` throws, it says "Command below" and still lands on `/components#install` with focus there.
-- **Home: the demo restarts.** Restart sits in the capsule panel whenever no job runs (done, rested or cancelled),
-  and Cancel now stops the job. With the panel shut after a Cancel, a Restart shows in the tile instead.
-- **`LiveActivity` takes `emptyAction` and `onOpenChange`.** `emptyAction` renders in the panel's empty state (a
-  Restart, a Start); `onOpenChange` reports the panel opening and closing.
-- Dropped the unused `.picker-lg` rules from `studio.css`.
-
-### Tests
-
-- `test/served/sidebar.test.mjs`: at 1280, `/components` scrolled to its end, the sidebar's top stays at the header
-  bottom, it fills to the viewport bottom, and its collapse toggle is in view, expanded and collapsed.
-- `test/served/home.test.mjs`: the law 3 accent budget on `/` at 1440 and 375 in both schemes (with a planted
-  spend), the hero's animations (running, transform and opacity only, stopped by Pause motion and by reduced
-  motion), Get started in Chrome (copied and denied, focus on `#install`), the budget with the job panel open, and the 375px fold at 667, 812 and 360 by 640. The served harness takes
-  `reducedMotion`.
-- The Components port's element-for-element parity with `site/components.html` (markup, `<style>` and the
-  FROZEN pin) is retired, as the redesign changes its presentation on purpose (`studio/test/redesigned.ts`). The
-  tile contract test (`specimen-tile.test.tsx`) replaces it; the specimen-to-sample and chapter script tests stay.
-  Other chapters keep their parity tests.
-- The class-name rule now covers the studio tile CSS.
-
-## 1.6.1 · 2026-11-05
-
-The one-site release: every chapter and gallery example is a native, pre-rendered studio page with its own head, old links land in the studio, the studio has a new shell (search, one-button mode, custom color, icon rail), and the 1.6.0 accessibility, accent and React 18 findings are fixed. Package changes: `.badge.bloom` is neutral, the React parts run on React 18 and 19, and `verseva add` warns below React 18; no class or token is renamed.
-
-### Added
-
-- **design.verseva.com is pre-rendered.** Every route in the studio routes table ships its own HTML: real headings
-  without JS, a unique title and description, a canonical on design.verseva.com, Open Graph and Twitter tags, and
-  JSON-LD (BreadcrumbList, plus WebSite on home). Pages hydrate in place, and client navigation keeps the whole head
-  in step. The SPA rewrites in `vercel.json` are gone: each route is a file.
-- **SEO kit, generated at build time** from the emblem and the dark canvas tokens at full clear space: `favicon.ico`,
-  `icon.svg`, `apple-touch-icon.png`, 192 and 512 icons plus a maskable one, the `og.png` social card,
-  `site.webmanifest`, `robots.txt` and `sitemap.xml` (every route).
-- **A studio 404 page.** Unknown paths return 404 with the studio shell and a way back to Overview (noindex).
-- **The gallery lives in the studio.** `/gallery` is a native page, and each example opens at `/gallery/<slug>`
-  (the example in a frame that fits its document and follows the studio theme and brand) with its source at
-  `/gallery/<slug>/code` (pre-rendered, with Copy). Links inside an example route through
-  the studio. `/examples/*.html` still serve as files.
-- **Components links to Widgets** from its header.
-- **Old site links land in the studio.** `/code.html?f=examples/<slug>.html` (and `/site/code.html?f=`) 308s to
-  `/gallery/<slug>/code`; any other `code.html` request goes to `/gallery`. Every `/site/<page>.html` 308s to its
-  studio route (`/site/index.html` to `/`, `/site/examples.html` to `/gallery`), as the root copies already did. The
-  registry JSON (`/r/*`, `/site/r/*`), `/examples/**`, `/site/examples/**`, `site.css` and `theme.js` stay files.
-- **Studio command bar.** The top bar search (⌘K / Ctrl K) opens the package command bar over every route and
-  every chapter and page section, built from the routes table and the section ids. A result navigates in the shell
-  and lands focus on its section. Below 900px the search is an icon button and the bar is a full-height sheet.
-- **Custom accent.** The color dot opens a popover with the five presets and Custom: a hue control and a hex field.
-  Any pick is derived to `--accent`, `--accent-hover`, `--accent-ink` and `--focus` for dark and light, gated live
-  (ink on accent and hover at 4.5:1, the accent and its hover on bg at 3:1, the accent on both surfaces at 3:1, text on the
-  accent tint at 4.5:1; hover steps away from the page, as the presets do), and
-  moved in OKLCH lightness to the nearest passing value when it fails, with the adjusted value and a pass or fail per
-  check shown. The hue control changes only the hue of the original pick, so stepping back returns it. The popover
-  traps focus while open. A chunk that fails to load shows a Retry in place. The choice persists and applies before first paint. Copy theme copies a ready
-  `[data-brand="custom"]` theme file in the presets' shape (contrast-gate clean).
-- **Icon rail.** The sidebar collapses to a 72px rail: one icon per Studio page and one per group, a tooltip on each,
-  and a keyboard-operable flyout per group (arrows, Home, End, Enter, Esc back to the icon). The rail state persists
-  and applies before first paint.
-- **On this page.** Chapter and Foundations pages carry a right rail of their sections from 1200px, with scroll-spy
-  (`aria-current="location"`) and focus moved on click.
-
-### Changed
-
-- **Top bar.** The studio header is the package three-column `.tbar`: lockup and version, the search trigger,
-  then color, mode, pause motion and GitHub. Mode is one icon button that cycles light, dark and system, named
-  "Theme: current. Switch to next", announced politely, and drawn from the head script's `data-mode` so it never
-  shows a wrong icon. The five brand chips and the Light / Dark / System segmented control left the top bar (the
-  Overview hero keeps its theme picker). The npm link left the bar.
-- **Sidebar.** Studio, Chapters and Gallery are collapsible groups (open state persists; the group holding the
-  active item stays open), Gallery lists its examples, counts stay neutral badges, and the active item carries the
-  nav bloom. Per-chapter section anchors left the sidebar for the On this page rail and the command bar.
-- **Phone shell from 900px.** The page and section select and the stacked header now apply below 900px (was 760px).
-- **Lazy chunks.** The command bar (studio and /widgets), the color panel and the search commands load on first
-  intent; their triggers stay in the main chunk, which measures 147.1 kB gzip under the unchanged 150 kB budget.
-
-### Fixed
-
 - **Gallery sources load per page, not in the main bundle.** Each `/gallery/<slug>/code` route loads only its own
   example's source as a separate chunk; the pre-rendered page still holds the full text without JS and hydrates with
   it in place. The main entry chunk drops from 176.3 kB to 146.8 kB gzip, held under a 150 kB budget by
@@ -210,6 +160,48 @@ The one-site release: every chapter and gallery example is a native, pre-rendere
 - **Old `/code.html?f=` links land on a clean URL.** The redirect passed its query through, so the code
   page opened at `/gallery/<slug>/code?f=...`; the studio now drops the stray `f` in place, on any
   gallery route.
+- **On this page marks the deep-linked section on a page too short to scroll** (Decks at 1440x900: both tiles in
+  one row below the line marked Slide anatomy for `/decks#structure`).
+- **Gallery: the filter shows its result.** A filtered-out tile is no longer rendered (its `display:none` lost to the
+  package `.wtile` display in the built CSS, so all 8 stayed on screen). Each filter's subset is sized to fill every
+  row at 4 and 2 columns (its own sizes when they fit, else an XL first on an odd count and Ms in pairs), and the
+  result is announced politely ("2 examples").
+- **Gallery: a thumbnail that does not load shows the tile error with Retry.** A missing example answers with the
+  studio shell (404.html); the tile no longer nests a studio in its thumbnail.
+- **Gallery: the details bento has no holes** (Count-up stat and Skeleton to loaded take M), and the gallery joins the
+  chapter copy guard (no em dash, no doctrine sublabels, every legacy text accounted for).
+- **3D hero example: the copy holds its contrast over the scene.** The scene read its colours once at load, so a
+  frame the studio flips to light after load kept a dark knot behind dark copy (about 1:1). It now re-reads the tokens
+  on every theme or brand change and when a theme sheet lands, with light-mode lighting from the surface tones. A
+  directional scrim in the ground colour sits between the scene and the copy (left to right on desktop, a band on
+  phones), and the hint sits on a pill. A served probe samples the scene behind every line of copy over several
+  frames, in both themes at 1440 and 375: headline and body at least 4.5:1, kicker and hint at least 3:1.
+- **The studio side nav stays fixed while the page scrolls.** Expanded and collapsed to the rail, it sits below the
+  header at full height, scrolls its own list when that is longer than the viewport, and keeps the collapse toggle
+  in view at its foot (the expanded toggle had scrolled out of reach on long pages).
+- **Home: the demo job is quiet.** It ticks visually but says nothing in its live region until the visitor opens the
+  capsule panel.
+- **Home: Copied is honest.** Get started says Copied only once `writeText` resolves. When the clipboard is denied or
+  missing, or `writeText` throws, it says "Command below" and still lands on `/components#install` with focus there.
+- **Home: the demo restarts.** Restart sits in the capsule panel whenever no job runs (done, rested or cancelled),
+  and Cancel now stops the job. With the panel shut after a Cancel, a Restart shows in the tile instead.
+- **`LiveActivity` takes `emptyAction` and `onOpenChange`.** `emptyAction` renders in the panel's empty state (a
+  Restart, a Start); `onOpenChange` reports the panel opening and closing.
+- Dropped the unused `.picker-lg` rules from `studio.css`.
+
+### Tests
+
+- `test/served/sidebar.test.mjs`: at 1280, `/components` scrolled to its end, the sidebar's top stays at the header
+  bottom, it fills to the viewport bottom, and its collapse toggle is in view, expanded and collapsed.
+- `test/served/home.test.mjs`: the law 3 accent budget on `/` at 1440 and 375 in both schemes (with a planted
+  spend), the hero's animations (running, transform and opacity only, stopped by Pause motion and by reduced
+  motion), Get started in Chrome (copied and denied, focus on `#install`), the budget with the job panel open, and the 375px fold at 667, 812 and 360 by 640. The served harness takes
+  `reducedMotion`.
+- The Components port's element-for-element parity with `site/components.html` (markup, `<style>` and the
+  FROZEN pin) is retired, as the redesign changes its presentation on purpose (`studio/test/redesigned.ts`). The
+  tile contract test (`specimen-tile.test.tsx`) replaces it; the specimen-to-sample and chapter script tests stay.
+  Other chapters keep their parity tests.
+- The class-name rule now covers the studio tile CSS.
 
 ## 1.6.0 · 2026-11-04
 
