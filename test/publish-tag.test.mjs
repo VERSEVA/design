@@ -7,8 +7,8 @@ const yml = readFileSync(new URL("../.github/workflows/publish.yml", import.meta
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const root = new URL("..", import.meta.url).pathname;
 
-// The check is a single-line `run:` on the step named "Tag matches package.json version".
-const match = yml.match(/- name: Tag matches package\.json version\n(?:\s+if: .*\n)?\s+run: (.+)\n/);
+// The check is the `run: |` block on the step named "Tag matches package.json version".
+const match = yml.match(/- name: Tag matches package\.json version\n(?: +if: .*\n)? +run: \|\n((?: {10}.*\n)+)/);
 
 function check(env) {
   return spawnSync("bash", ["-c", match[1]], { cwd: root, env: { ...process.env, ...env } });
