@@ -76,8 +76,12 @@ describe('/widgets', () => {
     fireEvent.click(getByRole('button', { name: 'Search or ask' }));
     /* the bar is its own chunk, loaded on first open */
     const input = await waitFor(() => { const el = container.querySelector<HTMLInputElement>('.cmdk-input'); if (!el) throw new Error('bar did not open'); return el; }, { timeout: 5000 });
-    /* The answer streams on timers (700ms, then 60ms a word): drive them on a fake clock, not the wall clock. */
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+    /* The bar's open effect resets the answer and focuses the field: let it run before asking, or it
+       can land after Enter and wipe the answer. */
+    await waitFor(() => expect(document.activeElement).toBe(input));
+    /* The answer streams on timers (700ms, then 60ms a word): drive them on a fake clock, not the wall clock.
+       Fake only the timers: React's scheduler runs on setImmediate in jsdom, and faking that stalls effects. */
+    vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
     try {
       fireEvent.change(input, { target: { value: 'what was revenue this month?' } });
       fireEvent.keyDown(input, { key: 'Enter' });
