@@ -65,7 +65,6 @@ for (const width of WIDTHS) for (const scheme of SCHEMES) {
       }
     }
     await page.close();
-    if (width === 371) bad.push('deliberate shard failure (#73 verify, reverted next commit)');
     assert.deepEqual(bad, []);
   });
 }
