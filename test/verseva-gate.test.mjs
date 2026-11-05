@@ -39,3 +39,22 @@ test('the shipped contract passes the full suite', () => {
   const r = run([...shipped, path.join(here, '..', 'components.css')]);
   assert.equal(r.code, 0);
 });
+
+test('a missing path errors the suite (exit 2), never reports a violation', () => {
+  const r = run([...shipped, fx('nope')]);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /errored/);
+  assert.doesNotMatch(r.out, /gate failed/);
+  assert.doesNotMatch(r.out, /\n\s+at /);
+});
+
+test('a missing token file errors the suite (exit 2)', () => {
+  const r = run(['--tokens', fx('missing.css'), fx('proj-type', 'good.css')]);
+  assert.equal(r.code, 2);
+  assert.doesNotMatch(r.out, /gate failed/);
+});
+
+test('a trailing --tokens errors the suite (exit 2)', () => {
+  const r = run([...shipped, fx('proj-type', 'good.css'), '--tokens']);
+  assert.equal(r.code, 2);
+});

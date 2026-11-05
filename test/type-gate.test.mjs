@@ -51,3 +51,21 @@ test('the shipped contract css is clean, including its 9.5px navshell label', ()
   const r = run([...shipped, path.join(here, '..', 'components.css')]);
   assert.equal(r.code, 0);
 });
+
+test('a missing scan path exits 2 with one line, no stack trace', () => {
+  const r = run([...shipped, fx('nope')]);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-type-gate: no such file: .*nope\n$/);
+});
+
+test('a missing token file exits 2', () => {
+  const r = run(['--tokens', fx('missing.css'), fx('proj-type', 'good.css')]);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-type-gate: no such file: .*missing\.css\n$/);
+});
+
+test('a trailing --tokens exits 2', () => {
+  const r = run([fx('proj-type', 'good.css'), '--tokens']);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-type-gate: --tokens needs a value\n$/);
+});

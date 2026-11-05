@@ -151,6 +151,7 @@ function callTool(name, args = {}) {
       return text(`ON-SIGNATURE, proven.\n\n${out}`);
     } catch (e) {
       if (e.status === undefined) return errText(`GATE ERRORED (did not run): ${e.message}`);
+      if (e.status === 2) return errText(`GATE ERRORED (did not run): usage or config, not a violation.\n\n${e.stderr ?? ''}`);
       return errText(`GATE FAILED: fix before shipping.\n\n${e.stdout ?? ''}${e.stderr ?? ''}`);
     }
   }

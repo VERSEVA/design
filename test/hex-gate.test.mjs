@@ -64,3 +64,21 @@ test('directory scan walks and skips node_modules', () => {
   assert.match(r.out, /bad\.css/);
   assert.doesNotMatch(r.out, /node_modules/);
 });
+
+test('a missing scan path exits 2 with one line, no stack trace', () => {
+  const r = run([...TOKENS, fx('nope')]);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-hex-gate: no such file: .*nope\n$/);
+});
+
+test('a missing token file exits 2', () => {
+  const r = run(['--tokens', fx('missing.css'), fx('proj', 'good.css')]);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-hex-gate: no such file: .*missing\.css\n$/);
+});
+
+test('a trailing --tokens exits 2', () => {
+  const r = run([fx('proj', 'good.css'), '--tokens']);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-hex-gate: --tokens needs a value\n$/);
+});
