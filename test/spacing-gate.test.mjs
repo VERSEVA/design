@@ -59,3 +59,15 @@ test('the shipped contract css is clean', () => {
   const r = run([path.join(here, '..', 'components.css')]);
   assert.equal(r.code, 0);
 });
+
+test('a missing scan path exits 2 with one line, no stack trace', () => {
+  const r = run([fx('nope')]);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-spacing-gate: no such file: .*nope\n$/);
+});
+
+test('a trailing --allow exits 2', () => {
+  const r = run([fx('proj-seam'), '--allow']);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-spacing-gate: --allow needs a value\n$/);
+});

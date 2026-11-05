@@ -140,6 +140,10 @@ function ratio(fg, bg) {
 }
 
 const { tokens, extras } = parseArgs(process.argv.slice(2));
+if (tokens.includes(undefined)) { console.error('verseva-contrast-gate: --tokens needs a value'); process.exit(2); }
+for (const p of tokens) {
+  if (!fs.existsSync(p)) { console.error(`verseva-contrast-gate: no such file: ${p}`); process.exit(2); }
+}
 if (tokens.length === 0 || extras.length > 0) {
   console.error('usage: verseva-contrast-gate --tokens <tokens.css> [--tokens ...]  (no scan paths: this gate measures token files only)');
   process.exit(2);

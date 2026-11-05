@@ -61,6 +61,12 @@ function* walk(p) {
 }
 
 const { tokens, allow, paths } = parseArgs(process.argv.slice(2));
+for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow]]) {
+  if (vals.includes(undefined)) { console.error(`verseva-type-gate: ${flag} needs a value`); process.exit(2); }
+}
+for (const p of [...tokens, ...paths]) {
+  if (!fs.existsSync(p)) { console.error(`verseva-type-gate: no such file: ${p}`); process.exit(2); }
+}
 if (paths.length === 0) {
   console.error('usage: verseva-type-gate [--tokens <tokens.css>] [--allow <substr>] <paths...>');
   process.exit(2);

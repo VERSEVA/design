@@ -87,3 +87,15 @@ test('the 1.1.0 text-3 values (dark #6B7280, light #7A828F) fail the reading-tex
   assert.match(r.out, /text-3 on surface-2/);
   assert.match(r.out, /floor 4\.5/);
 });
+
+test('a missing token file exits 2 with one line, no stack trace', () => {
+  const r = run(['--tokens', fx('missing.css')]);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-contrast-gate: no such file: .*missing\.css\n$/);
+});
+
+test('a trailing --tokens exits 2', () => {
+  const r = run(['--tokens', shipped, '--tokens']);
+  assert.equal(r.code, 2);
+  assert.match(r.out, /^verseva-contrast-gate: --tokens needs a value\n$/);
+});

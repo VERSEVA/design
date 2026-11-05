@@ -8,7 +8,9 @@
  *   verseva-gate --tokens <tokens.css> [--tokens <theme.css>]...
  *                [--allow <path-substring>]... <file-or-dir>...
  *
- * Exit 1 when any gate fails; exit 0 when all four are clean.
+ * Exit 1 when any gate finds violations; exit 2 when none does but one
+ * errored (usage or config, e.g. a missing path); exit 0 when all four
+ * are clean.
  */
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +32,9 @@ function parseArgs(argv) {
 }
 
 const { tokens, allow, paths } = parseArgs(process.argv.slice(2));
+for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow]]) {
+  if (vals.includes(undefined)) { console.error(`verseva-gate: ${flag} needs a value`); process.exit(2); }
+}
 if (tokens.length === 0 || paths.length === 0) {
   console.error('usage: verseva-gate --tokens <tokens.css> [--tokens ...] [--allow <substr>] <paths...>');
   process.exit(2);
@@ -45,21 +50,30 @@ const GATES = [
 ];
 
 let failed = 0;
+let errored = 0;
 for (const [name, bin, args] of GATES) {
   try {
     const out = execFileSync(process.execPath, [path.join(here, bin), ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
     process.stdout.write(out);
   } catch (e) {
-    failed++;
     process.stdout.write(`${e.stdout ?? ''}`);
     process.stderr.write(`${e.stderr ?? ''}`);
-    console.error(e.status === 2 || e.status === undefined ? `gate errored: ${name} (usage or config, not a violation)\n` : `gate failed: ${name}\n`);
+    if (e.status === 2 || e.status === undefined) {
+      errored++;
+      console.error(`gate errored: ${name} (usage or config, not a violation)\n`);
+    } else {
+      failed++;
+      console.error(`gate failed: ${name}\n`);
+    }
   }
 }
 
 if (failed) {
   console.error(`verseva-gate: ${failed} of ${GATES.length} gates failed`);
   process.exitCode = 1;
+} else if (errored) {
+  console.error(`verseva-gate: ${errored} of ${GATES.length} gates errored`);
+  process.exitCode = 2;
 } else {
   console.log(`verseva-gate: all ${GATES.length} gates clean`);
 }

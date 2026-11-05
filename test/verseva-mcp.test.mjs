@@ -127,3 +127,13 @@ test('run_gate proves a clean path and fails a dirty one', async () => {
   assert.equal(got[3].result.isError, true);
   assert.match(got[3].result.content[0].text, /GATE FAILED/);
 });
+
+test('run_gate on a path that does not exist reports GATE ERRORED, not GATE FAILED', async () => {
+  const got = await session([
+    { id: 1, method: 'initialize', params: {} },
+    { id: 2, method: 'tools/call', params: { name: 'run_gate', arguments: { paths: ['nope'] } } },
+  ], { timeoutMs: 30000 });
+  assert.equal(got[2].result.isError, true);
+  assert.match(got[2].result.content[0].text, /^GATE ERRORED/);
+  assert.match(got[2].result.content[0].text, /no such file: nope/);
+});

@@ -27,14 +27,15 @@ const OPEN_RE = /(?<![\w-])style=\{\{/;
 const KEY_RE = /\b(?:margin|padding)(?:-[a-z]+|[A-Z][A-Za-z]*)?\s*:|(?<![\w-])(?:gap|rowGap|columnGap)\s*:/;
 
 function parseArgs(argv) {
+  const tokens = []; // accepted for runner symmetry, unused
   const allow = [];
   const paths = [];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--allow') allow.push(argv[++i]);
-    else if (argv[i] === '--tokens') i++; // accepted for runner symmetry, unused
+    else if (argv[i] === '--tokens') tokens.push(argv[++i]);
     else paths.push(argv[i]);
   }
-  return { allow, paths };
+  return { tokens, allow, paths };
 }
 
 function* walk(p) {
@@ -52,7 +53,13 @@ function* walk(p) {
   }
 }
 
-const { allow, paths } = parseArgs(process.argv.slice(2));
+const { tokens, allow, paths } = parseArgs(process.argv.slice(2));
+for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow]]) {
+  if (vals.includes(undefined)) { console.error(`verseva-spacing-gate: ${flag} needs a value`); process.exit(2); }
+}
+for (const p of [...tokens, ...paths]) {
+  if (!fs.existsSync(p)) { console.error(`verseva-spacing-gate: no such file: ${p}`); process.exit(2); }
+}
 if (paths.length === 0) {
   console.error('usage: verseva-spacing-gate [--allow <substr>] <paths...>');
   process.exit(2);

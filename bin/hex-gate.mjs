@@ -70,6 +70,12 @@ function hexesIn(text) {
 }
 
 const { tokens, allow, paths } = parseArgs(process.argv.slice(2));
+for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow]]) {
+  if (vals.includes(undefined)) { console.error(`verseva-hex-gate: ${flag} needs a value`); process.exit(2); }
+}
+for (const p of [...tokens, ...paths]) {
+  if (!fs.existsSync(p)) { console.error(`verseva-hex-gate: no such file: ${p}`); process.exit(2); }
+}
 if (tokens.length === 0 || paths.length === 0) {
   console.error('usage: verseva-hex-gate --tokens <tokens.css> [--tokens ...] [--allow <substr>] <paths...>');
   process.exit(2);
