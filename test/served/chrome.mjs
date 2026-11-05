@@ -147,10 +147,14 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
 
   async function stop() {
     try { ws.close(); } catch { /* closed */ }
+    /* wait for Chrome itself to exit, not a fixed pause: its helpers can still be writing the profile */
+    const exited = chrome.exitCode !== null || chrome.signalCode !== null ? Promise.resolve() : new Promise((r) => chrome.once('exit', r));
     chrome.kill('SIGKILL');
     server.close();
-    await new Promise((r) => setTimeout(r, 300));
-    fs.rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    await Promise.race([exited, new Promise((r) => setTimeout(r, 5000))]);
+    /* Removing the temp profile is housekeeping, not a test result: a helper still writing to it
+       (ENOTEMPTY) must not fail a run whose tests passed. The process 'exit' hook tries again. */
+    try { fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }); } catch { /* exit hook retries */ }
   }
 
   return { origin, page, stop, chrome };
