@@ -104,7 +104,10 @@ function callTool(name, args = {}) {
       if (!item) return errText(`registry is inconsistent: dep ${dep} not found`);
       fs.mkdirSync(dir, { recursive: true });
       const dest = path.join(dir, path.basename(item.file));
-      if (!fs.existsSync(dest)) {
+      let st = null;
+      try { st = fs.lstatSync(dest); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+      if (st?.isSymbolicLink()) return errText(`refused: ${dest} is a symlink; will not write through it`);
+      if (!st) {
         fs.copyFileSync(path.join(pkgRoot, item.file), dest);
         written.push(dest);
       }
