@@ -41,6 +41,17 @@ function findChrome() {
   return null;
 }
 
+/* Chrome's helpers can refill the profile while it is being deleted. A leftover temp dir is
+   harmless, a failed test is not: those codes warn once and move on, anything else throws. */
+function rmProfile(profile) {
+  try {
+    fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 250 });
+  } catch (e) {
+    if (!['ENOTEMPTY', 'EBUSY', 'EPERM'].includes(e.code)) throw e;
+    console.warn(`served harness: left Chrome profile ${profile} behind (${e.code})`);
+  }
+}
+
 /* Starts the server and Chrome. `extra` maps a path to HTML served only by this run. */
 export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs = 60000 } = {}) {
   assert.ok(fs.existsSync(path.join(out, 'index.html')), 'out/ missing: run npm run studio:build && npm run assemble');
@@ -60,7 +71,7 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'vsv-probe-'));
   const chrome = spawn(bin, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--hide-scrollbars', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
   /* the run owns this Chrome and its temp profile: both go when the process ends, even on a crash */
-  process.once('exit', () => { try { chrome.kill('SIGKILL'); } catch { /* gone */ } try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* gone */ } });
+  process.once('exit', () => { try { chrome.kill('SIGKILL'); } catch { /* gone */ } try { rmProfile(profile); } catch { /* gone */ } });
   let dead = null;
   const pending = new Map();
   const events = [];
@@ -77,7 +88,7 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
   const release = () => {
     try { chrome.kill('SIGKILL'); } catch { /* gone */ }
     server.close();
-    try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* gone */ }
+    try { rmProfile(profile); } catch { /* gone */ }
   };
   let ws;
   try {
@@ -151,10 +162,12 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
     const exited = chrome.exitCode !== null || chrome.signalCode !== null ? Promise.resolve() : new Promise((r) => chrome.once('exit', r));
     chrome.kill('SIGKILL');
     server.close();
-    await Promise.race([exited, new Promise((r) => setTimeout(r, 5000))]);
-    /* Removing the temp profile is housekeeping, not a test result: a helper still writing to it
-       (ENOTEMPTY) must not fail a run whose tests passed. The process 'exit' hook tries again. */
-    try { fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }); } catch { /* exit hook retries */ }
+    /* capped at 5s; the cap timer is cleared so a prompt exit does not hold the run open */
+    let cap;
+    await Promise.race([exited, new Promise((r) => { cap = setTimeout(r, 5000); })]);
+    clearTimeout(cap);
+    /* housekeeping, not a test result: rmProfile warns on a refilled dir, the exit hook retries */
+    rmProfile(profile);
   }
 
   return { origin, page, stop, chrome };
