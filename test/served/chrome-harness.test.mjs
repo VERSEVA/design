@@ -62,7 +62,8 @@ test('stop() warns instead of failing when the profile removal hits ENOTEMPTY', 
     await run.stop();
   } finally {
     t.mock.restoreAll();
-    rm(profile, { recursive: true, force: true });
+    /* the same refill race can hit this cleanup: a leftover temp dir must not fail the test */
+    try { rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 250 }); } catch { /* left in tmp */ }
   }
   assert.equal(warn.mock.calls.length, 1);
   assert.ok(warn.mock.calls[0].arguments.join(' ').includes(profile), 'warning names the profile path');
