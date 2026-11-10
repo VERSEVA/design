@@ -12,11 +12,19 @@ export function Accordion({ items, className }: { items: AccordionItem[]; classN
   return (
     <div className={cx('acc', className)}>
       {items.map((item, i) => (
-        <details key={`${i}-${item.title}`} open={item.defaultOpen}>
-          <summary>{item.title}</summary>
-          <div className="accbody">{item.content}</div>
-        </details>
+        <AccordionRow key={`${i}-${item.title}`} item={item} />
       ))}
     </div>
+  );
+}
+
+/* details still toggles natively; onToggle only mirrors the state onto aria-expanded. */
+function AccordionRow({ item }: { item: AccordionItem }) {
+  const [open, setOpen] = React.useState(!!item.defaultOpen);
+  return (
+    <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary aria-expanded={open}>{item.title}</summary>
+      <div className="accbody">{item.content}</div>
+    </details>
   );
 }
