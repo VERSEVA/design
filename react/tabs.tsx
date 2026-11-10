@@ -10,7 +10,10 @@ export interface TabsProps {
   items: TabItem[];
   value: string;
   onChange: (value: string) => void;
-  /** id of the panel each tab controls, as `${panelId}-${value}`; wire your panels with role="tabpanel". */
+  /**
+   * id of the panel each tab controls, as `${panelId}-${value}`; wire your panels with
+   * role="tabpanel" and aria-labelledby `${panelId}-${value}-tab` (the tab's id).
+   */
   panelId?: string;
   className?: string;
   'aria-label'?: string;
@@ -45,6 +48,7 @@ export function Tabs({ items, value, onChange, panelId, className, ...rest }: Ta
           ref={(el) => { refs.current[i] = el; }}
           type="button"
           role="tab"
+          id={panelId ? `${panelId}-${item.value}-tab` : undefined}
           aria-selected={item.value === value}
           aria-controls={panelId ? `${panelId}-${item.value}` : undefined}
           tabIndex={item.value === value ? 0 : -1}
