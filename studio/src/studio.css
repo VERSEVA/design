@@ -97,7 +97,8 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 
 /* Body: sidebar (232px, or the 72px rail under <html data-rail="collapsed">), main, and on
    chapter and Foundations pages the On this page rail at wide viewports. */
-.studio-body { display: grid; grid-template-columns: 232px minmax(0, 1fr); max-width: 1440px; margin: 0 auto; }
+/* Full bleed: the side nav sits flush against the window's left edge; only the content column is capped (below). */
+.studio-body { display: grid; grid-template-columns: 232px minmax(0, 1fr); }
 :root[data-rail="collapsed"] .studio-body { grid-template-columns: 72px minmax(0, 1fr); }
 .studio-side { position: sticky; z-index: 14; top: var(--studio-head-h); align-self: start; height: calc(100dvh - var(--studio-head-h)); overflow-y: auto; border-right: 1px solid var(--hairline-soft); }
 .side-full { display: flex; flex-direction: column; min-height: 100%; padding: var(--s-4) var(--s-4) var(--s-3); }
@@ -131,7 +132,7 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 .railfly[hidden] { display: none; }
 .railfly .grouplabel { display: block; padding: var(--s-1) 9px var(--s-1); }
 .railtip { z-index: 16; }
-.studio-main { min-width: 0; padding: 0 var(--s-7) var(--s-9); }
+.studio-main { min-width: 0; width: 100%; max-width: 1208px; justify-self: center; padding: 0 var(--s-7) var(--s-9); }
 .studio-main h1:focus { outline: none; }
 
 /* On this page */

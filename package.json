@@ -11,6 +11,7 @@
     "access": "public"
   },
   "type": "module",
+  "packageManager": "npm@10.9.9",
   "exports": {
     "./tokens.css": "./tokens.css",
     "./components.css": "./components.css",
@@ -43,6 +44,9 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "gate": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow test . studio/src studio/index.html",
