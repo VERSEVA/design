@@ -10,14 +10,20 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const bin = path.join(here, '..', 'bin', 'verseva-mcp.mjs');
 const fx = (...p) => path.join(here, 'fixtures', ...p);
 
+/**
+ * Per-session bound. Generous so a loaded host (parallel gates, agent sessions) does not
+ * flake, still finite so a hung server fails. Override with VERSEVA_TEST_TIMEOUT_MS.
+ */
+const SESSION_TIMEOUT_MS = Number(process.env.VERSEVA_TEST_TIMEOUT_MS) || 120000;
+
 /** Drive the stdio server: send newline-delimited JSON-RPC, collect responses by id. */
-function session(requests, { timeoutMs = 15000, cwd } = {}) {
+function session(requests, { timeoutMs = SESSION_TIMEOUT_MS, cwd, args = [bin] } = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [bin], { stdio: ['pipe', 'pipe', 'pipe'], cwd });
+    const child = spawn(process.execPath, args, { stdio: ['pipe', 'pipe', 'pipe'], cwd });
     const wanted = new Set(requests.filter((r) => r.id !== undefined).map((r) => r.id));
     const got = {};
     let buf = '';
-    const timer = setTimeout(() => { child.kill(); reject(new Error(`mcp timeout; got ids ${Object.keys(got)}`)); }, timeoutMs);
+    const timer = setTimeout(() => { child.kill(); reject(new Error(`mcp timeout after ${timeoutMs}ms; got ids ${Object.keys(got)}`)); }, timeoutMs);
     child.stdout.on('data', (d) => {
       buf += d;
       let nl;
@@ -71,7 +77,7 @@ test('run_gate cannot be rigged: flag smuggling, escapes, and call-time token fi
     { id: 2, method: 'tools/call', params: { name: 'run_gate', arguments: { paths: ['--allow', 'ugly', '.'] } } },
     { id: 3, method: 'tools/call', params: { name: 'run_gate', arguments: { paths: ['/etc'] } } },
     { id: 4, method: 'tools/call', params: { name: 'run_gate', arguments: { paths: [fx('proj-seam', 'inline.html')], extra_tokens: [fx('tokens-modern.css')] } } },
-  ], { timeoutMs: 30000 });
+  ]);
   assert.equal(got[2].result.isError, true);
   assert.match(got[2].result.content[0].text, /never flags/);
   assert.equal(got[3].result.isError, true);
@@ -122,7 +128,7 @@ test('run_gate proves a clean path and fails a dirty one', async () => {
     { id: 1, method: 'initialize', params: {} },
     { id: 2, method: 'tools/call', params: { name: 'run_gate', arguments: { paths: [fx('proj-type', 'good.css')] } } },
     { id: 3, method: 'tools/call', params: { name: 'run_gate', arguments: { paths: [fx('proj-seam', 'inline.html')] } } },
-  ], { timeoutMs: 30000 });
+  ]);
   assert.match(got[2].result.content[0].text, /ON-SIGNATURE, proven/);
   assert.equal(got[3].result.isError, true);
   assert.match(got[3].result.content[0].text, /GATE FAILED/);
@@ -132,7 +138,7 @@ test('run_gate on a path that does not exist reports GATE ERRORED, not GATE FAIL
   const got = await session([
     { id: 1, method: 'initialize', params: {} },
     { id: 2, method: 'tools/call', params: { name: 'run_gate', arguments: { paths: ['nope'] } } },
-  ], { timeoutMs: 30000 });
+  ]);
   assert.equal(got[2].result.isError, true);
   assert.match(got[2].result.content[0].text, /^GATE ERRORED/);
   assert.match(got[2].result.content[0].text, /no such file: nope/);
