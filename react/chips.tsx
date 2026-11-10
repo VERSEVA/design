@@ -5,6 +5,7 @@ export interface ChipOption {
   value: string;
   label: string;
   count?: number;
+  disabled?: boolean;
 }
 
 export interface FilterChipsProps {
@@ -30,6 +31,7 @@ export function FilterChips({ options, selected, onChange, multi = false, classN
           type="button"
           className="fchip"
           aria-pressed={selected.includes(opt.value)}
+          disabled={opt.disabled}
           onClick={() => toggle(opt.value)}
         >
           {opt.label}
