@@ -137,3 +137,10 @@ test('run_gate on a path that does not exist reports GATE ERRORED, not GATE FAIL
   assert.match(got[2].result.content[0].text, /^GATE ERRORED/);
   assert.match(got[2].result.content[0].text, /no such file: nope/);
 });
+
+test('a hung server fails the session within its timeout', async () => {
+  const hang = ['-e', 'setInterval(() => {}, 1000)'];
+  const t0 = Date.now();
+  await assert.rejects(session([{ id: 1, method: 'initialize', params: {} }], { timeoutMs: 500, args: hang }), /mcp timeout after 500ms; got ids $/);
+  assert.ok(Date.now() - t0 < 5000);
+});
