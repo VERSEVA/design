@@ -6,17 +6,17 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: gates-${{ github.ref }}
+  group: gates-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNS_ON || 'ubuntu-latest' }}
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           # The root has no lockfile and installs nothing; the only npm ci is studio's (studio:build).
@@ -39,7 +39,7 @@ jobs:
   # every other file (new ones included) with --test-shard and skip exactly the widths the overflow
   # shards own, so a new width or a renamed sweep test falls through to a rest shard, never nowhere.
   served:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNS_ON || 'ubuntu-latest' }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -57,10 +57,10 @@ jobs:
             args: --test-shard=2/2 --test-skip-pattern="no probed route scrolls sideways at (375|371|360)px in " test/served/*.test.mjs
     name: served (${{ matrix.shard }})
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -71,9 +71,12 @@ jobs:
         env:
           ARGS: ${{ matrix.args }}
         run: |
-          export CHROME_PATH="$(command -v google-chrome)"
-          echo "Chrome: $CHROME_PATH"
-          "$CHROME_PATH" --version
+          # ubuntu-latest has google-chrome on PATH; on the mini (macOS) the harness finds the app bundle.
+          if CHROME_PATH="$(command -v google-chrome)"; then
+            export CHROME_PATH
+            echo "Chrome: $CHROME_PATH"
+            "$CHROME_PATH" --version
+          fi
           eval "node --test --test-concurrency=1 $ARGS"
 
   # The required check. Green only when every job above succeeded; a failed, cancelled or skipped
@@ -81,7 +84,7 @@ jobs:
   test-and-gate:
     if: always()
     needs: [checks, served]
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNS_ON || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
       - env:

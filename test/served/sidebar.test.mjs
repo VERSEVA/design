@@ -38,3 +38,21 @@ for (const state of ['expanded', 'collapsed']) {
     assert.ok(r.toggleTop >= r.headBottom && r.toggleBottom <= r.vh, `collapse toggle in view (${r.toggleTop} to ${r.toggleBottom}, viewport ${r.headBottom} to ${r.vh})`);
   });
 }
+
+// On a wide screen the side nav sits flush against the window's left edge, expanded and as the
+// rail; only the content column is capped and centred (1.7.1: the shell used to centre at 1440).
+for (const state of ['expanded', 'collapsed']) {
+  test(`the ${state} side nav is flush left at 1920 on / and /components`, { timeout: 120000 }, async () => {
+    for (const path of ['/', '/components']) {
+      const page = await run.page({ width: 1920, height: 1000 });
+      await page.goto(path);
+      await page.evaluate(`(() => { localStorage.clear(); ${state === 'collapsed' ? "localStorage.setItem('verseva-rail', '1');" : ''} location.reload(); return 1; })()`);
+      await new Promise((r) => setTimeout(r, 1500));
+      const r = JSON.parse(await page.evaluate(`JSON.stringify((() => { const s = document.querySelector('.studio-side').getBoundingClientRect(); const m = document.querySelector('.studio-main').getBoundingClientRect(); return { sideLeft: s.left, mainLeft: m.left, mainRight: m.right, vw: innerWidth, sw: document.documentElement.scrollWidth, rail: document.documentElement.dataset.rail || 'expanded' }; })())`));
+      await page.close();
+      assert.equal(r.rail, state);
+      assert.ok(r.sideLeft <= 0.5, `${path}: sidebar left edge ${r.sideLeft} is flush with the window`);
+      assert.ok(r.mainRight <= r.vw + 0.5 && r.sw <= r.vw, `${path}: no sideways scroll (${r.sw} of ${r.vw})`);
+    }
+  });
+}

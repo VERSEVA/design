@@ -158,12 +158,15 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
 
   async function stop() {
     try { ws.close(); } catch { /* closed */ }
+    /* wait for Chrome itself to exit, not a fixed pause: its helpers can still be writing the profile */
+    const exited = chrome.exitCode !== null || chrome.signalCode !== null ? Promise.resolve() : new Promise((r) => chrome.once('exit', r));
     chrome.kill('SIGKILL');
     server.close();
-    /* wait for Chrome to actually exit (capped), not a fixed guess */
-    if (chrome.exitCode === null && chrome.signalCode === null) {
-      await new Promise((r) => { const t = setTimeout(r, 5000); chrome.once('exit', () => { clearTimeout(t); r(); }); });
-    }
+    /* capped at 5s; the cap timer is cleared so a prompt exit does not hold the run open */
+    let cap;
+    await Promise.race([exited, new Promise((r) => { cap = setTimeout(r, 5000); })]);
+    clearTimeout(cap);
+    /* housekeeping, not a test result: rmProfile warns on a refilled dir, the exit hook retries */
     rmProfile(profile);
   }
 
