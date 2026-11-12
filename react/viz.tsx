@@ -42,7 +42,7 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
   return (
     <span className={cx('spark', className)}>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-        {area && (
+        {last && area && (
           <>
             <defs>
               <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
@@ -53,8 +53,12 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
             <path d={areaPath(p, H)} fill={`url(#${id})`} />
           </>
         )}
-        <path d={linePath(p)} fill="none" stroke="var(--data-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={last[0]} cy={last[1]} r="3" fill="var(--data-3)" />
+        {last && (
+          <>
+            <path d={linePath(p)} fill="none" stroke="var(--data-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx={last[0]} cy={last[1]} r="3" fill="var(--data-3)" />
+          </>
+        )}
       </svg>
     </span>
   );
@@ -84,6 +88,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
   const top = Math.max(...shown.flatMap((s) => s.values), reference?.value ?? 1);
   const [hover, setHover] = React.useState<number | null>(null);
   const all = shown.map((s) => pts(s.values, W, height, pad, top));
+  const hoverX = hover === null ? undefined : all.find((p) => p[hover])?.[hover][0];
   const refY = reference ? pad + (height - pad * 2) * (1 - reference.value / top) : 0;
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -101,6 +106,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
         {reference && <line className="refline" x1={pad} y1={refY} x2={W - pad} y2={refY} />}
         {all.map((p, si) => (
           <g key={shown[si].name}>
+            {p.length > 0 && <>
             {si === 0 && (
               <>
                 <defs>
@@ -118,13 +124,16 @@ export function LineChart({ labels, series, reference, height = 140, format = St
               strokeDasharray={si === 1 ? '5 4' : undefined} />
             <circle cx={p[p.length - 1][0]} cy={p[p.length - 1][1]} r="3"
               fill={si === 0 ? 'var(--data-3)' : 'var(--data-alt)'} />
+            </>}
           </g>
         ))}
         {hover !== null && (
           <g>
-            <line x1={all[0][hover][0]} y1={pad} x2={all[0][hover][0]} y2={height - pad}
-              stroke="var(--text-3)" strokeWidth="1" opacity="0.5" />
-            {all.map((p, si) => (
+            {hoverX !== undefined && (
+              <line x1={hoverX} y1={pad} x2={hoverX} y2={height - pad}
+                stroke="var(--text-3)" strokeWidth="1" opacity="0.5" />
+            )}
+            {all.map((p, si) => p[hover] && (
               <circle key={si} cx={p[hover][0]} cy={p[hover][1]} r="4"
                 fill={si === 0 ? 'var(--data-3)' : 'var(--data-alt)'}
                 stroke="var(--surface)" strokeWidth="2" />
@@ -136,7 +145,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
       {hover !== null && (
         <div className="viztip" role="status">
           <b>{labels[hover]}</b>
-          {shown.map((s) => <span key={s.name}>{s.name} {format(s.values[hover])}</span>)}
+          {shown.map((s) => s.values[hover] !== undefined && <span key={s.name}>{s.name} {format(s.values[hover])}</span>)}
         </div>
       )}
       <div className="xlabels mt-2" aria-hidden="true">
@@ -215,13 +224,14 @@ export interface RingProps {
 export function Ring({ value, center, sub, size = 74, className }: RingProps) {
   const r = size / 2 - 7;
   const c = 2 * Math.PI * r;
+  const pct = Math.min(100, Math.max(0, value));
   return (
-    <span className={cx('ring', className)} role="img" aria-label={`${center}${sub ? ` ${sub}` : ''}: ${value}%`}>
+    <span className={cx('ring', className)} role="img" aria-label={`${center}${sub ? ` ${sub}` : ''}: ${pct}%`}>
       <span className="rdial">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
           <circle className="ringtrack" cx={size / 2} cy={size / 2} r={r} />
           <circle className="ringfill" cx={size / 2} cy={size / 2} r={r}
-            strokeDasharray={c.toFixed(1)} strokeDashoffset={(c * (1 - value / 100)).toFixed(1)} />
+            strokeDasharray={c.toFixed(1)} strokeDashoffset={(c * (1 - pct / 100)).toFixed(1)} />
         </svg>
         <span className="rv"><b>{center}</b></span>
       </span>
