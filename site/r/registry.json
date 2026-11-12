@@ -10,10 +10,19 @@
       "description": "Class-join helper; the only utility the kit needs"
     },
     {
+      "name": "inert-for",
+      "file": "react/inert-for.ts",
+      "kind": "util",
+      "deps": [],
+      "description": "inert props for a given React version string; no react import"
+    },
+    {
       "name": "inert",
       "file": "react/inert.ts",
       "kind": "util",
-      "deps": [],
+      "deps": [
+        "inert-for"
+      ],
       "description": "inert props that type-check and render the same on React 18 and 19"
     },
     {
