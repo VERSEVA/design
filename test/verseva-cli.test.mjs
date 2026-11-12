@@ -27,6 +27,15 @@ test('list prints components and blocks', () => {
   assert.match(r.out, /quote-tool/);
 });
 
+test('list starts every description at the same column', () => {
+  const r = run(['list'], tmp());
+  assert.equal(r.code, 0);
+  const rows = r.out.split('\n').filter((l) => l.startsWith('  '));
+  assert.ok(rows.some((l) => l.startsWith('  account-capsule ')));
+  const cols = new Set(rows.map((l) => l.match(/^ {2}\S+ +/)[0].length));
+  assert.equal(cols.size, 1, `description columns differ: ${[...cols].join(', ')}`);
+});
+
 test('init writes verseva.json and a gate script', () => {
   const cwd = tmp();
   fs.writeFileSync(path.join(cwd, 'package.json'), '{}\n');
