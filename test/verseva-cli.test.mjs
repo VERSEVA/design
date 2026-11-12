@@ -225,3 +225,20 @@ test('every registry component file exists in the package', () => {
     assert.ok(fs.existsSync(path.join(here, '..', b.file)), `${b.file} missing`);
   }
 });
+
+test("registry deps match each component's ./ imports", () => {
+  const root = path.join(here, '..');
+  const registry = JSON.parse(fs.readFileSync(path.join(root, 'registry.json'), 'utf8'));
+  const names = new Set(registry.components.map((c) => c.name));
+  for (const c of registry.components) {
+    const src = fs.readFileSync(path.join(root, c.file), 'utf8');
+    const imported = new Set(
+      [...src.matchAll(/\bfrom\s+['"]\.\/([^'"]+)['"]/g)].map((m) => m[1].replace(/\.m?[jt]sx?$/, ''))
+    );
+    const deps = new Set(c.deps);
+    const missing = [...imported].filter((d) => !deps.has(d));
+    const extra = [...deps].filter((d) => !imported.has(d));
+    assert.deepEqual({ missing, extra }, { missing: [], extra: [] }, `${c.name}: deps drifted from ./ imports`);
+    for (const d of c.deps) assert.ok(names.has(d), `${c.name}: dep "${d}" is not a registry component`);
+  }
+});
