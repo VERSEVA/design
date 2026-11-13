@@ -346,3 +346,10 @@ test('CLI: usage errors exit 2', () => {
     assert.throws(() => execFileSync(process.execPath, [cli, ...args], { encoding: 'utf8', stdio: 'pipe' }), (e) => e.status === 2);
   }
 });
+
+test('an unquoted url() inside a var() fallback does not close the var() early', () => {
+  // Bugbot on PR #184: the paren matcher counted the url()'s own closer as the var()'s.
+  assert.deepEqual(one(':root{--x: var(--missing, url(a.png) 10px)}'), string('url(a.png) 10px'));
+  assert.deepEqual(one(':root{--x: var(--missing, url(a.png)) 10px}'), string('url(a.png) 10px'));
+  assert.deepEqual(one(':root{--m: 2px; --x: var(--missing, url(a.png) var(--m)) solid}'), string('url(a.png) 2px solid'));
+});
