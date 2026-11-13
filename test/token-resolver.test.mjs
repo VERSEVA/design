@@ -100,6 +100,65 @@ test('var(): a missing reference or a cycle is marked unresolved, never guessed'
   assert.deepEqual(out.unresolved.map((u) => u.token).sort(), ['a', 'a', 'b', 'b', 'x', 'x']);
 });
 
+test('var(): a self-reference or a loop is invalid even with a fallback; referrers take their own fallback', () => {
+  assert.equal(one(':root { --x: var(--x, red); }').type, 'unresolved');
+  const loop = resolveTokens([':root { --a: var(--b, red); --b: var(--a, blue); --x: var(--a, green); --y: var(--a); }']).themes.signature.dark;
+  assert.equal(loop.a.type, 'unresolved');
+  assert.equal(loop.b.type, 'unresolved');
+  assert.deepEqual(loop.x, color(0, 128, 0));
+  assert.equal(loop.y.type, 'unresolved');
+  // a loop that only closes through a fallback reference is still a loop
+  const viaFallback = resolveTokens([':root { --ok: #010101; --p: var(--q); --q: var(--ok, var(--p)); --x: var(--q, #020202); }']).themes.signature.dark;
+  assert.equal(viaFallback.q.type, 'unresolved');
+  assert.equal(viaFallback.p.type, 'unresolved');
+  assert.deepEqual(viaFallback.x, color(2, 2, 2));
+  // two paths to one token is not a loop
+  assert.deepEqual(one(':root { --a: #010101; --b: var(--a); --c: var(--a); --x: color-mix(in srgb, var(--b), var(--c)); }'), color(1, 1, 1));
+});
+
+test('var(): the function name is case-insensitive', () => {
+  assert.deepEqual(one(':root { --x: VAR(--m, red); }'), color(255, 0, 0));
+  assert.deepEqual(one(':root { --a: #010203; --x: Var(--a); }'), color(1, 2, 3));
+});
+
+test('braces inside quoted values do not end the block', () => {
+  const t = resolveTokens([':root{--q:"}"; --x:#010101} [data-theme="light"]{--p:\'{\'; --x:#020202}']).themes.signature;
+  assert.deepEqual(t.dark.q, string('"}"'));
+  assert.deepEqual(t.dark.x, color(1, 1, 1));
+  assert.deepEqual(t.light.x, color(2, 2, 2));
+});
+
+test('a malformed hex or a color keyword with no fixed value is unresolved, never a plain string', () => {
+  for (const v of ['#12345', '#1234567', '#12', '#xyz', 'currentColor', 'currentcolor']) {
+    const out = one(`:root { --x: ${v}; }`);
+    assert.equal(out.type, 'unresolved', v);
+    assert.equal(out.value, v);
+    assert.ok(out.reason.length > 0);
+  }
+  // documented limitation: named colors outside the 16 basic keywords are not recognised
+  assert.deepEqual(one(':root { --x: rebeccapurple; }'), string('rebeccapurple'));
+});
+
+test('dark is the absence of data-theme: a [data-theme="dark"] block is refused, not folded into dark', () => {
+  assert.throws(() => resolveTokens([':root{--x:#010101} [data-theme=dark]{--x:#020202}']), /data-theme="dark".*no data-theme attribute/);
+  assert.throws(() => resolveTokens([':root{--x:#010101} [data-brand="b"][data-theme="sepia"]{--x:#020202}']), /data-theme="sepia"/);
+});
+
+test('an at-rule that precedes or wraps custom properties is named as such', () => {
+  for (const css of ['@import "x.css"; :root { --x: #010101; }', '@layer a, b; :root { --x: #010101; }', '@charset "utf-8"; :root { --x: #010101; }']) {
+    assert.throws(() => resolveTokens([css]), /unsupported at-rule "@(import|layer|charset)/, css);
+  }
+});
+
+test('package.json reaches the CLI: a tokens:resolve script and a bin entry', () => {
+  const pkg = JSON.parse(read('package.json'));
+  assert.equal(pkg.bin['verseva-resolve-tokens'], 'bin/resolve-tokens.mjs');
+  assert.equal(pkg.scripts['tokens:resolve'], 'node bin/resolve-tokens.mjs');
+  const out = JSON.parse(execFileSync('npm', ['run', '-s', 'tokens:resolve'], { cwd: root, encoding: 'utf8' }));
+  assert.deepEqual(out.unresolved, []);
+  assert.ok(out.themes.signature.dark.bg);
+});
+
 test('color-mix(): with transparent keeps the hue and scales alpha (premultiplied)', () => {
   assert.deepEqual(one(':root { --x: color-mix(in srgb, #E8352E 36%, transparent); }'), color(232, 53, 46, 0.36));
   assert.deepEqual(one(':root { --x: color-mix(in srgb, transparent, #E8352E 36%); }'), color(232, 53, 46, 0.36));
@@ -174,7 +233,7 @@ test('non-color values stay strings with var() substituted', () => {
 
 test('a selector the resolver cannot place in the cascade is an error, not a guess', () => {
   assert.throws(() => resolveTokens(['.card { --x: #010101; }']), /unsupported selector/);
-  assert.throws(() => resolveTokens(['@media (prefers-color-scheme: light) { :root { --x: #010101; } }']), /unsupported selector/);
+  assert.throws(() => resolveTokens(['@media (prefers-color-scheme: light) { :root { --x: #010101; } }']), /unsupported at-rule "@media/);
   assert.doesNotThrow(() => resolveTokens([':root { --x: #010101; } .card { color: red; }']));
 });
 

@@ -12,10 +12,15 @@
  *   `[data-brand="x"]` all weigh (0,1,0), so source order decides between
  *   them; `[data-brand="x"][data-theme="light"]` weighs (0,2,0) and wins.
  *   Both attributes are taken to sit on the root element (docs/theming.md).
+ *   Dark is the ABSENCE of data-theme; light is data-theme="light". A
+ *   [data-theme] selector with any other value (including "dark") throws.
  * - var(), after the cascade (late binding): a token redefined by a later
  *   layer moves every token that references it. Fallbacks apply when the
- *   reference is missing or invalid; a missing reference with no fallback,
- *   or a cycle, is UNRESOLVED.
+ *   reference is missing or invalid; a missing reference with no fallback
+ *   is UNRESOLVED. A token that references itself, directly or through a
+ *   loop (fallback references count), is invalid even when it carries a
+ *   fallback, as in CSS: UNRESOLVED itself, and a referrer takes its own
+ *   fallback.
  * - color-mix(in srgb, ...) per CSS Color 5: percentage normalisation
  *   (omitted, summing over or under 100, the under-100 alpha multiplier) and
  *   premultiplied-alpha interpolation.
@@ -26,15 +31,22 @@
  *   { type: 'string', value }          var() substituted, otherwise verbatim
  *   { type: 'unresolved', value, reason }
  * Nothing is guessed: a color syntax this file does not implement (hsl, lab,
- * oklch, color-mix in another space) is 'unresolved', and a selector it cannot
- * place in the cascade throws.
+ * oklch, color-mix in another space), a malformed hex and `currentcolor` are
+ * 'unresolved', and a selector or at-rule it cannot place in the cascade
+ * throws.
+ *
+ * KNOWN LIMITATION: only `transparent` and the 16 basic named colors are
+ * recognised. Any other CSS named color (rebeccapurple, tomato, ...) and the
+ * system colors cannot be told apart from an ordinary keyword (none, normal,
+ * a font name) without the full table, which this file does not carry; such
+ * a value is emitted as { type: 'string' }, NOT as a color and NOT flagged.
  */
 
 export const SIGNATURE = 'signature';
 export const MODES = ['dark', 'light'];
 
 // CSS named colors: `transparent` plus the 16 basic keywords. Any other named
-// color stays a string (the full table is not carried).
+// color stays a string (the full table is not carried; see KNOWN LIMITATION).
 const NAMED = {
   transparent: [0, 0, 0, 0],
   black: [0, 0, 0], silver: [192, 192, 192], gray: [128, 128, 128], white: [255, 255, 255],
@@ -42,6 +54,9 @@ const NAMED = {
   green: [0, 128, 0], lime: [0, 255, 0], olive: [128, 128, 0], yellow: [255, 255, 0],
   navy: [0, 0, 128], blue: [0, 0, 255], teal: [0, 128, 128], aqua: [0, 255, 255],
 };
+// Color keywords with no fixed value: never a plain string, always unresolved.
+const UNRESOLVABLE_KEYWORDS = new Set(['currentcolor']);
+const VAR_REF = /(?<![\w-])var\(\s*--([\w-]+)/gi;
 const COLOR_FN = /^(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\(/i;
 const NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)%?$/;
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
@@ -79,27 +94,24 @@ function closing(text, open) {
 
 // ---- cascade ---------------------------------------------------------------
 
-/** Rule blocks in source order (brace-depth scanner, as in contrast-gate). */
+/** Rule blocks in source order (brace-depth scanner, as in contrast-gate; quoted strings are skipped). */
 function collectBlocks(cssRaw) {
   const css = cssRaw.replace(/\/\*[\s\S]*?\*\//g, '');
   const blocks = [];
-  let i = 0;
   let selStart = 0;
-  while (i < css.length) {
-    if (css[i] === '{') {
-      let depth = 1;
-      let j = i + 1;
-      while (j < css.length && depth > 0) {
-        if (css[j] === '{') depth++;
-        else if (css[j] === '}') depth--;
-        j++;
-      }
-      blocks.push({ selector: css.slice(selStart, i).trim(), body: css.slice(i + 1, j - 1) });
-      i = j;
-      selStart = j;
-    } else {
-      if (css[i] === '}') selStart = i + 1;
-      i++;
+  let open = -1;
+  let depth = 0;
+  let nested = false;
+  let quote = null;
+  for (let i = 0; i < css.length; i++) {
+    const ch = css[i];
+    if (quote) { if (ch === quote) quote = null; continue; }
+    if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === '{') {
+      if (depth++ === 0) { open = i; nested = false; } else nested = true;
+    } else if (ch === '}') {
+      if (depth > 0 && --depth === 0) blocks.push({ selector: css.slice(selStart, open).trim(), body: css.slice(open + 1, i), nested });
+      if (depth === 0) selStart = i + 1;
     }
   }
   return blocks;
@@ -118,7 +130,9 @@ function declarationsOf(body) {
 /**
  * One selector to the contexts it matches: a list (comma alternatives) of
  * { brand, theme, specificity }, or null when any alternative is not built
- * only from :root, html, [data-theme="..."] and [data-brand="..."].
+ * only from :root, html, [data-theme="light"] and [data-brand="..."]. Throws
+ * on any other data-theme value: dark is the absence of the attribute, so a
+ * [data-theme="dark"] block would not apply where this resolver calls it dark.
  */
 function parseSelector(selector) {
   const alternatives = [];
@@ -126,6 +140,9 @@ function parseSelector(selector) {
     const attrs = {};
     let ids = 0;
     let rest = alt.trim().replace(/\[data-(theme|brand)=(["']?)([^"'\]]+)\2\]/g, (_, key, _q, value) => {
+      if (key === 'theme' && value !== 'light') {
+        throw new Error(`token-resolver: unsupported selector "${selector}": [data-theme="${value}"] is not modelled. Dark means no data-theme attribute (:root) and light means [data-theme="light"]; a block for any other value cannot be placed in either mode`);
+      }
       if (key in attrs && attrs[key] !== value) attrs.never = true;
       attrs[key] = value;
       ids++;
@@ -145,10 +162,12 @@ function collectRules(cssTexts) {
   const rules = [];
   const brands = [];
   for (const css of cssTexts) {
-    for (const { selector, body } of collectBlocks(css)) {
-      const nested = body.includes('{');
+    for (const { selector, body, nested } of collectBlocks(css)) {
       const decls = declarationsOf(body);
       if (nested ? !/(^|[\s;{])--[\w-]+\s*:/.test(body) : decls.length === 0) continue;
+      if (selector.startsWith('@')) {
+        throw new Error(`token-resolver: unsupported at-rule "${selector.split(/[;{]/)[0].trim()}" precedes or wraps custom properties; the cascade cannot place it`);
+      }
       const alternatives = parseSelector(selector);
       if (!alternatives || nested) {
         throw new Error(`token-resolver: unsupported selector "${selector}" declares custom properties; the cascade cannot place it`);
@@ -166,7 +185,7 @@ function collectRules(cssTexts) {
   return { rules, brands };
 }
 
-/** Declared (pre-var) values for one context, cascade applied. dark = no data-theme, or "dark". */
+/** Declared (pre-var) values for one context, cascade applied. dark = no data-theme attribute. */
 function cascade(rules, brand, mode) {
   const matching = rules.filter((r) => (r.brand === undefined || r.brand === brand) && (r.theme === undefined || r.theme === mode));
   matching.sort((a, b) => a.specificity - b.specificity || a.order - b.order);
@@ -177,12 +196,34 @@ function cascade(rules, brand, mode) {
 
 // ---- var() -----------------------------------------------------------------
 
-/** `value` with every var() substituted, or null when invalid (missing reference, cycle). */
-function substitute(value, declared, stack) {
+/**
+ * The tokens that are invalid because they reference themselves, directly or
+ * through a loop. Every var() in a value counts, fallbacks included.
+ */
+function cyclic(declared) {
+  const deps = new Map();
+  for (const [name, value] of declared) deps.set(name, [...value.matchAll(VAR_REF)].map((m) => m[1]));
+  const invalid = new Set();
+  for (const name of declared.keys()) {
+    const seen = new Set();
+    const todo = [...deps.get(name)];
+    while (todo.length) {
+      const dep = todo.pop();
+      if (dep === name) { invalid.add(name); break; }
+      if (seen.has(dep) || !deps.has(dep)) continue;
+      seen.add(dep);
+      todo.push(...deps.get(dep));
+    }
+  }
+  return invalid;
+}
+
+/** `value` with every var() substituted, or null when invalid (a missing or cyclic reference with no fallback). */
+function substitute(value, declared, invalid) {
   let out = '';
   let i = 0;
   for (;;) {
-    const at = value.slice(i).search(/(?<![\w-])var\(/);
+    const at = value.slice(i).search(/(?<![\w-])var\(/i);
     if (at === -1) return out + value.slice(i);
     const open = i + at + 3;
     const close = closing(value, open);
@@ -191,8 +232,8 @@ function substitute(value, declared, stack) {
     const comma = splitTop(inner, ',')[0].length;
     const name = inner.slice(0, comma).trim().replace(/^--/, '');
     let resolved = null;
-    if (declared.has(name) && !stack.includes(name)) resolved = substitute(declared.get(name), declared, [...stack, name]);
-    if (resolved === null && comma < inner.length) resolved = substitute(inner.slice(comma + 1).trim(), declared, stack);
+    if (declared.has(name) && !invalid.has(name)) resolved = substitute(declared.get(name), declared, invalid);
+    if (resolved === null && comma < inner.length) resolved = substitute(inner.slice(comma + 1).trim(), declared, invalid);
     if (resolved === null) return null;
     out += value.slice(i, i + at) + resolved;
     i = close + 1;
@@ -258,9 +299,10 @@ function colorMix(inner) {
 }
 
 /** One declared value to its emitted form. */
-function emit(raw, declared, name) {
-  const value = substitute(raw, declared, [name]);
-  if (value === null) return { type: 'unresolved', value: raw, reason: 'var() reference is missing or cyclic, with no usable fallback' };
+function emit(raw, declared, invalid, name) {
+  if (invalid.has(name)) return { type: 'unresolved', value: raw, reason: 'var() cycle: the token references itself, directly or through other tokens' };
+  const value = substitute(raw, declared, invalid);
+  if (value === null) return { type: 'unresolved', value: raw, reason: 'var() reference is missing or invalid, with no usable fallback' };
   const color = parseColor(value);
   if (color) {
     const [r, g, b] = [color.r, color.g, color.b].map((c) => Math.round(c));
@@ -269,6 +311,8 @@ function emit(raw, declared, name) {
   if (COLOR_FN.test(value) && closing(value, value.indexOf('(')) === value.length - 1) {
     return { type: 'unresolved', value, reason: 'color syntax not implemented by the resolver' };
   }
+  if (/^#\S*$/.test(value)) return { type: 'unresolved', value, reason: 'malformed hex color (not 3, 4, 6 or 8 hex digits)' };
+  if (UNRESOLVABLE_KEYWORDS.has(value.toLowerCase())) return { type: 'unresolved', value, reason: 'color keyword with no fixed value' };
   return { type: 'string', value };
 }
 
@@ -286,9 +330,10 @@ export function resolveTokens(cssTexts) {
     themes[theme] = {};
     for (const mode of MODES) {
       const declared = cascade(rules, theme === SIGNATURE ? undefined : theme, mode);
+      const invalid = cyclic(declared);
       const tokens = {};
       for (const [name, raw] of declared) {
-        tokens[name] = emit(raw, declared, name);
+        tokens[name] = emit(raw, declared, invalid, name);
         if (tokens[name].type === 'unresolved') unresolved.push({ theme, mode, token: name, ...tokens[name] });
       }
       themes[theme][mode] = tokens;
