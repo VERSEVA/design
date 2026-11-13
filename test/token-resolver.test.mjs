@@ -128,6 +128,49 @@ test('braces inside quoted values do not end the block', () => {
   assert.deepEqual(t.light.x, color(2, 2, 2));
 });
 
+test('scanner: an escaped quote, an apostrophe in an unquoted url() and a comment opener in a string are text', () => {
+  const dark = (css) => resolveTokens([css]).themes.signature.dark;
+  let t = dark(':root{--q:"a\\"}"; --x:#010101}');
+  assert.deepEqual(t.q, string('"a\\"}"'));
+  assert.deepEqual(t.x, color(1, 1, 1));
+  t = dark(":root{--q:'a\\'{'; --x:#010101}");
+  assert.deepEqual(t.q, string("'a\\'{'"));
+  assert.deepEqual(t.x, color(1, 1, 1));
+  t = dark(":root{--u:url(it's.png); --x:#010101; --v: URL( a'b\\).png ) 1px; --y:#020202}");
+  assert.deepEqual(t.u, string("url(it's.png)"));
+  assert.deepEqual(t.x, color(1, 1, 1));
+  assert.deepEqual(t.v, string("URL( a'b\\).png ) 1px"));
+  assert.deepEqual(t.y, color(2, 2, 2));
+  t = dark(':root{--q:"/*"; --x:#010101; /* c */ --y:#020202; --z: 1px /* } */ 2px}');
+  assert.deepEqual(t.q, string('"/*"'));
+  assert.deepEqual(t.x, color(1, 1, 1));
+  assert.deepEqual(t.y, color(2, 2, 2));
+  assert.deepEqual(t.z, string('1px  2px'));
+  assert.deepEqual(one(':root{--u:url("a)b.png"); --x: var(--u) #010101}'), string('url("a)b.png") #010101'));
+});
+
+test('scanner: a stylesheet that ends inside a quote, a comment, a url() or a block throws, naming the input', () => {
+  const ok = ':root{--x:#010101}';
+  assert.throws(() => resolveTokens([ok, '[data-brand="b"]{--q:"oops; --x:#020202}']), /input 1: unclosed quote/);
+  assert.throws(() => resolveTokens([ok, '[data-brand="b"]{--x:#020202']), /input 1: unclosed \{/);
+  assert.throws(() => resolveTokens([':root{--x:#010101; --y:#020202']), /input 0: unclosed \{/);
+  assert.throws(() => resolveTokens([':root{--x:#010101} /* trailing']), /input 0: unclosed comment/);
+  assert.throws(() => resolveTokens([':root{--u:url(a.png; --x:#010101}']), /input 0: unclosed url\(/);
+  assert.throws(() => resolveTokens([ok, ':root{--y:"}'], ['tokens.css', 'themes/b.css']), /themes\/b\.css: unclosed quote/);
+});
+
+test('substitution is linear: a 22-level chain that doubles at every level resolves quickly', () => {
+  const levels = 22;
+  const css = `:root{--t0:1;${Array.from({ length: levels }, (_, i) => `--t${i + 1}:var(--t${i}) var(--t${i});`).join('')}}`;
+  const started = performance.now();
+  const t = resolveTokens([css]).themes.signature.dark;
+  const elapsed = performance.now() - started;
+  assert.deepEqual(t.t3, string('1 1 1 1 1 1 1 1'));
+  assert.equal(t[`t${levels}`].type, 'string');
+  assert.equal(t[`t${levels}`].value.length, 2 ** (levels + 1) - 1);
+  assert.ok(elapsed < 3000, `took ${Math.round(elapsed)}ms`);
+});
+
 test('a malformed hex or a color keyword with no fixed value is unresolved, never a plain string', () => {
   for (const v of ['#12345', '#1234567', '#12', '#xyz', 'currentColor', 'currentcolor']) {
     const out = one(`:root { --x: ${v}; }`);
@@ -150,9 +193,9 @@ test('an at-rule that precedes or wraps custom properties is named as such', () 
   }
 });
 
-test('package.json reaches the CLI: a tokens:resolve script and a bin entry', () => {
+test('package.json reaches the CLI through the tokens:resolve script only; no published command', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.bin['verseva-resolve-tokens'], 'bin/resolve-tokens.mjs');
+  assert.ok(!Object.values(pkg.bin).includes('bin/resolve-tokens.mjs'));
   assert.equal(pkg.scripts['tokens:resolve'], 'node bin/resolve-tokens.mjs');
   const out = JSON.parse(execFileSync('npm', ['run', '-s', 'tokens:resolve'], { cwd: root, encoding: 'utf8' }));
   assert.deepEqual(out.unresolved, []);
@@ -288,6 +331,14 @@ test('CLI: prints the resolved JSON for the package by default, and for --tokens
   const some = JSON.parse(execFileSync(process.execPath, [cli, '--tokens', path.join(root, 'tokens.css'), '--tokens', path.join(root, 'themes', 'forest.css')], { encoding: 'utf8' }));
   assert.deepEqual(Object.keys(some.themes), ['signature', 'forest']);
   assert.deepEqual(some.themes.forest.light.accent, color(14, 122, 70));
+});
+
+test('CLI: a malformed stylesheet exits 1, prints no JSON and names the file', () => {
+  const bad = path.join(here, 'fixtures', 'tokens-unclosed.css');
+  assert.throws(
+    () => execFileSync(process.execPath, [cli, '--tokens', path.join(root, 'tokens.css'), '--tokens', bad], { encoding: 'utf8', stdio: 'pipe' }),
+    (e) => e.status === 1 && e.stdout === '' && /tokens-unclosed\.css: unclosed quote/.test(e.stderr),
+  );
 });
 
 test('CLI: usage errors exit 2', () => {

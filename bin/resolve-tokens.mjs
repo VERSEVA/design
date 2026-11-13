@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 /**
- * verseva-resolve-tokens: prints the resolved token values as JSON, for the
+ * resolve-tokens.mjs: prints the resolved token values as JSON, for the
  * signature and every [data-brand] theme, in dark and light. The resolver
  * itself (cascade, var(), color-mix()) is bin/token-resolver.mjs.
  *
  * Usage:
- *   verseva-resolve-tokens [--tokens <tokens.css> [--tokens <theme.css>]...]
- *                          [--out <file.json>]
+ *   node bin/resolve-tokens.mjs [--tokens <tokens.css> [--tokens <theme.css>]...]
+ *                               [--out <file.json>]
+ *   npm run tokens:resolve      (the package's own files)
+ *
+ * Not a published command: the JSON shape is not yet a public contract.
  *
  * Rules:
  * - --tokens files are read in cascade (load) order: tokens.css first, then
@@ -35,11 +38,11 @@ for (let i = 0; i < argv.length; i++) {
   else extras.push(argv[i]);
 }
 if (tokens.includes(undefined) || (argv.includes('--out') && out === undefined)) {
-  console.error('verseva-resolve-tokens: --tokens and --out need a value');
+  console.error('resolve-tokens: --tokens and --out need a value');
   process.exit(2);
 }
 if (extras.length > 0) {
-  console.error('usage: verseva-resolve-tokens [--tokens <tokens.css> [--tokens <theme.css>]...] [--out <file.json>]');
+  console.error('usage: node bin/resolve-tokens.mjs [--tokens <tokens.css> [--tokens <theme.css>]...] [--out <file.json>]');
   process.exit(2);
 }
 if (tokens.length === 0) {
@@ -47,12 +50,12 @@ if (tokens.length === 0) {
   tokens = [path.join(root, 'tokens.css'), ...themes.map((f) => path.join(root, 'themes', f))];
 }
 for (const p of tokens) {
-  if (!fs.existsSync(p)) { console.error(`verseva-resolve-tokens: no such file: ${p}`); process.exit(2); }
+  if (!fs.existsSync(p)) { console.error(`resolve-tokens: no such file: ${p}`); process.exit(2); }
 }
 
 let resolved;
 try {
-  resolved = resolveTokens(tokens.map((p) => fs.readFileSync(p, 'utf8')));
+  resolved = resolveTokens(tokens.map((p) => fs.readFileSync(p, 'utf8')), tokens);
 } catch (e) {
   console.error(e.message);
   process.exit(1);
@@ -62,7 +65,7 @@ if (out) fs.writeFileSync(out, json);
 else process.stdout.write(json);
 
 if (resolved.unresolved.length) {
-  console.error(`verseva-resolve-tokens: ${resolved.unresolved.length} unresolved value${resolved.unresolved.length === 1 ? '' : 's'}\n`);
+  console.error(`resolve-tokens: ${resolved.unresolved.length} unresolved value${resolved.unresolved.length === 1 ? '' : 's'}\n`);
   for (const u of resolved.unresolved) console.error(`  [${u.theme}·${u.mode}] --${u.token}: ${u.value}  (${u.reason})`);
   process.exitCode = 1;
 }
