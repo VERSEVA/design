@@ -1,0 +1,6 @@
+/* fixture: a quote that never closes must fail the resolver loudly */
+[data-brand="broken"] {
+  --accent: #4D9FFF;
+  --label: "never closed;
+  --focus: #4D9FFF;
+}

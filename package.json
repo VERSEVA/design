@@ -26,8 +26,7 @@
     "verseva-contrast-gate": "bin/contrast-gate.mjs",
     "verseva-spacing-gate": "bin/spacing-gate.mjs",
     "verseva-type-gate": "bin/type-gate.mjs",
-    "verseva-gate": "bin/verseva-gate.mjs",
-    "verseva-resolve-tokens": "bin/resolve-tokens.mjs"
+    "verseva-gate": "bin/verseva-gate.mjs"
   },
   "files": [
     "tokens.css",
