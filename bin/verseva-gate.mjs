@@ -6,7 +6,8 @@
  *
  * Usage:
  *   verseva-gate --tokens <tokens.css> [--tokens <theme.css>]...
- *                [--allow <path-substring>]... <file-or-dir>...
+ *                [--allow <path-substring>]... [--exclude <dir>]...
+ *                <file-or-dir>...
  *
  * Exit 1 when any gate finds violations; exit 2 when none does but one
  * errored (usage or config, e.g. a missing path); exit 0 when all four
@@ -21,32 +22,35 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 function parseArgs(argv) {
   const tokens = [];
   const allow = [];
+  const exclude = [];
   const paths = [];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--') { paths.push(...argv.slice(i + 1)); break; }
     if (argv[i] === '--tokens') tokens.push(argv[++i]);
     else if (argv[i] === '--allow') allow.push(argv[++i]);
+    else if (argv[i] === '--exclude') exclude.push(argv[++i]);
     else paths.push(argv[i]);
   }
-  return { tokens, allow, paths };
+  return { tokens, allow, exclude, paths };
 }
 
-const { tokens, allow, paths } = parseArgs(process.argv.slice(2));
-for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow]]) {
+const { tokens, allow, exclude, paths } = parseArgs(process.argv.slice(2));
+for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow], ['--exclude', exclude]]) {
   if (vals.includes(undefined)) { console.error(`verseva-gate: ${flag} needs a value`); process.exit(2); }
 }
 if (tokens.length === 0 || paths.length === 0) {
-  console.error('usage: verseva-gate --tokens <tokens.css> [--tokens ...] [--allow <substr>] <paths...>');
+  console.error('usage: verseva-gate --tokens <tokens.css> [--tokens ...] [--allow <substr>] [--exclude <dir>] <paths...>');
   process.exit(2);
 }
 
 const tokenArgs = tokens.flatMap((t) => ['--tokens', t]);
 const allowArgs = allow.flatMap((a) => ['--allow', a]);
+const excludeArgs = exclude.flatMap((x) => ['--exclude', x]);
 const GATES = [
-  ['hex', 'hex-gate.mjs', [...tokenArgs, ...allowArgs, ...paths]],
+  ['hex', 'hex-gate.mjs', [...tokenArgs, ...allowArgs, ...excludeArgs, ...paths]],
   ['contrast', 'contrast-gate.mjs', tokenArgs],
-  ['spacing', 'spacing-gate.mjs', [...allowArgs, ...paths]],
-  ['type', 'type-gate.mjs', [...tokenArgs, ...allowArgs, ...paths]],
+  ['spacing', 'spacing-gate.mjs', [...allowArgs, ...excludeArgs, ...paths]],
+  ['type', 'type-gate.mjs', [...tokenArgs, ...allowArgs, ...excludeArgs, ...paths]],
 ];
 
 let failed = 0;

@@ -50,12 +50,12 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "check": "npm test && npm run gate",
-    "gate": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow test . studio/src studio/index.html",
+    "gate": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow test --exclude swift . studio/src studio/index.html",
     "studio:build": "npm --prefix studio ci --no-audit --no-fund && npm --prefix studio run build && npm run -s gate:studio",
     "assemble": "node scripts/assemble.mjs",
     "test:served": "node --test --test-concurrency=1 test/served/*.test.mjs",
     "typecheck": "node studio/node_modules/typescript/bin/tsc --noEmit -p studio/tsconfig.json",
-    "gate:studio": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow GLTFExporter studio/dist",
+    "gate:studio": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow GLTFExporter --exclude swift studio/dist",
     "prepublishOnly": "npm test && npm run gate"
   }
 }

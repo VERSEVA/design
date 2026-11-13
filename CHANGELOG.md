@@ -2,6 +2,10 @@
 
 ## 1.7.1 · unreleased
 
+### Added
+
+- **`--exclude <dir>` on the gate suite.** `verseva-gate` and the hex, spacing and type gates take a repeatable `--exclude <dir>` that skips the directory of that name directly under a scan path. Top level only: the same name deeper in the tree is still scanned, and nothing is excluded unless the flag is passed. This repo passes `--exclude swift` so the coming Swift package's sources stay out of the web gates.
+
 ### Fixed
 
 - **The studio side nav sits flush against the window's left edge.** The shell centred everything at 1440px, so on wide screens the nav, expanded or as the rail, floated in from the left. The body is now full bleed; only the content column is capped (1208px) and centred. A served test checks the nav's left edge at 1920 on `/` and `/components`, in both states.
