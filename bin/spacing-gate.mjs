@@ -15,13 +15,15 @@
  * - A line containing "sp-ok" is exempt (ratified exception, reason in
  *   the adjacent comment).
  * - --allow skips any file whose path contains the given substring.
+ * - --exclude skips the directory of that name directly under a scan
+ *   path (top level only; the same name deeper down is still scanned).
  * - Exit 1 with file:line listings on violations; exit 0 clean.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 
 const SCAN_EXT = new Set(['.css', '.scss', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.html']);
-const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel', 'swift']);
+const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel']);
 const ATTR_RE = /(?<![\w-])style\s*=\s*(["'])[^"']*(?:margin|padding|gap)\s*[-:][^"']*\1/i;
 const OPEN_RE = /(?<![\w-])style=\{\{/;
 const KEY_RE = /\b(?:margin|padding)(?:-[a-z]+|[A-Z][A-Za-z]*)?\s*:|(?<![\w-])(?:gap|rowGap|columnGap)\s*:/;
@@ -29,16 +31,18 @@ const KEY_RE = /\b(?:margin|padding)(?:-[a-z]+|[A-Z][A-Za-z]*)?\s*:|(?<![\w-])(?
 function parseArgs(argv) {
   const tokens = []; // accepted for runner symmetry, unused
   const allow = [];
+  const exclude = [];
   const paths = [];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--allow') allow.push(argv[++i]);
     else if (argv[i] === '--tokens') tokens.push(argv[++i]);
+    else if (argv[i] === '--exclude') exclude.push(argv[++i]);
     else paths.push(argv[i]);
   }
-  return { tokens, allow, paths };
+  return { tokens, allow, exclude, paths };
 }
 
-function* walk(p) {
+function* walk(p, exclude = []) {
   const st = fs.statSync(p);
   if (st.isFile()) {
     yield p;
@@ -46,28 +50,28 @@ function* walk(p) {
   }
   for (const entry of fs.readdirSync(p, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) yield* walk(path.join(p, entry.name));
+      if (!SKIP_DIRS.has(entry.name) && !exclude.includes(entry.name)) yield* walk(path.join(p, entry.name));
     } else if (SCAN_EXT.has(path.extname(entry.name))) {
       yield path.join(p, entry.name);
     }
   }
 }
 
-const { tokens, allow, paths } = parseArgs(process.argv.slice(2));
-for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow]]) {
+const { tokens, allow, exclude, paths } = parseArgs(process.argv.slice(2));
+for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow], ['--exclude', exclude]]) {
   if (vals.includes(undefined)) { console.error(`verseva-spacing-gate: ${flag} needs a value`); process.exit(2); }
 }
 for (const p of [...tokens, ...paths]) {
   if (!fs.existsSync(p)) { console.error(`verseva-spacing-gate: no such file: ${p}`); process.exit(2); }
 }
 if (paths.length === 0) {
-  console.error('usage: verseva-spacing-gate [--allow <substr>] <paths...>');
+  console.error('usage: verseva-spacing-gate [--allow <substr>] [--exclude <dir>] <paths...>');
   process.exit(2);
 }
 
 const violations = [];
 for (const root of paths) {
-  for (const file of walk(root)) {
+  for (const file of walk(root, exclude)) {
     const abs = path.resolve(file);
     if (allow.some((a) => abs.includes(a))) continue;
     const lines = fs.readFileSync(file, 'utf8').split('\n');
