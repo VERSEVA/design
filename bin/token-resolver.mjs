@@ -114,7 +114,9 @@ function splitTop(text, sep) {
 function closing(text, open) {
   let depth = 0;
   for (let i = open; i < text.length; i++) {
-    i = skipOpaque(text, i);
+    // An opaque run (a quoted string, an unquoted url()) carries its own closer: step over all of it.
+    const end = skipOpaque(text, i);
+    if (end !== i) { i = end; continue; }
     if (text[i] === '(') depth++;
     else if (text[i] === ')' && --depth === 0) return i;
   }
