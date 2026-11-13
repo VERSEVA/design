@@ -30,7 +30,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const SCAN_EXT = new Set(['.css', '.scss', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.html']);
-const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel']);
+const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel', 'swift']);
 const FLOOR_PX = 9.5;
 
 function parseArgs(argv) {
