@@ -21,7 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const SCAN_EXT = new Set(['.css', '.scss', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.html']);
-const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel']);
+const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel', 'swift']);
 const ATTR_RE = /(?<![\w-])style\s*=\s*(["'])[^"']*(?:margin|padding|gap)\s*[-:][^"']*\1/i;
 const OPEN_RE = /(?<![\w-])style=\{\{/;
 const KEY_RE = /\b(?:margin|padding)(?:-[a-z]+|[A-Z][A-Za-z]*)?\s*:|(?<![\w-])(?:gap|rowGap|columnGap)\s*:/;
