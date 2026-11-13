@@ -17,6 +17,8 @@
  *   values, with a reason in the adjacent comment).
  * - All-digit 3/4-char matches (#123) are ignored: issue-ref guard.
  * - --allow skips any file whose path contains the given substring.
+ * - --exclude skips the directory of that name directly under a scan
+ *   path (top level only; the same name deeper down is still scanned).
  * - Exit 1 with file:line listings on violations; exit 0 clean.
  */
 import fs from 'node:fs';
@@ -35,16 +37,18 @@ function normalize(hex) {
 function parseArgs(argv) {
   const tokens = [];
   const allow = [];
+  const exclude = [];
   const paths = [];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--tokens') tokens.push(argv[++i]);
     else if (argv[i] === '--allow') allow.push(argv[++i]);
+    else if (argv[i] === '--exclude') exclude.push(argv[++i]);
     else paths.push(argv[i]);
   }
-  return { tokens, allow, paths };
+  return { tokens, allow, exclude, paths };
 }
 
-function* walk(p) {
+function* walk(p, exclude = []) {
   const st = fs.statSync(p);
   if (st.isFile()) {
     yield p;
@@ -52,7 +56,7 @@ function* walk(p) {
   }
   for (const entry of fs.readdirSync(p, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) yield* walk(path.join(p, entry.name));
+      if (!SKIP_DIRS.has(entry.name) && !exclude.includes(entry.name)) yield* walk(path.join(p, entry.name));
     } else if (SCAN_EXT.has(path.extname(entry.name))) {
       yield path.join(p, entry.name);
     }
@@ -69,15 +73,15 @@ function hexesIn(text) {
   return found;
 }
 
-const { tokens, allow, paths } = parseArgs(process.argv.slice(2));
-for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow]]) {
+const { tokens, allow, exclude, paths } = parseArgs(process.argv.slice(2));
+for (const [flag, vals] of [['--tokens', tokens], ['--allow', allow], ['--exclude', exclude]]) {
   if (vals.includes(undefined)) { console.error(`verseva-hex-gate: ${flag} needs a value`); process.exit(2); }
 }
 for (const p of [...tokens, ...paths]) {
   if (!fs.existsSync(p)) { console.error(`verseva-hex-gate: no such file: ${p}`); process.exit(2); }
 }
 if (tokens.length === 0 || paths.length === 0) {
-  console.error('usage: verseva-hex-gate --tokens <tokens.css> [--tokens ...] [--allow <substr>] <paths...>');
+  console.error('usage: verseva-hex-gate --tokens <tokens.css> [--tokens ...] [--allow <substr>] [--exclude <dir>] <paths...>');
   process.exit(2);
 }
 
@@ -89,7 +93,7 @@ const tokenFiles = new Set(tokens.map((t) => path.resolve(t)));
 
 const violations = [];
 for (const root of paths) {
-  for (const file of walk(root)) {
+  for (const file of walk(root, exclude)) {
     const abs = path.resolve(file);
     if (tokenFiles.has(abs)) continue;
     if (allow.some((a) => abs.includes(a))) continue;
