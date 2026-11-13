@@ -23,7 +23,7 @@ function nameRecords(buf, wanted) {
   for (let i = 0; i < numTables; i++) {
     const rec = 12 + i * 16;
     if (buf.toString('latin1', rec, rec + 4) === 'name') {
-      table = { offset: buf.readUInt32BE(rec + 8), length: buf.readUInt32BE(rec + 12) };
+      table = { offset: buf.readUInt32BE(rec + 8) };
     }
   }
   assert.ok(table, 'font has a name table');
@@ -58,10 +58,15 @@ for (const { dir, file, family } of FAMILIES) {
     assert.match(ofl, new RegExp(`Copyright .*${family.replace(/ /g, ' ?')}`, 'i'));
   });
 
-  test(`${family}: the font's own licence field is the SIL Open Font License`, () => {
+  test(`${family}: the font's own licence field names the licence its OFL.txt carries`, () => {
+    // The version comes from the text file, so a family that moves licence on one side only fails here.
+    const ofl = fs.readFileSync(path.join(fonts, dir, 'OFL.txt'), 'utf8');
+    const version = ofl.match(/SIL OPEN FONT LICENSE Version (\d+\.\d+)/)?.[1];
+    assert.ok(version, 'OFL.txt states a licence version');
     const names = nameRecords(fs.readFileSync(path.join(fonts, dir, file)), [13, 14]);
     assert.ok(names[13]?.length, 'licence description (name ID 13) is present');
-    assert.ok(names[13].every((t) => /SIL Open Font License, Version 1\.1/i.test(t)), `name ID 13: ${names[13]}`);
+    const wanted = `SIL Open Font License, Version ${version}`.toLowerCase();
+    assert.ok(names[13].every((t) => t.toLowerCase().includes(wanted)), `name ID 13: ${names[13]}`);
     assert.ok(names[14]?.length, 'licence URL (name ID 14) is present');
     assert.ok(names[14].every((t) => /openfontlicense\.org|scripts\.sil\.org\/OFL/i.test(t)), `name ID 14: ${names[14]}`);
   });
