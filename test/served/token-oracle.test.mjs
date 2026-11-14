@@ -185,9 +185,12 @@ test('embeddedColors finds each outermost colour in a string token', () => {
 // Cases the package's own tokens do not exercise, each compared to Chrome the same way.
 // --spec is the cascade probe: the (0,2,0) block comes FIRST, so only specificity, not source
 // order, can make it win in "probe, light".
+// --order is the source-order probe: the light flip and then the brand block set it, both (0,1,0),
+// and NO brand-plus-light block does, so in "probe, light" the later block, the brand's, must win.
 const PROBES = `[data-brand="probe"][data-theme="light"] { --spec: red; }
 :root {
   --spec: black;
+  --order: black;
   --cycle-self: var(--cycle-self, red);
   --cycle-referrer: var(--cycle-self, blue);
   --fb-base: #0f0;
@@ -201,8 +204,8 @@ const PROBES = `[data-brand="probe"][data-theme="light"] { --spec: red; }
   --mix-transparent: color-mix(in srgb, #E8352E 28%, transparent);
   --hex8: #11223380;
 }
-[data-theme="light"] { --spec: lime; }
-[data-brand="probe"] { --spec: blue; }`;
+[data-theme="light"] { --spec: lime; --order: lime; }
+[data-brand="probe"] { --spec: blue; --order: blue; }`;
 
 let run;
 before(async () => { run = await start({ extra: { '/__token-oracle': pageOf(cssTexts), '/__token-oracle-probes': pageOf([PROBES]) } }); });
@@ -257,18 +260,19 @@ test('the modes and brands differ in Chrome, so the contexts are not one context
 /* KNOWN DIFFERENCES between the resolver and Chrome, each pinned so that a change on either side
    fails here. The resolver is deliberately left as it is: see the note on each. */
 const KNOWN_DIFFERENCES = {
-  /* --fb-base:#0f0; --fb-self:var(--fb-base, var(--fb-self)). The resolver counts every var() in a
-     value as a dependency, fallbacks included (CSS Variables 1), so --fb-self is a cycle and
+  /* --fb-base is a valid green; --fb-self:var(--fb-base, var(--fb-self)). The resolver's own rule
+     counts every var() in a value as a dependency, fallbacks included, so --fb-self is a cycle and
      UNRESOLVED. Chrome finds cycles while substituting: --fb-base is valid, the fallback is never
-     taken, and --fb-self computes to #0f0. The resolver errs loud (unresolved, exit 1), never
+     taken, and --fb-self computes to that green. The resolver errs loud (unresolved, exit 1), never
      silently wrong, and no token of the package is written this way. */
   'fb-self': { resolver: 'unresolved', chromeText: '#0f0', chromeColor: 'rgb(0, 255, 0)' },
 };
 
-/* What Chrome computes for --spec in each context. */
+/* What Chrome computes for --spec and --order in each context. */
 const SPEC_IN_CHROME = { 'signature dark': 'rgb(0, 0, 0)', 'signature light': 'rgb(0, 255, 0)', 'probe dark': 'rgb(0, 0, 255)', 'probe light': 'rgb(255, 0, 0)' };
+const ORDER_IN_CHROME = { 'signature dark': 'rgb(0, 0, 0)', 'signature light': 'rgb(0, 255, 0)', 'probe dark': 'rgb(0, 0, 255)', 'probe light': 'rgb(0, 0, 255)' };
 
-test('synthetic probes: cycles, color-mix percentages and alpha, 8-digit hex, specificity, against Chrome', { timeout: 60000 }, async () => {
+test('synthetic probes: cycles, color-mix percentages and alpha, 8-digit hex, specificity, source order, against Chrome', { timeout: 60000 }, async () => {
   const page = await run.page();
   try {
     await page.goto('/__token-oracle-probes');
@@ -286,13 +290,14 @@ test('synthetic probes: cycles, color-mix percentages and alpha, 8-digit hex, sp
         assert.ok(disagreements.some((d) => d.token === name), `--${name} now agrees with Chrome: remove it from KNOWN_DIFFERENCES`);
       }
       /* Not vacuous: every probe was compared, as the kind it was written to be. */
-      assert.deepEqual(counts, { tokens: 13, color: 8, string: 0, unresolved: 5, embedded: 0 }, context);
+      assert.deepEqual(counts, { tokens: 14, color: 9, string: 0, unresolved: 5, embedded: 0 }, context);
       /* What Chrome does, stated outright: the plain cycle is invalid, its referrer takes the fallback. */
       assert.deepEqual(got.tokens['cycle-self'], { text: '', color: null }, context);
       assert.deepEqual(got.tokens['cycle-referrer'], { text: 'blue', color: 'rgb(0, 0, 255)' }, context);
       assert.equal(got.tokens.spec.color, SPEC_IN_CHROME[context], context);
+      assert.equal(got.tokens.order.color, ORDER_IN_CHROME[context], `--order, ${context}`);
     }
-    console.log(`token oracle: probes: 13 tokens in each of 4 contexts, ${Object.keys(KNOWN_DIFFERENCES).length} known difference (${Object.keys(KNOWN_DIFFERENCES).join(', ')})`);
+    console.log(`token oracle: probes: 14 tokens in each of 4 contexts, ${Object.keys(KNOWN_DIFFERENCES).length} known difference (${Object.keys(KNOWN_DIFFERENCES).join(', ')})`);
   } finally {
     await page.close();
   }
