@@ -23,8 +23,12 @@
  *   (bin/contrast-measure.mjs) are the ones verseva-contrast-gate uses.
  * - A pair whose tokens did not resolve to a color is a FAILURE, never a
  *   skip.
- * - Exit 1 with the failing pairs and ratios, or when the CSS cannot be
- *   placed in the cascade; exit 0 clean, stating the measured-pair count.
+ * - Any token the resolver could not resolve fails the run, in the pair list
+ *   or not, as it does in emit-swift and resolve-tokens: each is listed with
+ *   its theme, mode and reason.
+ * - Exit 1 with the failing pairs and ratios, with the unresolved tokens, or
+ *   when the CSS cannot be placed in the cascade; exit 0 clean, stating the
+ *   measured-pair count.
  *   Exit 2 on usage errors. VERSEVA_GATE_VERBOSE=1 prints every passing pair.
  */
 import fs from 'node:fs';
@@ -55,9 +59,11 @@ for (const p of tokens) {
   if (!fs.existsSync(p)) { console.error(`contrast-resolved: no such file: ${p}`); process.exit(2); }
 }
 
+let resolved;
 let m;
 try {
-  m = measureResolved(resolveTokens(tokens.map((p) => fs.readFileSync(p, 'utf8')), tokens));
+  resolved = resolveTokens(tokens.map((p) => fs.readFileSync(p, 'utf8')), tokens);
+  m = measureResolved(resolved);
 } catch (e) {
   console.error(e.message);
   process.exit(1);
@@ -68,6 +74,11 @@ if (m.failures.length) {
   console.error(`contrast-resolved: ${m.failures.length} failure${m.failures.length === 1 ? '' : 's'} (${m.measured} pairs measured)\n`);
   for (const f of m.failures) console.error(`  ${f}`);
   console.error('\nContrast floors are craft law: lift the token value; never ship the pair.');
-  process.exit(1);
 }
+const { unresolved } = resolved;
+if (unresolved.length) {
+  console.error(`${m.failures.length ? '\n' : ''}contrast-resolved: ${unresolved.length} unresolved value${unresolved.length === 1 ? '' : 's'}\n`);
+  for (const u of unresolved) console.error(`  [${u.theme}·${u.mode}] --${u.token}: ${u.value}  (${u.reason})`);
+}
+if (m.failures.length || unresolved.length) process.exit(1);
 console.log(`contrast-resolved: clean (${m.measured} pairs measured across ${m.contexts.length} themes, 0 skipped)`);

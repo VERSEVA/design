@@ -89,18 +89,55 @@ test('without --brand the same inputs write the signature file too', (t) => {
   assert.deepEqual(fs.readdirSync(out).sort(), ['HarborTokens.swift', 'SignatureTokens.swift']);
 });
 
-test('--brand leaves the folder\'s other generated files alone, and still clears a file no theme produces', (t) => {
+test('--brand owns one file: every other generated file in the folder survives, byte for byte', (t) => {
   const { theme, out } = partner(t);
-  assert.equal(run('--tokens', tokensCss, '--tokens', theme, '--out', out).status, 0);
-  const signature = fs.readFileSync(path.join(out, 'SignatureTokens.swift'), 'utf8');
-  fs.writeFileSync(path.join(out, 'RetiredTokens.swift'), signature);
-  fs.writeFileSync(path.join(out, 'HarborTokens.swift'), signature);
+  /* The folder already holds files this run's inputs do not produce: the package's Cobalt
+     file, and a generated file no theme anywhere produces. Neither is this run's to remove. */
+  fs.mkdirSync(out);
+  const cobalt = fs.readFileSync(path.join(generatedDir, 'CobaltTokens.swift'), 'utf8');
+  fs.writeFileSync(path.join(out, 'CobaltTokens.swift'), cobalt);
+  fs.writeFileSync(path.join(out, 'RetiredTokens.swift'), cobalt);
+  fs.writeFileSync(path.join(out, 'HarborTokens.swift'), cobalt);
+  const args = ['--tokens', tokensCss, '--tokens', theme, '--brand', 'harbor', '--out', out];
 
+  /* Before the write, --check names the stale Harbor file and nothing else. */
+  let r = run(...args, '--check');
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /HarborTokens\.swift: stale/);
+  assert.doesNotMatch(r.stderr, /CobaltTokens|RetiredTokens/);
+
+  r = run(...args);
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(fs.readdirSync(out).sort(), ['CobaltTokens.swift', 'HarborTokens.swift', 'RetiredTokens.swift']);
+  assert.equal(fs.readFileSync(path.join(out, 'CobaltTokens.swift'), 'utf8'), cobalt);
+  assert.equal(fs.readFileSync(path.join(out, 'RetiredTokens.swift'), 'utf8'), cobalt);
+  assert.match(fs.readFileSync(path.join(out, 'HarborTokens.swift'), 'utf8'), /^public enum HarborTokens \{$/m);
+
+  /* Harbor is current: the other themes' files are not strays to a brand run. */
+  r = run(...args, '--check');
+  assert.equal(r.status, 0, r.stderr);
+});
+
+test('--brand on a copy of the package\'s Generated folder removes nothing', (t) => {
+  const { theme, out } = partner(t);
+  fs.cpSync(generatedDir, out, { recursive: true });
   const r = run('--tokens', tokensCss, '--tokens', theme, '--brand', 'harbor', '--out', out);
   assert.equal(r.status, 0, r.stderr);
-  assert.deepEqual(fs.readdirSync(out).sort(), ['HarborTokens.swift', 'SignatureTokens.swift']);
-  assert.equal(fs.readFileSync(path.join(out, 'SignatureTokens.swift'), 'utf8'), signature);
-  assert.match(fs.readFileSync(path.join(out, 'HarborTokens.swift'), 'utf8'), /^public enum HarborTokens \{$/m);
+  assert.deepEqual(fs.readdirSync(out).sort(), [...COMMITTED, 'HarborTokens.swift'].sort());
+  for (const f of COMMITTED) assert.equal(fs.readFileSync(path.join(out, f), 'utf8'), fs.readFileSync(path.join(generatedDir, f), 'utf8'), f);
+});
+
+test('--brand without --out exits 2 and writes nothing: a brand run never defaults into the package', (t) => {
+  const { theme } = partner(t);
+  const before = committed();
+  for (const extra of [[], ['--check']]) {
+    const r = run('--tokens', tokensCss, '--tokens', theme, '--brand', 'harbor', ...extra);
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /^emit-swift: --brand needs --out/);
+    assert.equal(r.stdout, '');
+  }
+  assert.deepEqual(committed(), before);
+  assert.deepEqual(fs.readdirSync(generatedDir).sort(), COMMITTED);
 });
 
 test('--brand --check reads only that brand\'s file', (t) => {

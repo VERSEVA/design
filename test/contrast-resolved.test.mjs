@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { resolveTokens } from '../bin/token-resolver.mjs';
 import { PAIRS } from '../bin/contrast-pairs.mjs';
@@ -122,6 +123,29 @@ test('translucent layers are composited over the real backdrop before measuring'
   const hit = m.results.find((r) => r.pair === 'success on success-bg+surface');
   assert.ok(Math.abs(hit.ratio - 3.98) < 0.01, String(hit.ratio));
   assert.ok(m.failures.some((f) => f.startsWith('[signature·dark] success on success-bg+surface  3.98:1')));
+});
+
+test('CLI: an unresolved token outside the pair list still fails, listed by theme, mode, token and reason', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-contrast-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const theme = path.join(dir, 'theme.css');
+  fs.writeFileSync(theme, `${fs.readFileSync(fx('theme-brand-harbor.css'), 'utf8')}[data-brand="harbor"] { --dur-1: var(--nope); }\n`);
+  const r = run('--tokens', path.join(root, 'tokens.css'), '--tokens', theme);
+  /* Every pair passes, but emit-swift and resolve-tokens refuse this input, so this must too. */
+  assert.equal(r.status, 1);
+  assert.equal(r.stdout, '');
+  assert.match(r.stderr, /^contrast-resolved: 2 unresolved values$/m);
+  assert.match(r.stderr, /^ {2}\[harbor·dark\] --dur-1: var\(--nope\) {2}\(var\(\) reference is missing or invalid, with no usable fallback\)$/m);
+  assert.match(r.stderr, /^ {2}\[harbor·light\] --dur-1: var\(--nope\) {2}\(var\(\) reference is missing or invalid, with no usable fallback\)$/m);
+  assert.doesNotMatch(r.stderr, /clean|failure/);
+});
+
+test('CLI: unresolved tokens and failing pairs are both reported', () => {
+  const r = run('--tokens', fx('tokens-unresolvable.css'));
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /^contrast-resolved: \d+ failures? \(\d+ pairs measured\)$/m);
+  assert.match(r.stderr, /^contrast-resolved: \d+ unresolved values?$/m);
+  assert.match(r.stderr, /^ {2}\[signature·dark\] --accent: /m);
 });
 
 test('CLI usage errors exit 2', () => {
