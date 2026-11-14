@@ -6,7 +6,7 @@
  *
  * Usage:
  *   node bin/emit-swift.mjs [--tokens <tokens.css> [--tokens <theme.css>]...]
- *                           [--out <dir>] [--check]
+ *                           [--brand <name>] [--out <dir>] [--check]
  *   npm run tokens:swift    (the package's own files, into swift/)
  *
  * Not registered as a package command: it ships in bin/ with the package, but
@@ -22,6 +22,16 @@
  *   nothing is written or removed and the file is named (exit 1). The only
  *   files ever removed are ones this script wrote that no theme produces any
  *   more: named *Tokens.swift and starting with the GENERATED header.
+ * - --brand limits the run to one theme's file: a brand slug from the
+ *   inputs, or "signature". A brand that keeps its theme.css outside the
+ *   package generates its own file with
+ *     --tokens tokens.css --tokens <path>/theme.css --brand <slug> --out <dir>
+ *   and nothing else is written. The run owns exactly that one file: it
+ *   never removes anything from --out, whatever else is generated there, and
+ *   --check reads that one file and reports no strays. Hand-written Swift in
+ *   --out is still refused. --brand needs --out (a usage error without it),
+ *   so a brand run can never land in the package's own folder by default. A
+ *   name the inputs do not hold is a usage error too.
  * - --check writes nothing. It regenerates in memory and compares with the
  *   files in --out: exit 1, naming each stale, missing, stray or
  *   hand-written file, when they differ; exit 0 when they match. npm test
@@ -36,25 +46,31 @@ import { resolveTokens } from './token-resolver.mjs';
 import { emitSwift, GENERATED_HEADER } from './swift-emitter.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const USAGE = 'usage: node bin/emit-swift.mjs [--tokens <tokens.css> [--tokens <theme.css>]...] [--out <dir>] [--check]';
+const USAGE = 'usage: node bin/emit-swift.mjs [--tokens <tokens.css> [--tokens <theme.css>]...] [--brand <name>] [--out <dir>] [--check]';
 
 let tokens = [];
 let out;
+let brand;
 let check = false;
 const extras = [];
 const argv = process.argv.slice(2);
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === '--tokens') tokens.push(argv[++i]);
   else if (argv[i] === '--out') out = argv[++i];
+  else if (argv[i] === '--brand') brand = argv[++i];
   else if (argv[i] === '--check') check = true;
   else extras.push(argv[i]);
 }
-if (tokens.includes(undefined) || (argv.includes('--out') && out === undefined)) {
-  console.error('emit-swift: --tokens and --out need a value');
+if (tokens.includes(undefined) || (argv.includes('--out') && out === undefined) || (argv.includes('--brand') && brand === undefined)) {
+  console.error('emit-swift: --tokens, --out and --brand need a value');
   process.exit(2);
 }
 if (extras.length > 0) {
   console.error(USAGE);
+  process.exit(2);
+}
+if (brand !== undefined && out === undefined) {
+  console.error(`emit-swift: --brand needs --out: a brand's file is never written into the package's own folder by default\n${USAGE}`);
   process.exit(2);
 }
 
@@ -73,19 +89,31 @@ const label = (p) => {
   return (rel.startsWith('..') || path.isAbsolute(rel) ? path.basename(p) : rel).split(path.sep).join('/');
 };
 
+let resolved;
 let files;
 try {
-  files = emitSwift(resolveTokens(tokens.map((p) => fs.readFileSync(p, 'utf8')), tokens), { inputs: tokens.map(label) });
+  resolved = resolveTokens(tokens.map((p) => fs.readFileSync(p, 'utf8')), tokens);
+  files = emitSwift(resolved, { inputs: tokens.map(label) });
 } catch (e) {
   console.error(e.message);
   process.exit(1);
+}
+/* --brand: write and check that theme's file only. */
+if (brand !== undefined) {
+  const names = Object.keys(resolved.themes).sort();
+  if (!names.includes(brand)) {
+    console.error(`emit-swift: no theme named ${JSON.stringify(brand)} in the inputs (found: ${names.join(', ')})`);
+    process.exit(2);
+  }
+  files = emitSwift({ themes: { [brand]: resolved.themes[brand] }, unresolved: [] }, { inputs: tokens.map(label) });
 }
 
 const onDisk = fs.existsSync(out) ? fs.readdirSync(out).filter((f) => f.endsWith('.swift')).sort() : [];
 /* Hand-written Swift: anything that does not open with the GENERATED header. Never touched. */
 const foreign = onDisk.filter((f) => !fs.readFileSync(path.join(out, f), 'utf8').startsWith(`${GENERATED_HEADER}\n`));
-/* Ours to remove: generated (the header), named like a theme file, and no longer produced. */
-const stray = onDisk.filter((f) => !(f in files) && !foreign.includes(f) && f.endsWith('Tokens.swift'));
+/* Ours to remove: generated (the header), named like a theme file, and no longer produced.
+   A --brand run owns one file and knows nothing of the rest: it has no strays. */
+const stray = brand !== undefined ? [] : onDisk.filter((f) => !(f in files) && !foreign.includes(f) && f.endsWith('Tokens.swift'));
 
 if (check) {
   const problems = [];

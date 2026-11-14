@@ -28,9 +28,11 @@
  *   scan paths.
  * - Exit 1 with the failing pairs and ratios; exit 0 clean, stating the
  *   measured-pair count.
+ * - The compositing, the WCAG formula and the walk over the pair list
+ *   live in bin/contrast-measure.mjs, shared with bin/contrast-resolved.mjs.
  */
 import fs from 'node:fs';
-import { PAIRS } from './contrast-pairs.mjs';
+import { measureTheme } from './contrast-measure.mjs';
 
 function parseArgs(argv) {
   const tokens = [];
@@ -119,26 +121,6 @@ function resolve(name, theme) {
   return parseColor(value);
 }
 
-const compose = (fg, bg) => ({
-  r: fg.a * fg.r + (1 - fg.a) * bg.r,
-  g: fg.a * fg.g + (1 - fg.a) * bg.g,
-  b: fg.a * fg.b + (1 - fg.a) * bg.b,
-  a: 1,
-});
-
-function luminance({ r, g, b }) {
-  const lin = (c) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-}
-
-function ratio(fg, bg) {
-  const [hi, lo] = [luminance(fg), luminance(bg)].sort((a, b) => b - a);
-  return (hi + 0.05) / (lo + 0.05);
-}
-
 const { tokens, extras } = parseArgs(process.argv.slice(2));
 if (tokens.includes(undefined)) { console.error('verseva-contrast-gate: --tokens needs a value'); process.exit(2); }
 for (const p of tokens) {
@@ -184,33 +166,10 @@ for (const [slug, b] of Object.entries(brands)) {
 const failures = [];
 let measured = 0;
 for (const [themeName, theme] of Object.entries(themes)) {
-  const canvas = resolve('bg', theme);
-  if (!canvas) {
-    failures.push(`[${themeName}] --bg is unresolvable; nothing can be measured`);
-    continue;
-  }
-  for (const [fgName, bgChain, floor] of PAIRS) {
-    const fg = resolve(fgName, theme);
-    let backdrop = canvas;
-    let resolvable = true;
-    for (const layerName of [...bgChain].reverse()) {
-      const [tokenName, alphaFactor] = layerName.split('*');
-      const layer = resolve(tokenName, theme);
-      if (!layer) { resolvable = false; break; }
-      const scaled = alphaFactor ? { ...layer, a: layer.a * parseFloat(alphaFactor) } : layer;
-      backdrop = compose(scaled, backdrop);
-    }
-    if (!fg || !resolvable) {
-      failures.push(`[${themeName}] ${fgName} on ${bgChain.join('+')}  UNRESOLVABLE (required pair; the gate must measure it)`);
-      continue;
-    }
-    measured++;
-    const solidFg = fg.a < 1 ? compose(fg, backdrop) : fg;
-    const r = ratio(solidFg, backdrop);
-    const line = `[${themeName}] ${fgName} on ${bgChain.join('+')}  ${r.toFixed(2)}:1  (floor ${floor})`;
-    if (r < floor) failures.push(line);
-    else if (process.env.VERSEVA_GATE_VERBOSE) console.log(`  ok ${line}`);
-  }
+  const m = measureTheme(themeName, (name) => resolve(name, theme));
+  measured += m.measured;
+  failures.push(...m.failures);
+  if (process.env.VERSEVA_GATE_VERBOSE) for (const line of m.passes) console.log(`  ok ${line}`);
 }
 
 if (failures.length) {

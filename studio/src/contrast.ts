@@ -1,5 +1,5 @@
 // Live contrast: the gate's pairs, measured against the theme on the page.
-// Same math as bin/contrast-gate.mjs: alpha composites over the real backdrop.
+// Same math as bin/contrast-measure.mjs (used by bin/contrast-gate.mjs): alpha composites over the real backdrop.
 import { PAIRS } from '../../bin/contrast-pairs.mjs';
 
 export type RGB = [number, number, number];

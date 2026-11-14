@@ -55,6 +55,7 @@
     "assemble": "node scripts/assemble.mjs",
     "tokens:resolve": "node bin/resolve-tokens.mjs",
     "tokens:swift": "node bin/emit-swift.mjs",
+    "tokens:contrast": "node bin/contrast-resolved.mjs",
     "test:served": "node --test --test-concurrency=1 test/served/*.test.mjs",
     "typecheck": "node studio/node_modules/typescript/bin/tsc --noEmit -p studio/tsconfig.json",
     "gate:studio": "node bin/verseva-gate.mjs --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow GLTFExporter studio/dist",
