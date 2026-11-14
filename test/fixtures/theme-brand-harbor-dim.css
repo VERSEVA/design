@@ -1,0 +1,15 @@
+/* Fixture: the harbor theme with one defect. In dark, the accent label is the
+   pale teal of the hover accent, so it fails on accent and on accent-hover,
+   far under the 4.5:1 floor. Light is sound. */
+[data-brand="harbor-dim"] {
+  --accent: #2DD4BF;
+  --accent-hover: #5EEAD4;
+  --accent-ink: #5EEAD4;
+  --focus: #2DD4BF;
+}
+[data-brand="harbor-dim"][data-theme="light"] {
+  --accent: #0F766E;
+  --accent-hover: #115E59;
+  --accent-ink: #FFFFFF;
+  --focus: #0F766E;
+}

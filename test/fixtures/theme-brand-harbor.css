@@ -1,0 +1,15 @@
+/* Fixture: a partner brand theme kept outside the package, the same shape as
+   themes/*.css. Used by test/brand-theme.test.mjs and
+   test/contrast-resolved.test.mjs. Every pair clears its floor. */
+[data-brand="harbor"] {
+  --accent: #2DD4BF;
+  --accent-hover: #5EEAD4;
+  --accent-ink: #04201C;
+  --focus: #2DD4BF;
+}
+[data-brand="harbor"][data-theme="light"] {
+  --accent: #0F766E;
+  --accent-hover: #115E59;
+  --accent-ink: #FFFFFF;
+  --focus: #0F766E;
+}
