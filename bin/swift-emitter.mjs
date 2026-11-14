@@ -11,8 +11,8 @@
  * two together).
  *
  * Every token must be decided. A token is either MAPPED (named below, one
- * by one, with the native shape it takes) or EXCLUDED (named below, with the
- * reason). A token that is neither makes emitSwift throw, so a new token in
+ * by one, with the native shape it takes) or EXCLUDED (named below, one by
+ * one, with the reason for its family); nothing matches by prefix. A token that is neither makes emitSwift throw, so a new token in
  * tokens.css forces a decision here. So does a mapped token that is missing,
  * unresolved, or not in the shape its kind expects.
  *
@@ -76,27 +76,49 @@ const GROUPS = [
   },
 ];
 
-/* Not generated. Each family carries the reason; `match` decides membership. */
-const family = (prefix) => (token) => token.startsWith(prefix);
-const exactly = (...names) => (token) => names.includes(token);
+/* Not generated. Every excluded token is named, one by one, beside the reason for its
+   family: a new --glass-* or --nav-* token is not excluded until it is added here. */
 export const EXCLUDED = [
-  { family: '--glass-*', match: family('glass-'), reason: 'web glass recipe (backdrop blur, stacked and inset box-shadows); native uses the system glass material, set by hand' },
-  { family: '--nav-*', match: family('nav-'), reason: 'web navshell layout and its inset shadow stack; native uses the system navigation containers' },
-  { family: '--accent-bloom', match: exactly('accent-bloom'), reason: 'a CSS radial-gradient string, with no plain-data native form' },
-  { family: '--accent-active-glow', match: exactly('accent-active-glow'), reason: 'a CSS box-shadow slot that is "none" unless a brand opts in; a web-only effect' },
-  { family: '--surface-body', match: exactly('surface-body'), reason: 'a CSS linear-gradient string, with no plain-data native form' },
-  { family: '--container-*', match: family('container-'), reason: 'page widths in ch and rem for browser layout; native layout is driven by size classes' },
-  { family: '--font-sans, --font-display, --font-mono', match: exactly('font-sans', 'font-display', 'font-mono'), reason: 'CSS font-family fallback stacks; native fonts are registered and named by hand' },
-  { family: '--r-pill', match: exactly('r-pill'), reason: 'the 999px pill trick; native uses a capsule shape' },
+  {
+    family: '--glass-*',
+    tokens: ['glass-fill-3', 'glass-border', 'glass-blur', 'glass-sat', 'glass-shadow', 'glass-glow', 'glass-inset'],
+    reason: 'web glass recipe (backdrop blur, stacked and inset box-shadows); native uses the system glass material, set by hand',
+  },
+  {
+    family: '--nav-*',
+    tokens: ['nav-gap', 'nav-frame', 'nav-main', 'nav-pill-inset'],
+    reason: 'web navshell layout and its inset shadow stack; native uses the system navigation containers',
+  },
+  { family: '--accent-bloom', tokens: ['accent-bloom'], reason: 'a CSS radial-gradient string, with no plain-data native form' },
+  { family: '--accent-active-glow', tokens: ['accent-active-glow'], reason: 'a CSS box-shadow slot that is "none" unless a brand opts in; a web-only effect' },
+  { family: '--surface-body', tokens: ['surface-body'], reason: 'a CSS linear-gradient string, with no plain-data native form' },
+  {
+    family: '--container-*',
+    tokens: ['container-prose', 'container-content', 'container-wide'],
+    reason: 'page widths in ch and rem for browser layout; native layout is driven by size classes',
+  },
+  {
+    family: '--font-*',
+    tokens: ['font-sans', 'font-display', 'font-mono'],
+    reason: 'CSS font-family fallback stacks; native fonts are registered and named by hand',
+  },
+  { family: '--r-pill', tokens: ['r-pill'], reason: 'the 999px pill trick; native uses a capsule shape' },
 ];
+const EXCLUDED_NAMES = new Set(EXCLUDED.flatMap((e) => e.tokens));
 
 const SWIFT_TYPE = { color: 'TokenColor', weight: 'Int', length: 'Double', duration: 'Double', shadow: 'TokenShadow', curve: 'TimingCurve' };
 
-/* Swift keywords a token name could collide with once camel-cased. */
-const RESERVED = new Set(['as', 'break', 'case', 'catch', 'class', 'continue', 'default', 'defer', 'do', 'else', 'enum', 'extension',
-  'fallthrough', 'false', 'for', 'func', 'guard', 'if', 'import', 'in', 'init', 'internal', 'is', 'let', 'nil', 'operator', 'private',
-  'protocol', 'public', 'repeat', 'return', 'self', 'static', 'struct', 'subscript', 'super', 'switch', 'throw', 'throws', 'true', 'try',
-  'var', 'where', 'while']);
+/* Swift's reserved words that start lower-case (The Swift Programming Language, Lexical
+   Structure: declarations, statements, expressions and types). Each was checked against
+   swiftc 6.4 as a stored property name and fails without backticks; the contextual keywords
+   (open, final, some, left, set and the like) compile as names and stay usable. */
+const RESERVED = new Set([
+  'associatedtype', 'class', 'deinit', 'enum', 'extension', 'fileprivate', 'func', 'import', 'init', 'inout', 'internal', 'let',
+  'operator', 'precedencegroup', 'private', 'protocol', 'public', 'rethrows', 'static', 'struct', 'subscript', 'typealias', 'var',
+  'break', 'case', 'catch', 'continue', 'default', 'defer', 'do', 'else', 'fallthrough', 'for', 'guard', 'if', 'in', 'repeat',
+  'return', 'switch', 'throw', 'where', 'while',
+  'as', 'await', 'false', 'is', 'nil', 'self', 'super', 'throws', 'true', 'try',
+]);
 
 /** `text-1` becomes `text1`, `accent-hover` becomes `accentHover`, `s-4` becomes `s4`. */
 export function swiftIdentifier(token) {
@@ -105,8 +127,23 @@ export function swiftIdentifier(token) {
   return id;
 }
 
-/** Every mapped token, in output order: { token, name, kind, type, group }. */
-export const MAPPED = GROUPS.flatMap((g) => g.tokens.map((token) => ({ token, name: swiftIdentifier(token), kind: g.kind, type: SWIFT_TYPE[g.kind], group: g.title })));
+/** The first line of every generated file. The CLI only overwrites or deletes files that start with it. */
+export const GENERATED_HEADER = '// GENERATED FILE. DO NOT EDIT BY HAND.';
+
+/** Groups to fields, in output order: [{ token, name, kind, type, group }]. */
+export function mapFields(groups) {
+  const fields = groups.flatMap((g) => g.tokens.map((token) => ({ token, name: swiftIdentifier(token), kind: g.kind, type: SWIFT_TYPE[g.kind], group: g.title })));
+  const seen = new Map();
+  for (const { token, name } of fields) {
+    if (seen.has(name)) throw new Error(`swift-emitter: --${seen.get(name)} and --${token} both become the Swift identifier "${name}"`);
+    seen.set(name, token);
+  }
+  return fields;
+}
+
+/** Every mapped token, in output order. */
+export const MAPPED = mapFields(GROUPS);
+const MAPPED_NAMES = new Set(MAPPED.map((m) => m.token));
 
 /** The fields TokenSet must declare, in order: [{ name, type }]. */
 export const swiftFields = () => MAPPED.map(({ name, type }) => ({ name, type }));
@@ -120,6 +157,8 @@ const num = (n) => {
 
 const NUMBER = '[-+]?(?:\\d+\\.?\\d*|\\.\\d+)';
 const fail = (token, value, expected) => { throw new Error(`swift-emitter: --${token}: expected ${expected}, got "${value}"`); };
+/* A value that is not zero must not print as zero. */
+const vanishes = (n) => n !== 0 && num(n) === '0.0';
 
 const swiftColor = (r, g, b, a) => `TokenColor(r: ${num(r / 255)}, g: ${num(g / 255)}, b: ${num(b / 255)}, a: ${num(a)})`;
 
@@ -138,21 +177,29 @@ const CONVERT = {
   length(token, v) {
     const n = v.type === 'string' ? px(v.value.trim()) : null;
     if (n === null) fail(token, v.value, 'a length in px');
+    if (n < 0) fail(token, v.value, 'a length of zero or more');
+    if (vanishes(n)) fail(token, v.value, 'a length that survives six decimals, or a plain 0');
     return num(n);
   },
   duration(token, v) {
     const m = v.type === 'string' && new RegExp(`^(${NUMBER})(ms|s)$`).exec(v.value.trim());
     if (!m) fail(token, v.value, 'a duration in ms or s');
-    return num(m[2] === 'ms' ? Number(m[1]) / 1000 : Number(m[1]));
+    const seconds = m[2] === 'ms' ? Number(m[1]) / 1000 : Number(m[1]);
+    if (seconds < 0) fail(token, v.value, 'a duration of zero or more');
+    if (vanishes(seconds)) fail(token, v.value, 'a duration that survives six decimals of a second, or a plain 0');
+    return num(seconds);
   },
   weight(token, v) {
     if (v.type !== 'string' || !/^\d+$/.test(v.value.trim())) fail(token, v.value, 'a whole font weight number');
-    return String(Number(v.value.trim()));
+    const weight = Number(v.value.trim());
+    if (weight < 1 || weight > 1000) fail(token, v.value, 'a font weight from 1 to 1000');
+    return String(weight);
   },
   curve(token, v) {
     const m = v.type === 'string' && new RegExp(`^cubic-bezier\\(\\s*(${NUMBER})\\s*,\\s*(${NUMBER})\\s*,\\s*(${NUMBER})\\s*,\\s*(${NUMBER})\\s*\\)$`).exec(v.value.trim());
     if (!m) fail(token, v.value, 'a cubic-bezier() with four numbers');
     const [x1, y1, x2, y2] = m.slice(1).map(Number);
+    if (x1 < 0 || x1 > 1 || x2 < 0 || x2 > 1) fail(token, v.value, 'cubic-bezier() x control values from 0 to 1');
     return `TimingCurve(x1: ${num(x1)}, y1: ${num(y1)}, x2: ${num(x2)}, y2: ${num(y2)})`;
   },
   /* One outer layer: <x> <y> <blur> [<spread>] rgb()/rgba(). Anything else is a decision to make by hand. */
@@ -165,19 +212,21 @@ const CONVERT = {
     const a = m[5] === undefined ? 1 : Number(m[5]);
     if (lengths.length < 3 || lengths.length > 4 || lengths.includes(null) || lengths[2] < 0 || [r, g, b].some((c) => c > 255) || a < 0 || a > 1) fail(token, v.value, expected);
     const [x, y, blur] = lengths;
+    if ([x, y, blur / 2].some(vanishes)) fail(token, v.value, 'shadow lengths that survive six decimals, or a plain 0');
     return `TokenShadow(x: ${num(x)}, y: ${num(y)}, radius: ${num(blur / 2)}, color: ${swiftColor(r, g, b, a)})`;
   },
 };
 
+/* A brand name is printed into the file (type name, header comment), so it must be a plain
+   slug: anything else, a line break above all, could put live Swift after the comment. */
 const themeTypeName = (slug) => {
-  const name = slug.split(/[^A-Za-z0-9]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join('');
-  if (!/^[A-Z]/.test(name)) throw new Error(`swift-emitter: theme "${slug}" does not make a usable Swift type name`);
-  return `${name}Tokens`;
+  if (!/^[a-z][a-z0-9-]*$/.test(slug)) throw new Error(`swift-emitter: brand name ${JSON.stringify(slug)} is not a plain slug (expected /^[a-z][a-z0-9-]*$/)`);
+  return `${slug.split('-').filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join('')}Tokens`;
 };
 
 function tokenSet(modeName, tokens, where) {
   for (const token of Object.keys(tokens)) {
-    if (MAPPED.some((m) => m.token === token) || EXCLUDED.some((e) => e.match(token))) continue;
+    if (MAPPED_NAMES.has(token) || EXCLUDED_NAMES.has(token)) continue;
     throw new Error(`swift-emitter: --${token} (${where}) is neither mapped nor excluded. Decide in bin/swift-emitter.mjs: add it to a GROUPS family `
       + '(and to TokenSet in swift/Sources/VersevaDesign/Tokens/TokenValues.swift) or to EXCLUDED with a reason.');
   }
@@ -206,6 +255,10 @@ export function emitSwift(resolved, { inputs = [] } = {}) {
     const list = resolved.unresolved.map((u) => `[${u.theme}·${u.mode}] --${u.token}`).join(', ');
     throw new Error(`swift-emitter: ${resolved.unresolved.length} unresolved value${resolved.unresolved.length === 1 ? '' : 's'}: ${list}`);
   }
+  /* Input names are printed in the header comment too: one line, plain path characters only. */
+  for (const input of inputs) {
+    if (!/^[\w .\/@+-]+$/.test(input)) throw new Error(`swift-emitter: input name ${JSON.stringify(input)} cannot be printed in the header (letters, digits, space and . / _ @ + - only)`);
+  }
   const files = {};
   for (const slug of Object.keys(resolved.themes).sort()) {
     const theme = resolved.themes[slug];
@@ -214,7 +267,7 @@ export function emitSwift(resolved, { inputs = [] } = {}) {
     if (files[file]) throw new Error(`swift-emitter: two themes map to ${file}`);
     const selector = slug === 'signature' ? 'the signature (no data-brand)' : `[data-brand="${slug}"]`;
     files[file] = [
-      '// GENERATED FILE. DO NOT EDIT BY HAND.',
+      GENERATED_HEADER,
       '// Generated by: bin/emit-swift.mjs (npm run tokens:swift)',
       `// Inputs: ${inputs.join(', ')}`,
       `// Theme: ${slug}, ${selector}, dark and light.`,

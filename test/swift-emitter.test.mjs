@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { resolveTokens } from '../bin/token-resolver.mjs';
-import { emitSwift, swiftFields, MAPPED, EXCLUDED } from '../bin/swift-emitter.mjs';
+import { emitSwift, swiftFields, swiftIdentifier, mapFields, MAPPED, EXCLUDED, GENERATED_HEADER } from '../bin/swift-emitter.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
@@ -23,6 +23,7 @@ const patched = (change) => {
   for (const theme of Object.values(r.themes)) for (const mode of Object.values(theme)) change(mode);
   return r;
 };
+const isExcluded = (t) => EXCLUDED.some((e) => e.tokens.includes(t));
 const run = (...args) => spawnSync(process.execPath, [cli, ...args], { cwd: root, encoding: 'utf8' });
 
 test('one file per theme, named after the theme', () => {
@@ -96,14 +97,33 @@ test('excluded tokens are left out, --r-pill among them', () => {
 
 test('every exclusion carries a reason, and no token is both mapped and excluded', () => {
   for (const e of EXCLUDED) assert.ok(e.reason && e.reason.length > 10, `${e.family} needs a reason`);
-  const excluded = (t) => EXCLUDED.some((e) => e.match(t));
-  assert.deepEqual(MAPPED.filter((m) => excluded(m.token)).map((m) => m.token), []);
+  assert.deepEqual(MAPPED.filter((m) => isExcluded(m.token)).map((m) => m.token), []);
+});
+
+test('exclusions are exact token names, never a prefix or a pattern', () => {
+  for (const e of EXCLUDED) {
+    assert.ok(Array.isArray(e.tokens) && e.tokens.length > 0, `${e.family} lists its tokens`);
+    for (const t of e.tokens) assert.match(t, /^[a-z][a-z0-9-]*$/, `${e.family}: ${t}`);
+    assert.equal(e.match, undefined, `${e.family} must not match by function`);
+  }
+  const all = EXCLUDED.flatMap((e) => e.tokens);
+  assert.equal(new Set(all).size, all.length, 'a token is excluded twice');
+  /* Every excluded name is a real token: a retired token leaves the list too. */
+  const names = Object.keys(resolved().themes.signature.dark);
+  assert.deepEqual(all.filter((t) => !names.includes(t)), []);
+});
+
+test('a new token in an excluded family still forces a decision', () => {
+  for (const token of ['glass-new-thing', 'nav-accent', 'container-narrow', 'font-serif']) {
+    const r = patched((mode) => { mode[token] = { type: 'string', value: '4px' }; });
+    assert.throws(() => emit(r), new RegExp(`--${token}.*neither mapped nor excluded`, 's'), token);
+  }
 });
 
 test('every token in tokens.css is either mapped or excluded: 80 in, none unaccounted', () => {
   const names = Object.keys(resolved().themes.signature.dark);
   const mapped = new Set(MAPPED.map((m) => m.token));
-  const excluded = names.filter((t) => EXCLUDED.some((e) => e.match(t)));
+  const excluded = names.filter(isExcluded);
   assert.equal(names.length, 80);
   assert.equal(names.filter((t) => mapped.has(t)).length + excluded.length, names.length);
   assert.equal(names.filter((t) => mapped.has(t)).length, MAPPED.length);
@@ -134,6 +154,65 @@ test('a mapped token of the wrong shape fails loudly', () => {
   assert.throws(() => emit(patched((m) => { m['e-1'] = { type: 'string', value: 'inset 0 1px 2px rgba(0, 0, 0, .2)' }; })), /--e-1/);
 });
 
+test('out-of-range values are rejected, naming the token and the value', () => {
+  const bad = (token, value) => assert.throws(
+    () => emit(patched((m) => { m[token] = { type: 'string', value }; })),
+    (e) => e.message.includes(`--${token}`) && e.message.includes(value),
+    `--${token}: ${value} must be rejected`,
+  );
+  bad('s-4', '-16px');
+  bad('r-md', '-2px');
+  bad('s-4', '0.0000001px');
+  bad('dur-1', '-120ms');
+  bad('dur-1', '-1s');
+  bad('dur-1', '0.0001ms');
+  bad('btn-weight', '0');
+  bad('btn-weight', '1001');
+  bad('ease-emph', 'cubic-bezier(-.1, 0, .1, 1)');
+  bad('ease-emph', 'cubic-bezier(.3, 0, 1.2, 1)');
+  bad('e-1', '0 1px 0.0000001px rgba(0, 0, 0, .2)');
+});
+
+test('in-range edges still pass: zero written as zero, weights 1 and 1000, y outside 0 to 1', () => {
+  const ok = (token, value, expected) => {
+    const text = emit(patched((m) => { m[token] = { type: 'string', value }; }))['SignatureTokens.swift'];
+    assert.ok(text.includes(expected), `--${token}: ${value} should emit ${expected}`);
+  };
+  ok('s-1', '0px', 's1: 0.0,');
+  ok('s-1', '0', 's1: 0.0,');
+  ok('dur-1', '0ms', 'dur1: 0.0,');
+  ok('btn-weight', '1', 'btnWeight: 1,');
+  ok('btn-weight', '1000', 'btnWeight: 1000,');
+  ok('ease-emph', 'cubic-bezier(0, -0.5, 1, 1.56)', 'easeEmph: TimingCurve(x1: 0.0, y1: -0.5, x2: 1.0, y2: 1.56),');
+});
+
+test('a brand name that is not a plain slug is rejected, so it cannot inject Swift', () => {
+  const withBrand = (slug) => { const r = resolved(); r.themes[slug] = r.themes.cobalt; return r; };
+  const inject = 'x\n}\npublic let injected = 1 //';
+  assert.throws(() => emit(withBrand(inject)), (e) => /brand/.test(e.message) && e.message.includes(JSON.stringify(inject)));
+  for (const slug of ['Acme', '9lives', 'a b', 'a_b', 'a/b', '']) assert.throws(() => emit(withBrand(slug)), /brand/, JSON.stringify(slug));
+  assert.ok('AcmeCoTokens.swift' in emit(withBrand('acme-co')));
+});
+
+test('an input label that would break out of the header comment is rejected', () => {
+  assert.throws(() => emitSwift(resolved(), { inputs: ['tokens.css', 'x.css\npublic let injected = 1'] }), /input/);
+});
+
+test('Swift keywords are refused as identifiers', () => {
+  const keywords = ['associatedtype', 'class', 'deinit', 'enum', 'extension', 'fileprivate', 'func', 'import', 'init', 'inout', 'internal',
+    'let', 'operator', 'precedencegroup', 'private', 'protocol', 'public', 'rethrows', 'static', 'struct', 'subscript', 'typealias', 'var',
+    'break', 'case', 'catch', 'continue', 'default', 'defer', 'do', 'else', 'fallthrough', 'for', 'guard', 'if', 'in', 'repeat', 'return',
+    'switch', 'throw', 'where', 'while', 'as', 'await', 'false', 'is', 'nil', 'self', 'super', 'throws', 'true', 'try'];
+  for (const k of keywords) assert.throws(() => swiftIdentifier(k), new RegExp(`--${k}\\b`), k);
+  assert.equal(swiftIdentifier('accent-hover'), 'accentHover');
+});
+
+test('two tokens that camel-case to the same identifier are a collision', () => {
+  const groups = [{ title: 'Color roles', kind: 'color', tokens: ['text-1', 'text1'] }];
+  assert.throws(() => mapFields(groups), (e) => e.message.includes('--text-1') && e.message.includes('--text1 '));
+  assert.throws(() => mapFields([{ title: 'a', kind: 'color', tokens: ['bg'] }, { title: 'b', kind: 'length', tokens: ['bg'] }]), /--bg/);
+});
+
 test('an unresolved value fails loudly', () => {
   const r = resolved();
   r.unresolved.push({ theme: 'signature', mode: 'dark', token: 'accent', value: 'var(--nope)', reason: 'missing' });
@@ -152,12 +231,49 @@ test('output has no tabs, no trailing whitespace, and ends with one newline', ()
   }
 });
 
-test('the hand-written TokenSet declares exactly the fields the emitter writes, in order', () => {
+/* The three places TokenSet names its fields: the stored properties, the init parameters
+   and the init assignments. Every line of each block must parse, or this throws. */
+function tokenSetShape(swift) {
+  const m = swift.match(/public struct TokenSet: Sendable, Equatable \{\n([\s\S]*?)\n\n {4}public init\(\n([\s\S]*?)\n {4}\) \{\n([\s\S]*?)\n {4}\}\n\}/);
+  assert.ok(m, 'TokenSet struct, with its init, not found in TokenValues.swift');
+  const lines = (block, pattern, what) => block.split('\n').map((line) => {
+    const hit = pattern.exec(line);
+    assert.ok(hit, `TokenSet ${what}: unexpected line "${line}"`);
+    return hit;
+  });
+  const fields = lines(m[1], /^ {4}public let (\w+): (\w+)$/, 'field').map((h) => ({ name: h[1], type: h[2] }));
+  const paramLines = lines(m[2], /^ {8}(\w+): (\w+)(,?)$/, 'init parameter');
+  paramLines.forEach((h, i) => assert.equal(h[3], i === paramLines.length - 1 ? '' : ',', `TokenSet init parameter ${h[1]}: comma`));
+  const params = paramLines.map((h) => ({ name: h[1], type: h[2] }));
+  const assignments = lines(m[3], /^ {8}self\.(\w+) = (\w+)$/, 'init assignment').map((h) => {
+    assert.equal(h[1], h[2], `TokenSet init assigns self.${h[1]} from ${h[2]}`);
+    return h[1];
+  });
+  return { fields, params, assignments };
+}
+
+test('the hand-written TokenSet matches the emitter: fields, init parameters and assignments, in order', () => {
+  const shape = tokenSetShape(fs.readFileSync(typesFile, 'utf8'));
+  assert.deepEqual(shape.fields, swiftFields());
+  assert.deepEqual(shape.params, swiftFields());
+  assert.deepEqual(shape.assignments, swiftFields().map((f) => f.name));
+});
+
+test('the TokenSet check catches a reordered init, a swapped or dropped assignment and a retyped parameter', () => {
   const swift = fs.readFileSync(typesFile, 'utf8');
-  const body = swift.match(/public struct TokenSet: Sendable, Equatable \{\n([\s\S]*?)\n\n {4}public init\(/);
-  assert.ok(body, 'TokenSet struct not found in TokenValues.swift');
-  const declared = [...body[1].matchAll(/^ {4}public let (\w+): (\w+)$/gm)].map((m) => ({ name: m[1], type: m[2] }));
-  assert.deepEqual(declared, swiftFields());
+  const edit = (from, to) => { assert.ok(swift.includes(from), from); return swift.replace(from, to); };
+
+  const reordered = tokenSetShape(edit('        bg: TokenColor,\n        surface: TokenColor,\n', '        surface: TokenColor,\n        bg: TokenColor,\n'));
+  assert.deepEqual(reordered.fields, swiftFields());
+  assert.notDeepEqual(reordered.params, swiftFields());
+
+  assert.throws(() => tokenSetShape(edit('        self.bg = bg\n', '        self.bg = surface\n')), /self\.bg from surface/);
+
+  const dropped = tokenSetShape(edit('        self.s4 = s4\n', ''));
+  assert.notDeepEqual(dropped.assignments, swiftFields().map((f) => f.name));
+
+  const retyped = tokenSetShape(edit('        s4: Double,\n', '        s4: Int,\n'));
+  assert.notDeepEqual(retyped.params, swiftFields());
 });
 
 test('drift: the committed Swift files match tokens.css and the themes', () => {
@@ -196,6 +312,48 @@ test('drift check: a stale, missing or stray file fails and says how to regenera
   /* Regenerating removes the stray file and passes again. */
   assert.equal(run('--out', dir).status, 0);
   assert.equal(run('--check', '--out', dir).status, 0);
+});
+
+test('--out never deletes or overwrites a file it did not generate', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-swift-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+  /* A copy of the hand-written Tokens/ folder: the write is refused, by file name, and nothing changes. */
+  const types = fs.readFileSync(typesFile, 'utf8');
+  fs.writeFileSync(path.join(dir, 'TokenValues.swift'), types);
+  let r = run('--out', dir);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /TokenValues\.swift/);
+  assert.match(r.stderr, /not a generated file/);
+  assert.deepEqual(fs.readdirSync(dir), ['TokenValues.swift']);
+  assert.equal(fs.readFileSync(path.join(dir, 'TokenValues.swift'), 'utf8'), types);
+
+  /* A hand-written file that sits on a generated name is not overwritten either. */
+  fs.rmSync(path.join(dir, 'TokenValues.swift'));
+  fs.writeFileSync(path.join(dir, 'CobaltTokens.swift'), 'public let mine = 1\n');
+  r = run('--out', dir);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /CobaltTokens\.swift/);
+  assert.deepEqual(fs.readdirSync(dir), ['CobaltTokens.swift']);
+  assert.equal(fs.readFileSync(path.join(dir, 'CobaltTokens.swift'), 'utf8'), 'public let mine = 1\n');
+  r = run('--check', '--out', dir);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /CobaltTokens\.swift.*not a generated file/);
+
+  /* A file with the header whose name does not end in Tokens.swift is left alone, as is a non-Swift file. */
+  fs.rmSync(path.join(dir, 'CobaltTokens.swift'));
+  fs.writeFileSync(path.join(dir, 'Index.swift'), `${GENERATED_HEADER}\npublic let index = 1\n`);
+  fs.writeFileSync(path.join(dir, 'notes.txt'), 'keep\n');
+  assert.equal(run('--out', dir).status, 0);
+  assert.ok(fs.existsSync(path.join(dir, 'Index.swift')));
+  assert.ok(fs.existsSync(path.join(dir, 'notes.txt')));
+  assert.ok(fs.existsSync(path.join(dir, 'CobaltTokens.swift')));
+});
+
+test('the CLI header says it is not a registered package command, and does not claim to be unpublished', () => {
+  const src = fs.readFileSync(cli, 'utf8');
+  assert.doesNotMatch(src, /not a published command/i);
+  assert.match(src, /not registered as a package command/i);
 });
 
 test('CLI usage errors exit 2', () => {

@@ -9,18 +9,23 @@
  *                           [--out <dir>] [--check]
  *   npm run tokens:swift    (the package's own files, into swift/)
  *
- * Not a published command.
+ * Not registered as a package command: it ships in bin/ with the package, but
+ * package.json gives it no bin entry and its flags are not a public contract.
  *
  * Rules:
  * - --tokens files are read in cascade (load) order: tokens.css first, then
  *   theme files. With no --tokens, the package's own tokens.css and every
  *   themes/*.css (sorted by name) are used.
  * - --out is the directory written to (default
- *   swift/Sources/VersevaDesign/Generated). Every *.swift in it is owned by
- *   this script: a file no theme produces is removed.
+ *   swift/Sources/VersevaDesign/Generated). It must hold no hand-written
+ *   Swift: if any *.swift in it does not start with the GENERATED header,
+ *   nothing is written or removed and the file is named (exit 1). The only
+ *   files ever removed are ones this script wrote that no theme produces any
+ *   more: named *Tokens.swift and starting with the GENERATED header.
  * - --check writes nothing. It regenerates in memory and compares with the
- *   files in --out: exit 1, naming each stale, missing or stray file, when
- *   they differ; exit 0 when they match. npm test runs it.
+ *   files in --out: exit 1, naming each stale, missing, stray or
+ *   hand-written file, when they differ; exit 0 when they match. npm test
+ *   runs it.
  * - Exit 2 on usage errors. Exit 1 when the CSS cannot be resolved or a
  *   token is neither mapped nor excluded.
  */
@@ -28,7 +33,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveTokens } from './token-resolver.mjs';
-import { emitSwift } from './swift-emitter.mjs';
+import { emitSwift, GENERATED_HEADER } from './swift-emitter.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const USAGE = 'usage: node bin/emit-swift.mjs [--tokens <tokens.css> [--tokens <theme.css>]...] [--out <dir>] [--check]';
@@ -77,15 +82,20 @@ try {
 }
 
 const onDisk = fs.existsSync(out) ? fs.readdirSync(out).filter((f) => f.endsWith('.swift')).sort() : [];
-const stray = onDisk.filter((f) => !(f in files));
+/* Hand-written Swift: anything that does not open with the GENERATED header. Never touched. */
+const foreign = onDisk.filter((f) => !fs.readFileSync(path.join(out, f), 'utf8').startsWith(`${GENERATED_HEADER}\n`));
+/* Ours to remove: generated (the header), named like a theme file, and no longer produced. */
+const stray = onDisk.filter((f) => !(f in files) && !foreign.includes(f) && f.endsWith('Tokens.swift'));
 
 if (check) {
   const problems = [];
   for (const [name, text] of Object.entries(files)) {
     if (!onDisk.includes(name)) problems.push(`${name}: missing`);
+    else if (foreign.includes(name)) continue;
     else if (fs.readFileSync(path.join(out, name), 'utf8') !== text) problems.push(`${name}: stale, it no longer matches the token CSS`);
   }
   for (const name of stray) problems.push(`${name}: no theme produces this file`);
+  for (const name of foreign) problems.push(`${name}: not a generated file (no GENERATED header); hand-written Swift does not belong in this folder`);
   if (problems.length) {
     console.error(`emit-swift: the Swift token files in ${label(out)} are out of date\n`);
     for (const p of problems) console.error(`  ${p}`);
@@ -94,6 +104,12 @@ if (check) {
   }
   console.log(`emit-swift: ${Object.keys(files).length} Swift token files are up to date`);
 } else {
+  if (foreign.length) {
+    console.error(`emit-swift: refusing to write into ${label(out)}: it holds Swift this script did not generate\n`);
+    for (const name of foreign) console.error(`  ${name}: not a generated file (no GENERATED header)`);
+    console.error('\nNothing was written or removed. Point --out at a folder that holds only generated files.');
+    process.exit(1);
+  }
   fs.mkdirSync(out, { recursive: true });
   for (const name of stray) fs.rmSync(path.join(out, name));
   for (const [name, text] of Object.entries(files)) fs.writeFileSync(path.join(out, name), text);
