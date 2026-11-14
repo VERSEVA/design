@@ -19,8 +19,12 @@
  *   reference is missing or invalid; a missing reference with no fallback
  *   is UNRESOLVED. A token that references itself, directly or through a
  *   loop (fallback references count), is invalid even when it carries a
- *   fallback, as in CSS: UNRESOLVED itself, and a referrer takes its own
- *   fallback.
+ *   fallback: UNRESOLVED itself, and a referrer takes its own fallback.
+ *   This is stricter than Chrome in one case: Chrome finds cycles while
+ *   substituting, so a self-reference inside a fallback that is never taken
+ *   (--b:lime; --x:var(--b, var(--x))) computes there and is UNRESOLVED
+ *   here. The resolver errs loud, never silently wrong; the case is pinned
+ *   in test/served/token-oracle.test.mjs.
  * - color-mix(in srgb, ...) per CSS Color 5: percentage normalisation
  *   (omitted, summing over or under 100, the under-100 alpha multiplier) and
  *   premultiplied-alpha interpolation.
