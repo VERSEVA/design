@@ -555,7 +555,7 @@ color-alone).
     the same markup whatever the suppressed value is. `format` is never called with it. The kit does
     not sort; a consumer that sorts must not order suppressed items by their value.
   - **The stub is one fixed size,** never a bar length: `.vtrack` is `--s-3` tall with the label
-    sitting on it; a suppressed `.htrack` carries a `--s-6` stub at the start of its track. Both are
+    sitting on it; a suppressed `.htrack` carries a `--s-4` stub at the start of its track. Both are
     a 135deg hatch of `--text-3` over nothing: the text ladder, since a hairline cannot carry
     meaning (law 11). Never the accent, a status hue or a sign color; never full height (that reads
     as the largest value) and never a plain soft block (that reads as a loading skeleton). The
@@ -566,14 +566,17 @@ color-alone).
     value and the `title`; the bar still draws from the real value and counts toward the scale.
   - **Gap (`LineChart` series, `Sparkline`: `null`).** The line breaks at a null and resumes after
     it; the area fill breaks with it. No point is drawn there, it is never interpolated across, and
-    it is left out of the scale. A 1px `--text-3` segment on the baseline spans the gap, so it reads
-    as withheld and not as a fault. Hover on a null index shows no value and no marker for that
+    it is left out of the scale. A hatched band marks the gap: `--s-1` tall, 2px BELOW the zero
+    baseline and never on it, the stub's 135deg `--text-3` hatch, over the null indices only and
+    short of the known points either side. A chart with a gap keeps that room under its plot; one
+    without renders as before. Hover on a null index shows no value and no marker for that
     series, and names it with the withheld word in `--text-2`. The end dot marks the last index, so
     a series ending in a null has none. A value alone between two gaps is an r=3 dot. A real `0` is
     a value and draws on the baseline; `NaN` is a gap. All nulls render the empty state. The dashed
     `--data-alt` second series is unchanged alongside gaps.
   - **The withheld word is copy:** `vizLabels={{ withheld }}` on `LineChart`, `Bars` and `HBars`,
-    default `Withheld` (`react/viz-state.ts`).
+    default `withheld`, lowercase since it follows a name (`react/viz-state.ts`).
+  - **`Bars` and `HBars` hold no state and no hook:** they render without a client boundary.
 
 ## Widgets: `.wgrid`, `.wtile`, `.wstack`, `.wgal` (1.6.0)
 

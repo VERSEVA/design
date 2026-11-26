@@ -532,7 +532,7 @@ export function Page() {
                   { label: 'Clinic D', value: 0 },
                 ]}
               />
-              <div className="takeaway">Tuesday and Clinic C sit under the floor of 5; Wednesday and Clinic D are true zeros.</div>
+              <div className="takeaway">Thursday peaks at 57; Tuesday and Clinic C are under 5.</div>
             </div>
           </div>
         </SpecimenTile>
@@ -551,7 +551,7 @@ export function Page() {
                 <span className="speclabel">Sparkline</span>
                 <Sparkline values={[12, 14, 13, null, null, 17, 19, 22]} />
               </div>
-              <div className="takeaway">Visits went unreported in W4 and W5; Booked has one figure after W5 and none yet for W8.</div>
+              <div className="takeaway">Visits withheld for W4 and W5; Booked withheld for W6 and W8.</div>
             </div>
           </div>
         </SpecimenTile>

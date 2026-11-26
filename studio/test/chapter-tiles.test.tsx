@@ -355,14 +355,17 @@ describe('Data viz tiles: withheld data', () => {
     expect(booked.querySelector('path')!.getAttribute('stroke-dasharray')).toBe('5 4');
     /* Booked: one lone value after its gap (a dot), then a trailing gap, so no end dot beyond it */
     expect([...booked.querySelectorAll('circle')].map((c) => c.getAttribute('cx'))).toEqual(['270']);
-    expect(root.querySelectorAll('#gaps .vizplot line[data-gap]')).toHaveLength(3);
-    expect(root.querySelectorAll('#gaps .spark line[data-gap]')).toHaveLength(1);
+    expect(root.querySelectorAll('#gaps .vizplot rect[data-gap]')).toHaveLength(3);
+    expect(root.querySelectorAll('#gaps .spark rect[data-gap]')).toHaveLength(1);
+    expect(root.querySelectorAll('#gaps line[data-gap]')).toHaveLength(0);
     expect(root.querySelector('#gaps .spark path[fill="none"]')!.getAttribute('d')!.split('M').length - 1).toBe(2);
   });
 
   it('captions both with a takeaway', () => {
     const root = page('data-viz');
     for (const id of ['suppressed', 'gaps']) expect(root.querySelectorAll(`#${id} .specimen > .takeaway`), id).toHaveLength(1);
+    expect(root.querySelector('#gaps .takeaway')!.textContent).toMatch(/withheld/);
+    expect(root.querySelector('#gaps .takeaway')!.textContent).not.toMatch(/unreported|missing/);
   });
 });
 
