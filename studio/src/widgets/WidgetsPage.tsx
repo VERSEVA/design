@@ -297,6 +297,26 @@ function HomeSpecimen() {
   );
 }
 
+const BESIDE: LayoutItem[] = [
+  { id: 'ct-revenue', kind: 'revenue', size: 'm' },
+  { id: 'ct-tasks', kind: 'tasks', size: 's' },
+  { id: 'ct-runway', kind: 'runway', size: 's' },
+  { id: 'ct-pipeline', kind: 'pipeline', size: 'm' },
+  { id: 'ct-week', kind: 'week', size: 'm' },
+];
+
+/** Container mode beside a 232px rail: the grid counts columns from the room it has. */
+function ContainerSpecimen() {
+  return (
+    <div className="wx-beside">
+      <ul className="wx-rail glass" aria-label="Console sections">
+        {NAV.map((t) => <li key={t.label}>{t.icon}{t.label}</li>)}
+      </ul>
+      <WidgetGrid container definitions={DEFINITIONS} defaultLayout={BESIDE} storageKey={null} longPress={0} labels={{ region: 'Container widgets' }} />
+    </div>
+  );
+}
+
 function SizesSpecimen() {
   return <WidgetGrid definitions={DEFINITIONS} defaultLayout={SIZES} storageKey={null} longPress={0} labels={{ region: 'Revenue sizes' }} />;
 }
@@ -385,6 +405,10 @@ export function WidgetsPage() {
       <section className="section" id="sizes">
         <h2>Sizes <span className="cnt">S M L XL</span></h2>
         <SizesSpecimen />
+      </section>
+      <section className="section" id="container">
+        <h2>Container</h2>
+        <ContainerSpecimen />
       </section>
       <section className="section" id="states">
         <h2>States</h2>

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
-  LAYOUT_KEY, SIZE_LABEL, VIEWPORT_BREAKPOINTS,
-  addWidget, addedMessage, columnsForWidth, fitSize, move, moveBy, moveDirection, movedMessage, nextFocusId, rowPartner,
+  LAYOUT_KEY, SIZE_LABEL, BREAKPOINTS,
+  addWidget, addedMessage, columnsForContainer, fitSize, move, moveBy, moveDirection, movedMessage, nextFocusId, rowPartner,
   readLayout, removeWidget, removedMessage, resizeWidget, resizedMessage, restoreWidget, safeStorage, sizeOptions, writeLayout,
 } from './widget-state';
 import type { Columns, LayoutItem, Removed, RowMove, WidgetSize, WidgetSpec } from './widget-state';
@@ -78,7 +78,13 @@ export interface WidgetGridProps {
   focus?: string;
   status?: Readonly<Record<string, WidgetStatus>>;
   onRetry?: (id: string) => void;
-  /** Pin the column count over the measured one (specimens, tests, a layout that holds no small tile); written to data-cols so the CSS follows. Default: from the grid's container, 4 / 2 / 1. */
+  /** Container mode. Default false: the grid is the root element and steps down on the viewport
+      (1100px, 560px). True wraps the grid in .wgrid-wrap and steps down on the wrapper's width
+      (688px, 560px), for a grid beside a sidebar. className still lands on .wgrid, one level
+      below the root: placement, height and sticky go on a parent element, and the parent must
+      give the wrapper a width (no shrink-to-fit parent). */
+  container?: boolean;
+  /** Force a column count (specimens, tests); written to data-cols so the CSS follows. Default: from the viewport, or the wrapper in container mode, 4 / 2 / 1. */
   columns?: Columns;
   /** The product's Edit toggle: Esc leaving edit mode moves focus there. */
   toggleRef?: React.RefObject<HTMLElement | null>;
@@ -109,8 +115,8 @@ function matches(q: string): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(q).matches;
 }
 
-/** 4, 2 or 1 at the CSS breakpoints: from the container's width (688px, 560px) when one is given and
-    the browser has container queries, else from the viewport (1100px, 560px); 4 on the server. */
+/** 4, 2 or 1 at the CSS breakpoints: from the viewport (1100px, 560px), or in container mode from
+    the wrapper's width (688px, 560px) when the browser has container queries; 4 on the server. */
 export function useWidgetColumns(forced?: Columns, container?: React.RefObject<Element | null>): Columns {
   const [cols, setCols] = React.useState<Columns>(forced ?? 4);
   React.useEffect(() => {
@@ -119,15 +125,15 @@ export function useWidgetColumns(forced?: Columns, container?: React.RefObject<E
     const el = container?.current;
     if (el && typeof ResizeObserver === 'function' && typeof CSS !== 'undefined' && CSS.supports?.('container-type', 'inline-size')) {
       /* a hidden container measures 0: keep the last count until it has a width */
-      const fit = (width: number) => { if (width > 0) setCols(columnsForWidth(width)); };
+      const fit = (width: number) => { if (width > 0) setCols(columnsForContainer(width)); };
       fit(el.getBoundingClientRect().width);
       const ro = new ResizeObserver((entries) => fit(entries[entries.length - 1].contentRect.width));
       ro.observe(el);
       return () => ro.disconnect();
     }
     if (typeof window.matchMedia !== 'function') return;
-    const four = window.matchMedia(`(min-width: ${VIEWPORT_BREAKPOINTS.four}px)`);
-    const two = window.matchMedia(`(min-width: ${VIEWPORT_BREAKPOINTS.two}px)`);
+    const four = window.matchMedia(`(min-width: ${BREAKPOINTS.four}px)`);
+    const two = window.matchMedia(`(min-width: ${BREAKPOINTS.two}px)`);
     const on = () => setCols(four.matches ? 4 : two.matches ? 2 : 1);
     on();
     four.addEventListener?.('change', on);
@@ -164,11 +170,11 @@ function DefaultSkeleton({ size }: { size: WidgetSize }) {
 export function WidgetGrid({
   definitions, layout: controlled, defaultLayout, onLayoutChange, storageKey = LAYOUT_KEY,
   editing: editingProp, defaultEditing = false, onEditingChange, focus, status, onRetry,
-  columns: forcedColumns, toggleRef, longPress = 550, labels, className,
+  container = false, columns: forcedColumns, toggleRef, longPress = 550, labels, className,
 }: WidgetGridProps) {
   const L = { ...WIDGET_GRID_LABELS, ...labels };
   const wrapRef = React.useRef<HTMLDivElement>(null);
-  const cols = useWidgetColumns(forcedColumns, wrapRef);
+  const cols = useWidgetColumns(forcedColumns, container ? wrapRef : undefined);
   const isControlled = controlled !== undefined;
   const [own, setOwn] = React.useState<LayoutItem[]>(() => [...(defaultLayout ?? [])]);
   const layout = (isControlled ? controlled : own) as LayoutItem[];
@@ -456,22 +462,24 @@ export function WidgetGrid({
     );
   });
 
+  const grid = (
+    <div ref={gridRef} className={cx('wgrid', className)} role="region" aria-label={L.region} data-editing={editing ? '' : undefined} data-cols={forcedColumns} tabIndex={-1}>
+      {layout.length === 0 && !editing ? (
+        <div className="wgrid-empty">
+          <b>{L.empty}</b>
+          <button type="button" className="btn btn-secondary" onClick={() => setGalleryOpen(true)}>{L.add}</button>
+        </div>
+      ) : tiles}
+      {editing && (
+        <button type="button" className="wgrid-add" onClick={() => setGalleryOpen(true)}>{PLUS}{L.add}</button>
+      )}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">{message}</div>
+    </div>
+  );
+
   return (
     <>
-      <div ref={wrapRef} className="wgrid-wrap">
-        <div ref={gridRef} className={cx('wgrid', className)} role="region" aria-label={L.region} data-editing={editing ? '' : undefined} data-cols={forcedColumns} tabIndex={-1}>
-          {layout.length === 0 && !editing ? (
-            <div className="wgrid-empty">
-              <b>{L.empty}</b>
-              <button type="button" className="btn btn-secondary" onClick={() => setGalleryOpen(true)}>{L.add}</button>
-            </div>
-          ) : tiles}
-          {editing && (
-            <button type="button" className="wgrid-add" onClick={() => setGalleryOpen(true)}>{PLUS}{L.add}</button>
-          )}
-          <div className="sr-only" aria-live="polite" aria-atomic="true">{message}</div>
-        </div>
-      </div>
+      {container ? <div ref={wrapRef} className="wgrid-wrap">{grid}</div> : grid}
       {undo && (
         <div className="wgrid-undo" onMouseEnter={() => setUndoHeld(true)} onMouseLeave={() => setUndoHeld(false)} onFocus={() => setUndoHeld(true)} onBlur={() => setUndoHeld(false)}>
           <div className="toast ok">

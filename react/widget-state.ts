@@ -22,11 +22,11 @@ export const SIZE_ORDER: WidgetSize[] = ['s', 'm', 'l', 'xl'];
 export const SIZE_LABEL: Record<WidgetSize, string> = { s: 'small', m: 'medium', l: 'large', xl: 'extra large' };
 /** Column and row span per size (S 1x1, M 2x1, L 2x2, XL 4x2). */
 export const SPAN: Record<WidgetSize, { cols: number; rows: number }> = { s: { cols: 1, rows: 1 }, m: { cols: 2, rows: 1 }, l: { cols: 2, rows: 2 }, xl: { cols: 4, rows: 2 } };
-/** Widths of the grid's container (.wgrid-wrap) where the grid steps down: 4 columns from 688px
-    (four 160px small tiles and three 16px gaps), 2 from 560px, 1 below. */
-export const BREAKPOINTS = { four: 688, two: 560 } as const;
-/** Viewport widths for the fallback (a bare .wgrid, or no container queries): 4 columns from 1100px, 2 from 560px, 1 below. */
-export const VIEWPORT_BREAKPOINTS = { four: 1100, two: 560 } as const;
+/** Viewport widths where the grid steps down: 4 columns from 1100px, 2 from 560px, 1 below. */
+export const BREAKPOINTS = { four: 1100, two: 560 } as const;
+/** Container mode (.wgrid-wrap): widths of the wrapper where the grid steps down. 4 columns from
+    688px (four 160px small tiles and three 16px gaps), 2 from 560px, 1 below. */
+export const CONTAINER_BREAKPOINTS = { four: 688, two: 560 } as const;
 const MAX_ID = 64;
 const ARROWS: Record<string, MoveDir> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
 
@@ -36,6 +36,11 @@ const specFor = (specs: readonly WidgetSpec[], kind: string) => specs.find((s) =
 
 export function columnsForWidth(width: number): Columns {
   return width >= BREAKPOINTS.four ? 4 : width >= BREAKPOINTS.two ? 2 : 1;
+}
+
+/** Container mode: columns for a wrapper width (CONTAINER_BREAKPOINTS). */
+export function columnsForContainer(width: number): Columns {
+  return width >= CONTAINER_BREAKPOINTS.four ? 4 : width >= CONTAINER_BREAKPOINTS.two ? 2 : 1;
 }
 
 /** 4 columns hold XL, 2 hold L, 1 holds M (L and XL show their M view). */

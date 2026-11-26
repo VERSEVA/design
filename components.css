@@ -710,9 +710,10 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media (max-width:767px){.bulkbar{width:auto;margin-inline:0;flex-wrap:wrap}.bulkbar .count{margin-right:auto;border-right:0}}
 
 /* ---- Widgets (1.6.0): grid, tile, edit mode, smart stack, gallery ---- */
-/* Grid: 4 columns, 2 under 688px, 1 under 560px, measured on .wgrid-wrap, the grid's container
-   (the React part renders it). 688px is four 160px small tiles and three gaps. A grid with no
-   wrapper falls back to the viewport: 2 under 1100px, 1 under 560px. Sparse row flow (never dense), so DOM order, focus order and visual order agree. Each
+/* Grid: 4 columns, 2 under 1100px, 1 under 560px of viewport. Container mode is opt-in: inside
+   .wgrid-wrap (the React part's container prop renders it) the grid counts from the wrapper's
+   width instead, 4 columns from 688px (four 160px small tiles and three gaps), 2 from 560px,
+   1 below. Sparse row flow (never dense), so DOM order, focus order and visual order agree. Each
    tile picks its view from data-size; the React grid writes the fitted size, so L and XL show
    their M view in one column. */
 .wgrid-wrap{container:wgrid / inline-size;width:100%;min-width:0}

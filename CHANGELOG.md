@@ -4,11 +4,11 @@
 
 ### Added
 
+- **Container mode for the widget grid (opt-in).** A grid beside a sidebar can count columns from the room it has: wrap `.wgrid` in the new `.wgrid-wrap`, or pass `container` to the React `WidgetGrid`. In container mode the grid shows 4 columns from a 688px wrapper (four 160px small tiles and three gaps), 2 from 560px and 1 below, and a small tile under 180px lays its four-size pill out 2 by 2. `CONTAINER_BREAKPOINTS` and `columnsForContainer` carry the numbers. The default is unchanged: no wrapper, viewport steps at 1100px and 560px, `className` on the grid element. In container mode put placement, height and sticky on a parent element; shrink-to-fit parents are not supported.
 - **`--exclude <dir>` on the gate suite.** `verseva-gate` and the hex, spacing and type gates take a repeatable `--exclude <dir>` that skips the directory of that name directly under a scan path. Top level only: the same name deeper in the tree is still scanned, and nothing is excluded unless the flag is passed. This repo passes `--exclude swift` so the coming Swift package's sources stay out of the web gates.
 
 ### Fixed
 
-- **The widget grid follows its container, not the viewport.** `.wgrid` inside the new `.wgrid-wrap` shows 4 columns from a 688px wrapper (four 160px small tiles and three gaps), 2 from 560px and 1 below, so a grid beside a sidebar gets the columns its own width holds. The React `WidgetGrid` renders the wrapper and fits tile sizes to it (the grid is now one element deeper); `columns`, or `data-cols` on `.wgrid`, pins the count for a layout with no small tile. A small tile under 180px lays its four-size pill out 2 by 2. A bare `.wgrid` and a browser without container queries keep the viewport rule (1100px, 560px).
 - **The studio side nav sits flush against the window's left edge.** The shell centred everything at 1440px, so on wide screens the nav, expanded or as the rail, floated in from the left. The body is now full bleed; only the content column is capped (1208px) and centred. A served test checks the nav's left edge at 1920 on `/` and `/components`, in both states.
 
 ## 1.7.0 · 2026-11-05

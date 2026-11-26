@@ -1,9 +1,9 @@
-// The widget grid follows its container (issue 207), in headless Chrome over out/ (chrome.mjs).
-// A grid inside .wgrid-wrap counts columns from the wrapper's width: 4 from 688px, 2 from 560px,
-// 1 below, whatever the viewport. A grid with no wrapper keeps the viewport rule (1100px, 560px)
-// and the column counts and tile widths it had before the wrapper existed. On / and /widgets the
-// React part wraps its own grid and fits each tile to the columns the CSS shows; the home hero,
-// split, pins its 4 columns. A small tile under 180px lays its four-size pill out 2 by 2.
+// The widget grid's container mode (issue 207), in headless Chrome over out/ (chrome.mjs).
+// Default mode is what staging rendered: a bare .wgrid that steps down on the viewport (1100px,
+// 560px), with className on the grid element, so a consumer's placement, shrink-to-fit parent,
+// percentage height and sticky rules keep working. Container mode is opt-in (.wgrid-wrap, or the
+// React part's container prop): the grid counts columns from the wrapper's width, 4 from 688px,
+// 2 from 560px, 1 below, whatever the viewport. On /widgets only the Container specimen opts in.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { start } from './chrome.mjs';
@@ -11,12 +11,28 @@ import { start } from './chrome.mjs';
 const TILES = ['s', 'm', 'l', 'xl', 's'].map((s) => `<div class="wtile" data-size="${s}"></div>`).join('');
 const GRID = `<div class="wgrid">${TILES}</div>`;
 const WRAPPED = `<div class="wgrid-wrap">${GRID}</div>`;
-const doc = (body) => `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/components.css"><style>html,body{margin:0}</style></head><body>${body}</body></html>`;
-const CONTAINERS = [[1112, 4], [952, 4], [688, 4], [687, 2], [560, 2], [559, 1]];
+const doc = (body, css = '') => `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/components.css"><style>html,body{margin:0}${css}</style></head><body>${body}</body></html>`;
+
+/* Wrapper width, viewport, columns. 768 and 688 run at a 1000px viewport, where the viewport rule
+   alone would give 2 columns; 687, 560 and 559 at 1400px, where it would give 4. */
+const CONTAINERS = [[1112, 1400, 4], [952, 1400, 4], [768, 1000, 4], [688, 1000, 4], [687, 1400, 2], [560, 1400, 2], [559, 1400, 1]];
+
+/* A grid in default mode, as the React part renders it: tiles with 100px of content. */
+const FILLED = `<div class="wgrid">${['s', 's', 's', 's'].map((s) => `<div class="wtile" data-size="${s}"><div style="width:100px;height:40px"></div></div>`).join('')}</div>`;
+/* Edit mode markup for one small tile with four sizes, as the React part renders it. */
+const BTN = (n) => Array.from({ length: n }, () => '<button type="button"></button>').join('');
+const EDITING = `<div style="width:688px"><div class="wgrid-wrap"><div class="wgrid" data-editing><div class="wtile" data-size="s"><button type="button" class="wtile-x"></button><div class="wtile-body"></div><div class="wtile-edit"><div class="wtile-move">${BTN(2)}</div><div class="wtile-sizes">${BTN(4)}</div></div></div></div></div></div>`;
+
 const EXTRA = {
   ...Object.fromEntries(CONTAINERS.map(([w]) => [`/__probe/wgrid-${w}`, doc(`<div style="width:${w}px">${WRAPPED}</div>`)])),
   '/__probe/wgrid-full': doc(WRAPPED),
   '/__probe/wgrid-full-bare': doc(GRID),
+  '/__probe/default-placed': doc(`<div class="gp" style="display:grid;grid-template-columns:232px 1fr">${FILLED}</div>`, '.gp > .wgrid{grid-column:1 / -1}'),
+  '/__probe/default-inline-block': doc(`<div style="display:inline-block">${FILLED}</div>`),
+  '/__probe/default-auto-track': doc(`<div style="display:grid;grid-template-columns:auto 1fr"><div>${FILLED}</div><div></div></div>`),
+  '/__probe/default-height': doc(`<div class="ph" style="height:300px">${FILLED}</div>`, '.ph .wgrid{height:100%;overflow:auto}'),
+  '/__probe/default-sticky': doc(`<div style="height:3000px">${FILLED}</div>`, '.wgrid{position:sticky;top:0}'),
+  '/__probe/editing-688': doc(EDITING),
 };
 
 /* Every .wgrid on the page: its wrapper's width (null with no wrapper), the columns and row gap
@@ -50,15 +66,14 @@ async function measure(path, width, wait = 0) {
   return grids;
 }
 
-for (const [w, cols] of CONTAINERS) {
-  test(`a wrapped grid in a ${w}px container shows ${cols} column${cols > 1 ? 's' : ''} at a 1400px viewport`, { timeout: 60000 }, async () => {
-    const [g] = await measure(`/__probe/wgrid-${w}`, 1400);
+for (const [w, viewport, cols] of CONTAINERS) {
+  test(`container mode: a ${w}px wrapper shows ${cols} column${cols > 1 ? 's' : ''} at a ${viewport}px viewport`, { timeout: 60000 }, async () => {
+    const [g] = await measure(`/__probe/wgrid-${w}`, viewport);
     assert.equal(g.wrap, w);
     assert.equal(g.cols, cols);
     assert.equal(g.gap, cols === 1 ? '12px' : '16px');
-    const gap = 16;
-    const col = (w - (cols - 1) * gap) / cols;
-    const span = (n) => (cols === 1 ? w : Math.min(n, cols) * col + (Math.min(n, cols) - 1) * gap);
+    const col = (w - (cols - 1) * 16) / cols;
+    const span = (n) => (cols === 1 ? w : Math.min(n, cols) * col + (Math.min(n, cols) - 1) * 16);
     assert.deepEqual(g.tiles, [['s', span(1)], ['m', span(2)], ['l', span(2)], ['xl', span(4)], ['s', span(1)]]);
   });
 }
@@ -73,7 +88,7 @@ const BEFORE = [
 ];
 /* A wrapped edge-to-edge grid is its own 1000px container: 4 columns there, the one row that differs. */
 const WRAPPED_FULL = BEFORE.map((row) => (row[0] === 1000 ? [1000, 4, '16px', [238, 492, 492, 1000]] : row));
-for (const [path, label, rows] of [['/__probe/wgrid-full-bare', 'bare grid is unchanged', BEFORE], ['/__probe/wgrid-full', 'wrapped grid follows its width', WRAPPED_FULL]]) {
+for (const [path, label, rows] of [['/__probe/wgrid-full-bare', 'default grid is unchanged', BEFORE], ['/__probe/wgrid-full', 'container-mode grid follows its width', WRAPPED_FULL]]) {
   for (const [width, cols, gap, widths] of rows) {
     test(`a full-width ${label} at ${width}px: ${cols} column${cols > 1 ? 's' : ''}`, { timeout: 60000 }, async () => {
       const [g] = await measure(path, width);
@@ -84,14 +99,55 @@ for (const [path, label, rows] of [['/__probe/wgrid-full-bare', 'bare grid is un
   }
 }
 
-const columnsFor = (w) => (w >= 688 ? 4 : w >= 560 ? 2 : 1);
-for (const width of [1400, 1280, 1000, 500]) {
-  test(`/widgets at ${width}px: every React grid follows its wrapper and fits its tiles`, { timeout: 60000 }, async () => {
-    const grids = (await measure('/widgets', width, 900)).filter((g) => !g.forced);
-    assert.ok(grids.length >= 3, `found ${grids.length} grids`);
+/* The four ways an always-on wrapper broke existing consumers. Default mode must match staging,
+   measured there at a 1280px viewport: 1280px and 4 columns placed across a 232px + 1fr grid;
+   four 102px tiles (456px, 4 columns) in a shrink-to-fit parent, never 0px; 300px tall at height:100%; stuck at the top. */
+const BOX = (scroll = 0) => `(async () => {
+  scrollTo(0, ${scroll});
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const g = document.querySelector('.wgrid');
+  const r = g.getBoundingClientRect();
+  return JSON.stringify({ direct: !g.parentElement.classList.contains('wgrid-wrap'), w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top), cols: getComputedStyle(g).gridTemplateColumns.split(' ').length, tile: Math.round(g.firstElementChild.getBoundingClientRect().width) });
+})()`;
+async function box(path, scroll = 0) {
+  const page = await run.page({ width: 1280, height: 900, scheme: 'light' });
+  await page.goto(path);
+  const r = JSON.parse(await page.evaluate(BOX(scroll)));
+  await page.close();
+  return r;
+}
+
+test('default mode: a consumer rule that places .wgrid across its parent grid still applies (1280px, 4 columns)', { timeout: 60000 }, async () => {
+  const g = await box('/__probe/default-placed');
+  assert.deepEqual([g.w, g.cols, g.tile], [1280, 4, 308]);
+});
+
+for (const [path, label] of [['/__probe/default-inline-block', 'an inline-block parent'], ['/__probe/default-auto-track', 'an auto track']]) {
+  test(`default mode: in ${label} the grid takes its width from its content (456px, 4 columns)`, { timeout: 60000 }, async () => {
+    const g = await box(path);
+    assert.deepEqual([g.w, g.cols, g.tile], [456, 4, 102]);
+  });
+}
+
+test('default mode: height:100% and overflow on .wgrid resolve against the parent (300px)', { timeout: 60000 }, async () => {
+  const g = await box('/__probe/default-height');
+  assert.equal(g.h, 300);
+});
+
+test('default mode: position:sticky on .wgrid sticks', { timeout: 60000 }, async () => {
+  const g = await box('/__probe/default-sticky', 800);
+  assert.equal(g.top, 0);
+});
+
+const viewportColumns = (w) => (w >= 1100 ? 4 : w >= 560 ? 2 : 1);
+const containerColumns = (w) => (w >= 688 ? 4 : w >= 560 ? 2 : 1);
+for (const width of [1400, 1280, 1100, 1000, 500]) {
+  test(`/widgets at ${width}px: only the Container specimen is in container mode, and every grid fits its tiles`, { timeout: 60000 }, async () => {
+    const grids = await measure('/widgets', width, 900);
+    assert.deepEqual(grids.filter((g) => g.wrap !== null).map((g) => g.name), ['Container widgets']);
+    assert.ok(grids.length >= 5, `found ${grids.length} grids`);
     for (const g of grids) {
-      assert.notEqual(g.wrap, null, `${g.name} has no .wgrid-wrap`);
-      assert.equal(g.cols, columnsFor(g.wrap), `${g.name} is ${g.wrap}px wide`);
+      assert.equal(g.cols, g.wrap === null ? viewportColumns(width) : containerColumns(g.wrap), `${g.name} at ${g.wrap ?? width}px`);
       const sizes = g.tiles.map(([s]) => s);
       if (g.cols < 4) assert.ok(!sizes.includes('xl'), `${g.name}: XL view in ${g.cols} columns`);
       if (g.cols < 2) assert.ok(!sizes.includes('l'), `${g.name}: L view in 1 column`);
@@ -99,60 +155,62 @@ for (const width of [1400, 1280, 1000, 500]) {
   });
 }
 
-test('the home hero keeps its 4 columns while split, at a 1400px viewport', { timeout: 60000 }, async () => {
+test('/widgets at 1100px: beside its rail the Container specimen shows 2 columns while the viewport grids show 4', { timeout: 60000 }, async () => {
+  const grids = await measure('/widgets', 1100, 900);
+  const beside = grids.find((g) => g.name === 'Container widgets');
+  assert.ok(beside.wrap < 688 && beside.wrap >= 560, `the specimen grid is ${beside.wrap}px wide`);
+  assert.equal(beside.cols, 2);
+  assert.equal(grids.find((g) => g.name === 'Revenue sizes').cols, 4);
+});
+
+/* A React grid in default mode, put in a shrink-to-fit parent on the live page, keeps its width. */
+test('/widgets: a default-mode React grid is the direct child of its parent and survives a shrink-to-fit parent', { timeout: 60000 }, async () => {
+  const page = await run.page({ width: 1280, height: 900, scheme: 'light' });
+  await page.goto('/widgets');
+  const r = JSON.parse(await page.evaluate(`(async () => {
+    await new Promise((r) => setTimeout(r, 900));
+    const g = document.querySelector('.wgrid[aria-label="Revenue sizes"]');
+    const direct = !g.parentElement.classList.contains('wgrid-wrap');
+    const box = document.createElement('div');
+    box.style.display = 'inline-block';
+    g.replaceWith(box);
+    box.append(g);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    return JSON.stringify({ direct, w: Math.round(g.getBoundingClientRect().width), cols: getComputedStyle(g).gridTemplateColumns.split(' ').length });
+  })()`));
+  await page.close();
+  assert.ok(r.direct, 'the grid has a wrapper in default mode');
+  assert.ok(r.w > 400, `the grid is ${r.w}px wide`);
+  assert.equal(r.cols, 4);
+});
+
+test('the home hero is in default mode: 4 columns at a 1400px viewport, as on staging', { timeout: 60000 }, async () => {
   const hero = (await measure('/', 1400, 900)).find((g) => g.name === 'Live home');
-  assert.ok(hero, 'no Live home grid');
-  assert.ok(hero.wrap < 688, `the split hero grid is ${hero.wrap}px wide`);
-  assert.equal(hero.forced, '4');
-  assert.equal(hero.cols, 4);
-  assert.deepEqual(hero.tiles.map(([s]) => s), ['l', 'm', 'm']);
-});
-
-test('the home hero, stacked at a 1000px viewport, follows its container', { timeout: 60000 }, async () => {
-  const hero = (await measure('/', 1000, 900)).find((g) => g.name === 'Live home');
+  assert.equal(hero.wrap, null);
   assert.equal(hero.forced, null);
-  assert.equal(hero.cols, columnsFor(hero.wrap));
   assert.equal(hero.cols, 4);
-  /* 4 columns hold all three tiles, L beside two M: no hole where the third was hidden */
-  assert.equal(hero.tiles.filter(([, w]) => w > 0).length, 3);
+  assert.deepEqual(hero.tiles, [['l', 290.67], ['m', 290.67], ['m', 290.67]]);
 });
 
-test('the home hero under 688px of its own width drops to two tiles', { timeout: 60000 }, async () => {
-  const hero = (await measure('/', 700, 900)).find((g) => g.name === 'Live home');
-  assert.ok(hero.wrap < 688, `the hero grid is ${hero.wrap}px wide`);
-  assert.equal(hero.cols, columnsFor(hero.wrap));
-  assert.equal(hero.tiles.filter(([, w]) => w > 0).length, 2);
-});
-
-/* Edit mode on /widgets with the Home grid's wrapper held at 688px: small tiles are 160px wide. */
-const PILL = `(async () => {
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  await sleep(900);
-  const g = document.querySelector('.wgrid[aria-label="Home widgets"]');
-  g.parentElement.style.width = '688px';
-  document.querySelector('.wx-head .btn').click();
-  await sleep(500);
-  const four = [...g.querySelectorAll('.wtile')].find((t) => t.querySelectorAll('.wtile-sizes button').length === 4);
-  if (!four) return JSON.stringify({ found: false });
-  four.querySelector('.wtile-sizes button').click();
-  await sleep(700);
+/* Edit mode in container mode at a 688px wrapper and a 1000px viewport: the small tile is 160px wide. */
+const PILL = `(() => {
   const box = (el) => { const r = el.getBoundingClientRect(); return { l: Math.round(r.left), t: Math.round(r.top), r: Math.round(r.right), b: Math.round(r.bottom) }; };
+  const t = document.querySelector('.wtile');
   return JSON.stringify({
-    found: true, size: four.dataset.size, cols: getComputedStyle(g).gridTemplateColumns.split(' ').length,
-    tile: box(four), remove: box(four.querySelector('.wtile-x')), move: box(four.querySelector('.wtile-move')),
-    pill: box(four.querySelector('.wtile-sizes')), buttons: [...four.querySelectorAll('.wtile-sizes button')].map(box),
+    cols: getComputedStyle(t.parentElement).gridTemplateColumns.split(' ').length,
+    tile: box(t), remove: box(t.querySelector('.wtile-x')), move: box(t.querySelector('.wtile-move')),
+    pill: box(t.querySelector('.wtile-sizes')), buttons: [...t.querySelectorAll('.wtile-sizes button')].map(box),
   });
 })()`;
 
-test('edit mode at a 688px container: a 160px small tile holds its four-size pill 2 by 2, inside the tile', { timeout: 60000 }, async () => {
-  const page = await run.page({ width: 1400, height: 900, scheme: 'light', reducedMotion: true });
-  await page.goto('/widgets');
+test('container mode, edit mode at a 688px wrapper: a 160px small tile holds its four-size pill 2 by 2, inside the tile', { timeout: 60000 }, async () => {
+  const page = await run.page({ width: 1000, height: 900, scheme: 'light', reducedMotion: true });
+  await page.goto('/__probe/editing-688');
   const r = JSON.parse(await page.evaluate(PILL));
   await page.close();
-  assert.ok(r.found, 'no widget with four sizes on the Home grid');
   assert.equal(r.cols, 4);
-  assert.equal(r.size, 's');
   assert.equal(r.tile.r - r.tile.l, 160);
+  assert.equal(r.buttons.length, 4);
   assert.equal(new Set(r.buttons.map((b) => b.t)).size, 2, 'two rows');
   assert.equal(new Set(r.buttons.map((b) => b.l)).size, 2, 'two columns');
   for (const part of [r.pill, r.move]) {
