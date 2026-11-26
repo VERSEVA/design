@@ -91,8 +91,8 @@ for (const scheme of ['dark', 'light']) {
 /* Withheld data (issue 205). A suppressed bar is a short hatched stub: the hatch is the text ladder, so its
    stripes clear 3:1 against the ground they sit on (and against the track fill on a horizontal row); the stub
    is one fixed size, never a bar length; the printed display clears 4.5:1 in the face and size of the numbers
-   beside it; nothing is the accent. A gap's band carries the same hatch at 3:1, is --s-1 tall, sits below the
-   zero baseline and over the null indices only, and hovering a gap on the live chart names it withheld at
+   beside it; nothing is the accent. A gap's band is HTML over the plot with the stub's own 135deg hatch
+   at 3:1 (so it cannot stretch with the svg), --s-1 tall, below every drawn mark and inside the plot, and hovering a gap on the live chart names it withheld at
    4.5:1 with no value and no marker. Every colour is composited over the real backdrop:
    each ancestor's background down to the first opaque one. The ratios go to the test log. */
 const WITHHELD = `(async () => {
@@ -169,27 +169,30 @@ const WITHHELD = `(async () => {
   }
 
   const gapTile = root.querySelector('#gaps');
-  for (const el of gapTile.querySelectorAll('rect[data-gap]')) {
-    const svgEl = el.ownerSVGElement;
-    const stripeEl = svgEl.querySelector('pattern rect');
+  const stubHatch = getComputedStyle(tile.querySelector('.bar[data-suppressed] .vtrack')).backgroundImage;
+  for (const el of gapTile.querySelectorAll('i.vizgap')) {
+    const cs = getComputedStyle(el);
+    const svgEl = el.parentElement.querySelector('svg');
     const g = ground(el);
-    const stripe = stripeEl && parse(getComputedStyle(stripeEl).fill);
-    if (!stripe || !getComputedStyle(el).fill.startsWith('url(')) { out.bad.push('gap band has no hatch'); continue; }
-    const box = el.getBoundingClientRect();
+    const stripe = /repeating-linear-gradient\\(135deg/.test(cs.backgroundImage) ? parse(cs.backgroundImage) : null;
+    if (!stripe) { out.bad.push('gap band has no 135deg hatch'); continue; }
+    const box = el.getBoundingClientRect(), plot = svgEl.getBoundingClientRect();
     const r = { ratio: ratio(over(stripe, g), g), w: box.width, h: box.height };
     out.gaps.push(r);
     if (r.ratio < 3) out.bad.push('gap band ' + r.ratio.toFixed(2) + ':1');
     if (stripe.slice(0, 3).join() === accent) out.bad.push('gap band spends the accent');
-    if (Math.abs(box.height - parseFloat(px('var(--s-1)'))) > 0.5) out.bad.push('gap band is ' + box.height + 'px tall, not --s-1');
-    if (box.bottom > svgEl.getBoundingClientRect().bottom + 0.5) out.bad.push('gap band runs out of the plot');
-    /* clear of everything drawn: no line, area or dot of the plot reaches the band's row or touches its ends */
+    if (cs.backgroundImage !== stubHatch) out.bad.push('gap band hatch is not the bar stub hatch');
+    if (cs.height !== px('var(--s-1)')) out.bad.push('gap band is ' + cs.height + ' tall, not --s-1');
+    if (el.closest('svg')) out.bad.push('gap band is inside the stretched svg');
+    if (el.getAttribute('aria-hidden') !== 'true' || el.textContent) out.bad.push('gap band is not a silent mark');
+    if (box.bottom > plot.bottom + 0.5 || box.left < plot.left - 0.5 || box.right > plot.right + 0.5) out.bad.push('gap band runs out of the plot');
+    /* clear of everything drawn: no line or dot of the plot reaches down into the band's row */
     for (const mark of svgEl.querySelectorAll('path[fill="none"], circle')) {
-      const m = mark.getBBox(), b = el.getBBox();
-      if (m.y + m.height > b.y - 1) out.bad.push('a mark reaches down to the gap band');
+      if (mark.getBoundingClientRect().bottom > box.top + 0.5) out.bad.push('a mark reaches down to the gap band');
     }
   }
-  const lineBands = [...gapTile.querySelectorAll('.vizplot rect[data-gap]')].map((r) => r.getBBox());
-  if (new Set(lineBands.map((b) => b.y)).size > 1) out.bad.push('the two series do not share one band row');
+  const rows = [...gapTile.querySelectorAll('.vizplot i.vizgap')].map((r) => Math.round(r.getBoundingClientRect().top));
+  if (new Set(rows).size > 1) out.bad.push('the two series do not share one band row');
 
   /* Hover the live chart at W4: Visits is a gap there, Booked is 52. */
   const svg = gapTile.querySelector('.vizplot svg');
@@ -229,7 +232,7 @@ for (const scheme of ['dark', 'light']) {
     assert.deepEqual(r.bad, []);
     assert.equal(r.stubs.length, 2, 'one vertical and one horizontal stub');
     assert.equal(r.labels.length, 2);
-    assert.equal(r.gaps.length, 4, 'three gap bands on the chart, one on the sparkline');
+    assert.equal(r.gaps.length, 3, 'two bands on the chart (three gaps, two touching), one on the sparkline');
     assert.deepEqual(r.hover && { label: r.hover.label, rows: r.hover.rows, markers: r.hover.markers }, { label: 'W4', rows: ['Visits withheld', 'Booked 52'], markers: 1 });
   });
 }

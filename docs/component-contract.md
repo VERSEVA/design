@@ -566,13 +566,17 @@ color-alone).
     value and the `title`; the bar still draws from the real value and counts toward the scale.
   - **Gap (`LineChart` series, `Sparkline`: `null`).** The line breaks at a null and resumes after
     it; the area fill breaks with it. No point is drawn there, it is never interpolated across, and
-    it is left out of the scale. A hatched band marks the gap: `--s-1` tall, 2px BELOW the zero
-    baseline and never on it, the stub's 135deg `--text-3` hatch, over the null indices only and
-    short of the known points either side. A chart with a gap keeps that room under its plot; one
-    without renders as before. Hover on a null index shows no value and no marker for that
+    it is left out of the scale. A hatched band marks the gap: `.vizgap`, `--s-1` tall, 2px BELOW
+    the zero baseline and never on it, the stub's own 135deg `--text-3` hatch. It is HTML over the
+    plot (`.vizframe`), not part of the stretched svg, so the hatch keeps its angle; it is
+    `aria-hidden` and carries no value. Its place and width come only from which indices are null:
+    the null indices and half a step either side, never narrower than one step. Bands mark an
+    index, not a series: two series share one row, and stretches that touch are one band. A chart with a gap keeps that room under its
+    plot; one without renders as before. Hover on a null index shows no value and no marker for that
     series, and names it with the withheld word in `--text-2`. The end dot marks the last index, so
     a series ending in a null has none. A value alone between two gaps is an r=3 dot. A real `0` is
-    a value and draws on the baseline; `NaN` is a gap. All nulls render the empty state. The dashed
+    a value and draws on the baseline; `NaN` is a gap. A series or a chart that is ALL null is
+    withheld, not empty: one band across the whole plot. Only an empty array is the empty state. The dashed
     `--data-alt` second series is unchanged alongside gaps.
   - **The withheld word is copy:** `vizLabels={{ withheld }}` on `LineChart`, `Bars` and `HBars`,
     default `withheld`, lowercase since it follows a name (`react/viz-state.ts`).

@@ -355,9 +355,10 @@ describe('Data viz tiles: withheld data', () => {
     expect(booked.querySelector('path')!.getAttribute('stroke-dasharray')).toBe('5 4');
     /* Booked: one lone value after its gap (a dot), then a trailing gap, so no end dot beyond it */
     expect([...booked.querySelectorAll('circle')].map((c) => c.getAttribute('cx'))).toEqual(['270']);
-    expect(root.querySelectorAll('#gaps .vizplot rect[data-gap]')).toHaveLength(3);
-    expect(root.querySelectorAll('#gaps .spark rect[data-gap]')).toHaveLength(1);
-    expect(root.querySelectorAll('#gaps line[data-gap]')).toHaveLength(0);
+    /* three gaps on the chart, two of them touching across the series: two bands */
+    expect(root.querySelectorAll('#gaps .vizplot > .vizframe > i.vizgap')).toHaveLength(2);
+    expect(root.querySelectorAll('#gaps .spark > .vizframe > i.vizgap')).toHaveLength(1);
+    expect(root.querySelectorAll('#gaps svg [data-gap], #gaps svg pattern')).toHaveLength(0);
     expect(root.querySelector('#gaps .spark path[fill="none"]')!.getAttribute('d')!.split('M').length - 1).toBe(2);
   });
 
