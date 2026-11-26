@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import { buildSections, firstSelectable, isAsyncIterable, moveSelection, resultCount } from './command-state';
 import type { BarOption } from './command-state';

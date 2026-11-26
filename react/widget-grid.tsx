@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import {
   LAYOUT_KEY, SIZE_LABEL, BREAKPOINTS,

@@ -5,6 +5,8 @@
 ### Added
 
 - **`--exclude <dir>` on the gate suite.** `verseva-gate` and the hex, spacing and type gates take a repeatable `--exclude <dir>` that skips the directory of that name directly under a scan path. Top level only: the same name deeper in the tree is still scanned, and nothing is excluded unless the flag is passed. This repo passes `--exclude swift` so the coming Swift package's sources stay out of the web gates.
+- **Experimental: the React parts are importable from the package.** `exports` gains `./react/*`, so `@verseva/design/react/viz` resolves to `react/viz.tsx`, and the logic modules (`cx`, `inert`, `activity-state`, `command-state`, `console-state`, `widget-state`) resolve to their `.ts` files. It is raw TypeScript source: your bundler transpiles it. Experimental means prop shapes may change in a minor release until the export is declared stable. No React peer is declared, and `verseva add` is unchanged.
+- **`'use client';` on every stateful React file.** Each file in `react/` that calls a hook, takes or attaches an event handler, or reaches for a browser-only global now starts with the directive, so a server-component framework can import it. Pure files (`badge`, `button`, `card`, `skeleton`, `stat`, `switch`, `cx`, `inert` and the state modules) carry none and stay importable from server code. `verseva add` and the hosted registry items copy the directive with the file. A test enumerates `react/` and fails when a new file misses it.
 
 ### Fixed
 
