@@ -196,6 +196,7 @@ test('menu: one trigger shows the preset; arrows, Home, End; Escape closes and r
     await click(trig);
     await click(items()[3]);
     const dlg = document.querySelector('dialog.sheet, dialog.modal');
+    dlg.getAnimations().forEach((x) => { try { x.finish(); } catch (e) {} });
     const mbox = dlg.getBoundingClientRect();
     out.centred = { dx: Math.abs(mbox.left + mbox.width / 2 - innerWidth / 2), dy: Math.abs(mbox.top + mbox.height / 2 - innerHeight / 2), left: mbox.left, top: mbox.top };
     out.custom = { dialog: !!dlg && dlg.matches(':modal'), kind: dlg ? dlg.className : null, title: dlg?.querySelector('h4')?.textContent, labelled: dlg ? document.getElementById(dlg.getAttribute('aria-labelledby'))?.textContent : null, active: active(), menu: shown(list), close: dlg?.querySelector('.bd > .btn.icon')?.getAttribute('aria-label'), buttons: dlg ? [...dlg.querySelectorAll('.ft .btn')].map((b) => b.textContent) : [] };

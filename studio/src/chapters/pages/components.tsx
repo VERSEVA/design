@@ -4,7 +4,7 @@
 // bulk, accordion nav): scoped to the chapter root, listeners on the abort signal, and
 // every change it makes to the DOM undone on cleanup. Code panels are the tiles' own.
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DateRange, type DateRangeProps, type DateRangeValue } from '../../../../react/date-range';
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
 import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
@@ -62,12 +62,31 @@ const snapWeek = (date: string, edge: 'from' | 'to') => {
   return new Date(edge === 'from' ? monday : monday + 6 * DAY_MS).toISOString().slice(0, 10);
 };
 
-function RangeSpecimen({ start = RANGE_WEEK, presets = RANGE_PRESETS, ...props }: { start?: DateRangeValue; presets?: DateRangeProps['presets'] } & Omit<DateRangeProps, 'value' | 'onChange' | 'presets'>) {
+/* One state of the part: its name over a live specimen. `typed` types a date into the To field and
+   leaves it once the page has settled, so the invalid state is the real one: a valid value, and a
+   field holding a date the part will not emit. */
+function RangeSpecimen({ name, typed, start = RANGE_WEEK, presets = RANGE_PRESETS, ...props }: { name: string; typed?: string; start?: DateRangeValue; presets?: DateRangeProps['presets'] } & Omit<DateRangeProps, 'value' | 'onChange' | 'presets'>) {
   const [value, setValue] = useState(start);
   const [emits, setEmits] = useState(0);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!typed) return;
+    let next = 0;
+    const first = requestAnimationFrame(() => {
+      const input = box.current?.querySelector<HTMLInputElement>('input[data-k="to"]');
+      if (!input) return;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, typed);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      next = requestAnimationFrame(() => input.dispatchEvent(new FocusEvent('focusout', { bubbles: true })));
+    });
+    return () => { cancelAnimationFrame(first); cancelAnimationFrame(next); };
+  }, [typed]);
   return (
-    <div className="specimen" data-value={JSON.stringify(value)} data-emits={emits}>
-      <DateRange {...props} presets={presets} value={value} onChange={(v) => { setValue(v); setEmits((n) => n + 1); }} snap={snapWeek} min="2025-10-27" max="2026-11-29" />
+    <div className="range-state">
+      <span className="range-state-name">{name}</span>
+      <div className="specimen" ref={box} data-value={JSON.stringify(value)} data-emits={emits}>
+        <DateRange {...props} presets={presets} value={value} onChange={(v) => { setValue(v); setEmits((n) => n + 1); }} snap={snapWeek} min="2025-10-27" max="2026-11-29" />
+      </div>
     </div>
   );
 }
@@ -1176,18 +1195,20 @@ export function Page() {
           </SpecimenTile>
           <SpecimenTile id="range" name="Date range" icon={ICON.control} size="xl" meta="5 states" code={sample('range')}>
             <div className="demo range-demo">
-              <RangeSpecimen id="rg-a" custom compare zone="UTC" />
-              <RangeSpecimen id="rg-b" presets={RANGE_PRESETS.slice(0, 2)} zone="UTC" />
-              <RangeSpecimen id="rg-c" custom compare zone="UTC" start={{ range: 'custom', from: '2026-10-05', to: '2026-11-01', compare: true }} />
-              <RangeSpecimen id="rg-d" custom compare zone="UTC" start={{ range: 'custom', from: '2026-11-16', to: '2026-11-08', compare: false }} />
-              <RangeSpecimen id="rg-e" custom compare zone="UTC" disabled start={{ range: '28', from: '2026-11-02', to: '2026-11-29', compare: false }} />
+              <RangeSpecimen name="Default" id="rg-a" custom compare zone="UTC" />
+              <RangeSpecimen name="Two presets" id="rg-b" presets={RANGE_PRESETS.slice(0, 2)} zone="UTC" />
+              <RangeSpecimen name="Custom, compare on" id="rg-c" custom compare zone="UTC" start={{ range: 'custom', from: '2026-10-05', to: '2026-11-01', compare: true }} />
+              <RangeSpecimen name="Invalid range" id="rg-d" custom compare zone="UTC" start={{ range: 'custom', from: '2026-11-02', to: '2026-11-15', compare: false }} typed="2026-10-25" />
+              <RangeSpecimen name="Disabled" id="rg-e" custom compare zone="UTC" disabled start={{ range: '28', from: '2026-11-02', to: '2026-11-29', compare: false }} />
             </div>
           </SpecimenTile>
-          <SpecimenTile id="range-menu" name="Range menu" icon={ICON.control} size="xl" meta="3 states" code={sample('range-menu')}>
+          <SpecimenTile id="range-menu" name="Range menu" icon={ICON.control} size="xl" meta="5 states" code={sample('range-menu')}>
             <div className="demo range-demo">
-              <RangeSpecimen id="rm-a" variant="menu" custom compare />
-              <RangeSpecimen id="rm-b" variant="menu" presets={RANGE_PRESETS.slice(0, 2)} />
-              <RangeSpecimen id="rm-c" variant="menu" custom compare disabled />
+              <RangeSpecimen name="Default" id="rm-a" variant="menu" custom compare />
+              <RangeSpecimen name="Two presets" id="rm-b" variant="menu" presets={RANGE_PRESETS.slice(0, 2)} />
+              <RangeSpecimen name="Custom range" id="rm-c" variant="menu" custom compare start={{ range: 'custom', from: '2026-10-05', to: '2026-11-01', compare: false }} />
+              <RangeSpecimen name="Compare on" id="rm-d" variant="menu" custom compare start={{ ...RANGE_WEEK, compare: true }} />
+              <RangeSpecimen name="Disabled" id="rm-e" variant="menu" custom compare disabled />
             </div>
           </SpecimenTile>
           <SpecimenTile id="tooltip" name="Tooltip" icon={ICON.control} size="s" code={sample('tooltip')}>

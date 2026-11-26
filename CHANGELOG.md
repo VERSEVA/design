@@ -13,6 +13,8 @@
 
 - **Date range control: `.range-ctl`, `.range-fields`.** One control sets the period a page of charts covers. The default is the host's presets on `.seg` as a radiogroup, an optional Compare chip, a quiet range line and two date fields for Custom; a compact form puts the presets behind one `.menu` trigger for a page header. Under 560px the custom dates open in the `.sheet`. The value is one plain object (`range`, `from`, `to`, `compare`); the part is controlled and never touches the URL, and an optional host `snap` runs on blur. `.seg` gains `[aria-checked]` styling beside `[aria-selected]`, and `.sheet` and `.modal` can sit on a native `<dialog>`. React: `DateRange` with the pure `date-range-state` module (`npx verseva add date-range`).
 
+- **Filter chips read in the face around them.** `.fchip` is a button, and a button takes the system face unless told otherwise, so every filter chip rendered in the browser's default sans. `.fchip` now sets `font-family:inherit`. Package-wide: every filter chip changes face and grows by the difference in line height.
+
 ### Fixed
 
 - **The studio side nav sits flush against the window's left edge.** The shell centred everything at 1440px, so on wide screens the nav, expanded or as the rail, floated in from the left. The body is now full bleed; only the content column is capped (1208px) and centred. A served test checks the nav's left edge at 1920 on `/` and `/components`, in both states.

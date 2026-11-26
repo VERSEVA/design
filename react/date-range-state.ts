@@ -81,9 +81,12 @@ export const DATE_RANGE_LABELS: DateRangeLabels = {
 /** The `range` of a value whose dates were typed. */
 export const CUSTOM_RANGE = 'custom';
 
-/** A real calendar day written 'YYYY-MM-DD'. */
+/**
+ * A real calendar day written 'YYYY-MM-DD', in a year from 1000 on. A date field reads
+ * '0002-11-02' while its year is half typed; that is a missing date, not year 2.
+ */
 export function isDate(s: unknown): s is string {
-  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  if (typeof s !== 'string' || !/^[1-9]\d{3}-\d{2}-\d{2}$/.test(s)) return false;
   const t = Date.parse(`${s}T00:00:00Z`);
   return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === s;
 }
@@ -97,9 +100,18 @@ export function dayText(date: string): string {
   return isDate(date) ? FULL.format(at(date)) : date;
 }
 
-/** '23 Nov to 29 Nov 2026': the default range line. Pass formatRange for another locale. */
+/**
+ * '23 Nov to 29 Nov 2026': the default range line. The start carries its own year when that
+ * differs from the end's ('29 Dec 2025 to 4 Jan 2026'). Pass formatRange for another locale.
+ */
 export function rangeText(from: string, to: string): string {
-  return `${isDate(from) ? DAY.format(at(from)) : from} to ${dayText(to)}`;
+  const sameYear = isDate(from) && isDate(to) && from.slice(0, 4) === to.slice(0, 4);
+  return `${isDate(from) ? (sameYear ? DAY : FULL).format(at(from)) : from} to ${dayText(to)}`;
+}
+
+/** The preset the value stands for: its name and both dates match. The first of two with one value; -1 for none. */
+export function chosenPreset(presets: DateRangePreset[], value: DateRangeValue): number {
+  return presets.findIndex((p) => p.value === value.range && p.from === value.from && p.to === value.to);
 }
 
 export interface DateRangeLimits {
@@ -108,8 +120,15 @@ export interface DateRangeLimits {
   labels?: DateRangeLabels;
 }
 
+/** A limit that is a date; a malformed one is no limit. */
+export function limit(date: string | undefined): string | undefined {
+  return isDate(date) ? date : undefined;
+}
+
 /** A custom range is two dates, inside min and max when given, the start not after the end. */
-export function checkRange(from: string, to: string, { min, max, labels = DATE_RANGE_LABELS }: DateRangeLimits = {}): { ok: boolean; errors: DateRangeErrors } {
+export function checkRange(from: string, to: string, limits: DateRangeLimits = {}): { ok: boolean; errors: DateRangeErrors } {
+  const { labels = DATE_RANGE_LABELS } = limits;
+  const min = limit(limits.min), max = limit(limits.max);
   const errors: DateRangeErrors = {};
   if (!isDate(from)) errors.from = labels.needFrom;
   if (!isDate(to)) errors.to = labels.needTo;

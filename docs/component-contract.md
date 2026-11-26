@@ -189,11 +189,13 @@ classes: the wrapper and the custom-date row. Presets are the host's (for exampl
   `.seg` as a radiogroup (`role="radiogroup"`, each button `role="radio"` with `aria-checked`,
   which carries the same pressed look as `aria-selected`), the custom dates (`.range-fields`,
   two `.field` date inputs, shown for Custom), an optional Compare toggle (`.fchip` with
-  `aria-pressed`, named "Compare with previous period"), and a quiet range line (`.metaline`).
+  `aria-pressed`, named "Compare with previous period"), and a quiet range line (`.metaline`,
+  `aria-live="polite"`).
 - **Menu (compact, for a page header):** a plain `.menu` with `data-range`. One `.btn.btn-secondary`
   trigger shows the current preset and its dates; the list holds one `menuitemradio` per preset
   with its dates in a `.metaline`, then Custom and a `menuitemcheckbox` for Compare only when
-  the host passes them. Custom opens `.range-fields` in a `.modal`.
+  the host passes them. The presets and Custom sit in one `role="group"`, apart from the Compare
+  on/off item. Custom opens `.range-fields` in a `.modal`, centred.
 - **Phone (under 560px):** the presets share the row at full width, the inline fields are
   dropped, and Custom opens `.range-fields` in the `.sheet`, from either form, with Cancel and
   Apply. The sheet and the modal sit on a native `<dialog>` (`dialog.sheet`, `dialog.modal`):
@@ -201,9 +203,19 @@ classes: the wrapper and the custom-date row. Presets are the host's (for exampl
 - **Value:** controlled, one plain object, `{ range, from, to, compare }`, dates as
   `YYYY-MM-DD`. Every change is one `onChange` with the whole value. The part keeps no value
   and never reads or writes the URL; the host decides where the value lives.
+- **What counts as chosen:** a preset is chosen only when the value carries its name and both
+  its dates. Any other dates read as Custom, whatever name they came under (a link saved last
+  week still says "This week", over last week's dates); with no Custom passed, nothing is
+  chosen and the first preset is the tab stop. The menu trigger then reads the range itself.
+  Two presets with one value: the first is the one chosen.
+- **The range line:** day and month, then the full end date ("23 Nov to 29 Nov 2026"); the start
+  carries its own year when it differs ("29 Dec 2025 to 4 Jan 2026").
 - **Custom dates:** an optional `snap(date, edge)` from the host snaps a date (to a whole week,
   say) when its field loses focus or on Enter, never while typing. `min` and `max` bound the
-  range. The part does no calendar or time zone math; `zone` is a label on the range line.
+  range; a malformed one is ignored. A date is a real day in a year from 1000 on, so a
+  half-typed year is a missing date. A field shows the host's value except while it holds
+  typed text that is not yet a valid range: a change the host refuses falls back to the value,
+  and a change from the host never replaces what is being typed. The part does no calendar or time zone math; `zone` is a label on the range line.
 - **States:** default; custom open; compare on (chip pressed, "vs previous" on the range line);
   invalid custom range (`.field.error` on the field that is wrong, `aria-invalid`, the reason in
   `.help`: a missing date, a start after the end, a date outside `min` and `max`), which emits
@@ -218,7 +230,8 @@ classes: the wrapper and the custom-date row. Presets are the host's (for exampl
   Apply in the sheet or modal is primary.
 - **React:** `DateRange` (`npx verseva add date-range`), `variant="segmented" | "menu"`,
   `presets`, `value`, `onChange`, `custom`, `compare`, `snap`, `min`, `max`, `zone`,
-  `formatRange`, `labels`, `disabled`, `id`. The words, the value type and the range check live
+  `formatRange`, `formatCustom` (what the menu trigger calls a custom range, default "Custom"),
+  `labels`, `disabled`, `id`. The words, the value type and the range check live
   in the pure `date-range-state` module, so server code can read them.
 
 ## NAVSHELL: `.navshell` (the signature's most particular component)

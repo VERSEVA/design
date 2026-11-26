@@ -2,16 +2,20 @@
 import * as React from 'react';
 import { cx } from './cx';
 import {
-  CUSTOM_RANGE, DATE_RANGE_LABELS, checkRange, moveIndex, rangeText, snapRange,
+  CUSTOM_RANGE, DATE_RANGE_LABELS, checkRange, chosenPreset, isDate, limit, moveIndex, rangeText, snapRange,
   type DateRangeEdge, type DateRangeErrors, type DateRangeLabels, type DateRangePreset, type DateRangeSnap, type DateRangeValue,
 } from './date-range-state';
 
 export type { DateRangeEdge, DateRangeErrors, DateRangeLabels, DateRangePreset, DateRangeSnap, DateRangeValue } from './date-range-state';
 
+/* Bundlers replace process.env.NODE_ENV; without one there is no process and no warning. */
+declare const process: { env: { NODE_ENV?: string } } | undefined;
+
 export interface DateRangeProps {
   /** 'segmented' (default): presets in a row with inline custom dates. 'menu': one trigger, for a page header. */
   variant?: 'segmented' | 'menu';
-  /** The host's presets, each with the dates it stands for. The part ships none. */
+  /** The host's presets, each with the dates it stands for. The part ships none. A preset reads as
+      chosen only when the value has its name and both its dates; any other dates read as Custom. */
   presets: DateRangePreset[];
   /** Controlled. The part keeps no value of its own and never reads or writes the URL. */
   value: DateRangeValue;
@@ -22,13 +26,15 @@ export interface DateRangeProps {
   compare?: boolean;
   /** Snaps a custom date when its field loses focus (to whole weeks, say). Never while typing. */
   snap?: DateRangeSnap;
-  /** Earliest start and latest end a custom range may have, 'YYYY-MM-DD'. */
+  /** Earliest start and latest end a custom range may have, 'YYYY-MM-DD'. A malformed one is ignored. */
   min?: string;
   max?: string;
   /** Joined to the range line, e.g. 'UTC'. The part does no time zone math. */
   zone?: string;
   /** The range line's text. Default '23 Nov to 29 Nov 2026'. */
   formatRange?: (from: string, to: string) => string;
+  /** What the menu trigger calls a custom range, e.g. '6 weeks'. Default labels.custom. */
+  formatCustom?: (from: string, to: string) => string;
   labels?: Partial<DateRangeLabels>;
   disabled?: boolean;
   /** Prefix for the ids of the fields, the trigger and the list. Default React.useId(). */
@@ -57,7 +63,7 @@ interface FieldsProps {
   min?: string;
   max?: string;
   disabled?: boolean;
-  onDraft: (draft: Draft) => void;
+  onDraft: (edge: DateRangeEdge, date: string) => void;
   onLeave: (edge: DateRangeEdge) => void;
   onEnter: () => void;
 }
@@ -79,7 +85,7 @@ function Fields({ id, draft, errors, labels, min, max, disabled, onDraft, onLeav
           disabled={disabled}
           aria-invalid={msg ? true : undefined}
           aria-describedby={msg ? `${id}-${k}-e` : undefined}
-          onChange={(e) => onDraft({ ...draft, [k]: e.target.value })}
+          onChange={(e) => onDraft(k, e.target.value)}
           onBlur={() => onLeave(k)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onEnter(); } }}
         />
@@ -140,7 +146,7 @@ function CustomDialog({ kind, id, initial, labels, min, max, snap, onApply, onDo
         labels={labels}
         min={min}
         max={max}
-        onDraft={setDraft}
+        onDraft={(k, date) => setDraft((d) => ({ ...d, [k]: date }))}
         onLeave={() => setDraft((d) => snapRange(d.from, d.to, snap))}
         onEnter={apply}
       />
@@ -192,31 +198,39 @@ function CustomDialog({ kind, id, initial, labels, min, max, snap, onApply, onDo
  * range line and two date fields for Custom. variant="menu" puts the presets behind one trigger
  * (the existing .menu: arrows, Home, End; Escape closes and returns focus to the trigger).
  * Under 560px the custom dates open in the existing .sheet. Controlled: every change is one
- * onChange with the whole value, and an invalid custom range emits nothing.
+ * onChange with the whole value, and an invalid custom range emits nothing. A preset reads as
+ * chosen only when the value has its name and both its dates; other dates read as Custom, or as
+ * nothing chosen when the host passes no Custom.
  */
 export function DateRange({
   variant = 'segmented', presets, value, onChange, custom = false, compare = false, snap, min, max, zone,
-  formatRange = rangeText, labels, disabled = false, id, className,
+  formatRange = rangeText, formatCustom, labels, disabled = false, id, className,
 }: DateRangeProps) {
   const L: DateRangeLabels = { ...DATE_RANGE_LABELS, ...labels };
   const autoId = React.useId();
   const uid = id ?? autoId;
-  const isCustom = value.range === CUSTOM_RANGE;
-  const check = (d: Draft) => checkRange(d.from, d.to, { min, max, labels: L });
+  /* A preset is chosen when the value has its name and both its dates. Any other dates are a
+     custom range, whatever name they came under (a link from last week still says "7"). */
+  const chosen = chosenPreset(presets, value);
+  const isCustom = custom && chosen < 0;
+  const lo = limit(min), hi = limit(max);
+  const check = (d: Draft) => checkRange(d.from, d.to, { min: lo, max: hi, labels: L });
 
-  /* The fields hold what is being typed; they follow the value whenever the host changes it. */
-  const [draft, setDraft] = React.useState<Draft>({ from: value.from, to: value.to });
-  const [errors, setErrors] = React.useState<DateRangeErrors>(() => (isCustom ? check({ from: value.from, to: value.to }).errors : {}));
+  /* A field shows the host's value, except while the user is mid-edit in it: `edit` holds only
+     what was typed and not yet committed. A valid commit clears it, so a change the host
+     refuses falls back to the value, and a change from the host never lands on typed text. */
+  const [edit, setEdit] = React.useState<{ from: string | null; to: string | null }>({ from: null, to: null });
+  const draft: Draft = { from: edit.from ?? value.from, to: edit.to ?? value.to };
+  const [errors, setErrors] = React.useState<DateRangeErrors>(() => (isCustom ? check(draft).errors : {}));
   const [seen, setSeen] = React.useState({ range: value.range, from: value.from, to: value.to });
   if (seen.range !== value.range || seen.from !== value.from || seen.to !== value.to) {
     setSeen({ range: value.range, from: value.from, to: value.to });
-    setDraft({ from: value.from, to: value.to });
-    setErrors(isCustom ? check({ from: value.from, to: value.to }).errors : {});
+    setErrors(isCustom ? check(draft).errors : {});
   }
 
   const [dialog, setDialog] = React.useState<'sheet' | 'modal' | null>(null);
   const [phone, setPhone] = React.useState(false);
-  const [roving, setRoving] = React.useState<string | null>(null);
+  const [roving, setRoving] = React.useState<number | null>(null);
   const [open, setOpen] = React.useState(false);
   const openAt = React.useRef<'checked' | 'last'>('checked');
   const back = React.useRef<HTMLElement | null>(null);
@@ -232,6 +246,16 @@ export function DateRange({
     m.addEventListener?.('change', sync);
     return () => m.removeEventListener?.('change', sync);
   }, []);
+
+  const values = presets.map((p) => p.value).join('\n');
+  React.useEffect(() => {
+    if (typeof process === 'undefined' || process.env.NODE_ENV === 'production') return;
+    const list = values ? values.split('\n') : [];
+    const twice = list.find((v, i) => list.indexOf(v) !== i);
+    if (twice !== undefined) console.warn(`DateRange: two presets share the value "${twice}"; the first one is the one chosen.`);
+    if (min !== undefined && !isDate(min)) console.warn(`DateRange: min="${min}" is not a YYYY-MM-DD date and is ignored.`);
+    if (max !== undefined && !isDate(max)) console.warn(`DateRange: max="${max}" is not a YYYY-MM-DD date and is ignored.`);
+  }, [values, min, max]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -255,26 +279,31 @@ export function DateRange({
     if (el?.isConnected) el.focus();
   };
   const applyDialog = (d: Draft) => {
-    if (!isCustom || d.from !== value.from || d.to !== value.to) onChange({ ...value, range: CUSTOM_RANGE, from: d.from, to: d.to });
+    if (value.range !== CUSTOM_RANGE || d.from !== value.from || d.to !== value.to) onChange({ ...value, range: CUSTOM_RANGE, from: d.from, to: d.to });
     closeDialog();
   };
   /* Inline fields: snap, check, and emit only a valid range that differs from the value. */
   const commitInline = () => {
     const next = snapRange(draft.from, draft.to, snap);
     const r = check(next);
-    setDraft(next);
     setErrors(r.errors);
-    if (r.ok && (next.from !== value.from || next.to !== value.to)) onChange({ ...value, range: CUSTOM_RANGE, from: next.from, to: next.to });
+    if (!r.ok) {
+      setEdit({ from: next.from === value.from ? null : next.from, to: next.to === value.to ? null : next.to });
+      return;
+    }
+    setEdit({ from: null, to: null });
+    if (next.from !== value.from || next.to !== value.to) onChange({ ...value, range: CUSTOM_RANGE, from: next.from, to: next.to });
   };
 
   const line = formatRange(value.from, value.to);
   const versus = compare && value.compare ? ` · ${L.vsPrevious}` : '';
   const sheet = dialog && (
-    <CustomDialog kind={dialog} id={`${uid}-d`} initial={{ from: value.from, to: value.to }} labels={L} min={min} max={max} snap={snap} onApply={applyDialog} onDone={closeDialog} />
+    <CustomDialog kind={dialog} id={`${uid}-d`} initial={{ from: value.from, to: value.to }} labels={L} min={lo} max={hi} snap={snap} onApply={applyDialog} onDone={closeDialog} />
   );
 
   if (variant === 'menu') {
-    const current = isCustom ? L.custom : presets.find((p) => p.value === value.range)?.label ?? '';
+    /* the preset's name, the custom label, or (a value that is neither) the range itself */
+    const current = chosen >= 0 ? presets[chosen].label : isCustom ? formatCustom?.(value.from, value.to) ?? L.custom : null;
     const close = (refocus: boolean) => { setOpen(false); if (refocus) trigRef.current?.focus(); };
     const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (!open) {
@@ -309,24 +338,27 @@ export function DateRange({
         >
           {CAL}
           <span className="sr-only">{`${L.range}: `}</span>
-          <span data-lbl="">{current}</span>
-          <span className="metaline" data-dates="">{`${line}${versus}`}</span>
+          <span data-lbl="">{current ?? `${line}${versus}`}</span>
+          {current !== null && <span className="metaline" data-dates="">{`${line}${versus}`}</span>}
           {CHEV}
         </button>
         <div className="menu-list" role="menu" id={`${uid}-m`} aria-labelledby={`${uid}-t`} hidden={!open} ref={listRef}>
-          {presets.map((p) => (
-            <button key={p.value} type="button" className="menu-item" role="menuitemradio" aria-checked={value.range === p.value} tabIndex={-1} data-v={p.value} onClick={() => { close(true); pickPreset(p); }}>
-              <span>{p.label}</span>
-              <span className="metaline">{formatRange(p.from, p.to)}</span>
-              {TICK}
-            </button>
-          ))}
-          {custom && (
-            <button type="button" className="menu-item" role="menuitemradio" aria-checked={isCustom} aria-haspopup="dialog" tabIndex={-1} data-v={CUSTOM_RANGE} onClick={() => { close(false); openDialog(isPhone() ? 'sheet' : 'modal', trigRef.current); }}>
-              <span>{L.custom}</span>
-              {TICK}
-            </button>
-          )}
+          {/* the one-of-a-set presets are a group, apart from the Compare on/off item */}
+          <div role="group" aria-label={L.range}>
+            {presets.map((p, i) => (
+              <button key={`${i}-${p.value}`} type="button" className="menu-item" role="menuitemradio" aria-checked={i === chosen} tabIndex={-1} data-v={p.value} onClick={() => { close(true); pickPreset(p); }}>
+                <span>{p.label}</span>
+                <span className="metaline">{formatRange(p.from, p.to)}</span>
+                {TICK}
+              </button>
+            ))}
+            {custom && (
+              <button type="button" className="menu-item" role="menuitemradio" aria-checked={isCustom} aria-haspopup="dialog" tabIndex={-1} data-v={CUSTOM_RANGE} onClick={() => { close(false); openDialog(isPhone() ? 'sheet' : 'modal', trigRef.current); }}>
+                <span>{L.custom}</span>
+                {TICK}
+              </button>
+            )}
+          </div>
           {compare && (
             <>
               <div className="menu-sep" role="separator" />
@@ -343,17 +375,19 @@ export function DateRange({
   }
 
   const options = [...presets.map((p) => ({ v: p.value, label: p.label, preset: p as DateRangePreset | null })), ...(custom ? [{ v: CUSTOM_RANGE, label: L.custom, preset: null }] : [])];
-  const want = roving ?? value.range;
-  const stop = options.some((o) => o.v === want) ? want : options[0]?.v;
-  const pick = (o: (typeof options)[number], el: HTMLElement, how: 'click' | 'key') => {
+  /* the checked option by position: a preset by its index, Custom last, none when nothing matches */
+  const on = chosen >= 0 ? chosen : isCustom ? options.length - 1 : -1;
+  const stop = roving ?? (on >= 0 ? on : 0);
+  const pick = (at: number, el: HTMLElement, how: 'click' | 'key') => {
+    const o = options[at];
     if (o.preset) { pickPreset(o.preset); return; }
     if (isPhone()) {
       /* an arrow onto Custom only moves focus; the sheet opens on a tap, Enter or Space */
       if (how === 'click') openDialog('sheet', el);
-      else setRoving(CUSTOM_RANGE);
+      else setRoving(at);
       return;
     }
-    if (!isCustom) onChange({ ...value, range: CUSTOM_RANGE });
+    if (value.range !== CUSTOM_RANGE) onChange({ ...value, range: CUSTOM_RANGE });
   };
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const list = [...e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]')];
@@ -364,7 +398,7 @@ export function DateRange({
     e.preventDefault();
     list[to].focus();
     setRoving(null);
-    pick(options[to], list[to], 'key');
+    pick(to, list[to], 'key');
   };
 
   return (
@@ -376,17 +410,17 @@ export function DateRange({
         onKeyDown={onKeyDown}
         onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setRoving(null); }}
       >
-        {options.map((o) => (
+        {options.map((o, i) => (
           <button
-            key={o.v}
+            key={`${i}-${o.v}`}
             type="button"
             role="radio"
-            aria-checked={value.range === o.v}
+            aria-checked={i === on}
             aria-haspopup={!o.preset && phone ? 'dialog' : undefined}
-            tabIndex={o.v === stop ? 0 : -1}
+            tabIndex={i === stop ? 0 : -1}
             data-v={o.v}
             disabled={disabled}
-            onClick={(e) => pick(o, e.currentTarget, 'click')}
+            onClick={(e) => pick(i, e.currentTarget, 'click')}
           >
             {o.label}
           </button>
@@ -394,13 +428,13 @@ export function DateRange({
       </div>
       {custom && (
         <div className="range-fields" hidden={!isCustom}>
-          <Fields id={uid} draft={draft} errors={errors} labels={L} min={min} max={max} disabled={disabled} onDraft={setDraft} onLeave={commitInline} onEnter={commitInline} />
+          <Fields id={uid} draft={draft} errors={errors} labels={L} min={lo} max={hi} disabled={disabled} onDraft={(k, date) => setEdit((e) => ({ ...e, [k]: date }))} onLeave={commitInline} onEnter={commitInline} />
         </div>
       )}
       {compare && (
         <button type="button" className="fchip" aria-pressed={value.compare} aria-label={L.compareLong} disabled={disabled} onClick={toggleCompare}>{L.compare}</button>
       )}
-      <p className="metaline">{`${line}${zone ? ` · ${zone}` : ''}${versus}`}</p>
+      <p className="metaline" aria-live="polite">{`${line}${zone ? ` · ${zone}` : ''}${versus}`}</p>
       {sheet}
     </div>
   );
