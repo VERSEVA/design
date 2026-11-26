@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
   LAYOUT_KEY, SIZE_LABEL, BREAKPOINTS,
-  addWidget, addedMessage, fitSize, move, moveBy, moveDirection, movedMessage, nextFocusId, rowPartner,
+  addWidget, addedMessage, columnsForWidth, fitSize, move, moveBy, moveDirection, movedMessage, nextFocusId, rowPartner,
   readLayout, removeWidget, removedMessage, resizeWidget, resizedMessage, restoreWidget, safeStorage, sizeOptions, writeLayout,
 } from './widget-state';
 import type { Columns, LayoutItem, Removed, RowMove, WidgetSize, WidgetSpec } from './widget-state';
@@ -78,7 +78,7 @@ export interface WidgetGridProps {
   focus?: string;
   status?: Readonly<Record<string, WidgetStatus>>;
   onRetry?: (id: string) => void;
-  /** Force a column count (specimens, tests); written to data-cols so the CSS follows. Default: from the viewport, 4 / 2 / 1. */
+  /** Force a column count (specimens, tests); written to data-cols so the CSS follows. Default: from the grid's container, 4 / 2 / 1. */
   columns?: Columns;
   /** The product's Edit toggle: Esc leaving edit mode moves focus there. */
   toggleRef?: React.RefObject<HTMLElement | null>;
@@ -109,12 +109,23 @@ function matches(q: string): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(q).matches;
 }
 
-/** 4, 2 or 1 from the viewport (the CSS breakpoints); 4 on the server. */
-export function useWidgetColumns(forced?: Columns): Columns {
+/** 4, 2 or 1 at the CSS breakpoints: from the container's width when one is given and the browser
+    has container queries, else from the viewport; 4 on the server. */
+export function useWidgetColumns(forced?: Columns, container?: React.RefObject<Element | null>): Columns {
   const [cols, setCols] = React.useState<Columns>(forced ?? 4);
   React.useEffect(() => {
     if (forced) { setCols(forced); return; }
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    if (typeof window === 'undefined') return;
+    const el = container?.current;
+    if (el && typeof ResizeObserver === 'function' && typeof CSS !== 'undefined' && CSS.supports?.('container-type', 'inline-size')) {
+      /* a hidden container measures 0: keep the last count until it has a width */
+      const fit = (width: number) => { if (width > 0) setCols(columnsForWidth(width)); };
+      fit(el.getBoundingClientRect().width);
+      const ro = new ResizeObserver((entries) => fit(entries[entries.length - 1].contentRect.width));
+      ro.observe(el);
+      return () => ro.disconnect();
+    }
+    if (typeof window.matchMedia !== 'function') return;
     const four = window.matchMedia(`(min-width: ${BREAKPOINTS.four}px)`);
     const two = window.matchMedia(`(min-width: ${BREAKPOINTS.two}px)`);
     const on = () => setCols(four.matches ? 4 : two.matches ? 2 : 1);
@@ -122,7 +133,7 @@ export function useWidgetColumns(forced?: Columns): Columns {
     four.addEventListener?.('change', on);
     two.addEventListener?.('change', on);
     return () => { four.removeEventListener?.('change', on); two.removeEventListener?.('change', on); };
-  }, [forced]);
+  }, [forced, container]);
   return cols;
 }
 
@@ -156,7 +167,8 @@ export function WidgetGrid({
   columns: forcedColumns, toggleRef, longPress = 550, labels, className,
 }: WidgetGridProps) {
   const L = { ...WIDGET_GRID_LABELS, ...labels };
-  const cols = useWidgetColumns(forcedColumns);
+  const wrapRef = React.useRef<HTMLDivElement>(null);
+  const cols = useWidgetColumns(forcedColumns, wrapRef);
   const isControlled = controlled !== undefined;
   const [own, setOwn] = React.useState<LayoutItem[]>(() => [...(defaultLayout ?? [])]);
   const layout = (isControlled ? controlled : own) as LayoutItem[];
@@ -446,17 +458,19 @@ export function WidgetGrid({
 
   return (
     <>
-      <div ref={gridRef} className={cx('wgrid', className)} role="region" aria-label={L.region} data-editing={editing ? '' : undefined} data-cols={forcedColumns} tabIndex={-1}>
-        {layout.length === 0 && !editing ? (
-          <div className="wgrid-empty">
-            <b>{L.empty}</b>
-            <button type="button" className="btn btn-secondary" onClick={() => setGalleryOpen(true)}>{L.add}</button>
-          </div>
-        ) : tiles}
-        {editing && (
-          <button type="button" className="wgrid-add" onClick={() => setGalleryOpen(true)}>{PLUS}{L.add}</button>
-        )}
-        <div className="sr-only" aria-live="polite" aria-atomic="true">{message}</div>
+      <div ref={wrapRef} className="wgrid-wrap">
+        <div ref={gridRef} className={cx('wgrid', className)} role="region" aria-label={L.region} data-editing={editing ? '' : undefined} data-cols={forcedColumns} tabIndex={-1}>
+          {layout.length === 0 && !editing ? (
+            <div className="wgrid-empty">
+              <b>{L.empty}</b>
+              <button type="button" className="btn btn-secondary" onClick={() => setGalleryOpen(true)}>{L.add}</button>
+            </div>
+          ) : tiles}
+          {editing && (
+            <button type="button" className="wgrid-add" onClick={() => setGalleryOpen(true)}>{PLUS}{L.add}</button>
+          )}
+          <div className="sr-only" aria-live="polite" aria-atomic="true">{message}</div>
+        </div>
       </div>
       {undo && (
         <div className="wgrid-undo" onMouseEnter={() => setUndoHeld(true)} onMouseLeave={() => setUndoHeld(false)} onFocus={() => setUndoHeld(true)} onBlur={() => setUndoHeld(false)}>

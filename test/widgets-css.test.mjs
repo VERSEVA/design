@@ -75,6 +75,26 @@ test('grid: 4 columns, 2 under 1100px, 1 under 560px, sparse flow', () => {
   assert.match(bodyOf('.wgrid', '@media(max-width:559.98px)'), /grid-template-columns:minmax\(0,1fr\)/);
 });
 
+test('grid follows its container: .wgrid-wrap is a named inline-size container with the same steps', () => {
+  const w = bodyOf('.wgrid-wrap');
+  assert.match(w, /(^|;)container:wgrid \/ inline-size(;|$)/);
+  assert.doesNotMatch(w, /overflow|contain:/);
+  const two = '@containerwgrid(max-width:1099.98px)';
+  const one = '@containerwgrid(max-width:559.98px)';
+  for (const [media, viewport] of [[two, '@media(max-width:1099.98px)'], [one, '@media(max-width:559.98px)']]) {
+    const at = RULES.filter((r) => r.media === media);
+    const fallback = RULES.filter((r) => r.media === viewport);
+    assert.ok(at.length > 0, `${media} missing`);
+    assert.deepEqual(at.map((r) => [r.selectors, r.body]), fallback.map((r) => [r.selectors, r.body]), `${media} must mirror ${viewport}`);
+  }
+  assert.match(bodyOf('.wgrid', two), /repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(bodyOf('.wgrid', one), /grid-template-columns:minmax\(0,1fr\)/);
+  /* the viewport rules stay as the fallback, and a forced count still comes last */
+  const src = SECTION.replace(/\s+/g, '');
+  assert.ok(src.indexOf('@media(max-width:559.98px)') < src.indexOf(two), 'container rules follow the viewport fallback');
+  assert.ok(src.indexOf(one) < src.indexOf('.wgrid[data-cols="4"]{'), 'data-cols rules follow the container rules');
+});
+
 test('tile sizes span S 1x1, M 2x1, L 2x2, XL 4x2, and clamp on narrow grids', () => {
   const spans = { s: [1, 1], m: [2, 1], l: [2, 2], xl: [4, 2] };
   for (const [s, [c, r]] of Object.entries(spans)) {

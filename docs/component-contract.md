@@ -555,11 +555,17 @@ An adaptive home: a grid of tiles, each picking its view from its size. React pa
 
 **Grid and sizes**
 
-| Columns | Viewport | Largest size | Notes |
+| Columns | Container width | Largest size | Notes |
 |---|---|---|---|
 | 4 | 1100px and up | XL | |
 | 2 | 560 to 1099px | L | XL shows its L view |
 | 1 | under 560px | M | L and XL show their M view |
+
+The container is `.wgrid-wrap`, the grid's parent (`container: wgrid / inline-size`, `width: 100%`).
+The React part renders it and counts columns from its width, so a grid beside a sidebar steps
+down on the room it has, not on the viewport. A bare `.wgrid` with no wrapper, and a browser
+without container queries, fall back to the viewport at the same widths. `.wgrid-wrap` holds the
+grid only: keep fixed parts (the undo toast, the gallery) outside it.
 
 S is 1x1, M 2x1, L 2x2, XL 4x2 on 180px rows with `--s-4` gaps (`--s-3` in one column). A size
 that does not fit drops to the largest supported size that does (`fitSize`); the tile carries the
@@ -570,6 +576,7 @@ focus order and visual order agree.
 
 | Part | Classes | Holds |
 |---|---|---|
+| Container | `.wgrid-wrap` > `.wgrid` | The grid's query container; nothing else |
 | Grid | `.wgrid` (`[data-editing]`), a polite live region | `role="region"` named Widgets |
 | Tile | `.wtile[data-size]` (`[data-focus]`, `[data-dragging]`, `aria-busy`, `aria-disabled`), `.wtile-body` | `role="group"` with `aria-roledescription="widget"`, named "Revenue, large"; glass at `--r-lg` |
 | Content | `.wtile-hd` (+ `svg`), `.wtile-meta`, `.wtile-num`, `.wtile-sub`, `.wtile-rows` > `.wtile-row` (+ `b`, `.wtile-val`), `.wtile-foot` | Header, numeral, caption, rows, footer |
