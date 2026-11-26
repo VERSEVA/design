@@ -236,10 +236,18 @@
       "description": "Hover/focus label on the inverse ground"
     },
     {
+      "name": "viz-state",
+      "file": "react/viz-state.ts",
+      "kind": "util",
+      "deps": [],
+      "description": "Chart kit copy: the default labels (the word for a withheld value), overridable through vizLabels"
+    },
+    {
       "name": "viz",
       "file": "react/viz.tsx",
       "kind": "component",
       "deps": [
+        "viz-state",
         "cx"
       ],
       "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning"

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cx } from './cx';
+import { VIZ_LABELS, type VizLabels } from './viz-state';
 
 /**
  * The chart kit, synthesized from the portfolio's shipped viz. Doctrine in
@@ -10,15 +11,22 @@ import { cx } from './cx';
  * no hex ever enters this file.
  *
  * Withheld data (1.7.1). A null in a line is a gap: the line and its area
- * break there, no point is drawn, and it is never zero or bridged. A
- * suppressed bar is a privacy floor: its value is never read, so it cannot
- * reach a bar length, the scale, a title or any attribute.
+ * break there, no point is drawn, it is never zero or bridged, and a thin
+ * baseline segment says the stretch is withheld, not broken. A suppressed
+ * bar is a privacy floor: its value is never read, so it cannot reach a bar
+ * length, the scale, a title or any attribute. The word for withheld is
+ * copy: `vizLabels` overrides it (defaults in viz-state.ts).
  */
 
-type Pt = readonly [number, number];
-const known = (v: number | null | undefined): v is number => v != null;
+declare const process: { env: { NODE_ENV?: string } };
+/** True unless a bundler has set production; with no bundler there is no `process`, which is a dev setup. */
+const DEV = (() => { try { return process.env.NODE_ENV !== 'production'; } catch { return true; } })();
 
-/** One slot per index, so a gap keeps its place on the x axis; a null has no point. */
+type Pt = readonly [number, number];
+/** A value the chart can draw. Null, undefined, NaN and the infinities are gaps. */
+const known = (v: number | null | undefined): v is number => typeof v === 'number' && Number.isFinite(v);
+
+/** One slot per index, so a gap keeps its place on the x axis; a gap has no point. */
 const pts = (vals: readonly (number | null)[], w: number, h: number, pad = 4, max?: number): (Pt | null)[] => {
   const top = max ?? Math.max(...vals.filter(known), 1);
   const iw = w - pad * 2;
@@ -41,13 +49,35 @@ const runs = (p: readonly (Pt | null)[]) => {
 };
 const seg = (p: readonly Pt[]) =>
   p.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
-/** One subpath per run. A value alone between gaps gets a zero-length line, which the round cap draws as a dot. */
-const linePath = (p: readonly (Pt | null)[]) =>
-  runs(p).map((r) => (r.length === 1 && p.length > 1 ? `${seg(r)} L${r[0][0].toFixed(1)} ${r[0][1].toFixed(1)}` : seg(r))).join(' ');
-/** One closed subpath per run, so the fill stops at a gap; a run of one has no width to fill. */
+/** A run wide enough to stroke or fill; a series of one value keeps the path it always had. */
+const drawn = (p: readonly (Pt | null)[]) => runs(p).filter((r) => r.length > 1 || p.length === 1);
+/** One subpath per run; empty when no run is wide enough. */
+const linePath = (p: readonly (Pt | null)[]) => drawn(p).map(seg).join(' ');
+/** One closed subpath per run, so the fill stops at a gap. */
 const areaPath = (p: readonly (Pt | null)[], h: number, pad = 4) =>
-  runs(p).filter((r) => r.length > 1 || p.length === 1)
-    .map((r) => `M${r[0][0].toFixed(1)} ${h - pad} ${seg(r).slice(1)} L${r[r.length - 1][0].toFixed(1)} ${h - pad} Z`).join(' ');
+  drawn(p).map((r) => `M${r[0][0].toFixed(1)} ${h - pad} ${seg(r).slice(1)} L${r[r.length - 1][0].toFixed(1)} ${h - pad} Z`).join(' ');
+/** A value alone between gaps has no line to sit on: it is a dot. The last index is the end dot's. */
+const lone = (p: readonly (Pt | null)[]) =>
+  p.length === 1 ? [] : p.filter((pt, i): pt is Pt => !!pt && !p[i - 1] && !p[i + 1] && i < p.length - 1);
+/** Each gap's stretch along x, from the point before it to the point after (or the plot's edge). */
+const gaps = (p: readonly (Pt | null)[], w: number, pad: number) => {
+  const out: [number, number][] = [];
+  if (!p.some(Boolean)) return out;
+  const x = (i: number) => pad + ((w - pad * 2) * i) / (p.length - 1);
+  for (let i = 0; i < p.length; i++) {
+    if (p[i]) continue;
+    let j = i;
+    while (j + 1 < p.length && !p[j + 1]) j++;
+    out.push([x(Math.max(i - 1, 0)), x(Math.min(j + 1, p.length - 1))]);
+    i = j;
+  }
+  return out;
+};
+/** The 1px baseline marks under a series' gaps: withheld, not a rendering fault. */
+const gapMarks = (p: readonly (Pt | null)[], w: number, h: number, pad: number) =>
+  gaps(p, w, pad).map(([x1, x2]) => (
+    <line key={x1} data-gap="" x1={x1} y1={h - pad} x2={x2} y2={h - pad} stroke="var(--text-3)" strokeWidth="1" />
+  ));
 
 export interface SparklineProps {
   /** A null is a gap: the line breaks there and no point is drawn. */
@@ -64,12 +94,13 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
   const W = 140;
   const H = 40;
   const p = pts(values, W, H, 4, max);
-  const any = p.some(Boolean);
+  const fill = area ? areaPath(p, H) : '';
+  const line = linePath(p);
   const last = p[p.length - 1];
   return (
     <span className={cx('spark', className)}>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-        {any && area && (
+        {fill && (
           <>
             <defs>
               <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
@@ -77,10 +108,12 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
                 <stop offset="1" stopColor="var(--data-3)" stopOpacity="0" />
               </linearGradient>
             </defs>
-            <path d={areaPath(p, H)} fill={`url(#${id})`} />
+            <path d={fill} fill={`url(#${id})`} />
           </>
         )}
-        {any && <path d={linePath(p)} fill="none" stroke="var(--data-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
+        {gapMarks(p, W, H, 4)}
+        {line && <path d={line} fill="none" stroke="var(--data-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
+        {lone(p).map(([x, y]) => <circle key={x} cx={x} cy={y} r="3" fill="var(--data-3)" />)}
         {last && <circle cx={last[0]} cy={last[1]} r="3" fill="var(--data-3)" />}
       </svg>
     </span>
@@ -89,13 +122,15 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
 
 export interface LineChartProps {
   labels: string[];
-  /** A null is a gap in that series: no line, no point, no hover value. */
+  /** A null is a gap in that series: no line, no point, and hover names it withheld. */
   series: { name: string; values: (number | null)[] }[];
   /** A dashed reference line (an average, a target) with its mono tag. */
   reference?: { value: number; label: string };
   height?: number;
   /** Formats the hover readout; defaults to the raw number. */
   format?: (v: number) => string;
+  /** Copy: the word a gap shows on hover. */
+  vizLabels?: Partial<VizLabels>;
   className?: string;
 }
 
@@ -104,8 +139,9 @@ export interface LineChartProps {
  * Series two rides --data-alt AND a dash, so identity survives print and
  * CVD. Hover is the default layer: crosshair + readout.
  */
-export function LineChart({ labels, series, reference, height = 140, format = String, className }: LineChartProps) {
+export function LineChart({ labels, series, reference, height = 140, format = String, vizLabels, className }: LineChartProps) {
   const id = React.useId();
+  const L = { ...VIZ_LABELS, ...vizLabels };
   const W = 320;
   const pad = 6;
   const shown = series.slice(0, 2);
@@ -130,10 +166,13 @@ export function LineChart({ labels, series, reference, height = 140, format = St
         {reference && <line className="refline" x1={pad} y1={refY} x2={W - pad} y2={refY} />}
         {all.map((p, si) => {
           const last = p[p.length - 1];
+          const fill = si === 0 ? areaPath(p, height, pad) : '';
+          const line = linePath(p);
+          const hue = si === 0 ? 'var(--data-3)' : 'var(--data-alt)';
           return (
           <g key={shown[si].name}>
             {p.some(Boolean) && <>
-            {si === 0 && (
+            {fill && (
               <>
                 <defs>
                   <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
@@ -141,15 +180,17 @@ export function LineChart({ labels, series, reference, height = 140, format = St
                     <stop offset="1" stopColor="var(--data-3)" stopOpacity="0" />
                   </linearGradient>
                 </defs>
-                <path d={areaPath(p, height, pad)} fill={`url(#${id})`} />
+                <path d={fill} fill={`url(#${id})`} />
               </>
             )}
-            <path d={linePath(p)} fill="none"
-              stroke={si === 0 ? 'var(--data-3)' : 'var(--data-alt)'}
+            {gapMarks(p, W, height, pad)}
+            {line && <path d={line} fill="none"
+              stroke={hue}
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              strokeDasharray={si === 1 ? '5 4' : undefined} />
+              strokeDasharray={si === 1 ? '5 4' : undefined} />}
+            {lone(p).map(([x, y]) => <circle key={x} cx={x} cy={y} r="3" fill={hue} />)}
             {last && <circle cx={last[0]} cy={last[1]} r="3"
-              fill={si === 0 ? 'var(--data-3)' : 'var(--data-alt)'} />}
+              fill={hue} />}
             </>}
           </g>
           );
@@ -172,7 +213,13 @@ export function LineChart({ labels, series, reference, height = 140, format = St
       {hover !== null && (
         <div className="viztip" role="status">
           <b>{labels[hover]}</b>
-          {shown.map((s) => { const v = s.values[hover]; return known(v) && <span key={s.name}>{s.name} {format(v)}</span>; })}
+          {shown.map((s) => {
+            const v = s.values[hover];
+            if (v === undefined) return null;
+            return known(v)
+              ? <span key={s.name}>{s.name} {format(v)}</span>
+              : <span key={s.name} data-withheld="">{s.name} {L.withheld}</span>;
+          })}
         </div>
       )}
       <div className="xlabels mt-2" aria-hidden="true">
@@ -189,33 +236,47 @@ export function LineChart({ labels, series, reference, height = 140, format = St
   );
 }
 
-/** What a withheld item prints when it carries no `display`. Never its value. */
-const WITHHELD = 'n/a';
+/**
+ * `display` replaces the printed value; the bar still draws from `value`, so it is NOT a privacy floor.
+ * `suppressed: true` is: it needs a `display` (the floor label, "<5"), draws the withheld stub and no
+ * fill, and nothing is read from `value`, which also stays out of the scale.
+ */
+type Shown = { display?: string; suppressed?: false } | { display: string; suppressed: true };
+export type BarsItem = { label: string; value: number; level?: 0 | 1 | 2 | 3 } & Shown;
+export type HBarsItem = { label: string; value: number; alt?: boolean } & Shown;
+
+/** A suppressed item that slipped past the types with no display: said once per set, in development, by label only. */
+function useMissingDisplay(part: string, data: readonly { label: string; suppressed?: boolean; display?: string }[]) {
+  const missing = data.filter((d) => d.suppressed && d.display === undefined).map((d) => d.label).join('", "');
+  React.useEffect(() => {
+    if (missing && DEV) console.warn(`${part}: suppressed item "${missing}" has no display; it prints no label. Pass the floor label, for example display: "<5".`);
+  }, [part, missing]);
+}
 
 export interface BarsProps {
-  /**
-   * `display` replaces the printed value. `suppressed` withholds the item: the empty track, `display`
-   * (or a placeholder) and nothing drawn from `value`, which also stays out of the scale.
-   */
-  data: { label: string; value: number; display?: string; suppressed?: boolean; level?: 0 | 1 | 2 | 3 }[];
+  data: BarsItem[];
   /** Prints each value on/above its mark, the portfolio default. */
   showValues?: boolean;
   height?: number;
+  /** Copy: the word a suppressed item with no display carries in its title. */
+  vizLabels?: Partial<VizLabels>;
   className?: string;
 }
 
 /** Vertical bars, numbers on the marks, no axis. */
-export function Bars({ data, showValues = true, height = 120, className }: BarsProps) {
+export function Bars({ data, showValues = true, height = 120, vizLabels, className }: BarsProps) {
+  const L = { ...VIZ_LABELS, ...vizLabels };
+  useMissingDisplay('Bars', data);
   const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   return (
     <div className={cx(className)}>
       <div className="bars" style={{ height }}>
         {data.map((d) => {
           if (d.suppressed) {
-            const shown = d.display ?? WITHHELD;
+            const display: string | undefined = d.display;
             return (
-              <div className="bar" key={d.label} title={`${d.label}: ${shown}`} data-suppressed="">
-                {showValues && <span className="vlab" data-display="">{shown}</span>}
+              <div className="bar" key={d.label} title={`${d.label}: ${display ?? L.withheld}`} data-suppressed="">
+                {showValues && display !== undefined && <span className="vlab">{display}</span>}
                 <div className="vtrack" />
                 <span className="mlab">{d.label}</span>
               </div>
@@ -224,7 +285,7 @@ export function Bars({ data, showValues = true, height = 120, className }: BarsP
           const shown = d.display ?? d.value;
           return (
           <div className="bar" key={d.label} title={`${d.label}: ${shown}`}>
-            {showValues && <span className="vlab" data-display={d.display === undefined ? undefined : ''}>{shown}</span>}
+            {showValues && <span className="vlab">{shown}</span>}
             <div className="fill" style={{ height: `${(d.value / top) * 100}%`, background: d.level !== undefined ? `var(--data-${d.level})` : undefined }} />
             <span className="mlab">{d.label}</span>
           </div>
@@ -236,25 +297,29 @@ export function Bars({ data, showValues = true, height = 120, className }: BarsP
 }
 
 export interface HBarsProps {
-  /** `display` and `suppressed` as on `Bars`; `format` never sees a suppressed value. */
-  data: { label: string; value: number; display?: string; suppressed?: boolean; alt?: boolean }[];
+  /** `format` never sees a suppressed value. */
+  data: HBarsItem[];
   format?: (v: number) => string;
+  /** Copy: the word a suppressed item with no display carries in its title. */
+  vizLabels?: Partial<VizLabels>;
   className?: string;
 }
 
 /** Label / track / mono count rows: the axis-free distribution. */
-export function HBars({ data, format = String, className }: HBarsProps) {
+export function HBars({ data, format = String, vizLabels, className }: HBarsProps) {
+  const L = { ...VIZ_LABELS, ...vizLabels };
+  useMissingDisplay('HBars', data);
   const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   return (
     <div className={cx('hbars', className)}>
       {data.map((d) => {
         if (d.suppressed) {
-          const shown = d.display ?? WITHHELD;
+          const display: string | undefined = d.display;
           return (
-            <div className="hbar" key={d.label} title={`${d.label}: ${shown}`} data-suppressed="">
+            <div className="hbar" key={d.label} title={`${d.label}: ${display ?? L.withheld}`} data-suppressed="">
               <span className="hlabel">{d.label}</span>
               <span className="htrack" />
-              <span className="hcount" data-display="">{shown}</span>
+              <span className="hcount">{display}</span>
             </div>
           );
         }
@@ -263,7 +328,7 @@ export function HBars({ data, format = String, className }: HBarsProps) {
         <div className="hbar" key={d.label} title={`${d.label}: ${shown}`}>
           <span className="hlabel">{d.label}</span>
           <span className="htrack"><i className={d.alt ? 'alt' : undefined} style={{ width: `${(d.value / top) * 100}%` }} /></span>
-          <span className="hcount" data-display={d.display === undefined ? undefined : ''}>{shown}</span>
+          <span className="hcount">{shown}</span>
         </div>
         );
       })}
