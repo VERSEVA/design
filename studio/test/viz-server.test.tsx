@@ -46,4 +46,13 @@ describe('Bars and HBars under the react-server condition', () => {
     expect(warn).toHaveBeenCalledTimes(2);
     warn.mockRestore();
   });
+
+  it('stops recording new missing-display warnings at a small cap, so a long-lived server does not grow', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { Bars } = await import('../../react/viz');
+    for (let i = 0; i < 200; i++) Bars({ data: [{ label: `row ${i}`, value: 1, suppressed: true } as unknown as { label: string; value: number }] });
+    expect(warn.mock.calls.length).toBeGreaterThan(0);
+    expect(warn.mock.calls.length).toBeLessThanOrEqual(50);
+    warn.mockRestore();
+  });
 });

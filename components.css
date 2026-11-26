@@ -642,8 +642,10 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .viztip b{font-family:var(--font-mono);font-size:10px;color:var(--text-3);font-weight:600}
 .viztip span{font-variant-numeric:tabular-nums;color:var(--text-1)}
 .viztip span[data-withheld]{color:var(--text-2)}
-/* The gap band under a line: the bar stub's hatch, --s-1 tall, below the zero baseline and never on it. */
-.vizplot rect[data-gap],.spark rect[data-gap]{height:var(--s-1)}
+/* The gap band under a line: the bar stub's hatch, --s-1 tall, 2px below the zero baseline and never on it.
+   HTML over the plot's frame, so the hatch keeps its angle however the svg stretches. */
+.vizframe{display:block;position:relative;height:100%}
+.vizgap{position:absolute;height:var(--s-1);margin-top:2px;background:repeating-linear-gradient(135deg,var(--text-3) 0 2px,transparent 2px 5px);pointer-events:none}
 
 /* ---- Console recipes (1.2.0, promoted from the Studio CRM) ---- */
 

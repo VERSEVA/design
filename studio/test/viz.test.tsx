@@ -366,12 +366,13 @@ describe('HBars: suppressed items and display', () => {
 const subpaths = (d: string) => d.split('M').filter(Boolean).length;
 const ys = (d: string) => [...d.matchAll(/[ML]?\s*(-?[\d.]+) (-?[\d.]+)/g)].map((m) => Number(m[2]));
 /* The gap band: a hatched strip below the zero baseline, over the null indices only. */
-const gapBands = (root: Element) => [...root.querySelectorAll('rect[data-gap]')].map((r) => ['x', 'width', 'y', 'height'].map((a) => r.getAttribute(a)));
-const hatchOf = (root: Element) => {
-  const pattern = root.querySelector('pattern')!;
-  const fills = [...root.querySelectorAll('rect[data-gap]')].map((r) => r.getAttribute('fill'));
-  return { id: pattern.getAttribute('id'), fills, stripe: pattern.querySelector('rect')!.getAttribute('fill'), turn: pattern.getAttribute('patternTransform') };
-};
+const round = (n: number) => Math.round(n * 10) / 10;
+const bandEls = (root: Element) => [...root.querySelectorAll<HTMLElement>('i.vizgap')];
+/* [x, width, y] in viewBox units, from the percentages the band is positioned with (W x H is the viewBox). */
+const gapBands = (root: Element, W: number, H: number) =>
+  bandEls(root).map((b) => [round((parseFloat(b.style.left) * W) / 100), round((parseFloat(b.style.width) * W) / 100), round((parseFloat(b.style.top) * H) / 100)]);
+const SPARK = [140, 40] as const;
+const PLOT = [320, 140] as const;
 
 describe('Sparkline: null gaps', () => {
   it('breaks the line and the area at a null in the middle, and marks the gap on the baseline', () => {
@@ -387,11 +388,16 @@ describe('Sparkline: null gaps', () => {
     /* never zero: nothing of the line reaches the baseline (y 30 once the band's room is reserved) */
     expect(Math.max(...ys(line))).toBeLessThan(30);
     /* the band covers the null slot only (half a step either side), 2 below the baseline, 4 tall */
-    expect(gapBands(container)).toEqual([['53.5', '33', '32', '4']]);
-    const h = hatchOf(container);
-    expect(h.fills).toEqual([`url(#${h.id})`]);
-    expect([h.stripe, h.turn]).toEqual(['var(--text-3)', 'rotate(45)']);
-    expect(container.querySelectorAll('line')).toHaveLength(0);
+    expect(gapBands(container, ...SPARK)).toEqual([[53.5, 33, 30]]);
+    /* the band is HTML over the plot, not part of the stretched svg: its hatch keeps its angle */
+    const band = bandEls(container)[0];
+    expect(band.parentElement!.className).toBe('vizframe');
+    expect(band.previousElementSibling!.localName).toBe('svg');
+    expect(band.parentElement!.parentElement!.className).toBe('spark');
+    expect([...band.attributes].map((a) => a.name).sort()).toEqual(['aria-hidden', 'class', 'style']);
+    expect(band.getAttribute('aria-hidden')).toBe('true');
+    expect(band.textContent).toBe('');
+    expect(container.querySelectorAll('svg line, svg rect, svg pattern')).toHaveLength(0);
   });
 
   it('draws no stray point for leading and trailing nulls, and marks both gaps', () => {
@@ -400,8 +406,8 @@ describe('Sparkline: null gaps', () => {
     const line = container.querySelector('path')!.getAttribute('d')!;
     expect(subpaths(line)).toBe(1);
     expect(line).toMatch(/^M48\.0 [\d.]+ L92\.0 [\d.]+$/);
-    /* a gap at the start and one at the end, each clipped to the plot and short of the known points */
-    expect(gapBands(container).map((l) => l.slice(0, 2))).toEqual([['4', '22'], ['114', '22']]);
+    /* a gap at the start and one at the end: clipped to the plot, and never narrower than one step */
+    expect(gapBands(container, ...SPARK).map((l) => l.slice(0, 2))).toEqual([[4, 44], [92, 44]]);
     const lead = render(<Sparkline values={[null, 3, 5]} area={false} />).container;
     expect(lead.querySelectorAll('circle')).toHaveLength(1);
     expect(lead.querySelector('circle')!.getAttribute('cx')).toBe('136');
@@ -414,7 +420,7 @@ describe('Sparkline: null gaps', () => {
     const dots = [...container.querySelectorAll('circle')].map((c) => [c.getAttribute('cx'), c.getAttribute('cy')]);
     /* the zero sits on the baseline (30), the band starts 2 below it: they never touch */
     expect(dots).toEqual([['4', '30'], ['136', '4']]);
-    expect(gapBands(container)).toEqual([['37', '66', '32', '4']]);
+    expect(gapBands(container, ...SPARK)).toEqual([[37, 66, 30]]);
   });
 
   it('draws a value alone between two gaps as an r=3 dot, and no empty path', () => {
@@ -436,6 +442,17 @@ describe('Sparkline: null gaps', () => {
     expect(lone.querySelectorAll('path')).toHaveLength(0);
   });
 
+  it('gives one null at each end a band a full step wide, not a sliver', () => {
+    const { container } = render(<Sparkline values={[null, 3, 4, 5, null]} area={false} />);
+    expect(gapBands(container, ...SPARK)).toEqual([[4, 33, 30], [103, 33, 30]]);
+  });
+
+  it('draws no frame and no band without a gap', () => {
+    const { container } = render(<Sparkline values={[1, 3, 2]} />);
+    expect(container.querySelectorAll('.vizframe, .vizgap')).toHaveLength(0);
+    expect(container.querySelector('.spark')!.firstElementChild!.localName).toBe('svg');
+  });
+
   it('treats NaN as a gap, never as a value', () => {
     const { container } = render(<Sparkline values={[2, 4, NaN, 4, 2]} />);
     const same = render(<Sparkline values={[2, 4, null, 4, 2]} />).container;
@@ -444,10 +461,20 @@ describe('Sparkline: null gaps', () => {
     expect(container.innerHTML).not.toContain('NaN');
   });
 
-  it('renders the empty state for all nulls, without throwing', () => {
+  it('marks all nulls as withheld across the whole plot, which an empty array is not', () => {
     const { container } = render(<Sparkline values={[null, null, null]} />);
-    expect(container.querySelector('.spark svg')).not.toBeNull();
     expect(container.querySelector('.spark svg')!.children).toHaveLength(0);
+    expect(gapBands(container, ...SPARK)).toEqual([[4, 132, 30]]);
+    expect(gapBands(render(<Sparkline values={[null]} />).container, ...SPARK)).toEqual([[4, 132, 30]]);
+    const empty = render(<Sparkline values={[]} />).container;
+    expect(empty.querySelectorAll('.vizframe, .vizgap')).toHaveLength(0);
+    expect(empty.innerHTML).not.toBe(container.innerHTML);
+  });
+
+  it('places the band by which indices are null, never by a value', () => {
+    const at = (v: number) => bandEls(render(<Sparkline values={[v, null, 7, null, null, v]} />).container).map((b) => b.outerHTML);
+    expect(at(987654)).toEqual(at(3));
+    expect(at(3)).toHaveLength(2);
   });
 });
 
@@ -464,8 +491,13 @@ describe('LineChart: null gaps', () => {
     expect(line).not.toMatch(/[ML]160\.0 /);
     expect(line + area).not.toContain('NaN');
     expect(container.querySelectorAll('circle')).toHaveLength(1);
-    expect(gapBands(container)).toEqual([['121.5', '77', '130', '4']]);
-    expect(container.querySelectorAll('pattern')).toHaveLength(1);
+    expect(gapBands(container, ...PLOT)).toEqual([[121.5, 77, 128]]);
+    const band = bandEls(container)[0];
+    expect(band.parentElement!.className).toBe('vizframe');
+    expect(band.parentElement!.parentElement!.className).toBe('vizplot');
+    expect(band.parentElement!.firstElementChild!.localName).toBe('svg');
+    expect(band.getAttribute('aria-hidden')).toBe('true');
+    expect(container.querySelectorAll('svg line, svg rect, svg pattern')).toHaveLength(0);
   });
 
   it('keeps the dashed second series and its hue alongside nulls in either series', () => {
@@ -485,10 +517,12 @@ describe('LineChart: null gaps', () => {
       ['6', 'var(--data-3)'], ['314', 'var(--data-3)'], ['314', 'var(--data-alt)'],
     ]);
     expect(container.querySelectorAll('.vizlegend i')).toHaveLength(2);
-    /* each series marks its own null indices; they share one row and one hatch, so overlaps coincide */
-    expect(gapBands(container).map((l) => l.slice(0, 2))).toEqual([['44.5', '77'], ['121.5', '154']]);
-    expect(new Set(gapBands(container).map((l) => l[2]))).toEqual(new Set(['130']));
-    expect(container.querySelectorAll('pattern')).toHaveLength(1);
+    /* bands mark an index, not a series: gaps that touch or overlap across series are ONE band, one hatch */
+    expect(gapBands(container, ...PLOT)).toEqual([[44.5, 231, 128]]);
+    const apart = render(
+      <LineChart labels={labels} series={[{ name: 'A', values: [null, 2, 3, 4, 5] }, { name: 'B', values: [5, 4, 3, null, null] }]} />,
+    ).container;
+    expect(gapBands(apart, ...PLOT)).toEqual([[6, 77, 128], [198.5, 115.5, 128]]);
   });
 
   it('draws no stray point for leading and trailing nulls', () => {
@@ -505,17 +539,17 @@ describe('LineChart: null gaps', () => {
     const line = container.querySelector('path[fill="none"]')!.getAttribute('d')!;
     /* a series resting on zero beside a gap: its line is on the baseline, the band 2 below, over the null only */
     expect(line).toBe('M6.0 128.0 L108.7 128.0');
-    const [[x, width, y, tall]] = gapBands(container).map((b) => b.map(Number));
-    expect([x, y, tall]).toEqual([160, 130, 4]);
-    expect(width).toBeCloseTo(102.667, 2);
+    expect(gapBands(container, ...PLOT)).toEqual([[160, 102.7, 128]]);
     expect(container.querySelector('circle')!.getAttribute('cy')).toBe('6');
   });
 
-  it('renders the empty state for an all-null series, and hover names it withheld without throwing', () => {
+  it('marks an all-null chart as withheld across the whole plot, which an empty series is not; hover names it', () => {
     const { container } = render(<LineChart labels={labels} series={[{ name: 'A', values: [null, null, null, null, null] }]} />);
     expect(container.querySelectorAll('path')).toHaveLength(0);
     expect(container.querySelectorAll('circle')).toHaveLength(0);
-    expect(container.querySelectorAll('line, rect, pattern')).toHaveLength(0);
+    expect(gapBands(container, ...PLOT)).toEqual([[6, 308, 128]]);
+    const empty = render(<LineChart labels={[]} series={[{ name: 'A', values: [] }]} />).container;
+    expect(empty.querySelectorAll('.vizframe, .vizgap')).toHaveLength(0);
     const svg = container.querySelector('.vizplot svg')!;
     stubBox(svg);
     expect(() => move(svg, 160)).not.toThrow();
@@ -523,12 +557,28 @@ describe('LineChart: null gaps', () => {
     expect(screen.getByRole('status').textContent).toBe('WedA withheld');
   });
 
-  it('reserves nothing and emits no hatch when the only series with a gap is all null', () => {
+  it('marks an all-null series beside a complete one with a full-width band, and keeps it in the legend', () => {
     const full = { name: 'A', values: [1, 2, 3, 4, 5] };
-    const alone = render(<LineChart labels={labels} series={[full]} />).container;
-    const withEmpty = render(<LineChart labels={labels} series={[full, { name: 'B', values: [null, null, null, null, null] }]} />).container;
-    expect(withEmpty.querySelectorAll('pattern, rect')).toHaveLength(0);
-    expect(withEmpty.querySelector('path[fill="none"]')!.getAttribute('d')).toBe(alone.querySelector('path[fill="none"]')!.getAttribute('d'));
+    const { container } = render(<LineChart labels={labels} series={[full, { name: 'B', values: [null, null, null, null, null] }]} />);
+    expect(gapBands(container, ...PLOT)).toEqual([[6, 308, 128]]);
+    expect(container.querySelectorAll('path[fill="none"]')).toHaveLength(1);
+    expect(container.querySelector('.vizlegend')!.textContent).toContain('B');
+    /* the complete series gives the band its room: its baseline is the reserved one */
+    expect(container.querySelector('path:not([fill="none"])')!.getAttribute('d')).toContain(' 128 ');
+  });
+
+  it('draws no frame and no band without a gap, a short second series included', () => {
+    const { container } = render(<LineChart labels={labels} series={[{ name: 'A', values: [1, 2, 3, 4, 5] }, { name: 'B', values: [4] }]} />);
+    expect(container.querySelectorAll('.vizframe, .vizgap')).toHaveLength(0);
+    expect(container.querySelector('.vizplot')!.firstElementChild!.localName).toBe('svg');
+  });
+
+  it('places the bands by which indices are null, never by a value', () => {
+    const at = (v: number) => bandEls(render(
+      <LineChart labels={labels} series={[{ name: 'A', values: [v, null, 7, v, 2] }, { name: 'B', values: [null, v, v, null, null] }]} />,
+    ).container).map((b) => b.outerHTML);
+    expect(at(987654)).toEqual(at(3));
+    expect(at(3)).toHaveLength(2);
   });
 
   it('shows the withheld word, no value and no hover point for a series that is null at the hovered index', () => {
