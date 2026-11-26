@@ -10,6 +10,10 @@
 [data-chapter="components"] .bulk-demo td { white-space: nowrap; }
 [data-chapter="components"] #glass .specimen, [data-chapter="components"] #kv .specimen { flex: 1 1 280px; }
 [data-chapter="components"] #erase .specimen { flex: 0 1 420px; }
+[data-chapter="components"] #secret .demo { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: var(--s-5); align-items: start; }
+[data-chapter="components"] #secret .secret-state { display: grid; gap: var(--s-2); align-content: start; min-width: 0; }
+[data-chapter="components"] #secret .secret-state > .grouplabel { margin: 0; }
+[data-chapter="components"] #secret .specimen { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-5); min-width: 0; }
 [data-chapter="components"] #shell .specimen, [data-chapter="components"] #shell-rail .specimen, [data-chapter="components"] #topbar .specimen, [data-chapter="components"] #notifications .specimen, [data-chapter="components"] #whatsnew .specimen { flex: 1 1 100%; min-width: 0; }
 [data-chapter="components"] #panel-states .specimen { flex: 1 1 380px; min-width: 0; }
 [data-chapter="components"] #drawer-states .specimen { flex: 1 1 100%; min-width: 0; }

@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Secret field: a write-only field for keys and tokens.** `SecretField` (`npx verseva add secret-field`) is empty after a save, shows a neutral Set badge, and replaces in place with Save and Cancel. Its props are `isSet`, `onSave(value)` and labels: the stored value never comes back in, and the typed value is held by the input element alone, cleared and unmounted when the save lands. A failed save keeps the value for a retry and announces the error. Focus is placed at every step. It composes the field, badge, button and chip row and adds no CSS; the contract sits under Field, and the studio shows all six states.
 - **`--exclude <dir>` on the gate suite.** `verseva-gate` and the hex, spacing and type gates take a repeatable `--exclude <dir>` that skips the directory of that name directly under a scan path. Top level only: the same name deeper in the tree is still scanned, and nothing is excluded unless the flag is passed. This repo passes `--exclude swift` so the coming Swift package's sources stay out of the web gates.
 
 ### Fixed

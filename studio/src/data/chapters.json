@@ -21,6 +21,10 @@
         "label": "Field"
       },
       {
+        "id": "secret",
+        "label": "Secret field"
+      },
+      {
         "id": "switch",
         "label": "Checkbox + switch"
       },

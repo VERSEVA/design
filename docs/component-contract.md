@@ -52,6 +52,41 @@ the recorded failure mode (a dozen live-looking dead buttons).
 Label above (placeholder is never the label), 40/48px heights, `--r-sm`, error replaces help with
 `aria-invalid` + `aria-describedby` wired. Inline validation on blur; error copy says how to fix.
 
+### Secret field: `SecretField` (write-only)
+
+A field for keys and tokens. The value is written and never read back: once it is saved, no
+screen shows it again, to anyone. It composes `.field`, `.badge`, `.btn`, `.chiprow` and
+`.spinner`; it adds no CSS.
+
+- **The part never receives the stored value.** Props: `label`, `isSet`, `onSave(value)`
+  returning a promise, `labels`, and optionally `name`, `id`, `className`. No prop carries a
+  value in: there is no `value` and no `defaultValue`.
+- **After a save the value is gone.** The typed value lives in the input element alone, never
+  in state, a ref, an attribute, a message or a log. When `onSave` resolves the input is cleared
+  and unmounted. On Cancel it is cleared and unmounted too.
+- **States:** unset (an empty input and Save, disabled until something is typed), typing,
+  saving (the input is disabled; Save holds `aria-busy`, a `.spinner` in place of its label and
+  its width), set (a neutral `.badge` reading "Set" beside the label, and a secondary Replace),
+  replacing (an empty input in the same spot, with Cancel then Save; Cancel returns to set),
+  error (`.field.error`, the message under the input, the typed value kept so the user can
+  retry).
+- **Input:** `type="password"`, `autocomplete="off"`, `autocapitalize="off"`,
+  `spellcheck="false"`, no placeholder, no `<form>`. It carries a `name` only when the host
+  passes one, because a named password input invites the browser to store it.
+- **Focus never drops to the page.** Replace puts it in the input. Save moves it to the Save
+  button before the input is disabled. A landed save and Cancel put it on Replace. A failed
+  save puts it back in the input. Enter saves; Escape cancels a replace.
+- **Announced:** the error is `role="alert"` and wired with `aria-invalid` and
+  `aria-describedby`; a landed save says "Saved" in a `role="status"` line.
+- **Error copy comes from `labels.error`, never from the rejection,** since a host error can
+  carry the value. A label that repeats the typed value is not shown; the built-in line is.
+- **The badge is neutral.** A stored secret is a fact, not a success to celebrate, and the
+  accent is not spent on it (law 3). One primary: Save. Replace is secondary, Cancel is ghost.
+- **Labels:** the built-in words live in `react/secret-field-labels.ts`, a pure module server
+  code can read. `npx verseva add secret-field`.
+- **Host duties the part cannot do:** send the value over TLS, store it encrypted, return only
+  whether it is set, and keep it out of logs and analytics.
+
 ## Selection controls: `.sel`, `.switch`
 
 20px control, 44px hit area, `--accent` selected. Checkbox = many-of, radio = one-of (2–5),
