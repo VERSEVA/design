@@ -128,9 +128,10 @@ test('an unclosed cell does not lend its part to the next cell', () => {
 
 test('recipe-ok with a reason waives one element: on the line above, or inside the tag', () => {
   const f = findings(run([fx('marked.html')]).out);
-  assert.equal(f.length, 2, f.join('\n'));
+  assert.equal(f.length, 3, f.join('\n'));
   assert.match(f[0], /marked\.html:8 {2}<dialog>/, 'an empty reason waives nothing');
   assert.match(f[1], /marked\.html:11 {2}<select>/, 'the marker reaches one line, not two');
+  assert.match(f[2], /marked\.html:13 {2}<button>/, 'a marker inside a tag waives that tag only');
 });
 
 test('recipe-ok in jsx: a comment above the tag, or inside a multi-line tag', () => {
@@ -147,6 +148,13 @@ test('a multi-line jsx tag is read to its own closing bracket and reported at it
   assert.match(f[0], /multiline\.tsx:18 {2}<button> {2}Button: \.btn$/);
 });
 
+test('a comment opener inside a jsx string hides nothing, and a comment inside a tag is skipped', () => {
+  const f = findings(run([fx('comments.tsx')]).out);
+  assert.equal(f.length, 2, f.join('\n'));
+  assert.match(f[0], /comments\.tsx:5 {2}<table>/);
+  assert.match(f[1], /comments\.tsx:7 {2}<button>/);
+});
+
 test('a className with no string literal is unknown; one literal with a contract class passes', () => {
   const f = findings(run([fx('literals.tsx')]).out);
   assert.equal(f.length, 2, f.join('\n'));
@@ -161,6 +169,7 @@ test('verseva.json: files under dir are known-good and recipeAllow skips by path
   assert.equal(r.code, 1);
   const f = findings(r.out);
   assert.equal(f.length, 2, r.out);
+  assert.deepEqual(f, [...f].sort(), 'files are walked in name order on every platform');
   assert.match(f[0], /src\/page\.html:3 {2}<dialog>/);
   assert.match(f[1], /ui-kit\/page\.html:1 {2}<select>/, 'dir matches on a path boundary');
 });
