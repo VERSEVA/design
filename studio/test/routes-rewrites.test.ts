@@ -15,9 +15,11 @@ describe('studio routes and the Vercel config', () => {
     expect(v.trailingSlash).toBe(false);
   });
 
-  it('counts four gates, one per bin/*-gate.mjs check', () => {
-    /* recipe-gate.mjs is advisory and not part of the suite verseva-gate runs, so it is not one of the four. */
-    const gates = fs.readdirSync(path.join(repo, 'bin')).filter((f) => /-gate\.mjs$/.test(f) && f !== 'verseva-gate.mjs' && f !== 'recipe-gate.mjs');
+  it('counts four gates: the checks verseva-gate runs', () => {
+    const src = fs.readFileSync(path.join(repo, 'bin', 'verseva-gate.mjs'), 'utf8');
+    const list = src.slice(src.indexOf('const GATES = ['), src.indexOf('];', src.indexOf('const GATES = [')));
+    const gates = [...list.matchAll(/'([\w-]+-gate\.mjs)'/g)].map((m) => m[1]);
     expect(gates.length).toBe(4);
+    for (const g of gates) expect(fs.existsSync(path.join(repo, 'bin', g))).toBe(true);
   });
 });

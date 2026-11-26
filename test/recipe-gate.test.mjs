@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { contractClasses, contractParts } from '../bin/contract-classes.mjs';
+import { contractClasses, contractParts, PART_FLOOR } from '../bin/contract-classes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
@@ -24,12 +24,13 @@ const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-recipe-'));
 
 /* ---- contract class set ---- */
 
-test('the class set is parsed from components.css and holds every 1.5.0 class', () => {
+test('the class set is parsed from components.css at run time', () => {
   const classes = contractClasses();
-  const baseline = JSON.parse(fs.readFileSync(path.join(here, 'fixtures', 'classes-1.5.0.json'), 'utf8')).classes;
-  const missing = baseline.filter((c) => !classes.has(c));
-  assert.deepEqual(missing, []);
+  assert.ok(classes.size > 200, `only ${classes.size} classes`);
   for (const c of ['btn', 'btn-primary', 'field', 'table', 'modal', 'seg', 'searchbox', 'cmdk']) assert.ok(classes.has(c), c);
+  const css = path.join(tmp(), 'c.css');
+  fs.writeFileSync(css, '/* .ghost */ .part-a{color:red} .part-a.mod-b, a.state-c{top:0} @media (min-width:1px){.part-d :is(.part-e, .part-f) > .part-g:not(.mod-h){top:0}} .mt-3{top:0}');
+  assert.deepEqual([...contractClasses(css)].sort(), ['part-a', 'part-d', 'part-e', 'part-f', 'part-g']);
 });
 
 test('the class set holds no value fragment, at-rule word or comment word', () => {
@@ -38,9 +39,29 @@ test('the class set holds no value fragment, at-rule word or comment word', () =
   for (const c of ['5px', 'board', 'px-4', 'rounded-md', 'w-full']) assert.ok(!classes.has(c), c);
 });
 
-test('parent parts are read from the contract: the ticket floor plus every ".part <element>" rule', () => {
+test('only root part classes count: modifiers, spacing utilities and sr-only are not in the set', () => {
+  const classes = contractClasses();
+  for (const c of ['sm', 'lg', 'two-line', 'active', 'on', 'error', 'gap-2', 'mt-2', 'mt-4', 'mb-4', 'pt-1', 'pb-9', 'sr-only']) assert.ok(!classes.has(c), c);
+  for (const c of ['btn', 'btn-primary', 'menu-item', 'chk', 'sheet', 'drawer', 'pick', 'switch']) assert.ok(classes.has(c), c);
+});
+
+test('every hard-coded floor part is a class the contract ships', () => {
+  const classes = contractClasses();
+  const floor = Object.values(PART_FLOOR).flat();
+  assert.ok(floor.length >= 10);
+  assert.deepEqual(floor.filter((c) => !classes.has(c)), []);
+  assert.ok(!floor.includes('tabs') && !floor.includes('chips'));
+});
+
+test('parent parts are keyed per element: the floor plus every ".part <element>" rule', () => {
   const parts = contractParts();
-  for (const c of ['seg', 'tabs', 'chips', 'menu', 'pick', 'switcher', 'field', 'sel', 'switch']) assert.ok(parts.any.has(c), c);
+  assert.equal(parts.any, undefined, 'no part covers every element');
+  for (const c of ['seg', 'menu', 'switcher', 'pick']) assert.ok(parts.button.has(c), c);
+  for (const c of ['field', 'sel', 'pick', 'switch']) assert.ok(parts.input.has(c), c);
+  assert.ok(parts.textarea.has('field') && parts.select.has('field'));
+  assert.ok(!parts.button.has('field'), 'a field does not cover a button');
+  assert.ok(!parts.input.has('seg') && !parts.input.has('menu'));
+  assert.equal(parts.table.size + parts.dialog.size, 0);
   assert.ok(parts.input.has('searchbox'));
   assert.ok(parts.button.has('tabbar'));
   assert.ok(parts.button.has('panel-hd'));
@@ -66,6 +87,15 @@ test('RED: one finding per hand-built element, with file, line, element and cont
   assert.match(f[1], /red\.html:4 {2}<table> {2}Table: \.table$/);
   assert.match(f[2], /red\.html:8 {2}<select> {2}Input \/ field: \.field$/);
   assert.match(f[3], /red\.html:9 {2}<dialog> {2}Modal: \.modal$/);
+});
+
+test('RED: utility-built elements are reported even when a utility name is also a contract class', () => {
+  const r = run(['--strict', fx('red-utilities.html')]);
+  assert.equal(r.code, 1);
+  const f = findings(r.out);
+  assert.deepEqual(f.map((l) => l.match(/:(\d+) {2}(<[^>]+>)/).slice(1).join(' ')), [
+    '2 <button>', '3 <button>', '4 <table>', '7 <select>', '8 <input>', '9 <button>', '10 <button>', '11 <input>',
+  ], r.out);
 });
 
 test('RED: --strict exits 1', () => {
@@ -153,6 +183,24 @@ test('a comment opener inside a jsx string hides nothing, and a comment inside a
   assert.equal(f.length, 2, f.join('\n'));
   assert.match(f[0], /comments\.tsx:5 {2}<table>/);
   assert.match(f[1], /comments\.tsx:7 {2}<button>/);
+});
+
+test('jsx comments and string literals are not scanned for tags', () => {
+  const f = findings(run([fx('comments-strings.tsx')]).out);
+  assert.equal(f.length, 1, f.join('\n'));
+  assert.match(f[0], /comments-strings\.tsx:15 {2}<table>/);
+});
+
+test('an unclosed comment inside a tag is read once, not once per tag', () => {
+  const cwd = tmp();
+  const body = '<a /*'.repeat(40_000);
+  assert.ok(body.length >= 200_000);
+  fs.writeFileSync(path.join(cwd, 'big.tsx'), body);
+  const t0 = performance.now();
+  const r = run(['big.tsx'], cwd);
+  const ms = performance.now() - t0;
+  assert.equal(r.code, 0, r.out);
+  assert.ok(ms < 2000, `took ${Math.round(ms)}ms`);
 });
 
 test('a className with no string literal is unknown; one literal with a contract class passes', () => {
