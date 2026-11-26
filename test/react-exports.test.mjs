@@ -41,11 +41,63 @@ export function clientReason(src) {
   return null;
 }
 
+const FN_INIT = /^(?:async\s+)?(?:function\b|(?:\([^]*?\)|[A-Za-z_$][\w$]*)\s*(?::[^=]+)?=>|(?:React\.)?(?:forwardRef|memo|lazy)\b)/;
+const fnName = (n) => /^[A-Z]/.test(n) || /^use[A-Z]/.test(n);
+
+/* `a = 1, b = { c: [1, 2] }` split into [name, initializer] pairs, up to the statement's end. */
+function declarators(code, from) {
+  const parts = [];
+  let depth = 0, quote = null, start = from, i = from;
+  for (; i < code.length; i++) {
+    const c = code[i];
+    if (quote) { if (c === '\\') i++; else if (c === quote) quote = null; continue; }
+    if (c === "'" || c === '"' || c === '`') quote = c;
+    else if (c === '(' || c === '[' || c === '{') depth++;
+    else if (c === ')' || c === ']' || c === '}') depth--;
+    else if (depth === 0 && c === ',') { parts.push(code.slice(start, i)); start = i + 1; }
+    else if (depth === 0 && c === ';') break;
+  }
+  parts.push(code.slice(start, i));
+  const out = [];
+  for (const part of parts) {
+    const m = part.match(/^\s*([A-Za-z_$][\w$]*)\s*(?::[^=]*?)?=(?!=|>)\s*([^]*)$/);
+    if (m) out.push([m[1], m[2]]);
+    else if (out.length) out[out.length - 1][1] += `,${part}`; // a comma inside <A, B>
+  }
+  return out;
+}
+
 /** Exported runtime values a client file defines that are neither a component nor a hook. */
 export function clientValueExports(src) {
   const code = stripComments(src);
-  const names = [...code.matchAll(/^export\s+(?:default\s+)?(?:async\s+)?(?:const|let|var|function\*?|class)\s+(\w+)/gm)].map((m) => m[1]);
-  return names.filter((n) => !/^[A-Z][A-Za-z0-9]*[a-z]/.test(n) && !/^use[A-Z]/.test(n));
+  const found = [];
+  /* Every top-level binding the file declares: name -> true when it is a value to flag. */
+  const local = new Map();
+  for (const m of code.matchAll(/^(?:export\s+)?(?:declare\s+)?(?:const\s+)?(enum|class)\s+(\w+)/gm)) local.set(m[2], true);
+  for (const m of code.matchAll(/^(?:export\s+)?(?:default\s+)?(?:async\s+)?function\*?\s+(\w+)/gm)) local.set(m[1], !fnName(m[1]));
+  for (const m of code.matchAll(/^(export\s+)?(?:const|let|var)\s+(?!enum\b)/gm)) {
+    for (const [name, init] of declarators(code, m.index + m[0].length)) {
+      const bad = !(FN_INIT.test(init) && fnName(name));
+      local.set(name, bad);
+      if (m[1] && bad) found.push(name);
+    }
+  }
+  for (const m of code.matchAll(/^export\s+(?:default\s+)?(?:async\s+)?function\*?\s+(\w+)/gm)) if (local.get(m[1])) found.push(m[1]);
+  for (const m of code.matchAll(/^export\s+(?:declare\s+)?(?:const\s+)?(?:enum|class)\s+(\w+)/gm)) found.push(m[1]);
+  // export { A, B as C } with no `from`: flagged when the local name is a value declared here.
+  for (const m of code.matchAll(/^export\s*\{([^}]*)\}(?!\s*from\b)/gm)) {
+    for (const spec of m[1].split(',').map((x) => x.trim()).filter(Boolean)) {
+      if (/^type\s/.test(spec)) continue;
+      const [name, alias = name] = spec.split(/\s+as\s+/);
+      if (local.get(name)) found.push(alias);
+    }
+  }
+  // export default <expr>: fine for a function, a class component is not expected here.
+  for (const m of code.matchAll(/^export\s+default\s+(?!(?:async\s+)?function\b)([^]*?);?\s*$/gm)) {
+    const id = m[1].match(/^([A-Za-z_$][\w$]*)$/);
+    if (id ? local.get(id[1]) !== false : !FN_INIT.test(m[1])) found.push('default');
+  }
+  return found;
 }
 
 test('the detector reads code, not comments', () => {
@@ -92,7 +144,21 @@ test('no client file defines an exported value that is not a component or a hook
   // silently: spreading default labels yields nothing. Constants live in a pure module and the
   // client file re-exports them.
   assert.deepEqual(clientValueExports("'use client';\nexport const X_LABELS = { a: 'A' };\nexport const MAX = 3;\nexport function helper() {}\n"), ['X_LABELS', 'MAX', 'helper']);
-  assert.deepEqual(clientValueExports("export const Button = 1;\nexport function HBars() {}\nexport function useToast() {}\nexport { X } ;\nexport type T = 1;\nexport interface P {}\n"), []);
+  assert.deepEqual(clientValueExports("export const Button = React.forwardRef<HTMLButtonElement, P>((p, ref) => null);\nexport function HBars() {}\nexport function useToast() {}\nexport const useThing = () => 1;\nexport const Row = (p: P) => null;\nexport default function Page() {}\nexport type T = 1;\nexport interface P {}\n"), []);
+  // A value is a value whatever its name looks like, and however it is exported.
+  assert.deepEqual(clientValueExports("const DEFAULTS = { a: 1 };\nexport { DEFAULTS };\n"), ['DEFAULTS']);
+  assert.deepEqual(clientValueExports("const DEFAULTS = { a: 1 };\nexport { DEFAULTS as Labels };\n"), ['Labels']);
+  assert.deepEqual(clientValueExports("export const Labels = { a: 'A' };\n"), ['Labels']);
+  assert.deepEqual(clientValueExports("export default { a: 1 };\n"), ['default']);
+  assert.deepEqual(clientValueExports("const D = { a: 1 };\nexport default D;\n"), ['default']);
+  assert.deepEqual(clientValueExports("export const Foo = 1, bar = 2;\n"), ['Foo', 'bar']);
+  assert.deepEqual(clientValueExports("export const Foo = (p: P) => null, bar = { a: [1, 2], b: 'x,y' }, Baz = 3;\n"), ['bar', 'Baz']);
+  assert.deepEqual(clientValueExports("export enum Tone { Ok, Err }\nexport const enum Size { S, M }\n"), ['Tone', 'Size']);
+  assert.deepEqual(clientValueExports("export class Store {}\n"), ['Store']);
+  // Re-exports of a pure module's names stay allowed, in either spelling, and so do components.
+  assert.deepEqual(clientValueExports("export { X_LABELS, MAX } from './labels';\nexport * from './x-state';\nexport type { T } from './labels';\n"), []);
+  assert.deepEqual(clientValueExports("import { X_LABELS } from './labels';\nexport { X_LABELS };\n"), []);
+  assert.deepEqual(clientValueExports("function Part() { return null; }\nconst Row = () => null;\nexport { Part, Row };\nexport default Part;\n"), []);
   const found = [];
   for (const f of files) {
     const src = read(f);
