@@ -12,6 +12,7 @@ export type { SmartStackLabels } from './labels';
 export {
   /** @deprecated Import from './labels'. Read from this client file, a server component gets a client reference, not the values. */
   SMART_STACK_LABELS,
+  /** @deprecated Import from './labels'. Read from this client file, a server component gets a client reference, not the value. */
   MAX_DOTS,
 };
 
