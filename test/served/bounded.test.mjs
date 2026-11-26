@@ -24,10 +24,13 @@ const head = (id) => `<h3 class="bounded-name" id="${id}-n">Quotes</h3>`;
 const table = (id, n) => `<section class="bounded" id="${id}" aria-labelledby="${id}-n">${head(id)}${n === 0
   ? '<div class="empty"><b>No quotes yet</b><button class="btn btn-secondary sm" type="button">New quote</button></div>'
   : `<table class="table"><thead><tr><th>Quote</th><th>Client</th><th class="num">Amount</th></tr></thead><tbody class="bounded-rows">${Array.from({ length: n }, (_, i) => tr(i)).join('')}</tbody></table>${foot(n, CAP)}`}</section>`;
+/* the glass panel inside the section, round the table alone */
+const inner = (id, n) => `<section class="bounded" id="${id}" aria-labelledby="${id}-n">${head(id)}<div class="glass"><table class="table"><thead><tr><th>Quote</th><th>Client</th><th class="num">Amount</th></tr></thead><tbody class="bounded-rows">${Array.from({ length: n }, (_, i) => tr(i)).join('')}</tbody></table></div>${foot(n, CAP)}</section>`;
 const list = (id, n, attrs = '', cap = CAP, more) => `<section class="bounded" id="${id}" aria-labelledby="${id}-n"${attrs}>${head(id)}<div class="lrows bounded-rows">${Array.from({ length: n }, (_, i) => lrow(i)).join('')}</div>${foot(n, cap, more)}</section>`;
 const tablePage = (theme) => `<!doctype html><html data-theme="${theme}"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/components.css"><body>
 ${[0, 3, CAP, CAP + 40].map((n) => table(`t${n}`, n)).join('')}
 ${[3, CAP, CAP + 40].map((n) => `<div class="glass">${table(`g${n}`, n)}</div>`).join('')}
+${[CAP, CAP + 40].map((n) => inner(`i${n}`, n)).join('')}
 ${list('below', 3)}${list('below-always', 3, ' data-all="always"')}${list('at', CAP)}${list('cap3-at', 3, ' data-cap="3"', 3)}${list('cap8-below', CAP, ' data-cap="8"', 8)}${list('cap8-always', CAP, ' data-cap="8" data-all="always"', 8)}${list('odd-below', 3, ' data-cap="99"')}${list('short-page', 3, '', CAP, '+7 more')}${list('short-page-cap8', 3, ' data-cap="8"', 8, '+7 more')}
 </body></html>`;
 
@@ -238,6 +241,10 @@ for (const scheme of ['dark', 'light']) for (const width of [1280, 375]) {
     );
     /* a table outside glass closes with a line above the foot; glass draws its own edge */
     assert.deepEqual([t(CAP).closing, t(CAP + 40).closing, g(CAP).closing], ['1px', '1px', '0px']);
+    /* either nesting: glass round the section, or glass inside it round the table */
+    const i = (n) => r[`i${n}`];
+    assert.deepEqual([i(CAP).closing, i(CAP + 40).closing, i(CAP).shown, i(CAP + 40).shown], ['0px', '0px', CAP, CAP]);
+    assert.equal(i(CAP + 40).height, i(CAP).height, `glass inside the section: ${i(CAP).height}px at ${CAP} rows, ${i(CAP + 40).height}px at ${CAP + 40}`);
     /* no dead room under a section with nothing more to show */
     assert.ok(r['below-always'].height > r.below.height);
 

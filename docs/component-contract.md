@@ -118,7 +118,7 @@ bounded: it is the place the rows live.
   anyway: dropped rows are still downloaded. Inside `.bounded-rows`, `.lrow` and table rows are
   divided on their top edge, so the last row on screen ends the same at the cap and past it,
   also inside `.glass`. A bounded table outside a glass panel closes with a `--hairline` line
-  above the foot.
+  above the foot; inside one, whichever of the two wraps the other, the glass edge is the line.
 - **Foot:** `.bounded-foot` holds the count and the action together on the trailing edge,
   `--s-3` apart, so the count reads with its own action.
   - **Count:** `.bounded-more`, reading "+N more", with `role="status"`. The element is always
