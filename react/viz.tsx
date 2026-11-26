@@ -27,7 +27,11 @@ type Pt = readonly [number, number];
 /** A value the chart can draw. Null, undefined, NaN and the infinities are gaps. */
 const known = (v: number | null | undefined): v is number => typeof v === 'number' && Number.isFinite(v);
 
-/** The gap band: 2 plot units below the zero baseline (it scales with the stroke, so a large plot keeps the clearance) and `--s-1` tall; a chart with a gap keeps this much room under its plot. */
+/**
+ * The gap band: below the zero baseline by 2 plot units (it scales with the stroke, so a large plot keeps the
+ * clearance) or `--s-1`, whichever is larger (the stylesheet takes the max of the two custom properties the
+ * band carries), and `--s-1` tall; a chart with a gap keeps this much room under its plot.
+ */
 const BAND_GAP = 2;
 const BAND = 4;
 /** A series that draws a band: any gap at all. All gaps is one band across the plot; an empty array is not a gap. */
@@ -70,7 +74,8 @@ const lone = (p: readonly (Pt | null)[]) =>
   p.length === 1 ? [] : p.filter((pt, i): pt is Pt => !!pt && !p[i - 1] && !p[i + 1] && i < p.length - 1);
 /**
  * Each gap's own stretch along x, from which indices are null and nothing else: its null indices and half a
- * step either side, clipped to the plot and never narrower than one step. All nulls is the whole plot.
+ * step either side (the midpoint to the next known point), clipped to the plot. It never runs under a known
+ * value, so a gap at an end takes the half step there is. All nulls is the whole plot.
  */
 const gaps = (p: readonly (Pt | null)[], w: number, pad: number) => {
   const out: [number, number][] = [];
@@ -80,10 +85,7 @@ const gaps = (p: readonly (Pt | null)[], w: number, pad: number) => {
     if (p[i]) continue;
     let j = i;
     while (j + 1 < p.length && !p[j + 1]) j++;
-    let a = Math.max(pad, pad + step * (i - 0.5));
-    let b = Math.min(w - pad, pad + step * (j + 0.5));
-    if (b - a < step) { if (i === 0) b = a + step; else a = b - step; }
-    out.push([a, b]);
+    out.push([Math.max(pad, pad + step * (i - 0.5)), Math.min(w - pad, pad + step * (j + 0.5))]);
     i = j;
   }
   return out;
@@ -102,9 +104,13 @@ const gapBands = (series: readonly (readonly (Pt | null)[])[], w: number, h: num
   }
   return merged.map(([x1, x2]) => (
     <i key={x1} className="vizgap" aria-hidden="true"
-      style={{ left: `${(x1 / w) * 100}%`, width: `${((x2 - x1) / w) * 100}%`, top: `${((base + BAND_GAP) / h) * 100}%` }} />
+      style={{ left: `${(x1 / w) * 100}%`, width: `${((x2 - x1) / w) * 100}%`, '--vizgap-base': `${(base / h) * 100}%`, '--vizgap-top': `${((base + BAND_GAP) / h) * 100}%` } as React.CSSProperties} />
   ));
 };
+
+/** An all-null chart shows a band and nothing else, which can read as loading: it says the word in the plot. */
+const gapWord = (series: readonly (readonly (Pt | null)[])[], word: string) =>
+  series.some((p) => p.length > 0) && !series.some((p) => p.some(Boolean)) ? <span className="vizgap-word">{word}</span> : null;
 
 export interface SparklineProps {
   /** A null is a gap: the line breaks there and no point is drawn. */
@@ -112,12 +118,15 @@ export interface SparklineProps {
   /** Fixed scale top; defaults to the series max. */
   max?: number;
   area?: boolean;
+  /** Copy: the word an all-null sparkline shows. */
+  vizLabels?: Partial<VizLabels>;
   className?: string;
 }
 
 /** Trend-at-a-glance: line + last-point dot, optional soft area. */
-export function Sparkline({ values, max, area = true, className }: SparklineProps) {
+export function Sparkline({ values, max, area = true, vizLabels, className }: SparklineProps) {
   const id = React.useId();
+  const L = { ...VIZ_LABELS, ...vizLabels };
   const W = 140;
   const H = 40;
   const gapped = hasGap(values);
@@ -146,7 +155,7 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
   );
   return (
     <span className={cx('spark', className)}>
-      {gapped ? <span className="vizframe">{plot}{gapBands([p], W, H, base, 4)}</span> : plot}
+      {gapped ? <span className="vizframe">{plot}{gapBands([p], W, H, base, 4)}{gapWord([p], L.withheld)}</span> : plot}
     </span>
   );
 }
@@ -160,7 +169,7 @@ export interface LineChartProps {
   height?: number;
   /** Formats the hover readout; defaults to the raw number. */
   format?: (v: number) => string;
-  /** Copy: the word a gap shows on hover. */
+  /** Copy: the word a gap shows on hover, and an all-null chart shows in its plot. */
   vizLabels?: Partial<VizLabels>;
   className?: string;
 }
@@ -245,7 +254,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
 
   return (
     <div className={cx('vizplot', className)}>
-      {gapped ? <span className="vizframe">{plot}{gapBands(all, W, height, base, pad)}</span> : plot}
+      {gapped ? <span className="vizframe">{plot}{gapBands(all, W, height, base, pad)}{gapWord(all, L.withheld)}</span> : plot}
       {reference && <span className="reftag" style={{ top: `${(refY / height) * 100}%` }}>{reference.label}</span>}
       {hover !== null && (
         <div className="viztip" role="status">

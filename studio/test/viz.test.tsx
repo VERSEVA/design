@@ -371,7 +371,7 @@ const bandEls = (root: Element) => [...root.querySelectorAll<HTMLElement>('i.viz
 /* [x, width, y] in viewBox units, from the percentages the band is positioned with (W x H is the viewBox).
    y is 2 units below the baseline, in the plot's own units, so the clearance grows with the stroke when a plot is drawn large. */
 const gapBands = (root: Element, W: number, H: number) =>
-  bandEls(root).map((b) => [round((parseFloat(b.style.left) * W) / 100), round((parseFloat(b.style.width) * W) / 100), round((parseFloat(b.style.top) * H) / 100)]);
+  bandEls(root).map((b) => [round((parseFloat(b.style.left) * W) / 100), round((parseFloat(b.style.width) * W) / 100), round((parseFloat(b.style.getPropertyValue('--vizgap-top')) * H) / 100)]);
 const SPARK = [140, 40] as const;
 const PLOT = [320, 140] as const;
 
@@ -407,8 +407,8 @@ describe('Sparkline: null gaps', () => {
     const line = container.querySelector('path')!.getAttribute('d')!;
     expect(subpaths(line)).toBe(1);
     expect(line).toMatch(/^M48\.0 [\d.]+ L92\.0 [\d.]+$/);
-    /* a gap at the start and one at the end: clipped to the plot, and never narrower than one step */
-    expect(gapBands(container, ...SPARK).map((l) => l.slice(0, 2))).toEqual([[4, 44], [92, 44]]);
+    /* a gap at the start and one at the end: from the plot's edge to the midpoint before the known point */
+    expect(gapBands(container, ...SPARK).map((l) => l.slice(0, 2))).toEqual([[4, 22], [114, 22]]);
     const lead = render(<Sparkline values={[null, 3, 5]} area={false} />).container;
     expect(lead.querySelectorAll('circle')).toHaveLength(1);
     expect(lead.querySelector('circle')!.getAttribute('cx')).toBe('136');
@@ -443,9 +443,31 @@ describe('Sparkline: null gaps', () => {
     expect(lone.querySelectorAll('path')).toHaveLength(0);
   });
 
-  it('gives one null at each end a band a full step wide, not a sliver', () => {
-    const { container } = render(<Sparkline values={[null, 3, 4, 5, null]} area={false} />);
-    expect(gapBands(container, ...SPARK)).toEqual([[4, 33, 32], [103, 33, 32]]);
+  it('never runs a band under a known value: an end gap stops at the midpoint to its neighbour', () => {
+    const x = (i: number, n: number) => 4 + (132 * i) / (n - 1);
+    const cases: [(number | null)[], number[][]][] = [
+      [[5, null], [[70, 66, 32]]],
+      [[null, 5], [[4, 66, 32]]],
+      [[1, null, 3], [[37, 66, 32]]],
+      [[null, 3, 4, 5, null], [[4, 16.5, 32], [119.5, 16.5, 32]]],
+      [[null, 3, null, null, 5, 6, null], [[4, 11, 32], [37, 44, 32], [125, 11, 32]]],
+    ];
+    for (const [values, want] of cases) {
+      const { container } = render(<Sparkline values={values} area={false} />);
+      const got = gapBands(container, ...SPARK);
+      expect(got, JSON.stringify(values)).toEqual(want);
+      values.forEach((v, i) => {
+        if (v === null) return;
+        for (const [left, width] of got) expect(x(i, values.length) > left + 0.2 && x(i, values.length) < left + width - 0.2, `${JSON.stringify(values)} at ${i}`).toBe(false);
+      });
+    }
+  });
+
+  it('holds the band clear of the baseline by 2 plot units or --s-1, whichever is larger (CSS takes the max)', () => {
+    const band = bandEls(render(<Sparkline values={[2, null, 4]} />).container)[0];
+    expect(band.style.getPropertyValue('--vizgap-base')).toBe('75%');
+    expect(band.style.getPropertyValue('--vizgap-top')).toBe('80%');
+    expect(band.style.top).toBe('');
   });
 
   it('draws no frame and no band without a gap', () => {
@@ -470,6 +492,15 @@ describe('Sparkline: null gaps', () => {
     const empty = render(<Sparkline values={[]} />).container;
     expect(empty.querySelectorAll('.vizframe, .vizgap')).toHaveLength(0);
     expect(empty.innerHTML).not.toBe(container.innerHTML);
+  });
+
+  it('names an all-null sparkline withheld in the plot, from vizLabels, and never an empty one', () => {
+    const { container } = render(<Sparkline values={[null, null, null]} />);
+    const word = container.querySelector('.vizframe > .vizgap-word')!;
+    expect(word.textContent).toBe('withheld');
+    expect(render(<Sparkline values={[null, null]} vizLabels={{ withheld: 'not shown' }} />).container.querySelector('.vizgap-word')!.textContent).toBe('not shown');
+    expect(render(<Sparkline values={[]} />).container.querySelector('.vizgap-word')).toBeNull();
+    expect(render(<Sparkline values={[null, 2, null]} />).container.querySelector('.vizgap-word')).toBeNull();
   });
 
   it('places the band by which indices are null, never by a value', () => {
@@ -523,7 +554,7 @@ describe('LineChart: null gaps', () => {
     const apart = render(
       <LineChart labels={labels} series={[{ name: 'A', values: [null, 2, 3, 4, 5] }, { name: 'B', values: [5, 4, 3, null, null] }]} />,
     ).container;
-    expect(gapBands(apart, ...PLOT)).toEqual([[6, 77, 130], [198.5, 115.5, 130]]);
+    expect(gapBands(apart, ...PLOT)).toEqual([[6, 38.5, 130], [198.5, 115.5, 130]]);
   });
 
   it('draws no stray point for leading and trailing nulls', () => {
@@ -549,8 +580,14 @@ describe('LineChart: null gaps', () => {
     expect(container.querySelectorAll('path')).toHaveLength(0);
     expect(container.querySelectorAll('circle')).toHaveLength(0);
     expect(gapBands(container, ...PLOT)).toEqual([[6, 308, 130]]);
+    /* a band alone can read as loading: the all-null chart says the word, in the plot */
+    expect(container.querySelector('.vizframe > .vizgap-word')!.textContent).toBe('withheld');
+    const two = render(<LineChart labels={labels} vizLabels={{ withheld: 'not shown' }} series={[{ name: 'A', values: [null, null] }, { name: 'B', values: [null, NaN, null] }]} />).container;
+    expect(two.querySelectorAll('.vizgap-word')).toHaveLength(1);
+    expect(two.querySelector('.vizgap-word')!.textContent).toBe('not shown');
     const empty = render(<LineChart labels={[]} series={[{ name: 'A', values: [] }]} />).container;
-    expect(empty.querySelectorAll('.vizframe, .vizgap')).toHaveLength(0);
+    expect(empty.querySelectorAll('.vizframe, .vizgap, .vizgap-word')).toHaveLength(0);
+    expect(render(<LineChart labels={labels} series={[]} />).container.querySelectorAll('.vizframe, .vizgap-word')).toHaveLength(0);
     const svg = container.querySelector('.vizplot svg')!;
     stubBox(svg);
     expect(() => move(svg, 160)).not.toThrow();
@@ -564,6 +601,7 @@ describe('LineChart: null gaps', () => {
     expect(gapBands(container, ...PLOT)).toEqual([[6, 308, 130]]);
     expect(container.querySelectorAll('path[fill="none"]')).toHaveLength(1);
     expect(container.querySelector('.vizlegend')!.textContent).toContain('B');
+    expect(container.querySelector('.vizgap-word')).toBeNull();
     /* the complete series gives the band its room: its baseline is the reserved one */
     expect(container.querySelector('path:not([fill="none"])')!.getAttribute('d')).toContain(' 128 ');
   });

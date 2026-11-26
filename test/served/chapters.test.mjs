@@ -183,6 +183,10 @@ const WITHHELD = `(async () => {
     if (stripe.slice(0, 3).join() === accent) out.bad.push('gap band spends the accent');
     if (cs.backgroundImage !== stubHatch) out.bad.push('gap band hatch is not the bar stub hatch');
     if (cs.height !== px('var(--s-1)')) out.bad.push('gap band is ' + cs.height + ' tall, not --s-1');
+    /* clear of the zero baseline by at least --s-1: the baseline is the custom property the band carries */
+    const baseY = plot.top + (plot.height * parseFloat(el.style.getPropertyValue('--vizgap-base'))) / 100;
+    r.clear = box.top - baseY;
+    if (r.clear < parseFloat(px('var(--s-1)')) - 0.5) out.bad.push('gap band is ' + r.clear.toFixed(1) + 'px under the baseline, less than --s-1');
     if (el.closest('svg')) out.bad.push('gap band is inside the stretched svg');
     if (el.getAttribute('aria-hidden') !== 'true' || el.textContent) out.bad.push('gap band is not a silent mark');
     if (box.bottom > plot.bottom + 0.5 || box.left < plot.left - 0.5 || box.right > plot.right + 0.5) out.bad.push('gap band runs out of the plot');
@@ -228,7 +232,7 @@ for (const scheme of ['dark', 'light']) {
     await page.close();
     t.diagnostic(`${scheme}: ` + r.stubs.map((x) => `${x.name} hatch ${x.onGround.toFixed(2)}:1 on ground, ${x.onFill.toFixed(2)}:1 on its fill, stub ${x.stub} (box ${Math.round(x.w)}x${Math.round(x.h)})`)
       .concat(r.labels.map((x) => `${x.name} "${x.text}" ${x.onGround.toFixed(2)}:1, ${x.size} ${x.face}`))
-      .concat([`gap band ${Math.min(...r.gaps.map((g) => g.ratio)).toFixed(2)}:1, ${r.gaps.map((g) => Math.round(g.w) + 'x' + Math.round(g.h)).join(' ')}`, `hover word ${r.hover?.word?.toFixed(2)}:1`]).join('; '));
+      .concat([`gap band ${Math.min(...r.gaps.map((g) => g.ratio)).toFixed(2)}:1, ${r.gaps.map((g) => Math.round(g.w) + 'x' + Math.round(g.h)).join(' ')}, ${Math.min(...r.gaps.map((g) => g.clear)).toFixed(1)}px under the baseline`, `hover word ${r.hover?.word?.toFixed(2)}:1`]).join('; '));
     assert.deepEqual(r.bad, []);
     assert.equal(r.stubs.length, 2, 'one vertical and one horizontal stub');
     assert.equal(r.labels.length, 2);
