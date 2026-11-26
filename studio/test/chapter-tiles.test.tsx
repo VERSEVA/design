@@ -12,6 +12,7 @@ import { REDESIGNED } from './redesigned';
 import chapters from '../src/data/chapters.json';
 import { fireEvent } from '@testing-library/react';
 import { FILTERS } from '../src/gallery/meta';
+import { LineChart } from '../../react/viz';
 
 /* The spans as the stylesheets write them, read from components.css (.wgrid columns, .wtile[data-size]
    spans, the 1100px override) and tiles.css (XL on one content row), so a CSS change reaches this test. */
@@ -289,7 +290,7 @@ describe('Data viz tiles (law 3)', () => {
   it('gives the data accent to one focus tile, Line + area; every other chart is on the text ladder', () => {
     const root = page('data-viz');
     expect([...root.querySelectorAll('section.stile[data-focus]')].map((t) => t.id)).toEqual(['lines']);
-    expect(root.querySelectorAll('section.stile:not([data-focus])').length).toBe(9);
+    expect(root.querySelectorAll('section.stile:not([data-focus])').length).toBe(11);
   });
 
   it('names no colour inline: magnitude goes through data-l, categories through series classes', () => {
@@ -328,6 +329,41 @@ describe('Data viz tiles (law 3)', () => {
     for (const [sel] of [['.stackcol i.s1'], ['.vizlegend i[data-l="1"]'], ['.vizlegend i[data-l="2"]'], ['.srcdot i.mom']]) {
       expect(c, sel).toContain(`.wtile:not([data-focus]) ${sel}`);
     }
+  });
+});
+
+/* Issue 205: the two withheld-data specimens. Suppressed values is the kit's own parts; Gaps is written
+   markup, so it is held to what LineChart renders for the same series (the gradient id aside). */
+describe('Data viz tiles: withheld data', () => {
+  it('shows a suppressed bar as the empty track with its display, in both bar forms, and no fill', () => {
+    const root = page('data-viz');
+    const bar = root.querySelector('#suppressed .bar[data-suppressed]')!;
+    expect(bar.querySelector('.fill')).toBeNull();
+    expect(bar.querySelector('.vtrack')).not.toBeNull();
+    expect(bar.querySelector('.vlab')!.textContent).toBe('<5');
+    const row = root.querySelector('#suppressed .hbar[data-suppressed]')!;
+    expect(row.querySelector('.htrack')!.children).toHaveLength(0);
+    expect(row.querySelector('.hcount')!.textContent).toBe('<5');
+    expect(root.querySelectorAll('#suppressed .htrack i.alt')).toHaveLength(1);
+  });
+
+  it('draws Gaps exactly as LineChart renders the same series', () => {
+    const kit = render(
+      <LineChart
+        height={130}
+        labels={['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8']}
+        series={[
+          { name: 'Visits', values: [62, 70, 66, null, null, 78, 88, 95] },
+          { name: 'Booked', values: [41, 44, 40, 52, 58, null, 61, 72] },
+        ]}
+      />,
+    ).container.querySelector('.vizplot')!;
+    const spec = page('data-viz').querySelector('#gaps .vizplot')!;
+    const canon = (el: Element) => el.outerHTML.replace(/id="[^"]+"/, 'id="g"').replace(/url\(#[^)]+\)/, 'url(#g)');
+    expect(canon(spec)).toBe(canon(kit));
+    const [area, first, second] = [...spec.querySelectorAll('path')].map((p) => p.getAttribute('d')!);
+    expect([area, first, second].map((d) => d.split('M').length - 1)).toEqual([2, 2, 2]);
+    expect(spec.querySelectorAll('path')[2].getAttribute('stroke-dasharray')).toBe('5 4');
   });
 });
 

@@ -6,13 +6,18 @@
 // The legacy inline script runs as the chapter script for the drawing (sparklines, the line
 // plot and its range): scoped to the chapter root, listeners on the abort signal, and whatever
 // it adds to the DOM removed on cleanup. Code panels are the tiles' own.
+// Withheld data (1.7.1), after the rail's sections: Suppressed values renders the kit's own Bars and
+// HBars (react/viz), so no value of a suppressed item reaches the page; Gaps is the markup LineChart
+// writes for a series with nulls, held to the kit by studio/test/chapter-tiles.test.tsx (a live
+// LineChart carries a useId gradient id, which a byte-held sample cannot).
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
 import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
+import { Bars, HBars } from '../../../../react/viz';
 import './data-viz.css';
 /* The sections with a specimen, in page order: sample i of data-viz.code.json is the sample of
    SAMPLED[i], generated from these specimens as drawn (studio/test/chapter-code.test.ts holds it
    byte for byte; VSV_WRITE_CODE=1 rewrites it). The samples load on first intent. */
-export const SAMPLED = ['stat', 'spark', 'lines', 'bars', 'stacked', 'hbars', 'heat', 'rings', 'gates', 'meaning'];
+export const SAMPLED = ['stat', 'spark', 'lines', 'bars', 'stacked', 'hbars', 'heat', 'rings', 'gates', 'meaning', 'suppressed', 'gaps'];
 let samples: Promise<string[]> | undefined;
 const sample = (id: string) => () => (samples ??= import('./data-viz.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
 
@@ -503,6 +508,63 @@ export function Page() {
                 <span className="srcdot"><i className="mom"></i>{" DESK"}</span>
                 <span className="srcdot"><i></i>{" ERP IMPORT"}</span>
                 <span className="srcdot"><i className="neu"></i>{" WEARABLE"}</span>
+              </div>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="suppressed" name="Suppressed values" icon={ICON} size="m" meta="2 withheld" code={sample('suppressed')} focus={false}>
+          <div className="demo">
+            <div className="specimen" style={{ minWidth: "300px", flex: "1" }}>
+              <Bars
+                height={110}
+                data={[
+                  { label: 'Mon', value: 42 },
+                  { label: 'Tue', value: 3, display: '<5', suppressed: true },
+                  { label: 'Wed', value: 28 },
+                  { label: 'Thu', value: 57 },
+                ]}
+              />
+              <HBars
+                className="mt-4"
+                data={[
+                  { label: 'Clinic A', value: 48 },
+                  { label: 'Clinic B', value: 31, alt: true },
+                  { label: 'Clinic C', value: 2, display: '<5', suppressed: true },
+                  { label: 'Clinic D', value: 11 },
+                ]}
+              />
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="gaps" name="Gaps" icon={ICON} size="m" meta="2 gaps" code={sample('gaps')} focus={false}>
+          <div className="demo">
+            <div className="specimen" style={{ flex: "1", minWidth: "280px" }}>
+              <div className="vizplot">
+                <svg viewBox="0 0 320 130" preserveAspectRatio="none" role="img" aria-label="Visits vs Booked">
+                  <g>
+                    <defs>
+                      <linearGradient id="vgap" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stopColor="var(--data-3)" stopOpacity="0.22"></stop>
+                        <stop offset="1" stopColor="var(--data-3)" stopOpacity="0"></stop>
+                      </linearGradient>
+                    </defs>
+                    <path d="M6.0 124 6.0 47.0 L50.0 37.1 L94.0 42.0 L94.0 124 Z M226.0 124 226.0 27.1 L270.0 14.7 L314.0 6.0 L314.0 124 Z" fill="url(#vgap)"></path>
+                    <path d="M6.0 47.0 L50.0 37.1 L94.0 42.0 M226.0 27.1 L270.0 14.7 L314.0 6.0" fill="none" stroke="var(--data-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <circle cx="314" cy="6" r="3" fill="var(--data-3)"></circle>
+                  </g>
+                  <g>
+                    <path d="M6.0 73.1 L50.0 69.3 L94.0 74.3 L138.0 59.4 L182.0 52.0 M270.0 48.2 L314.0 34.6" fill="none" stroke="var(--data-alt)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="5 4"></path>
+                    <circle cx="314" cy="34.56842105263158" r="3" fill="var(--data-alt)"></circle>
+                  </g>
+                </svg>
+                <div className="xlabels mt-2" aria-hidden="true">
+                  <span>W1</span>
+                  <span>W8</span>
+                </div>
+                <div className="vizlegend mt-2">
+                  <span><i></i>{" Visits"}</span>
+                  <span><i className="alt"></i>{" Booked"}</span>
+                </div>
               </div>
             </div>
           </div>

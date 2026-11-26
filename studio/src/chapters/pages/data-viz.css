@@ -39,3 +39,5 @@
 [data-chapter="data-viz"] .wtile:not([data-focus]) .srcdot i.mom { background: var(--text-1); }
 [data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i[data-l="0"] { background: var(--data-0); }
 [data-chapter="data-viz"] .wtile:not([data-focus]) .vizlegend i.s3 { background: var(--text-2); }
+/* Gaps: the plot LineChart writes scales with its width; the specimen holds it to its drawn height. */
+[data-chapter="data-viz"] #gaps .vizplot svg { height: 130px; }

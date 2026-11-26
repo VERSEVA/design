@@ -546,6 +546,25 @@ color-alone).
 - **Labels:** text tokens, never series color; selective direct labels; internals ≤10px mono.
 - **Takeaway caption, mandatory:** label the MEANING, not the axis.
 - **Hover:** per-mark tooltips; ≥2 series get a legend.
+- **Withheld data is never zero (1.7.1).** A missing point and a suppressed count are not small
+  numbers, and a chart that draws them as one is a defect.
+  - **Suppressed item (`Bars`, `HBars`: `suppressed`, `display`).** A privacy floor. The item keeps
+    its slot and draws the EMPTY TRACK (`.vtrack`, or an `.htrack` with nothing in it, on
+    `[data-suppressed]`), with no fill. It prints `display` (for example `<5`; `n/a` when none is
+    given) and never the value. The value stays out of the scale maximum, the bar length, the
+    `title`, the hover text and every attribute: the same chart renders the same markup whatever the
+    suppressed value is. `format` is never called with it. The kit does not sort; a consumer that
+    sorts must not order suppressed items by their value.
+  - **The empty track** is `--surface-2` bounded by a dashed `--text-3` line: the text ladder, since
+    a hairline cannot carry meaning (law 11). Never the accent, never a status hue, never a sign
+    color. The printed `display` is body type at the value's size (law 4: a person reads it).
+  - **`display` alone** replaces the printed value and the `title`; the fill still draws to scale.
+  - **Gap (`LineChart` series, `Sparkline`: `null`).** The line breaks at a null and resumes after
+    it; the area fill breaks with it. No point is drawn there, it is never interpolated across, and
+    it is left out of the scale. Hover on a null index shows no value and no marker for that series.
+    The end dot marks the last index, so a series ending in a null has none. A value alone between
+    two gaps is drawn as a dot. A real `0` is a value and draws on the baseline. All nulls render
+    the empty state. The dashed `--data-alt` second series is unchanged alongside gaps.
 
 ## Widgets: `.wgrid`, `.wtile`, `.wstack`, `.wgal` (1.6.0)
 

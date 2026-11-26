@@ -87,3 +87,77 @@ for (const scheme of ['dark', 'light']) {
     assert.deepEqual(r.bad, []);
   });
 }
+
+/* Withheld data (issue 205). The empty track of a suppressed bar is a boundary that carries meaning, so its
+   dashed line clears 3:1 against the ground it sits on AND against the track's own fill; the printed display
+   clears 4.5:1 and is body type; nothing in the slot is the accent, and the slot holds no fill. Every colour
+   is composited over the real backdrop: each ancestor's background down to the first opaque one. The ratios
+   go to the test log. */
+const WITHHELD = `(async () => {
+  await new Promise((r) => setTimeout(r, 1500));
+  document.getAnimations().forEach((a) => { try { a.finish(); } catch (e) {} });
+  const probe = document.createElement('i'); document.body.appendChild(probe);
+  const parse = (s) => {
+    let m = s.match(/rgba?\\(([^)]*)\\)/);
+    if (m) { const v = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [v[0], v[1], v[2], v[3] ?? 1]; }
+    m = s.match(/color\\(srgb ([^)]*)\\)/);
+    if (m) { const v = m[1].split(/[ /]+/).filter(Boolean).map(Number); return [v[0] * 255, v[1] * 255, v[2] * 255, v[3] ?? 1]; }
+    return null;
+  };
+  const resolve = (v) => { probe.style.backgroundColor = v; return parse(getComputedStyle(probe).backgroundColor); };
+  const over = (c, bg) => [0, 1, 2].map((i) => c[i] * c[3] + bg[i] * (1 - c[3])).concat(1);
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  /* What is painted behind el: its ancestors' backgrounds, from the first opaque one up. */
+  const ground = (el) => {
+    const layers = [];
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const c = parse(getComputedStyle(p).backgroundColor);
+      if (c && c[3] > 0) { layers.push(c); if (c[3] === 1) break; }
+    }
+    return layers.reverse().reduce((bg, c) => over(c, bg), resolve('var(--bg)'));
+  };
+  const accent = resolve('var(--accent)').slice(0, 3).join();
+  const tile = document.querySelector('[data-chapter="data-viz"] #suppressed');
+  const out = { tracks: [], labels: [], bad: [] };
+  for (const el of tile.querySelectorAll('.bar[data-suppressed] .vtrack, .hbar[data-suppressed] .htrack')) {
+    const cs = getComputedStyle(el);
+    const g = ground(el);
+    const fill = over(parse(cs.backgroundColor), g);
+    const line = over(parse(cs.borderTopColor), g);
+    const name = el.className;
+    const r = { name, onGround: ratio(line, g), onFill: ratio(line, fill), fillOnGround: ratio(fill, g) };
+    out.tracks.push(r);
+    if (cs.borderTopStyle !== 'dashed' || parseFloat(cs.borderTopWidth) < 1) out.bad.push(name + ' has no dashed line');
+    if (r.onGround < 3) out.bad.push(name + ' line on ground ' + r.onGround.toFixed(2) + ':1');
+    if (r.onFill < 3) out.bad.push(name + ' line on its fill ' + r.onFill.toFixed(2) + ':1');
+    if (el.children.length) out.bad.push(name + ' holds a fill');
+    if (!el.getClientRects().length || el.getBoundingClientRect().width < 8 || el.getBoundingClientRect().height < 8) out.bad.push(name + ' is not drawn as a slot');
+    for (const c of [cs.backgroundColor, cs.borderTopColor]) if (parse(c).slice(0, 3).join() === accent) out.bad.push(name + ' spends the accent');
+  }
+  for (const el of tile.querySelectorAll('.vlab[data-display], .hcount[data-display]')) {
+    const cs = getComputedStyle(el);
+    const g = ground(el);
+    const r = { name: el.className, text: el.textContent, onGround: ratio(over(parse(cs.color), g), g), size: cs.fontSize, face: cs.fontFamily.split(',')[0].trim() };
+    out.labels.push(r);
+    if (r.onGround < 4.5) out.bad.push(r.name + ' label ' + r.onGround.toFixed(2) + ':1');
+    if (/mono/i.test(r.face)) out.bad.push(r.name + ' label is mono: ' + r.face);
+    const plain = tile.querySelector('.' + el.className + ':not([data-display])');
+    if (getComputedStyle(plain).fontSize !== cs.fontSize) out.bad.push(r.name + ' label is not at the value size');
+  }
+  probe.remove();
+  return JSON.stringify(out);
+})()`;
+
+for (const scheme of ['dark', 'light']) {
+  test(`/data-viz suppressed track clears 3:1 and its display 4.5:1, with no fill and no accent (${scheme})`, { timeout: 60000 }, async (t) => {
+    const page = await run.page({ width: 1440, height: 900, scheme });
+    await page.goto('/data-viz');
+    const r = JSON.parse(await page.evaluate(WITHHELD));
+    await page.close();
+    t.diagnostic(`${scheme}: ` + r.tracks.map((x) => `${x.name} line ${x.onGround.toFixed(2)}:1 on ground, ${x.onFill.toFixed(2)}:1 on its fill (fill ${x.fillOnGround.toFixed(2)}:1)`).concat(r.labels.map((x) => `${x.name} "${x.text}" ${x.onGround.toFixed(2)}:1, ${x.size} ${x.face}`)).join('; '));
+    assert.equal(r.tracks.length, 2, 'one vertical and one horizontal empty track');
+    assert.equal(r.labels.length, 2);
+    assert.deepEqual(r.bad, []);
+  });
+}

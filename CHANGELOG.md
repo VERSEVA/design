@@ -6,6 +6,8 @@
 
 - **`--exclude <dir>` on the gate suite.** `verseva-gate` and the hex, spacing and type gates take a repeatable `--exclude <dir>` that skips the directory of that name directly under a scan path. Top level only: the same name deeper in the tree is still scanned, and nothing is excluded unless the flag is passed. This repo passes `--exclude swift` so the coming Swift package's sources stay out of the web gates.
 
+- **Charts: suppressed items and null gaps.** `Bars` and `HBars` items take `display` and `suppressed`. A suppressed item draws the empty track (`.vtrack`, or an `.htrack` with nothing in it, on `[data-suppressed]`) with no fill, prints `display` (`n/a` when none is given), and keeps its value out of the scale, the `title` and every attribute: it is a privacy floor. `display` alone replaces the printed value and the fill still draws. `LineChart` series and `Sparkline` values take `null` for a gap: the line and the area break there, no point is drawn, and it is never zero or interpolated across; hover shows no value for that series. Existing calls render the same markup, held by `studio/test/viz-baseline.json`. The contract's Charts section states the rule, and Data viz gains a Suppressed values and a Gaps specimen.
+
 ### Fixed
 
 - **The studio side nav sits flush against the window's left edge.** The shell centred everything at 1440px, so on wide screens the nav, expanded or as the rail, floated in from the left. The body is now full bleed; only the content column is capped (1208px) and centred. A served test checks the nav's left edge at 1920 on `/` and `/components`, in both states.
