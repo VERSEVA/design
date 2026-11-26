@@ -3,7 +3,7 @@ import * as React from 'react';
 import { cx } from './cx';
 import { Badge } from './badge';
 import { Button } from './button';
-import { SECRET_FIELD_LABELS, type SecretFieldLabels } from './secret-field-labels';
+import { SECRET_FIELD_LABELS, type SecretFieldLabels } from './labels';
 
 export interface SecretFieldProps {
   label: string;
@@ -38,11 +38,13 @@ function send(input: HTMLInputElement, onSave: SecretFieldProps['onSave']): Prom
  * Set, it is a badge and a Replace action; Replace opens an empty input in the same spot with
  * Save and Cancel. The typed value lives in the input element alone: it is not in state, not in
  * a ref, not in an attribute, and the input is cleared and unmounted when the save lands. A
- * failed save leaves the value in the input for a retry. The error text comes from the labels,
- * never from the rejection, which may carry the value.
+ * failed save leaves the value in the input for a retry; Cancel ends a save that does not
+ * settle. The error text comes from the labels, never from the rejection, which may carry the
+ * value.
  */
 export function SecretField({ label, isSet, onSave, labels, name, id, className }: SecretFieldProps) {
   const L = { ...SECRET_FIELD_LABELS, ...labels };
+  const withNoun = (verb: string) => (L.noun ? `${verb} ${L.noun}` : verb);
   const autoId = React.useId();
   const inputId = id ?? autoId;
   const labelId = `${inputId}-l`;
@@ -61,12 +63,14 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
   if (seen !== isSet) {
     setSeen(isSet);
     setSaved(false);
-    /* A value stored from elsewhere does not take what the user is typing: edit mode holds. */
-    if (isSet && filled) setReplacing(true);
+    /* A value stored from elsewhere does not take what the user is typing: edit mode holds.
+       An empty Replace does not outlive the value it was replacing: it goes back with it. */
+    if (!busy) setReplacing(isSet && filled);
   }
 
   const focusNext = React.useRef<'input' | 'replace' | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const replaceRef = React.useRef<HTMLButtonElement | null>(null);
   /* Whenever the input leaves the page (saved, cancelled, unmounted) it leaves empty, the
      has-text flag and the error go with it, and focus it was holding goes to Replace. */
   const attachInput = React.useCallback((node: HTMLInputElement | null) => {
@@ -79,9 +83,15 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
     }
     inputRef.current = node;
   }, []);
+  /* And when Replace leaves while holding focus (the stored value was removed), the input takes it. */
+  const attachReplace = React.useCallback((node: HTMLButtonElement | null) => {
+    if (!node && replaceRef.current && document.activeElement === replaceRef.current) focusNext.current = 'input';
+    replaceRef.current = node;
+  }, []);
   const saveRef = React.useRef<HTMLButtonElement>(null);
-  const replaceRef = React.useRef<HTMLButtonElement>(null);
   const mounted = React.useRef(false);
+  /* Counts saves and cancels, so a result that arrives after Cancel belongs to nobody. */
+  const run = React.useRef(0);
 
   const stored = isSet || saved;
   const editing = !stored || replacing;
@@ -101,12 +111,18 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
     target.focus();
   });
 
+  /* Cancel, Escape and a landed save: the value is dropped and any running save is disowned.
+     With a stored value the field goes back to Set; without one the emptied input stays. */
   const leaveEdit = () => {
+    run.current += 1;
     if (inputRef.current) inputRef.current.value = '';
+    setBusy(false);
+    setLock(undefined);
     setFilled(false);
     setError(null);
+    setSaid('');
     setReplacing(false);
-    focusNext.current = 'replace';
+    focusNext.current = stored ? 'replace' : 'input';
   };
 
   const save = () => {
@@ -116,6 +132,7 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
       input.focus();
       return;
     }
+    const mine = (run.current += 1);
     /* Width locked on the label it had; focus moves to Save before the input is disabled. */
     setLock(saveRef.current?.offsetWidth || undefined);
     saveRef.current?.focus();
@@ -123,21 +140,22 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
     setReplacing(true);
     setBusy(true);
     setError(null);
-    setSaid('');
+    setSaid(L.saving);
     send(input, onSave).then(
       () => {
+        if (run.current !== mine) return;
         input.value = '';
         if (!mounted.current) return;
-        setBusy(false);
-        setLock(undefined);
         setSaved(true);
         leaveEdit();
+        focusNext.current = 'replace';
         setSaid(L.saved);
       },
       () => {
-        if (!mounted.current) return;
+        if (run.current !== mine || !mounted.current) return;
         setBusy(false);
         setLock(undefined);
+        setSaid('');
         /* A message that repeats the typed value is not shown. */
         setError(input.value && L.error.includes(input.value) ? SECRET_FIELD_LABELS.error : L.error);
         focusNext.current = 'input';
@@ -159,7 +177,7 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
     <div className={cx('field', editing && error !== null && 'error', className)}>
       <div className="chiprow">
         <label htmlFor={editing ? inputId : undefined} id={labelId}>{label}</label>
-        {stored && <Badge tone="neutral">{CHECK}{L.set}</Badge>}
+        {stored && <Badge tone="ok">{CHECK}{L.set}</Badge>}
       </div>
       {editing && (
         <input
@@ -170,6 +188,10 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
+          data-1p-ignore=""
+          data-lpignore="true"
+          data-bwignore=""
+          data-form-type="other"
           disabled={busy}
           aria-invalid={error !== null || undefined}
           aria-describedby={error !== null ? errorId : undefined}
@@ -180,15 +202,15 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
       {editing && error !== null && <p className="help" id={errorId} role="alert">{error}</p>}
       {editing ? (
         <div className="chiprow">
-          {stored && <Button variant="ghost" size="sm" disabled={busy} onClick={leaveEdit}>{L.cancel}</Button>}
-          <Button ref={saveRef} size="sm" disabled={!busy && !filled} aria-busy={busy || undefined} style={busy && lock ? { width: lock } : undefined} onClick={save}>
-            {busy ? <><span className="spinner" aria-hidden="true" /><span className="sr-only">{L.saving}</span></> : L.save}
+          {(stored || busy) && <Button variant="ghost" size="sm" aria-describedby={labelId} onClick={leaveEdit}>{L.cancel}</Button>}
+          <Button ref={saveRef} size="sm" disabled={!busy && !filled} aria-busy={busy || undefined} aria-describedby={labelId} style={busy && lock ? { width: lock } : undefined} onClick={save}>
+            {busy ? <><span className="spinner" aria-hidden="true" /><span className="sr-only">{L.saving}</span></> : withNoun(L.save)}
           </Button>
         </div>
       ) : (
         <div className="chiprow">
           <Button
-            ref={replaceRef}
+            ref={attachReplace}
             variant="secondary"
             size="sm"
             aria-describedby={labelId}
@@ -198,11 +220,11 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
               focusNext.current = 'input';
             }}
           >
-            {L.replace}
+            {withNoun(L.replace)}
           </Button>
         </div>
       )}
-      <span className="sr-only" role="status">{said}</span>
+      <span className="sr-only" role="status" aria-live="polite">{said}</span>
     </div>
   );
 }

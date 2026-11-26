@@ -24,7 +24,6 @@
     "./react/cx": "./react/cx.ts",
     "./react/inert": "./react/inert.ts",
     "./react/labels": "./react/labels.ts",
-    "./react/secret-field-labels": "./react/secret-field-labels.ts",
     "./react/widget-state": "./react/widget-state.ts",
     "./package.json": "./package.json"
   },

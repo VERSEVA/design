@@ -36,13 +36,13 @@ function SecretSpecimen({ name, id, stored = false, view = false, filled = false
           <div className="chiprow">
             <label htmlFor={view ? undefined : id} id={`${id}-l`}>Access token</label>
             {stored && (
-              <span className="badge neutral">
+              <span className="badge ok">
                 <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 8.5l3 3 6-7" /></svg>
                 Set
               </span>
             )}
           </div>
-          {!view && <input id={id} type="password" autoComplete="off" autoCapitalize="off" spellCheck="false" disabled={busy} aria-invalid={error || undefined} aria-describedby={error ? `${id}-e` : undefined} />}
+          {!view && <input id={id} type="password" autoComplete="off" autoCapitalize="off" spellCheck="false" data-1p-ignore="" data-lpignore="true" data-bwignore="" data-form-type="other" disabled={busy} aria-invalid={error || undefined} aria-describedby={error ? `${id}-e` : undefined} />}
           {error && <p className="help" id={`${id}-e`} role="alert">The provider rejected this token. Paste a new one.</p>}
           {view ? (
             <div className="chiprow">
@@ -50,13 +50,13 @@ function SecretSpecimen({ name, id, stored = false, view = false, filled = false
             </div>
           ) : (
             <div className="chiprow">
-              {stored && <button type="button" className="btn btn-ghost sm" disabled={busy}>Cancel</button>}
+              {(stored || busy) && <button type="button" className="btn btn-ghost sm" aria-describedby={`${id}-l`}>Cancel</button>}
               {busy
-                ? <button type="button" className="btn btn-primary sm" aria-busy="true"><span className="spinner" aria-hidden="true" /><span className="sr-only">Saving</span></button>
-                : <button type="button" className="btn btn-primary sm" disabled={!filled}>Save token</button>}
+                ? <button type="button" className="btn btn-primary sm" aria-busy="true" aria-describedby={`${id}-l`}><span className="spinner" aria-hidden="true" /><span className="sr-only">Saving</span></button>
+                : <button type="button" className="btn btn-primary sm" disabled={!filled} aria-describedby={`${id}-l`}>Save token</button>}
             </div>
           )}
-          <span className="sr-only" role="status" />
+          <span className="sr-only" role="status" aria-live="polite">{busy ? 'Saving' : null}</span>
         </div>
       </div>
     </div>

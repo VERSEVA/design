@@ -4,7 +4,9 @@ import * as React from 'react';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SecretField } from '../../react/secret-field';
-import { SECRET_FIELD_LABELS } from '../../react/secret-field-labels';
+import { SECRET_FIELD_LABELS } from '../../react/labels';
+import * as partModule from '../../react/secret-field';
+import * as labelsModule from '../../react/labels';
 import { Page as Components } from '../src/chapters/pages/components';
 
 /* The write-only secret field. The security property is the acceptance test: once onSave
@@ -12,6 +14,8 @@ import { Page as Components } from '../src/chapters/pages/components';
    part's state or refs, not in a message, not in a console call. */
 
 const SECRET = 'zq7-WRITE-ONLY-4f1c9e-sentinel';
+/* Window properties that exist before any field renders; anything newer is the part's to answer for. */
+const WINDOW_AT_START = new Set(Object.getOwnPropertyNames(window));
 const CONSOLE = ['log', 'info', 'warn', 'error', 'debug', 'trace', 'dir', 'table', 'group', 'groupCollapsed'] as const;
 
 function spyConsole() {
@@ -78,7 +82,31 @@ function expectNowhere(container: Element, except?: HTMLInputElement) {
     expect(el.defaultValue).not.toContain(SECRET);
   }
   expect(reactMemoryHolds(container, SECRET)).toBe(false);
+  /* What React hangs on the elements themselves (props, fibers), and anything else attached. */
+  for (const el of container.querySelectorAll('*')) {
+    for (const key of Object.getOwnPropertyNames(el)) {
+      if (el === except && (key === '_valueTracker' || key === 'value')) continue;
+      expect(holds((el as unknown as Record<string, unknown>)[key], SECRET), `${el.tagName}.${key}`).toBe(false);
+    }
+  }
+  /* Module state the part owns, the window, and both storages. */
+  expect(holds(partModule, SECRET)).toBe(false);
+  expect(holds(labelsModule, SECRET)).toBe(false);
+  for (const key of Object.getOwnPropertyNames(window)) {
+    if (WINDOW_AT_START.has(key)) continue;
+    expect(holds((window as unknown as Record<string, unknown>)[key], SECRET), `window.${key}`).toBe(false);
+  }
+  for (const store of [localStorage, sessionStorage]) {
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i)!;
+      expect(key).not.toContain(SECRET);
+      expect(store.getItem(key)).not.toContain(SECRET);
+    }
+  }
 }
+
+/** React's own record of an input's last value. */
+const tracked = (el: HTMLInputElement) => (el as unknown as { _valueTracker?: { getValue(): string } })._valueTracker?.getValue() ?? '';
 
 const input = (c: Element) => c.querySelector<HTMLInputElement>('input');
 const type = (el: HTMLInputElement, value: string) => fireEvent.input(el, { target: { value } });
@@ -106,6 +134,8 @@ describe('SecretField: the value is gone after save', () => {
     expect(typed.value).toBe('');
     expect(typed.defaultValue).toBe('');
     expect(typed.getAttribute('value')).toBeNull();
+    expect(tracked(typed)).toBe('');
+    for (const key of Object.getOwnPropertyNames(typed)) expect(holds((typed as unknown as Record<string, unknown>)[key], SECRET), `input.${key}`).toBe(false);
     expectNowhere(container);
     expect(consoleArgs(spies).filter((a) => holds(a, SECRET))).toEqual([]);
     expect(spies.every((s) => s.mock.calls.length === 0)).toBe(true);
@@ -249,6 +279,69 @@ describe('SecretField: the value is gone after save', () => {
     expect(document.activeElement).toBe(button('Elsewhere'));
   });
 
+  it('lets Cancel end a save that never settles: the input is cleared and gone, the late result ignored', async () => {
+    const spies = spyConsole();
+    const d = deferred();
+    const { container } = render(<SecretField label="Access token" isSet onSave={() => d.promise} />);
+    fireEvent.click(button('Replace'));
+    const typed = input(container)!;
+    type(typed, SECRET);
+    fireEvent.click(button('Save'));
+    const cancel = button('Cancel') as HTMLButtonElement;
+    expect(cancel.disabled).toBe(false);
+    fireEvent.click(cancel);
+    expect(input(container)).toBeNull();
+    expect(typed.isConnected).toBe(false);
+    expect(typed.value).toBe('');
+    expect(tracked(typed)).toBe('');
+    expect(document.activeElement).toBe(button('Replace'));
+    expectNowhere(container);
+    await act(async () => { d.reject(new Error(SECRET)); });
+    expect(input(container)).toBeNull();
+    expect(container.querySelector('.help')).toBeNull();
+    expect(container.querySelector('[role="status"]')!.textContent).toBe('');
+    expect(document.activeElement).toBe(button('Replace'));
+    expectNowhere(container);
+    expect(spies.every((s) => s.mock.calls.length === 0)).toBe(true);
+  });
+
+  it('ignores a late success after Cancel too, and a new save is judged on its own result', async () => {
+    const first = deferred();
+    const second = deferred();
+    const onSave = vi.fn<(value: string) => Promise<void>>().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const { container } = render(<SecretField label="Access token" isSet onSave={onSave} />);
+    fireEvent.click(button('Replace'));
+    type(input(container)!, SECRET);
+    fireEvent.click(button('Save'));
+    fireEvent.click(button('Cancel'));
+    fireEvent.click(button('Replace'));
+    type(input(container)!, `${SECRET}-2`);
+    fireEvent.click(button('Save'));
+    await act(async () => { first.resolve(); });
+    expect(input(container)!.value).toBe(`${SECRET}-2`);
+    expect(container.querySelector('.btn-primary')!.getAttribute('aria-busy')).toBe('true');
+    await act(async () => { second.resolve(); });
+    expect(input(container)).toBeNull();
+    expectNowhere(container);
+  });
+
+  it('on an unset field, Cancel during a save that never settles empties the input and gives it back', () => {
+    const { container } = render(<SecretField label="Access token" isSet={false} onSave={() => new Promise<void>(() => {})} />);
+    const typed = input(container)!;
+    type(typed, SECRET);
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    fireEvent.click(button('Save'));
+    fireEvent.click(button('Cancel'));
+    expect(input(container)).toBe(typed);
+    expect(typed.value).toBe('');
+    expect(tracked(typed)).toBe('');
+    expect(typed.disabled).toBe(false);
+    expect(document.activeElement).toBe(typed);
+    expect((button('Save') as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    expectNowhere(container);
+  });
+
   it('settles quietly when it unmounts mid-save', async () => {
     const spies = spyConsole();
     const d = deferred();
@@ -285,6 +378,8 @@ describe('SecretField: input', () => {
     expect(el.hasAttribute('value')).toBe(false);
     expect(el.hasAttribute('placeholder')).toBe(false);
     expect(el.closest('form')).toBeNull();
+    /* Chrome ignores autocomplete="off" on a password input; these ask the managers themselves. */
+    expect([el.getAttribute('data-1p-ignore'), el.getAttribute('data-lpignore'), el.getAttribute('data-bwignore'), el.getAttribute('data-form-type')]).toEqual(['', 'true', '', 'other']);
     expect(screen.getByLabelText('Access token')).toBe(el);
     rerender(<SecretField label="Access token" isSet={false} onSave={() => Promise.resolve()} name="token" id="tok" />);
     expect([el.getAttribute('name'), el.id]).toEqual(['token', 'tok']);
@@ -324,15 +419,17 @@ describe('SecretField: states', () => {
     expect(save.querySelector('.spinner')!.getAttribute('aria-hidden')).toBe('true');
     expect(save.querySelector('.sr-only')!.textContent).toBe('Saving');
     expect(document.activeElement).toBe(save);
+    expect(container.querySelector('[role="status"]')!.textContent).toBe('Saving');
+    expect(container.querySelector('[role="status"]')!.getAttribute('aria-live')).toBe('polite');
     fireEvent.click(save);
     fireEvent.keyDown(input(container)!, { key: 'Enter' });
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
-  it('set: a neutral badge reading Set and a Replace action; no input', () => {
+  it('set: the ok badge reading Set, with its check, and a Replace action; no input', () => {
     const { container } = render(<SecretField label="Access token" isSet onSave={() => Promise.resolve()} />);
     const badge = container.querySelector('.badge')!;
-    expect(badge.className).toBe('badge neutral');
+    expect(badge.className).toBe('badge ok');
     expect(badge.textContent).toBe('Set');
     expect(badge.querySelector('svg')!.getAttribute('aria-hidden')).toBe('true');
     expect(input(container)).toBeNull();
@@ -430,6 +527,36 @@ describe('SecretField: focus never drops to the page', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
+  it('puts focus in the input when the stored value is removed while Replace has focus', () => {
+    const view = (isSet: boolean) => <SecretField label="Access token" isSet={isSet} onSave={() => Promise.resolve()} />;
+    const { container, rerender } = render(view(true));
+    button('Replace').focus();
+    rerender(view(false));
+    expect(container.querySelector('.badge')).toBeNull();
+    expect(document.activeElement).toBe(input(container));
+  });
+
+  it('leaves focus alone when the stored value is removed and Replace did not have it', () => {
+    const view = (isSet: boolean) => <><button type="button">Elsewhere</button><SecretField label="Access token" isSet={isSet} onSave={() => Promise.resolve()} /></>;
+    const { rerender } = render(view(true));
+    button('Elsewhere').focus();
+    rerender(view(false));
+    expect(document.activeElement).toBe(button('Elsewhere'));
+  });
+
+  it('returns to Set when the stored value goes and comes back while an empty Replace is open', () => {
+    const view = (isSet: boolean) => <SecretField label="Access token" isSet={isSet} onSave={() => Promise.resolve()} />;
+    const { container, rerender } = render(view(true));
+    fireEvent.click(button('Replace'));
+    expect(document.activeElement).toBe(input(container));
+    rerender(view(false));
+    expect(document.activeElement).toBe(input(container));
+    rerender(view(true));
+    expect(input(container)).toBeNull();
+    expect(container.querySelector('.badge')!.textContent).toBe('Set');
+    expect(document.activeElement).toBe(button('Replace'));
+  });
+
   it('shows Set and focuses Replace after a save even while the host has not flipped isSet yet', async () => {
     const { container, rerender } = render(<SecretField label="Access token" isSet={false} onSave={() => Promise.resolve()} />);
     type(input(container)!, SECRET);
@@ -447,7 +574,7 @@ describe('SecretField: focus never drops to the page', () => {
 
 describe('SecretField: labels', () => {
   it('takes its words from the pure module and lets the host replace any of them', async () => {
-    expect(SECRET_FIELD_LABELS).toEqual({ set: 'Set', replace: 'Replace', save: 'Save', cancel: 'Cancel', saving: 'Saving', saved: 'Saved', error: 'Not saved. Check the value and try again.' });
+    expect(SECRET_FIELD_LABELS).toEqual({ set: 'Set', replace: 'Replace', save: 'Save', cancel: 'Cancel', noun: '', saving: 'Saving', saved: 'Saved', error: 'Not saved. Check the value and try again.' });
     const { container } = render(<SecretField label="Access token" isSet onSave={() => Promise.resolve()} labels={{ replace: 'Replace token', save: 'Save token', saved: 'Token saved' }} />);
     fireEvent.click(button('Replace token'));
     type(input(container)!, SECRET);
@@ -456,10 +583,22 @@ describe('SecretField: labels', () => {
     expect(button('Replace token')).toBeTruthy();
   });
 
+  it('ties Save, Cancel and Replace to the field label, and reads the host noun into the visible text', () => {
+    const { container } = render(<><SecretField id="a" label="Access token" isSet onSave={() => Promise.resolve()} labels={{ noun: 'token' }} /><SecretField id="b" label="Signing key" isSet onSave={() => Promise.resolve()} labels={{ noun: 'key' }} /></>);
+    expect(button('Replace token').getAttribute('aria-describedby')).toBe('a-l');
+    expect(button('Replace key').getAttribute('aria-describedby')).toBe('b-l');
+    fireEvent.click(button('Replace token'));
+    expect(button('Save token').getAttribute('aria-describedby')).toBe('a-l');
+    expect(screen.getAllByRole('button', { name: 'Cancel' })[0].getAttribute('aria-describedby')).toBe('a-l');
+    expect(container.querySelector('#a-l')!.textContent).toBe('Access token');
+  });
+
   it('opens with the client directive; the labels module is pure and the client file does not export them', () => {
     const dir = path.resolve(__dirname, '../../react');
     const part = fs.readFileSync(path.join(dir, 'secret-field.tsx'), 'utf8');
-    const labels = fs.readFileSync(path.join(dir, 'secret-field-labels.ts'), 'utf8');
+    const labels = fs.readFileSync(path.join(dir, 'labels.ts'), 'utf8');
+    expect(fs.existsSync(path.join(dir, 'secret-field-labels.ts'))).toBe(false);
+    expect(labels).toContain('export const SECRET_FIELD_LABELS');
     expect(part.startsWith("'use client';\n")).toBe(true);
     expect(part).not.toMatch(/export\s+(const|let|var)\s+[A-Z_]+LABELS|export\s*\{[^}]*LABELS/);
     expect(labels).not.toMatch(/use client|from 'react'|from "react"/);
@@ -477,7 +616,7 @@ describe('SecretField: the studio specimen is the part', () => {
     }
     return copy.outerHTML;
   };
-  const LABELS = { save: 'Save token', replace: 'Replace token', error: 'The provider rejected this token. Paste a new one.' };
+  const LABELS = { noun: 'token', error: 'The provider rejected this token. Paste a new one.' };
   const mount = (id: string, isSet: boolean, onSave: () => Promise<void>) => render(<SecretField id={id} label="Access token" isSet={isSet} onSave={onSave} labels={LABELS} />).container;
   const STATES: Record<string, (id: string) => Promise<Element>> = {
     Unset: async (id) => mount(id, false, () => Promise.resolve()),
@@ -507,11 +646,11 @@ describe('SecretField: the studio specimen is the part', () => {
     }
   });
 
-  it('writes no value into the specimen markup and spends no accent on the badge', () => {
+  it('writes no value into the specimen markup and shows the ok badge the prototype has', () => {
     const page = render(<Components />).container;
     const tile = page.querySelector('#secret')!;
     expect([...tile.querySelectorAll('input')].map((i) => [i.type, i.hasAttribute('value')])).toEqual(Array(5).fill(['password', false]));
-    expect([...tile.querySelectorAll('.badge')].map((b) => b.className)).toEqual(Array(3).fill('badge neutral'));
+    expect([...tile.querySelectorAll('.badge')].map((b) => b.className)).toEqual(Array(3).fill('badge ok'));
     expect([...tile.querySelectorAll('.specimen')].every((s) => s.hasAttribute('inert'))).toBe(true);
   });
 });
