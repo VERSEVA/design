@@ -75,7 +75,7 @@ test('components.css carries the prototype rules, rule for rule', () => {
     'dialog.sheet::backdrop,dialog.modal::backdrop{background:color-mix(in srgb,var(--bg) 45%,transparent)}',
   ]) assert.ok(css.includes(rule), rule);
   /* the radiogroup form looks exactly like the tablist form */
-  const decl = (sel) => css.match(new RegExp(`${sel.replace(/[.[\]"=]/g, '\\$&')}\\{([^}]*)\\}`))[1];
+  const decl = (sel) => { const at = css.indexOf(`${sel}{`) + sel.length + 1; return css.slice(at, css.indexOf('}', at)); };
   assert.equal(decl('.seg button[aria-checked="true"]'), decl('.seg button[aria-selected="true"]'));
 });
 
