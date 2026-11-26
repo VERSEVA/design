@@ -26,15 +26,26 @@ const stripComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|
 /** Why a source needs the client boundary, or null when it is pure. */
 export function clientReason(src) {
   const code = stripComments(src);
-  const hook = code.match(/\bReact\.use[A-Z]\w*\s*[(<]/) ?? code.match(/(?<![.\w])use[A-Z]\w*\s*[(<]/)
-    ?? code.match(/import\s*\{[^}]*\buse[A-Z]\w*[^}]*\}\s*from\s*['"]react['"]/);
+  // React.useState(, R.useState(, useId(, use(Ctx), a named hook import, and context creation.
+  const hook = code.match(/\b\w+\.use[A-Z]\w*\s*[(<]/) ?? code.match(/(?<![.\w])use(?:[A-Z]\w*)?\s*[(<]/)
+    ?? code.match(/import\s*\{[^}]*\buse(?:[A-Z]\w*)?\b[^}]*\}\s*from\s*['"]react['"]/)
+    ?? code.match(/\bcreateContext\b/);
   if (hook) return `hook: ${hook[0].trim()}`;
-  // Attached in JSX (onClick={...}), declared as a prop or handed on in an object (onSelect: ...).
-  const handler = code.match(/\son[A-Z]\w*=\{/) ?? code.match(/(?<![.\w])on[A-Z]\w*\??\s*:/);
+  // Attached in JSX (onClick={...}), declared as a prop or handed on in an object (onSelect: ...),
+  // passed in shorthand ({ onClick }), or bound by hand (addEventListener).
+  const handler = code.match(/\son[A-Z]\w*=\{/) ?? code.match(/(?<![.\w])on[A-Z]\w*\??\s*:/)
+    ?? code.match(/[{,]\s*on[A-Z]\w*\s*[,}]/) ?? code.match(/\baddEventListener\b/);
   if (handler) return `event handler: ${handler[0].trim()}`;
-  const browser = code.match(/(?<![.\w])(?:window|document|localStorage|sessionStorage|navigator)\s*\.|\btypeof\s+(?:window|document)\b/);
+  const browser = code.match(/(?<![.\w])(?:window|document|localStorage|sessionStorage|navigator)\s*\.|\btypeof\s+(?:window|document)\b|\bmatchMedia\b/);
   if (browser) return `browser-only API: ${browser[0].trim()}`;
   return null;
+}
+
+/** Exported runtime values a client file defines that are neither a component nor a hook. */
+export function clientValueExports(src) {
+  const code = stripComments(src);
+  const names = [...code.matchAll(/^export\s+(?:default\s+)?(?:async\s+)?(?:const|let|var|function\*?|class)\s+(\w+)/gm)].map((m) => m[1]);
+  return names.filter((n) => !/^[A-Z][A-Za-z0-9]*[a-z]/.test(n) && !/^use[A-Z]/.test(n));
 }
 
 test('the detector reads code, not comments', () => {
@@ -43,6 +54,15 @@ test('the detector reads code, not comments', () => {
   assert.equal(clientReason("const s = (globalThis as { localStorage?: Store }).localStorage;\n"), null);
   assert.equal(clientReason("export function B(p: P) { return <button {...p} />; }\n"), null);
   assert.match(clientReason("const [a] = React.useState(0);\n"), /^hook/);
+  assert.match(clientReason("import * as R from 'react';\nconst [a] = R.useState(0);\n"), /^hook/);
+  assert.match(clientReason("const v = use(Ctx);\n"), /^hook/);
+  assert.match(clientReason("import { use } from 'react';\n"), /^hook/);
+  assert.match(clientReason("import { createContext } from 'react';\nexport const C = createContext(null);\n"), /^hook/);
+  assert.match(clientReason("export const C = React.createContext(null);\n"), /^hook/);
+  assert.match(clientReason("return <button {...{ onClick }} />;\n"), /^event handler/);
+  assert.match(clientReason("el.addEventListener('click', go);\n"), /^event handler/);
+  assert.match(clientReason("const dark = matchMedia('(prefers-color-scheme: dark)').matches;\n"), /^browser-only/);
+  assert.equal(clientReason("export function reuse(a: number) { return excuse(a); }\n"), null);
   assert.match(clientReason("import { useState } from 'react';\n"), /^hook/);
   assert.match(clientReason("const id = useId();\n"), /^hook/);
   assert.match(clientReason("return <a href=\"https://x.test\" onClick={go} />;\n"), /^event handler/);
@@ -67,8 +87,23 @@ test('every stateful file in react/ starts with the client directive; pure files
   assert.deepEqual(extra, [], `no hook, handler or browser API found, so server code may import these; drop ${DIRECTIVE}`);
 });
 
+test('no client file defines an exported value that is not a component or a hook', () => {
+  // A server component that imports such a value from a client module gets a client reference,
+  // silently: spreading default labels yields nothing. Constants live in a pure module and the
+  // client file re-exports them.
+  assert.deepEqual(clientValueExports("'use client';\nexport const X_LABELS = { a: 'A' };\nexport const MAX = 3;\nexport function helper() {}\n"), ['X_LABELS', 'MAX', 'helper']);
+  assert.deepEqual(clientValueExports("export const Button = 1;\nexport function HBars() {}\nexport function useToast() {}\nexport { X } ;\nexport type T = 1;\nexport interface P {}\n"), []);
+  const found = [];
+  for (const f of files) {
+    const src = read(f);
+    if (src.split('\n', 1)[0] !== DIRECTIVE) continue;
+    for (const n of clientValueExports(src)) found.push(`react/${f}: ${n}`);
+  }
+  assert.deepEqual(found, [], 'move the value into a pure module (a *-state.ts or labels.ts) and re-export it');
+});
+
 test('the pure logic modules stay server-importable: cx and the state reducers have no directive', () => {
-  for (const f of ['cx.ts', ...files.filter((x) => x.endsWith('-state.ts'))]) {
+  for (const f of ['cx.ts', 'labels.ts', ...files.filter((x) => x.endsWith('-state.ts'))]) {
     assert.ok(files.includes(f), `react/${f} exists`);
     assert.equal(clientReason(read(f)), null, `react/${f} is pure`);
     assert.doesNotMatch(read(f), /^\s*['"]use client['"]/);
