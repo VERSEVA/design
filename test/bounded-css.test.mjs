@@ -51,7 +51,7 @@ test('rows are divided on the top edge, lists and tables alike', () => {
 
 test('a bounded table closes with a line above the foot, and glass keeps its own edge', () => {
   assert.ok(BLOCK.includes('.bounded .table{border-bottom:1px solid var(--hairline)}'));
-  assert.ok(BLOCK.includes('.glass .bounded .table{border-bottom:0}'));
+  assert.ok(BLOCK.includes('.glass .bounded .table,.bounded .glass .table{border-bottom:0}'));
 });
 
 test('count and action sit together on the trailing edge; 44px for a finger; one radius', () => {

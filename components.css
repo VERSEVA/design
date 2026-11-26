@@ -138,7 +138,7 @@
 .bounded-rows>.lrow+.lrow,.bounded-rows>tr+tr>td{border-top:1px solid var(--hairline)}
 /* a table outside a glass panel closes with a line above the foot; glass draws its own edge */
 .bounded .table{border-bottom:1px solid var(--hairline)}
-.glass .bounded .table{border-bottom:0}
+.glass .bounded .table,.bounded .glass .table{border-bottom:0}
 .bounded .empty{border-radius:var(--r-md)}
 /* the seam above the foot belongs to its parts: an empty count and no action leave no room behind */
 .bounded-foot{display:flex;align-items:center;justify-content:flex-end;gap:var(--s-3)}
