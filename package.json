@@ -22,6 +22,7 @@
     "./react/command-state": "./react/command-state.ts",
     "./react/console-state": "./react/console-state.ts",
     "./react/cx": "./react/cx.ts",
+    "./react/date-range-state": "./react/date-range-state.ts",
     "./react/inert": "./react/inert.ts",
     "./react/labels": "./react/labels.ts",
     "./react/widget-state": "./react/widget-state.ts",

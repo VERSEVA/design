@@ -179,6 +179,48 @@ Row ≥44px: leading avatar/icon, primary line body/600, metaline 12px sentence-
 Mobile bottom sheet, top corners 26–30, grabber, focus trapped, drag/Escape dismiss, content
 scrolls inside fixed chrome. Desktop: side drawer 360–480px. Navigation never lives in a sheet.
 
+## Date range: `.range-ctl`, `.range-fields` (1.8)
+
+One control sets the period a page of charts covers. It composes existing parts and adds two
+classes: the wrapper and the custom-date row. Presets are the host's (for example This week,
+4 weeks, 13 weeks, each with its own dates); the part ships none.
+
+- **Segmented (default):** `.range-ctl` is one wrapping row holding, in order, the presets on
+  `.seg` as a radiogroup (`role="radiogroup"`, each button `role="radio"` with `aria-checked`,
+  which carries the same pressed look as `aria-selected`), the custom dates (`.range-fields`,
+  two `.field` date inputs, shown for Custom), an optional Compare toggle (`.fchip` with
+  `aria-pressed`, named "Compare with previous period"), and a quiet range line (`.metaline`).
+- **Menu (compact, for a page header):** a plain `.menu` with `data-range`. One `.btn.btn-secondary`
+  trigger shows the current preset and its dates; the list holds one `menuitemradio` per preset
+  with its dates in a `.metaline`, then Custom and a `menuitemcheckbox` for Compare only when
+  the host passes them. Custom opens `.range-fields` in a `.modal`.
+- **Phone (under 560px):** the presets share the row at full width, the inline fields are
+  dropped, and Custom opens `.range-fields` in the `.sheet`, from either form, with Cancel and
+  Apply. The sheet and the modal sit on a native `<dialog>` (`dialog.sheet`, `dialog.modal`):
+  focus is trapped, the page is inert, and Escape or a press on the backdrop is Cancel.
+- **Value:** controlled, one plain object, `{ range, from, to, compare }`, dates as
+  `YYYY-MM-DD`. Every change is one `onChange` with the whole value. The part keeps no value
+  and never reads or writes the URL; the host decides where the value lives.
+- **Custom dates:** an optional `snap(date, edge)` from the host snaps a date (to a whole week,
+  say) when its field loses focus or on Enter, never while typing. `min` and `max` bound the
+  range. The part does no calendar or time zone math; `zone` is a label on the range line.
+- **States:** default; custom open; compare on (chip pressed, "vs previous" on the range line);
+  invalid custom range (`.field.error` on the field that is wrong, `aria-invalid`, the reason in
+  `.help`: a missing date, a start after the end, a date outside `min` and `max`), which emits
+  nothing and keeps the last valid value; disabled (every control `:disabled`, at .45).
+- **Keyboard:** the presets are one tab stop; arrows, Home and End move and choose, wrapping.
+  Under 560px an arrow onto Custom only moves focus, and Enter, Space or a tap opens the sheet.
+  The menu opens on the checked preset (Enter, Space, ArrowDown; ArrowUp opens on the last
+  item); arrows, Home and End move; Escape closes and returns focus to the trigger; choosing
+  closes and returns focus. Closing the sheet or the modal returns focus to what opened it.
+- **Touch:** every target is 44px tall on a coarse pointer.
+- **Accent:** not spent. The checked preset and the pressed chip are neutral (law 3); only
+  Apply in the sheet or modal is primary.
+- **React:** `DateRange` (`npx verseva add date-range`), `variant="segmented" | "menu"`,
+  `presets`, `value`, `onChange`, `custom`, `compare`, `snap`, `min`, `max`, `zone`,
+  `formatRange`, `labels`, `disabled`, `id`. The words, the value type and the range check live
+  in the pure `date-range-state` module, so server code can read them.
+
 ## NAVSHELL: `.navshell` (the signature's most particular component)
 
 **Copy it, never approximate it.** `components.css` carries the 1:1 port; the studio renders it
