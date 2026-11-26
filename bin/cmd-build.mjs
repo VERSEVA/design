@@ -2,7 +2,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export function build({ pkgRoot, registry, valueOf, localItem }) {
+export const match = 'build';
+export const order = 60;
+export const usage = ['npx verseva build [--output d]'];
+
+export function run({ pkgRoot, registry, valueOf, localItem }) {
   const out = valueOf('--output') ?? path.resolve('r');
   fs.mkdirSync(out, { recursive: true });
   let count = 0;

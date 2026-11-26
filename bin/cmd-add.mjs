@@ -1,9 +1,19 @@
-/** verseva add <name...>: copy registry items, and their deps, into the project as source. */
+/**
+ * verseva add <name...> [--dir d] [--force]: copy registry items, and their deps, into the
+ * project as source. Name forms: bare (this package's registry), @ns/name (a namespace from
+ * verseva.json "registries"), a full https URL, or a local .json item file.
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
-export async function add({ config, dirFlag, rest, localItem, rewriteBlockHrefs, writeFileInto }) {
+export const match = 'add';
+export const order = 30;
+export const usage = ['npx verseva add <name | @ns/name | url | file.json ...> [--dir d] [--force]'];
+
+/* Returning without exiting hands over to the help text (exit 2). */
+export async function run({ config, dirFlag, rest, localItem, rewriteBlockHrefs, writeFileInto }) {
+  if (rest[0] === undefined) return;
   function requireHttps(url) {
     const u = new URL(url);
     if (u.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(u.hostname)) {

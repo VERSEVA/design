@@ -20,7 +20,11 @@ const KINDS = new Set(['file', 'redirect']);
 const siteR = fs.readdirSync(path.join(root, 'site/r'));
 const siteExamples = fs.readdirSync(path.join(root, 'site/examples'), { recursive: true })
   .filter((f) => fs.statSync(path.join(root, 'site/examples', f)).isFile());
+/* The CLI's subcommand modules: bin/verseva.mjs discovers bin/cmd-<name>.mjs, so a new command
+   is one new file and no fixture line. The family is held to "file" here instead. */
+const binCmds = fs.readdirSync(path.join(root, 'bin')).filter((f) => /^cmd-[a-z0-9-]+\.mjs$/.test(f)).map((f) => `/bin/${f}`);
 const MUST_BE_FILES = [
+  ...binCmds,
   ...siteR.flatMap((f) => [`/r/${f}`, `/site/r/${f}`]),
   ...siteExamples.flatMap((f) => [`/examples/${f}`, `/site/examples/${f}`]),
   '/site.css', '/theme.js',
@@ -60,11 +64,12 @@ test('every file the package ships is declared in the fixture', () => {
   const [pack] = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
   const shipped = pack.files.map((f) => `/${f.path}`);
   assert.ok(shipped.length > 50, `npm pack listed only ${shipped.length} files`);
-  const undeclared = shipped.filter((p) => !paths[p]);
+  const undeclared = shipped.filter((p) => !paths[p] && !binCmds.includes(p));
   assert.deepEqual(undeclared, [], 'add these to test/fixtures/served-paths.json as "file"');
 });
 
 test('the registry JSON, the examples, site.css and theme.js are files', () => {
+  assert.ok(binCmds.length >= 7, `bin/ holds only ${binCmds.length} cmd-*.mjs modules`);
   const bad = MUST_BE_FILES.filter((p) => resolve(out, p).kind !== 'file');
   assert.deepEqual(bad, []);
   const json = fs.readFileSync(resolve(out, '/r/button.json').file, 'utf8');

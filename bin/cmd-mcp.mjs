@@ -2,7 +2,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export function mcp({ rest, valueOf, readJson }) {
+export const match = 'mcp';
+export const order = 70;
+export const usage = ['npx verseva mcp init [--client claude|cursor|vscode]'];
+
+/* Returning without exiting hands over to the help text (exit 2). */
+export function run({ rest, valueOf, readJson }) {
+  if (rest[0] !== 'init') return;
   const client = valueOf('--client') ?? 'claude';
   const server = { command: 'npx', args: ['-y', '-p', '@verseva/design', 'verseva-mcp'] };
   const targets = {

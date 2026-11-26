@@ -1,7 +1,11 @@
 /** verseva init: verseva.json, a "gate" script and the import hints. */
 import fs from 'node:fs';
 
-export function init({ readJson }) {
+export const match = 'init';
+export const order = 20;
+export const usage = ['npx verseva init'];
+
+export function run({ readJson }) {
   if (!fs.existsSync('verseva.json')) {
     fs.writeFileSync('verseva.json', JSON.stringify({ dir: 'src/components/verseva', registries: {} }, null, 2) + '\n');
     console.log('  wrote   verseva.json');
