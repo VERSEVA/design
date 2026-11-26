@@ -34,10 +34,11 @@ describe('constants', () => {
 });
 
 describe('columns and fit', () => {
-  test('4 columns from 1100px, 2 from 560px, 1 below', () => {
+  test('4 columns from a 688px container, 2 from 560px, 1 below', () => {
     assert.equal(columnsForWidth(1440), 4);
-    assert.equal(columnsForWidth(1100), 4);
-    assert.equal(columnsForWidth(1099), 2);
+    assert.equal(columnsForWidth(952), 4);
+    assert.equal(columnsForWidth(688), 4);
+    assert.equal(columnsForWidth(687), 2);
     assert.equal(columnsForWidth(560), 2);
     assert.equal(columnsForWidth(559), 1);
     assert.equal(columnsForWidth(375), 1);

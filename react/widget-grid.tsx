@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {
-  LAYOUT_KEY, SIZE_LABEL, BREAKPOINTS,
+  LAYOUT_KEY, SIZE_LABEL, VIEWPORT_BREAKPOINTS,
   addWidget, addedMessage, columnsForWidth, fitSize, move, moveBy, moveDirection, movedMessage, nextFocusId, rowPartner,
   readLayout, removeWidget, removedMessage, resizeWidget, resizedMessage, restoreWidget, safeStorage, sizeOptions, writeLayout,
 } from './widget-state';
@@ -78,7 +78,7 @@ export interface WidgetGridProps {
   focus?: string;
   status?: Readonly<Record<string, WidgetStatus>>;
   onRetry?: (id: string) => void;
-  /** Force a column count (specimens, tests); written to data-cols so the CSS follows. Default: from the grid's container, 4 / 2 / 1. */
+  /** Pin the column count over the measured one (specimens, tests, a layout that holds no small tile); written to data-cols so the CSS follows. Default: from the grid's container, 4 / 2 / 1. */
   columns?: Columns;
   /** The product's Edit toggle: Esc leaving edit mode moves focus there. */
   toggleRef?: React.RefObject<HTMLElement | null>;
@@ -109,8 +109,8 @@ function matches(q: string): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(q).matches;
 }
 
-/** 4, 2 or 1 at the CSS breakpoints: from the container's width when one is given and the browser
-    has container queries, else from the viewport; 4 on the server. */
+/** 4, 2 or 1 at the CSS breakpoints: from the container's width (688px, 560px) when one is given and
+    the browser has container queries, else from the viewport (1100px, 560px); 4 on the server. */
 export function useWidgetColumns(forced?: Columns, container?: React.RefObject<Element | null>): Columns {
   const [cols, setCols] = React.useState<Columns>(forced ?? 4);
   React.useEffect(() => {
@@ -126,8 +126,8 @@ export function useWidgetColumns(forced?: Columns, container?: React.RefObject<E
       return () => ro.disconnect();
     }
     if (typeof window.matchMedia !== 'function') return;
-    const four = window.matchMedia(`(min-width: ${BREAKPOINTS.four}px)`);
-    const two = window.matchMedia(`(min-width: ${BREAKPOINTS.two}px)`);
+    const four = window.matchMedia(`(min-width: ${VIEWPORT_BREAKPOINTS.four}px)`);
+    const two = window.matchMedia(`(min-width: ${VIEWPORT_BREAKPOINTS.two}px)`);
     const on = () => setCols(four.matches ? 4 : two.matches ? 2 : 1);
     on();
     four.addEventListener?.('change', on);

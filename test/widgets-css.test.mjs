@@ -75,24 +75,37 @@ test('grid: 4 columns, 2 under 1100px, 1 under 560px, sparse flow', () => {
   assert.match(bodyOf('.wgrid', '@media(max-width:559.98px)'), /grid-template-columns:minmax\(0,1fr\)/);
 });
 
-test('grid follows its container: .wgrid-wrap is a named inline-size container with the same steps', () => {
+test('grid follows its container: .wgrid-wrap is a named inline-size container, 4 from 688px, 2 under, 1 under 560px', () => {
   const w = bodyOf('.wgrid-wrap');
   assert.match(w, /(^|;)container:wgrid \/ inline-size(;|$)/);
   assert.doesNotMatch(w, /overflow|contain:/);
-  const two = '@containerwgrid(max-width:1099.98px)';
+  const four = '@containerwgrid(min-width:688px)';
+  const two = '@containerwgrid(max-width:687.98px)';
   const one = '@containerwgrid(max-width:559.98px)';
+  /* 4 columns is stated, not inherited: it must beat the viewport fallback on a viewport under 1100px */
+  assert.match(bodyOf('.wgrid', four), /grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(bodyOf('.wtile[data-size="xl"]', four), /grid-column:span 4/);
+  /* the 2 and 1 column steps carry exactly what the viewport fallback carries */
   for (const [media, viewport] of [[two, '@media(max-width:1099.98px)'], [one, '@media(max-width:559.98px)']]) {
     const at = RULES.filter((r) => r.media === media);
     const fallback = RULES.filter((r) => r.media === viewport);
     assert.ok(at.length > 0, `${media} missing`);
     assert.deepEqual(at.map((r) => [r.selectors, r.body]), fallback.map((r) => [r.selectors, r.body]), `${media} must mirror ${viewport}`);
   }
-  assert.match(bodyOf('.wgrid', two), /repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(bodyOf('.wgrid', one), /grid-template-columns:minmax\(0,1fr\)/);
-  /* the viewport rules stay as the fallback, and a forced count still comes last */
-  const src = SECTION.replace(/\s+/g, '');
-  assert.ok(src.indexOf('@media(max-width:559.98px)') < src.indexOf(two), 'container rules follow the viewport fallback');
+  /* order: viewport fallback, then the container, then a forced count */
+  const src = SECTION.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, '');
+  assert.ok(src.indexOf('@media(max-width:559.98px)') < src.indexOf(four), 'container rules follow the viewport fallback');
+  assert.ok(src.indexOf(four) < src.indexOf(two) && src.indexOf(two) < src.indexOf(one), 'container steps run wide to narrow');
   assert.ok(src.indexOf(one) < src.indexOf('.wgrid[data-cols="4"]{'), 'data-cols rules follow the container rules');
+});
+
+test('a small tile under 180px lays its four-size pill out 2 by 2 beside Move', () => {
+  const at = '@containerwgrid(min-width:688px)and(max-width:767.98px)';
+  const pill = '.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-sizes:has(>button:nth-child(4))';
+  assert.match(bodyOf(pill, at), /display:inline-grid;grid-template-columns:repeat\(2,auto\)/);
+  assert.match(bodyOf('.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4))', at), /flex-direction:row/);
+  assert.match(bodyOf('.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)) .wtile-move', at), /flex-direction:column/);
+  assert.match(bodyOf(pill.replace(':not([data-cols])', '[data-cols="4"]'), '@containerwgrid(max-width:767.98px)'), /display:inline-grid/);
 });
 
 test('tile sizes span S 1x1, M 2x1, L 2x2, XL 4x2, and clamp on narrow grids', () => {

@@ -8,7 +8,7 @@
 
 ### Fixed
 
-- **The widget grid follows its container, not the viewport.** `.wgrid` inside the new `.wgrid-wrap` steps to 2 columns under 1100px and 1 under 560px of the wrapper's width, so a grid beside a sidebar no longer holds four crushed columns. The React `WidgetGrid` renders the wrapper and fits tile sizes to it (no prop change; the grid is now one element deeper). A bare `.wgrid` and a browser without container queries keep the viewport rule, and an edge-to-edge grid is unchanged.
+- **The widget grid follows its container, not the viewport.** `.wgrid` inside the new `.wgrid-wrap` shows 4 columns from a 688px wrapper (four 160px small tiles and three gaps), 2 from 560px and 1 below, so a grid beside a sidebar gets the columns its own width holds. The React `WidgetGrid` renders the wrapper and fits tile sizes to it (the grid is now one element deeper); `columns`, or `data-cols` on `.wgrid`, pins the count for a layout with no small tile. A small tile under 180px lays its four-size pill out 2 by 2. A bare `.wgrid` and a browser without container queries keep the viewport rule (1100px, 560px).
 - **The studio side nav sits flush against the window's left edge.** The shell centred everything at 1440px, so on wide screens the nav, expanded or as the rail, floated in from the left. The body is now full bleed; only the content column is capped (1208px) and centred. A served test checks the nav's left edge at 1920 on `/` and `/components`, in both states.
 
 ## 1.7.0 · 2026-11-05

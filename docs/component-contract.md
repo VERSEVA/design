@@ -557,15 +557,24 @@ An adaptive home: a grid of tiles, each picking its view from its size. React pa
 
 | Columns | Container width | Largest size | Notes |
 |---|---|---|---|
-| 4 | 1100px and up | XL | |
-| 2 | 560 to 1099px | L | XL shows its L view |
+| 4 | 688px and up | XL | |
+| 2 | 560 to 687px | L | XL shows its L view |
 | 1 | under 560px | M | L and XL show their M view |
 
 The container is `.wgrid-wrap`, the grid's parent (`container: wgrid / inline-size`, `width: 100%`).
 The React part renders it and counts columns from its width, so a grid beside a sidebar steps
-down on the room it has, not on the viewport. A bare `.wgrid` with no wrapper, and a browser
-without container queries, fall back to the viewport at the same widths. `.wgrid-wrap` holds the
-grid only: keep fixed parts (the undo toast, the gallery) outside it.
+down on the room it has, not on the viewport. 688px is four 160px small tiles and three 16px
+gaps: the narrowest a small tile holds its numeral. There is no 3 column step: spans are 1, 2
+and 4. A bare `.wgrid` with no wrapper, and a browser without container queries, fall back to
+the viewport: 2 columns under 1100px, 1 under 560px. `.wgrid-wrap` holds the grid only: keep
+fixed parts (the undo toast, the gallery) outside it.
+
+Escape hatch: `columns` on the React part, or `data-cols="4|2|1"` on `.wgrid`, pins the count
+over the measured one. Use it only for a layout that holds no small tile in a narrow column
+(the studio home hero, split, keeps 4 columns in about 600px with one L and two M tiles).
+
+A small tile narrower than 180px (4 columns in a container under 768px) lays the four-size pill
+out 2 by 2 beside Move, stacked.
 
 S is 1x1, M 2x1, L 2x2, XL 4x2 on 180px rows with `--s-4` gaps (`--s-3` in one column). A size
 that does not fit drops to the largest supported size that does (`fitSize`); the tile carries the

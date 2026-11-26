@@ -71,8 +71,22 @@ const LAYOUT: LayoutItem[] = [
 ];
 const PICK = new Set(['revenue', 'live']);
 
+/** The hero is split (copy beside the live home) from 1360px: front.css. */
+const SPLIT = '(min-width: 1360px)';
+
 function LiveHome({ live }: { live: boolean }) {
   const { job, restart, cancel } = useDemoJob(live);
+  /* Split, the live home gets about 600px and holds no small tile: pin its 4 columns
+     (the columns escape hatch). Stacked, it follows its container like any grid. */
+  const [split, setSplit] = useState(false);
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const mq = window.matchMedia(SPLIT);
+    const on = () => setSplit(mq.matches);
+    on();
+    mq.addEventListener?.('change', on);
+    return () => mq.removeEventListener?.('change', on);
+  }, []);
   const [engaged, setEngaged] = useState(false);
   const [panel, setPanel] = useState(false);
   const onOpenChange = (o: boolean) => { setPanel(o); if (o) setEngaged(true); };
@@ -108,6 +122,7 @@ function LiveHome({ live }: { live: boolean }) {
     <WidgetGrid
       definitions={defs}
       layout={LAYOUT}
+      columns={split ? 4 : undefined}
       focus="revenue"
       storageKey={null}
       longPress={0}

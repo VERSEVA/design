@@ -44,6 +44,8 @@
 
 @media (min-width: 1360px) {
   .front .hero { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); padding-top: var(--s-8); }
+  /* Split, the live home keeps its 4 columns from the first paint; LiveHome pins the same count. */
+  .front .hero-live .wgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .front .hero .display { font-size: clamp(2.4rem, 4.4vw, 4.2rem); }
 }
 @media (max-width: 1099.98px) {
