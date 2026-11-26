@@ -17,6 +17,14 @@
     "./components.css": "./components.css",
     "./tailwind.css": "./tailwind.css",
     "./preset": "./tailwind.preset.cjs",
+    "./react/*": "./react/*.tsx",
+    "./react/activity-state": "./react/activity-state.ts",
+    "./react/command-state": "./react/command-state.ts",
+    "./react/console-state": "./react/console-state.ts",
+    "./react/cx": "./react/cx.ts",
+    "./react/inert": "./react/inert.ts",
+    "./react/labels": "./react/labels.ts",
+    "./react/widget-state": "./react/widget-state.ts",
     "./package.json": "./package.json"
   },
   "bin": {
@@ -26,6 +34,7 @@
     "verseva-contrast-gate": "bin/contrast-gate.mjs",
     "verseva-spacing-gate": "bin/spacing-gate.mjs",
     "verseva-type-gate": "bin/type-gate.mjs",
+    "verseva-recipe-gate": "bin/recipe-gate.mjs",
     "verseva-gate": "bin/verseva-gate.mjs"
   },
   "files": [

@@ -1,8 +1,10 @@
+'use client';
 import * as React from 'react';
 import { buildSections, firstSelectable, isAsyncIterable, moveSelection, resultCount } from './command-state';
 import type { BarOption } from './command-state';
 import { isSearchShortcut, shortcutLabel, withDefaults } from './console-state';
 import { cx } from './cx';
+import { COMMAND_BAR_LABELS } from './command-state';
 
 export interface Command {
   /** Group heading; groups show in the order they first appear. */
@@ -47,26 +49,9 @@ export interface CommandBarProps {
   className?: string;
 }
 
-export const COMMAND_BAR_LABELS = {
-  dialog: 'Command bar',
-  input: 'Search, run, or ask',
-  placeholder: 'Search, run, or ask',
-  results: 'Commands',
-  count: (n: number) => (n === 1 ? '1 result' : `${n} results`),
-  ask: (q: string) => `Ask “${q}”`,
-  askMode: 'Ask',
-  noResults: 'No results',
-  answer: 'Answer',
-  thinking: 'Thinking',
-  askFailed: 'The answer did not load.',
-  retry: 'Retry',
-  pin: 'Pin to Home',
-  again: 'Ask another',
-  move: 'move',
-  run: 'run',
-  askKey: 'ask',
-  close: 'close',
-  closeButton: 'Close',
+export {
+  /** @deprecated Import from './command-state'. Read from this client file, a server component gets a client reference, not the values. */
+  COMMAND_BAR_LABELS,
 };
 export type CommandBarLabels = typeof COMMAND_BAR_LABELS;
 

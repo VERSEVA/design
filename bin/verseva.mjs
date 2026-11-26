@@ -4,25 +4,19 @@
  * in YOUR project as source you own; unlike anything else, the gate suite can
  * prove the result stayed on-signature.
  *
- * Commands:
- *   verseva list                       what the registry holds
- *   verseva init                       verseva.json + a "gate" script + import hints
- *   verseva add <name...> [--dir d] [--force]
- *       name forms: bare (this package's registry), @ns/name (a namespace from
- *       verseva.json "registries"), a full https URL, or a local .json item file
- *   verseva block add <name> [--dir d] [--force]
- *   verseva theme add <name> [--dir d] [--force]   gate-proven accent presets
- *   verseva build [--output d]         flatten the registry into hostable
- *                                      per-item JSON (default site/r)
- *   verseva mcp init [--client claude|cursor|vscode]
- *                                      wire the verseva MCP server for agents
+ * Commands: one module each, bin/cmd-<name>.mjs, discovered at startup. A module exports
+ *   match   the command word, or an array of them
+ *   run     (ctx) => void; it exits when done, or returns to fall through to the help
+ *   usage   its help lines
+ *   order   a number; the help lists commands in ascending order
+ * Adding a command is adding one file. Nothing in this file changes.
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const pkgRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const binDir = path.dirname(fileURLToPath(import.meta.url));
+const pkgRoot = path.join(binDir, '..');
 const registry = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'registry.json'), 'utf8'));
 
 const args = process.argv.slice(2);
@@ -100,280 +94,53 @@ function localItem(name) {
   };
 }
 
-function requireHttps(url) {
-  const u = new URL(url);
-  if (u.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(u.hostname)) {
-    console.error(`refused: ${url} is cleartext http; registries must be https (localhost excepted)`);
-    process.exit(1);
-  }
-  return u;
-}
+/* Discovery reads this file's own directory and nothing else: regular files named
+   cmd-<name>.mjs. A symlink is not a regular file, so nothing outside bin/ is ever loaded,
+   and no path from the arguments or the working directory is imported. */
+const RESERVED = new Set(['help', '--help', '-h', '--version']);
+const isLines = (v) => Array.isArray(v) && v.every((l) => typeof l === 'string');
+const isWords = (v) => v.length > 0 && v.every((w) => typeof w === 'string' && w.length > 0);
+const stop = (line) => {
+  console.error(`verseva: ${line}`);
+  process.exit(1);
+};
 
-async function fetchJson(url) {
-  const u = requireHttps(url);
-  let res;
+/* A module that fails to load, lacks one of its four exports, or claims a word that is
+   reserved or already taken stops every command with one line naming the file. */
+const commands = [];
+const claimed = new Map();
+const found = fs.readdirSync(binDir, { withFileTypes: true })
+  .filter((ent) => ent.isFile() && /^cmd-[a-z0-9-]+\.mjs$/.test(ent.name))
+  .map((ent) => ent.name)
+  .sort();
+for (const name of found) {
+  const file = `bin/${name}`;
+  let mod;
   try {
-    res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    mod = await import(pathToFileURL(path.join(binDir, name)).href);
   } catch (e) {
-    console.error(`fetch failed: ${url} (${e?.cause?.code ?? e?.name ?? e})`);
-    process.exit(1);
+    stop(`${file} failed to load (${String(e?.message ?? e).split('\n')[0]})`);
   }
-  if (!res.ok) {
-    console.error(`fetch failed: ${url} (${res.status})`);
-    process.exit(1);
+  const claims = [mod.match].flat();
+  const bad = [
+    !isWords(claims) && 'match',
+    typeof mod.run !== 'function' && 'run',
+    !isLines(mod.usage) && 'usage',
+    !Number.isFinite(mod.order) && 'order',
+  ].filter(Boolean);
+  if (bad.length) stop(`${file} is not a command module (missing or invalid export: ${bad.join(', ')})`);
+  for (const word of claims) {
+    if (RESERVED.has(word)) stop(`${file} claims the reserved word "${word}"`);
+    if (claimed.has(word)) stop(`command "${word}" is claimed by both ${claimed.get(word)} and ${file}`);
+    claimed.set(word, file);
   }
-  try {
-    return { json: await res.json(), origin: u.origin };
-  } catch {
-    console.error(`not a registry item: ${url} (expected JSON, got ${res.headers.get('content-type') ?? 'unknown'})`);
-    process.exit(1);
-  }
+  commands.push({ file, claims, run: mod.run, usage: mod.usage, order: mod.order });
 }
+commands.sort((a, b) => a.order - b.order || a.file.localeCompare(b.file));
 
-/** Resolve a spec to an item + its trust context. Remote deps stay pinned to
-    the origin (and template) of the item that declared them. */
-async function fetchItem(spec, parentCtx) {
-  if (spec.startsWith('@')) {
-    if (parentCtx) {
-      console.error(`refused: remote item declared a cross-namespace dep (${spec}); deps must stay in their own registry`);
-      process.exit(1);
-    }
-    const slash = spec.indexOf('/');
-    const ns = spec.slice(0, slash);
-    const name = spec.slice(slash + 1);
-    const template = config.registries?.[ns];
-    if (!template) {
-      console.error(`unknown namespace ${ns}: add it to verseva.json under "registries", e.g. {"${ns}": "https://host/r/{name}.json"}`);
-      process.exit(1);
-    }
-    const url = template.replace('{name}', name);
-    const { json, origin } = await fetchJson(url);
-    return { item: json, ctx: { origin, template } };
-  }
-  if (spec.startsWith('http://') || spec.startsWith('https://')) {
-    const origin = requireHttps(spec).origin;
-    if (parentCtx && parentCtx.origin !== origin) {
-      console.error(`refused: dep ${spec} crosses origins (item came from ${parentCtx.origin})`);
-      process.exit(1);
-    }
-    const { json } = await fetchJson(spec);
-    return { item: json, ctx: { origin, template: parentCtx?.template ?? null, url: spec } };
-  }
-  if (spec.endsWith('.json') && fs.existsSync(spec)) {
-    return { item: JSON.parse(fs.readFileSync(spec, 'utf8')), ctx: { origin: 'file', template: null } };
-  }
-  return null;
-}
+const ctx = { pkgRoot, registry, config, rest, dirFlag, valueOf, readJson, writeFileInto, rewriteBlockHrefs, localItem };
+const command = commands.find((c) => c.claims.includes(cmd));
+if (command) await command.run(ctx);
 
-function validateItemFiles(spec, item, isFetched) {
-  if (!Array.isArray(item.files) || item.files.length === 0) {
-    console.error(`malformed item ${spec}: no files array`);
-    process.exit(1);
-  }
-  for (const f of item.files) {
-    if (typeof f?.path !== 'string' || f.path.length === 0) {
-      console.error(`malformed item ${spec}: a file entry has no path`);
-      process.exit(1);
-    }
-    if (isFetched && typeof f.content !== 'string') {
-      console.error(`refused: ${spec} file ${f.path} does not embed content; fetched and file items must embed content as a string`);
-      process.exit(1);
-    }
-  }
-}
-
-/* Set when an add copies a file that imports react. */
-let addedReact = false;
-
-/** The react version installed in the consumer's project (cwd), or null. */
-function installedReact() {
-  try {
-    const req = createRequire(path.join(process.cwd(), 'package.json'));
-    return JSON.parse(fs.readFileSync(req.resolve('react/package.json'), 'utf8')).version ?? null;
-  } catch { return null; }
-}
-
-async function addOne(spec, dir, seen, depth = 0, parentCtx = null) {
-  if (depth > 10) {
-    console.error('dependency chain deeper than 10; refusing (cycle?)');
-    process.exit(1);
-  }
-  if (seen.size > 50) {
-    console.error('more than 50 items in one add; refusing');
-    process.exit(1);
-  }
-  if (seen.has(spec)) return;
-  seen.add(spec);
-
-  const fetched = await fetchItem(spec, parentCtx);
-  const item = fetched ? fetched.item : localItem(spec);
-  if (!item) {
-    console.error(`unknown component: ${spec} (try: verseva list)`);
-    process.exit(1);
-  }
-  validateItemFiles(spec, item, !!fetched);
-  for (const dep of item.deps ?? []) {
-    if (typeof dep !== 'string') continue;
-    let depSpec = dep;
-    if (fetched) {
-      if (dep.startsWith('http://') || dep.startsWith('https://')) depSpec = dep;
-      else if (fetched.ctx.template) depSpec = fetched.ctx.template.replace('{name}', dep);
-      else if (fetched.ctx.url) depSpec = new URL(`${dep}.json`, fetched.ctx.url).href;
-      else depSpec = dep;
-    }
-    await addOne(depSpec, dir, seen, depth + 1, fetched?.ctx ?? null);
-  }
-  for (const f of item.files) {
-    const content = f.content;
-    if (/from ['"]react['"]/.test(content)) addedReact = true;
-    const finalContent = f.path.endsWith('.html') ? rewriteBlockHrefs(content) : content;
-    writeFileInto(dir, f.path, finalContent);
-  }
-}
-
-if (cmd === 'list') {
-  const all = [...registry.components, ...registry.blocks, ...registry.themes];
-  const width = Math.max(...all.map((x) => x.name.length)) + 2;
-  console.log('components');
-  for (const c of registry.components) console.log(`  ${c.name.padEnd(width)}${c.description}`);
-  console.log('blocks');
-  for (const b of registry.blocks) console.log(`  ${b.name.padEnd(width)}${b.description}${b.assets ? ' [repo assets]' : ''}`);
-  console.log('themes');
-  for (const t of registry.themes) console.log(`  ${t.name.padEnd(width)}${t.description}`);
-  process.exit(0);
-}
-
-if (cmd === 'init') {
-  if (!fs.existsSync('verseva.json')) {
-    fs.writeFileSync('verseva.json', JSON.stringify({ dir: 'src/components/verseva', registries: {} }, null, 2) + '\n');
-    console.log('  wrote   verseva.json');
-  }
-  if (fs.existsSync('package.json')) {
-    const pkg = readJson('package.json');
-    pkg.scripts ??= {};
-    if (!pkg.scripts.gate) {
-      pkg.scripts.gate = 'verseva-gate --tokens node_modules/@verseva/design/tokens.css src';
-      fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-      console.log('  added   "gate" script to package.json');
-    }
-  }
-  console.log('\nImport the signature once, near your app root:');
-  console.log("  import '@verseva/design/tokens.css';");
-  console.log("  import '@verseva/design/components.css';");
-  console.log('\nThen: npx verseva add button field toast');
-  console.log('Agents: npx verseva mcp init');
-  console.log('Ship only what passes: npm run gate');
-  process.exit(0);
-}
-
-if (cmd === 'add' && rest[0] !== undefined) {
-  const dir = dirFlag ?? config.dir ?? 'src/components/verseva';
-  const seen = new Set();
-  for (const spec of rest) await addOne(spec, dir, seen);
-  const react = addedReact ? installedReact() : null;
-  if (react && Number.parseInt(react, 10) < 18) console.error(`verseva: react ${react} is installed; the React parts need React 18 or later.`);
-  console.log(`\nYours now. Edit freely; re-run with --force to reset to the kit's cut.`);
-  process.exit(0);
-}
-
-if (cmd === 'block' && rest[0] === 'add' && rest[1]) {
-  const block = registry.blocks.find((b) => b.name === rest[1]);
-  if (!block) {
-    console.error(`unknown block: ${rest[1]} (try: verseva list)`);
-    process.exit(1);
-  }
-  if (block.source === 'repo') {
-    console.error(`${block.name} ships with image assets and lives in the repo: github.com/verseva/design (site/examples/${block.name}.html + assets). Copy it from there.`);
-    process.exit(1);
-  }
-  const dir = dirFlag ?? 'verseva-blocks';
-  const html = rewriteBlockHrefs(fs.readFileSync(path.join(pkgRoot, block.file), 'utf8'));
-  writeFileInto(dir, `${block.name}.html`, html);
-  console.log('  css hrefs point at node_modules');
-  process.exit(0);
-}
-
-if (cmd === 'theme' && rest[0] === 'add' && rest[1]) {
-  const theme = registry.themes.find((t) => t.name === rest[1]);
-  if (!theme) {
-    console.error(`unknown theme: ${rest[1]} (try: verseva list)`);
-    process.exit(1);
-  }
-  const dir = dirFlag ?? 'verseva-themes';
-  writeFileInto(dir, `${theme.name}.css`, fs.readFileSync(path.join(pkgRoot, theme.file), 'utf8'));
-  console.log(`  link it after tokens.css, set <html data-brand="${theme.name}">`);
-  console.log(`  it stays proven: verseva-contrast-gate --tokens tokens.css --tokens ${dir}/${theme.name}.css`);
-  process.exit(0);
-}
-
-if (cmd === 'build') {
-  const out = valueOf('--output') ?? path.resolve('r');
-  fs.mkdirSync(out, { recursive: true });
-  let count = 0;
-  for (const c of registry.components) {
-    const item = localItem(c.name);
-    fs.writeFileSync(path.join(out, `${c.name}.json`), JSON.stringify(item, null, 2) + '\n');
-    count++;
-  }
-  for (const b of registry.blocks.filter((x) => !x.source)) {
-    const item = {
-      name: b.name,
-      kind: 'block',
-      description: b.description,
-      deps: [],
-      files: [{ path: `${b.name}.html`, content: fs.readFileSync(path.join(pkgRoot, b.file), 'utf8') }],
-    };
-    fs.writeFileSync(path.join(out, `${b.name}.json`), JSON.stringify(item, null, 2) + '\n');
-    count++;
-  }
-  for (const t of registry.themes) {
-    const item = {
-      name: t.name,
-      kind: 'theme',
-      description: t.description,
-      deps: [],
-      files: [{ path: `${t.name}.css`, content: fs.readFileSync(path.join(pkgRoot, t.file), 'utf8') }],
-    };
-    fs.writeFileSync(path.join(out, `${t.name}.json`), JSON.stringify(item, null, 2) + '\n');
-    count++;
-  }
-  fs.writeFileSync(path.join(out, 'registry.json'), JSON.stringify(registry, null, 2) + '\n');
-  console.log(`verseva build: ${count} items + registry.json -> ${out}`);
-  console.log('Host that directory and consumers add it to verseva.json:');
-  console.log('  { "registries": { "@you": "https://your.host/r/{name}.json" } }');
-  process.exit(0);
-}
-
-if (cmd === 'mcp' && rest[0] === 'init') {
-  const client = valueOf('--client') ?? 'claude';
-  const server = { command: 'npx', args: ['-y', '-p', '@verseva/design', 'verseva-mcp'] };
-  const targets = {
-    claude: { file: '.mcp.json', shape: { mcpServers: { verseva: server } } },
-    cursor: { file: '.cursor/mcp.json', shape: { mcpServers: { verseva: server } } },
-    vscode: { file: '.vscode/mcp.json', shape: { servers: { verseva: { ...server, type: 'stdio' } } } },
-  };
-  const target = targets[client];
-  if (!target) {
-    console.error(`unknown client: ${client} (claude | cursor | vscode)`);
-    process.exit(1);
-  }
-  fs.mkdirSync(path.dirname(target.file) || '.', { recursive: true });
-  const existing = fs.existsSync(target.file) ? readJson(target.file) : {};
-  const key = client === 'vscode' ? 'servers' : 'mcpServers';
-  existing[key] = { ...existing[key], ...target.shape[key] };
-  fs.writeFileSync(target.file, JSON.stringify(existing, null, 2) + '\n');
-  console.log(`  wrote   ${target.file}`);
-  console.log('Your agent can now list, read, add, and GATE-PROVE verseva components.');
-  process.exit(0);
-}
-
-console.log(`verseva · the source-distribution CLI
-
-  npx verseva list
-  npx verseva init
-  npx verseva add <name | @ns/name | url | file.json ...> [--dir d] [--force]
-  npx verseva block add <name> [--dir d] [--force]
-  npx verseva theme add <name> [--dir d] [--force]
-  npx verseva build [--output d]
-  npx verseva mcp init [--client claude|cursor|vscode]`);
+console.log(['verseva · the source-distribution CLI', '', ...commands.flatMap((c) => c.usage).map((l) => `  ${l}`)].join('\n'));
 process.exit(cmd === undefined || cmd === 'help' ? 0 : 2);

@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import {
   ACTIVITY_LABELS, DONE_LEAVE_MS, activityEvents, activityState, announcement, currentStep, dedupeActivities, failedCount,
