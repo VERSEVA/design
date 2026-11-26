@@ -238,12 +238,30 @@ describe('Bars: suppressed items and display', () => {
     const bar = container.querySelector('.bar')!;
     expect(bar.querySelector('.vlab')).toBeNull();
     expect(bar.querySelector('.vtrack')).not.toBeNull();
-    expect(bar.getAttribute('title')).toBe('a: Withheld');
-    expect(container.textContent).not.toMatch(/n\/a|Withheld/);
+    expect(bar.getAttribute('title')).toBe('a: withheld');
+    expect(container.textContent).not.toMatch(/n\/a|withheld/i);
     expect(container.querySelector<HTMLElement>('.fill')!.style.height).toBe('100%');
     expect(warn).toHaveBeenCalled();
     expect(String(warn.mock.calls[0][0])).toMatch(/Bars.*"a".*display/);
     expect(JSON.stringify(warn.mock.calls)).not.toContain('4242');
+  });
+
+  it('renders the same document whatever the value of a suppressed item with no display', () => {
+    const only = (secret: number) => [{ label: 'p', value: 7 }, bare<BarItem>({ label: 'q', value: secret })];
+    const low = render(<Bars data={only(3)} />).container.innerHTML;
+    const high = render(<Bars data={only(987654)} />).container.innerHTML;
+    expect(high).toBe(low);
+    expect(high).not.toContain('987654');
+    expect(high).toContain('title="q: withheld"');
+    expect(JSON.stringify(warn.mock.calls)).not.toMatch(/987654|\b3\b/);
+  });
+
+  it('warns once for the same missing display, however often it renders', () => {
+    const data = [bare<BarItem>({ label: 'once', value: 1 })];
+    const { rerender } = render(<Bars data={data} />);
+    rerender(<Bars data={data} height={90} />);
+    render(<Bars data={data} />);
+    expect(warn).toHaveBeenCalledTimes(1);
   });
 
   it('takes the withheld word from vizLabels', () => {
@@ -323,6 +341,16 @@ describe('HBars: suppressed items and display', () => {
     expect(JSON.stringify(warn.mock.calls)).not.toContain('4242');
   });
 
+  it('renders the same document whatever the value of a suppressed item with no display', () => {
+    const only = (secret: number) => [{ label: 'p', value: 7 }, bare<HBarItem>({ label: 'q', value: secret })];
+    const low = render(<HBars data={only(3)} />).container.innerHTML;
+    const high = render(<HBars data={only(987654)} />).container.innerHTML;
+    expect(high).toBe(low);
+    expect(high).not.toContain('987654');
+    expect(high).toContain('title="q: withheld"');
+    expect(JSON.stringify(warn.mock.calls)).not.toMatch(/987654|\b3\b/);
+  });
+
   it('keeps the fill when only display is given, and prints display in place of the formatted value', () => {
     const { container } = render(<HBars data={[{ label: 'x', value: 1200, display: '1.2k' }, { label: 'y', value: 2400 }]} format={(v) => `${v} u`} />);
     const rows = container.querySelectorAll<HTMLElement>('.hbar');
@@ -333,11 +361,17 @@ describe('HBars: suppressed items and display', () => {
   });
 });
 
-/* A null is a gap: the line breaks, no point is drawn there, and it is never zero or bridged. A 1px
-   baseline segment under the gap says the stretch is withheld, not broken. */
+/* A null is a gap: the line breaks, no point is drawn there, and it is never zero or bridged. A hatched
+   band under the plot, clear of the zero baseline, says those indices are withheld, not broken. */
 const subpaths = (d: string) => d.split('M').filter(Boolean).length;
 const ys = (d: string) => [...d.matchAll(/[ML]?\s*(-?[\d.]+) (-?[\d.]+)/g)].map((m) => Number(m[2]));
-const gapLines = (root: Element) => [...root.querySelectorAll('line[data-gap]')].map((l) => ['x1', 'x2', 'y1', 'y2', 'stroke', 'stroke-width'].map((a) => l.getAttribute(a)));
+/* The gap band: a hatched strip below the zero baseline, over the null indices only. */
+const gapBands = (root: Element) => [...root.querySelectorAll('rect[data-gap]')].map((r) => ['x', 'width', 'y', 'height'].map((a) => r.getAttribute(a)));
+const hatchOf = (root: Element) => {
+  const pattern = root.querySelector('pattern')!;
+  const fills = [...root.querySelectorAll('rect[data-gap]')].map((r) => r.getAttribute('fill'));
+  return { id: pattern.getAttribute('id'), fills, stripe: pattern.querySelector('rect')!.getAttribute('fill'), turn: pattern.getAttribute('patternTransform') };
+};
 
 describe('Sparkline: null gaps', () => {
   it('breaks the line and the area at a null in the middle, and marks the gap on the baseline', () => {
@@ -350,9 +384,14 @@ describe('Sparkline: null gaps', () => {
     /* five slots across 132 units: the gap is the middle slot, and no vertex sits on it */
     expect(line).not.toMatch(/[ML]70\.0 /);
     expect(line).toMatch(/^M4\.0 .* L37\.0 [\d.]+ M103\.0 .* L136\.0 /);
-    /* never zero: nothing is drawn down at the baseline for the gap but its marker */
-    expect(Math.max(...ys(line))).toBeLessThan(36);
-    expect(gapLines(container)).toEqual([['37', '103', '36', '36', 'var(--text-3)', '1']]);
+    /* never zero: nothing of the line reaches the baseline (y 30 once the band's room is reserved) */
+    expect(Math.max(...ys(line))).toBeLessThan(30);
+    /* the band covers the null slot only (half a step either side), 2 below the baseline, 4 tall */
+    expect(gapBands(container)).toEqual([['53.5', '33', '32', '4']]);
+    const h = hatchOf(container);
+    expect(h.fills).toEqual([`url(#${h.id})`]);
+    expect([h.stripe, h.turn]).toEqual(['var(--text-3)', 'rotate(45)']);
+    expect(container.querySelectorAll('line')).toHaveLength(0);
   });
 
   it('draws no stray point for leading and trailing nulls, and marks both gaps', () => {
@@ -361,7 +400,8 @@ describe('Sparkline: null gaps', () => {
     const line = container.querySelector('path')!.getAttribute('d')!;
     expect(subpaths(line)).toBe(1);
     expect(line).toMatch(/^M48\.0 [\d.]+ L92\.0 [\d.]+$/);
-    expect(gapLines(container).map((l) => l.slice(0, 2))).toEqual([['4', '48'], ['92', '136']]);
+    /* a gap at the start and one at the end, each clipped to the plot and short of the known points */
+    expect(gapBands(container).map((l) => l.slice(0, 2))).toEqual([['4', '22'], ['114', '22']]);
     const lead = render(<Sparkline values={[null, 3, 5]} area={false} />).container;
     expect(lead.querySelectorAll('circle')).toHaveLength(1);
     expect(lead.querySelector('circle')!.getAttribute('cx')).toBe('136');
@@ -372,13 +412,15 @@ describe('Sparkline: null gaps', () => {
     const line = container.querySelector('path');
     expect(line).toBeNull();
     const dots = [...container.querySelectorAll('circle')].map((c) => [c.getAttribute('cx'), c.getAttribute('cy')]);
-    expect(dots).toEqual([['4', '36'], ['136', '4']]);
+    /* the zero sits on the baseline (30), the band starts 2 below it: they never touch */
+    expect(dots).toEqual([['4', '30'], ['136', '4']]);
+    expect(gapBands(container)).toEqual([['37', '66', '32', '4']]);
   });
 
   it('draws a value alone between two gaps as an r=3 dot, and no empty path', () => {
     const { container } = render(<Sparkline values={[1, null, 2, null, 1]} />);
     expect(container.querySelectorAll('path')).toHaveLength(0);
-    expect(container.querySelectorAll('defs')).toHaveLength(0);
+    expect(container.querySelectorAll('linearGradient')).toHaveLength(0);
     const dots = [...container.querySelectorAll('circle')];
     expect(dots.map((c) => c.getAttribute('r'))).toEqual(['3', '3', '3']);
     expect(dots.map((c) => c.getAttribute('cx'))).toEqual(['4', '70', '136']);
@@ -422,7 +464,8 @@ describe('LineChart: null gaps', () => {
     expect(line).not.toMatch(/[ML]160\.0 /);
     expect(line + area).not.toContain('NaN');
     expect(container.querySelectorAll('circle')).toHaveLength(1);
-    expect(gapLines(container)).toEqual([['83', '237', '134', '134', 'var(--text-3)', '1']]);
+    expect(gapBands(container)).toEqual([['121.5', '77', '130', '4']]);
+    expect(container.querySelectorAll('pattern')).toHaveLength(1);
   });
 
   it('keeps the dashed second series and its hue alongside nulls in either series', () => {
@@ -442,7 +485,10 @@ describe('LineChart: null gaps', () => {
       ['6', 'var(--data-3)'], ['314', 'var(--data-3)'], ['314', 'var(--data-alt)'],
     ]);
     expect(container.querySelectorAll('.vizlegend i')).toHaveLength(2);
-    expect(gapLines(container).map((l) => l.slice(0, 2))).toEqual([['6', '160'], ['83', '314']]);
+    /* each series marks its own null indices; they share one row and one hatch, so overlaps coincide */
+    expect(gapBands(container).map((l) => l.slice(0, 2))).toEqual([['44.5', '77'], ['121.5', '154']]);
+    expect(new Set(gapBands(container).map((l) => l[2]))).toEqual(new Set(['130']));
+    expect(container.querySelectorAll('pattern')).toHaveLength(1);
   });
 
   it('draws no stray point for leading and trailing nulls', () => {
@@ -457,7 +503,11 @@ describe('LineChart: null gaps', () => {
   it('leaves nulls out of the scale and keeps a real zero on the baseline', () => {
     const { container } = render(<LineChart labels={['a', 'b', 'c', 'd']} series={[{ name: 'A', values: [0, 0, null, 8] }]} />);
     const line = container.querySelector('path[fill="none"]')!.getAttribute('d')!;
-    expect(line).toBe('M6.0 134.0 L108.7 134.0');
+    /* a series resting on zero beside a gap: its line is on the baseline, the band 2 below, over the null only */
+    expect(line).toBe('M6.0 128.0 L108.7 128.0');
+    const [[x, width, y, tall]] = gapBands(container).map((b) => b.map(Number));
+    expect([x, y, tall]).toEqual([160, 130, 4]);
+    expect(width).toBeCloseTo(102.667, 2);
     expect(container.querySelector('circle')!.getAttribute('cy')).toBe('6');
   });
 
@@ -465,12 +515,12 @@ describe('LineChart: null gaps', () => {
     const { container } = render(<LineChart labels={labels} series={[{ name: 'A', values: [null, null, null, null, null] }]} />);
     expect(container.querySelectorAll('path')).toHaveLength(0);
     expect(container.querySelectorAll('circle')).toHaveLength(0);
-    expect(container.querySelectorAll('line')).toHaveLength(0);
+    expect(container.querySelectorAll('line, rect, pattern')).toHaveLength(0);
     const svg = container.querySelector('.vizplot svg')!;
     stubBox(svg);
     expect(() => move(svg, 160)).not.toThrow();
     expect(container.querySelectorAll('circle')).toHaveLength(0);
-    expect(screen.getByRole('status').textContent).toBe('WedA Withheld');
+    expect(screen.getByRole('status').textContent).toBe('WedA withheld');
   });
 
   it('shows the withheld word, no value and no hover point for a series that is null at the hovered index', () => {
@@ -488,7 +538,7 @@ describe('LineChart: null gaps', () => {
     const tip = screen.getByRole('status');
     expect(tip.querySelector('b')!.textContent).toBe('Wed');
     const rows = [...tip.querySelectorAll('span')];
-    expect(rows.map((r) => r.textContent)).toEqual(['A Withheld', 'B 0 kg']);
+    expect(rows.map((r) => r.textContent)).toEqual(['A withheld', 'B 0 kg']);
     expect(rows.map((r) => r.hasAttribute('data-withheld'))).toEqual([true, false]);
     expect(tip.textContent).not.toMatch(/null|NaN|undefined/);
     expect(seen).not.toContain(null);

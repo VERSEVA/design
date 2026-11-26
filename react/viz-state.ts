@@ -3,8 +3,8 @@
  * components only. A product passes its own words through `vizLabels`.
  */
 export interface VizLabels {
-  /** Named where a value is withheld: a null in a line on hover, a suppressed bar with no display in its title. */
+  /** Named where a value is withheld, after a series or item name: a null in a line on hover, a suppressed bar with no display in its title. */
   withheld: string;
 }
 
-export const VIZ_LABELS: VizLabels = { withheld: 'Withheld' };
+export const VIZ_LABELS: VizLabels = { withheld: 'withheld' };

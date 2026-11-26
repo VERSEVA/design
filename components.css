@@ -598,7 +598,7 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .hbar .htrack{height:8px;min-width:0;flex:1;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
 .hbar .htrack i{display:block;height:100%;border-radius:var(--r-pill);background:var(--data-3)}
 .hbar .htrack i.alt{background:var(--data-alt)}
-.hbar[data-suppressed] .htrack{background-image:repeating-linear-gradient(135deg,var(--text-3) 0 2px,transparent 2px 5px);background-size:var(--s-6) 100%;background-repeat:no-repeat}
+.hbar[data-suppressed] .htrack{background-image:repeating-linear-gradient(135deg,var(--text-3) 0 2px,transparent 2px 5px);background-size:var(--s-4) 100%;background-repeat:no-repeat}
 .hbar .hcount{width:40px;flex:none;text-align:right;font-family:var(--font-mono);font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-1)}
 
 /* Activity strip + calendar cells: ONE intensity language via the ladder */
@@ -642,6 +642,8 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .viztip b{font-family:var(--font-mono);font-size:10px;color:var(--text-3);font-weight:600}
 .viztip span{font-variant-numeric:tabular-nums;color:var(--text-1)}
 .viztip span[data-withheld]{color:var(--text-2)}
+/* The gap band under a line: the bar stub's hatch, --s-1 tall, below the zero baseline and never on it. */
+.vizplot rect[data-gap],.spark rect[data-gap]{height:var(--s-1)}
 
 /* ---- Console recipes (1.2.0, promoted from the Studio CRM) ---- */
 

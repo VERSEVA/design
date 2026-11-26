@@ -6,7 +6,7 @@
   "files": [
     {
       "path": "react/viz-state.ts",
-      "content": "/**\n * The chart kit's copy, kept in a pure module so the parts in viz.tsx export\n * components only. A product passes its own words through `vizLabels`.\n */\nexport interface VizLabels {\n  /** Named where a value is withheld: a null in a line on hover, a suppressed bar with no display in its title. */\n  withheld: string;\n}\n\nexport const VIZ_LABELS: VizLabels = { withheld: 'Withheld' };\n"
+      "content": "/**\n * The chart kit's copy, kept in a pure module so the parts in viz.tsx export\n * components only. A product passes its own words through `vizLabels`.\n */\nexport interface VizLabels {\n  /** Named where a value is withheld, after a series or item name: a null in a line on hover, a suppressed bar with no display in its title. */\n  withheld: string;\n}\n\nexport const VIZ_LABELS: VizLabels = { withheld: 'withheld' };\n"
     }
   ]
 }

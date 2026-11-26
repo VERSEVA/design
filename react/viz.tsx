@@ -11,8 +11,8 @@ import { VIZ_LABELS, type VizLabels } from './viz-state';
  * no hex ever enters this file.
  *
  * Withheld data (1.7.1). A null in a line is a gap: the line and its area
- * break there, no point is drawn, it is never zero or bridged, and a thin
- * baseline segment says the stretch is withheld, not broken. A suppressed
+ * break there, no point is drawn, it is never zero or bridged, and a hatched
+ * band under the plot says those indices are withheld, not broken. A suppressed
  * bar is a privacy floor: its value is never read, so it cannot reach a bar
  * length, the scale, a title or any attribute. The word for withheld is
  * copy: `vizLabels` overrides it (defaults in viz-state.ts).
@@ -26,11 +26,18 @@ type Pt = readonly [number, number];
 /** A value the chart can draw. Null, undefined, NaN and the infinities are gaps. */
 const known = (v: number | null | undefined): v is number => typeof v === 'number' && Number.isFinite(v);
 
-/** One slot per index, so a gap keeps its place on the x axis; a gap has no point. */
-const pts = (vals: readonly (number | null)[], w: number, h: number, pad = 4, max?: number): (Pt | null)[] => {
+/** The gap band: 2 below the zero baseline and `--s-1` tall, so a chart with a gap keeps this much room under its plot. */
+const BAND_GAP = 2;
+const BAND = 4;
+const hasGap = (vals: readonly (number | null)[]) => vals.some((v) => !known(v));
+/** Room under the plot for the band; none for a series with no gap, so it renders as it always did. */
+const reserve = (gapped: boolean) => (gapped ? BAND_GAP + BAND : 0);
+
+/** One slot per index, so a gap keeps its place on the x axis; a gap has no point. `foot` is the room kept under the plot. */
+const pts = (vals: readonly (number | null)[], w: number, h: number, pad = 4, max?: number, foot = 0): (Pt | null)[] => {
   const top = max ?? Math.max(...vals.filter(known), 1);
   const iw = w - pad * 2;
-  const ih = h - pad * 2;
+  const ih = h - pad * 2 - foot;
   return vals.map((v, i) => (known(v) ? [
     pad + (vals.length === 1 ? iw / 2 : (iw * i) / (vals.length - 1)),
     pad + ih * (1 - v / top),
@@ -53,30 +60,38 @@ const seg = (p: readonly Pt[]) =>
 const drawn = (p: readonly (Pt | null)[]) => runs(p).filter((r) => r.length > 1 || p.length === 1);
 /** One subpath per run; empty when no run is wide enough. */
 const linePath = (p: readonly (Pt | null)[]) => drawn(p).map(seg).join(' ');
-/** One closed subpath per run, so the fill stops at a gap. */
-const areaPath = (p: readonly (Pt | null)[], h: number, pad = 4) =>
-  drawn(p).map((r) => `M${r[0][0].toFixed(1)} ${h - pad} ${seg(r).slice(1)} L${r[r.length - 1][0].toFixed(1)} ${h - pad} Z`).join(' ');
+/** One closed subpath per run down to the baseline, so the fill stops at a gap. */
+const areaPath = (p: readonly (Pt | null)[], base: number) =>
+  drawn(p).map((r) => `M${r[0][0].toFixed(1)} ${base} ${seg(r).slice(1)} L${r[r.length - 1][0].toFixed(1)} ${base} Z`).join(' ');
 /** A value alone between gaps has no line to sit on: it is a dot. The last index is the end dot's. */
 const lone = (p: readonly (Pt | null)[]) =>
   p.length === 1 ? [] : p.filter((pt, i): pt is Pt => !!pt && !p[i - 1] && !p[i + 1] && i < p.length - 1);
-/** Each gap's stretch along x, from the point before it to the point after (or the plot's edge). */
+/** Each gap's own stretch along x: its null indices and half a step either side, clipped to the plot, so it stops short of the known points. */
 const gaps = (p: readonly (Pt | null)[], w: number, pad: number) => {
   const out: [number, number][] = [];
   if (!p.some(Boolean)) return out;
-  const x = (i: number) => pad + ((w - pad * 2) * i) / (p.length - 1);
+  const step = (w - pad * 2) / (p.length - 1);
   for (let i = 0; i < p.length; i++) {
     if (p[i]) continue;
     let j = i;
     while (j + 1 < p.length && !p[j + 1]) j++;
-    out.push([x(Math.max(i - 1, 0)), x(Math.min(j + 1, p.length - 1))]);
+    out.push([Math.max(pad, pad + step * (i - 0.5)), Math.min(w - pad, pad + step * (j + 0.5))]);
     i = j;
   }
   return out;
 };
-/** The 1px baseline marks under a series' gaps: withheld, not a rendering fault. */
-const gapMarks = (p: readonly (Pt | null)[], w: number, h: number, pad: number) =>
+/** The hatch the bands share: the bar stub's 135deg `--text-3` stripes, 2 in every 5. */
+const gapHatch = (id: string) => (
+  <defs>
+    <pattern id={id} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="2" height="5" fill="var(--text-3)" />
+    </pattern>
+  </defs>
+);
+/** The bands under a series' gaps, below the zero baseline: withheld, not zero and not a rendering fault. */
+const gapBands = (p: readonly (Pt | null)[], w: number, base: number, pad: number, hatch: string) =>
   gaps(p, w, pad).map(([x1, x2]) => (
-    <line key={x1} data-gap="" x1={x1} y1={h - pad} x2={x2} y2={h - pad} stroke="var(--text-3)" strokeWidth="1" />
+    <rect key={x1} data-gap="" x={x1} y={base + BAND_GAP} width={x2 - x1} height={BAND} fill={`url(#${hatch})`} />
   ));
 
 export interface SparklineProps {
@@ -93,8 +108,11 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
   const id = React.useId();
   const W = 140;
   const H = 40;
-  const p = pts(values, W, H, 4, max);
-  const fill = area ? areaPath(p, H) : '';
+  const gapped = hasGap(values);
+  const base = H - 4 - reserve(gapped);
+  const p = pts(values, W, H, 4, max, reserve(gapped));
+  const bands = gapped ? gapBands(p, W, base, 4, `${id}h`) : [];
+  const fill = area ? areaPath(p, base) : '';
   const line = linePath(p);
   const last = p[p.length - 1];
   return (
@@ -111,7 +129,8 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
             <path d={fill} fill={`url(#${id})`} />
           </>
         )}
-        {gapMarks(p, W, H, 4)}
+        {bands.length > 0 && gapHatch(`${id}h`)}
+        {bands}
         {line && <path d={line} fill="none" stroke="var(--data-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
         {lone(p).map(([x, y]) => <circle key={x} cx={x} cy={y} r="3" fill="var(--data-3)" />)}
         {last && <circle cx={last[0]} cy={last[1]} r="3" fill="var(--data-3)" />}
@@ -147,9 +166,14 @@ export function LineChart({ labels, series, reference, height = 140, format = St
   const shown = series.slice(0, 2);
   const top = Math.max(...shown.flatMap((s) => s.values.filter(known)), reference?.value ?? 1);
   const [hover, setHover] = React.useState<number | null>(null);
-  const all = shown.map((s) => pts(s.values, W, height, pad, top));
+  const gapped = shown.some((s) => hasGap(s.values));
+  const foot = reserve(gapped);
+  const base = height - pad - foot;
+  const all = shown.map((s) => pts(s.values, W, height, pad, top, foot));
+  const hatch = `${id}h`;
+  const banded = gapped && all.some((p) => p.some(Boolean));
   const hoverX = hover === null ? undefined : all.find((p) => p[hover])?.[hover]?.[0];
-  const refY = reference ? pad + (height - pad * 2) * (1 - reference.value / top) : 0;
+  const refY = reference ? pad + (height - pad * 2 - foot) * (1 - reference.value / top) : 0;
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     const box = e.currentTarget.getBoundingClientRect();
@@ -163,10 +187,11 @@ export function LineChart({ labels, series, reference, height = 140, format = St
       <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img"
         aria-label={shown.map((s) => s.name).join(' vs ')}
         onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+        {banded && gapHatch(hatch)}
         {reference && <line className="refline" x1={pad} y1={refY} x2={W - pad} y2={refY} />}
         {all.map((p, si) => {
           const last = p[p.length - 1];
-          const fill = si === 0 ? areaPath(p, height, pad) : '';
+          const fill = si === 0 ? areaPath(p, base) : '';
           const line = linePath(p);
           const hue = si === 0 ? 'var(--data-3)' : 'var(--data-alt)';
           return (
@@ -183,7 +208,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
                 <path d={fill} fill={`url(#${id})`} />
               </>
             )}
-            {gapMarks(p, W, height, pad)}
+            {gapBands(p, W, base, pad, hatch)}
             {line && <path d={line} fill="none"
               stroke={hue}
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -198,7 +223,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
         {hover !== null && (
           <g>
             {hoverX !== undefined && (
-              <line x1={hoverX} y1={pad} x2={hoverX} y2={height - pad}
+              <line x1={hoverX} y1={pad} x2={hoverX} y2={base}
                 stroke="var(--text-3)" strokeWidth="1" opacity="0.5" />
             )}
             {all.map((p, si) => { const h = p[hover]; return h && (
@@ -245,12 +270,18 @@ type Shown = { display?: string; suppressed?: false } | { display: string; suppr
 export type BarsItem = { label: string; value: number; level?: 0 | 1 | 2 | 3 } & Shown;
 export type HBarsItem = { label: string; value: number; alt?: boolean } & Shown;
 
-/** A suppressed item that slipped past the types with no display: said once per set, in development, by label only. */
-function useMissingDisplay(part: string, data: readonly { label: string; suppressed?: boolean; display?: string }[]) {
+/** Each missing-display warning already given, so a re-render does not repeat it. */
+const warned = new Set<string>();
+/**
+ * A suppressed item that slipped past the types with no display: said once, in development, by label only.
+ * Called during render with no hook, so Bars and HBars need no client boundary.
+ */
+function warnMissingDisplay(part: string, data: readonly { label: string; suppressed?: boolean; display?: string }[]) {
+  if (!DEV) return;
   const missing = data.filter((d) => d.suppressed && d.display === undefined).map((d) => d.label).join('", "');
-  React.useEffect(() => {
-    if (missing && DEV) console.warn(`${part}: suppressed item "${missing}" has no display; it prints no label. Pass the floor label, for example display: "<5".`);
-  }, [part, missing]);
+  if (!missing || warned.has(`${part}|${missing}`)) return;
+  warned.add(`${part}|${missing}`);
+  console.warn(`${part}: suppressed item "${missing}" has no display; it prints no label. Pass the floor label, for example display: "<5".`);
 }
 
 export interface BarsProps {
@@ -266,7 +297,7 @@ export interface BarsProps {
 /** Vertical bars, numbers on the marks, no axis. */
 export function Bars({ data, showValues = true, height = 120, vizLabels, className }: BarsProps) {
   const L = { ...VIZ_LABELS, ...vizLabels };
-  useMissingDisplay('Bars', data);
+  warnMissingDisplay('Bars', data);
   const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   return (
     <div className={cx(className)}>
@@ -308,7 +339,7 @@ export interface HBarsProps {
 /** Label / track / mono count rows: the axis-free distribution. */
 export function HBars({ data, format = String, vizLabels, className }: HBarsProps) {
   const L = { ...VIZ_LABELS, ...vizLabels };
-  useMissingDisplay('HBars', data);
+  warnMissingDisplay('HBars', data);
   const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   return (
     <div className={cx('hbars', className)}>
