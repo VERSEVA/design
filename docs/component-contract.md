@@ -109,26 +109,41 @@ bounded: it is the place the rows live.
 
 - **Default cap: 5.** Override per instance with `data-cap="1"` to `data-cap="12"` on the
   wrapper. Any other value falls back to 5, so no value leaves a section unbounded.
+- **Why 1 to 12:** `:nth-child` cannot read a variable, so every cap is a written rule and the
+  range has to end somewhere. Twelve rows is already a full screen of a phone; a section that
+  wants more is the scoped view, not a section.
 - **Mechanism:** `.bounded` on the section; `.bounded-rows` on the element whose children are
   the rows (`.lrows`, a `tbody`, an `ol`). The CSS drops every row past the cap, whatever the
   host sends, so a host that forgets to slice still holds its height. Send only the first page
-  anyway: dropped rows are still downloaded.
-- **Foot:** `.bounded-foot` holds the count and the action on one line, and is present whenever
-  the section has rows, so the height is the same at the cap and past it.
-  - **Count:** `.bounded-more`, reading "+N more", only when there are more rows than the cap.
-    Quiet body text on `--text-2`: never mono, never uppercase, never the accent. It carries
-    `role="status"`, so a change in the count is announced.
+  anyway: dropped rows are still downloaded. Inside `.bounded-rows`, `.lrow` and table rows are
+  divided on their top edge, so the last row on screen ends the same at the cap and past it,
+  also inside `.glass`.
+- **Foot:** `.bounded-foot` holds the count and the action together on the trailing edge,
+  `--s-3` apart, so the count reads with its own action.
+  - **Count:** `.bounded-more`, reading "+N more", with `role="status"`. The element is always
+    there when the section has rows, and holds text only when there are more rows than the cap,
+    so the step from 5 rows to 6 is announced. Quiet body text on `--text-2`: never mono, never
+    uppercase, never the accent. With CSS alone nothing computes N: the host writes it.
   - **Action:** `.bounded-all` on a neutral `.btn.btn-secondary.sm` reading "Show all", a link
-    or a button the host wires. Its accessible name includes the section name
-    (`aria-label="Show all Quotes"`). The accent is not spent here.
-- **Name:** `.bounded-name` on the section's heading; the section is `aria-labelledby` it.
-- **States:** empty = the states trio's empty block in place of the rows, no foot; fewer than
-  the cap = the rows and the action, no count; exactly the cap = the same; more than the cap =
-  the cap, the count and the action. Loading = `.skel` rows, at most the cap.
+    or a button the host wires; a section with nowhere to send it renders none. Its accessible
+    name includes the section name (`aria-label="Show all Quotes"`). 44px tall on a coarse
+    pointer. The accent is not spent here.
+  - **When it shows:** at the cap and above, so the height at the cap equals the height past
+    it. Below the cap nothing is hidden and the action is dropped (the CSS drops it too, where
+    `:has` is supported). `data-all="always"` on the wrapper keeps it below the cap, for a
+    scoped view that adds filters or sorting.
+- **Name:** `.bounded-name` on the section's heading, in the display face at the body step, so
+  it leads its rows; the section is `aria-labelledby` it.
+- **States:** empty = the states trio's empty block in place of the rows (at `--r-md`, the
+  rows' radius), no foot; fewer than the cap = the rows and an empty count; exactly the cap =
+  the rows, an empty count and the action; more than the cap = the cap, the count and the
+  action. Loading = `.skel` rows, at most the cap.
 - **Motion:** none. Rows do not animate in or out of a bounded section.
 - **React:** `BoundedSection` (`npx verseva add bounded-section`) slices to the cap, counts from
-  `total` when the host holds only the first page, and renders a link with `href` or a button
-  with `onShowAll`. Charts are bounded by their own contract, not this part.
+  `total` when the host holds only the first page, takes `href` or `onShowAll` (one is
+  required), `showAllBelowCap` for `data-all="always"`, and `getKey` for stable row keys. A cap
+  outside 1 to 12 falls back to 5 and warns in development. It renders lists; for a table, put
+  the classes on by hand. Charts are bounded by their own contract, not this part.
 
 ## Badge: `.badge` · Toast: `.toast` · Modal: `.modal`
 

@@ -37,8 +37,8 @@ function BoundedSpecimen({ id, name, rows }: { id: string; name: string; rows: n
         ))}
       </div>
       <div className="bounded-foot">
-        {rows > BOUNDED_CAP && <p className="bounded-more" role="status">{`+${rows - BOUNDED_CAP} more`}</p>}
-        <button className="btn btn-secondary sm bounded-all" type="button" aria-label={`Show all ${name}`}>Show all</button>
+        <p className="bounded-more" role="status">{rows > BOUNDED_CAP ? `+${rows - BOUNDED_CAP} more` : null}</p>
+        {rows >= BOUNDED_CAP && <button className="btn btn-secondary sm bounded-all" type="button" aria-label={`Show all ${name}`}>Show all</button>}
       </div>
     </section>
   );

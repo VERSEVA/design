@@ -5,6 +5,9 @@
 // sends. The count row reads "+N more" above the cap and is absent at or below it. An override
 // (data-cap) changes the cap and a value the CSS does not know falls back to the default, so no
 // value leaves a section unbounded. Dark and light, desktop and phone.
+// A second page, served only by this run from the package's own tokens.css and components.css,
+// holds the table form (rows on a tbody), plain and inside .glass, and the Show all rule: the
+// action shows at the cap and above, and below the cap only with data-all="always".
 // Runs after `npm run studio:build && npm run assemble` (npm run test:served).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,8 +15,24 @@ import { start } from './chrome.mjs';
 
 const CAP = 5;
 
+/* The table form and the Show all rule, on the shipped CSS alone. */
+const TABLE_PAGE = (theme) => `/__probe/bounded-${theme}`;
+const tr = (i) => `<tr><td>Q-${2081 - i}</td><td>Northline Foods</td><td class="num">${48220 - i * 917}.00</td></tr>`;
+const lrow = (i) => `<div class="lrow"><span class="tx"><b>Q-${2081 - i}</b><span class="metaline">Northline Foods</span></span><span class="val">${48220 - i * 917}.00</span></div>`;
+const foot = (n, cap) => `<div class="bounded-foot"><p class="bounded-more" role="status">${n > cap ? `+${n - cap} more` : ''}</p><button class="btn btn-secondary sm bounded-all" type="button" aria-label="Show all Quotes">Show all</button></div>`;
+const head = (id) => `<h3 class="bounded-name" id="${id}-n">Quotes</h3>`;
+const table = (id, n) => `<section class="bounded" id="${id}" aria-labelledby="${id}-n">${head(id)}${n === 0
+  ? '<div class="empty"><b>No quotes yet</b><button class="btn btn-secondary sm" type="button">New quote</button></div>'
+  : `<table class="table"><thead><tr><th>Quote</th><th>Client</th><th class="num">Amount</th></tr></thead><tbody class="bounded-rows">${Array.from({ length: n }, (_, i) => tr(i)).join('')}</tbody></table>${foot(n, CAP)}`}</section>`;
+const list = (id, n, attrs = '', cap = CAP) => `<section class="bounded" id="${id}" aria-labelledby="${id}-n"${attrs}>${head(id)}<div class="lrows bounded-rows">${Array.from({ length: n }, (_, i) => lrow(i)).join('')}</div>${foot(n, cap)}</section>`;
+const tablePage = (theme) => `<!doctype html><html data-theme="${theme}"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/components.css"><body>
+${[0, 3, CAP, CAP + 40].map((n) => table(`t${n}`, n)).join('')}
+${[3, CAP, CAP + 40].map((n) => `<div class="glass">${table(`g${n}`, n)}</div>`).join('')}
+${list('below', 3)}${list('below-always', 3, ' data-all="always"')}${list('at', CAP)}${list('cap3-at', 3, ' data-cap="3"', 3)}${list('cap8-below', CAP, ' data-cap="8"', 8)}${list('cap8-always', CAP, ' data-cap="8" data-all="always"', 8)}${list('odd-below', 3, ' data-cap="99"')}
+</body></html>`;
+
 let run;
-before(async () => { run = await start(); });
+before(async () => { run = await start({ extra: { [TABLE_PAGE('dark')]: tablePage('dark'), [TABLE_PAGE('light')]: tablePage('light') } }); });
 after(async () => { await run?.stop(); });
 
 const PROBE = `(async () => {
@@ -35,6 +54,14 @@ const PROBE = `(async () => {
       shown: rows ? shown(sec) : 0,
       height: sec.getBoundingClientRect().height,
       more: more ? more.textContent : null,
+      moreHeight: more ? more.getBoundingClientRect().height : null,
+      allShown: !!all && all.getClientRects().length > 0,
+      allHeight: all ? all.getBoundingClientRect().height : 0,
+      allGap: all && more ? all.getBoundingClientRect().left - more.getBoundingClientRect().right : null,
+      allRight: all ? rows.getBoundingClientRect().right - all.getBoundingClientRect().right : null,
+      nameSize: getComputedStyle(sec.querySelector('.bounded-name')).fontSize,
+      rowSize: rows && rows.querySelector('b') ? getComputedStyle(rows.querySelector('b')).fontSize : null,
+      radius: sec.querySelector('.empty') ? getComputedStyle(sec.querySelector('.empty')).borderRadius : getComputedStyle(rows).borderRadius,
       moreRole: more ? more.getAttribute('role') : null,
       moreColor: more ? getComputedStyle(more).color : null,
       moreFont: more ? getComputedStyle(more).fontFamily : null,
@@ -78,13 +105,14 @@ const PROBE = `(async () => {
 })()`;
 
 for (const scheme of ['dark', 'light']) for (const width of [1280, 375]) {
-  test(`the bounded section holds its height at ${width}px in ${scheme}`, { timeout: 120000 }, async () => {
+  test(`the bounded section holds its height at ${width}px in ${scheme}`, { timeout: 120000 }, async (t) => {
     const page = await run.page({ width, height: 900, scheme });
     await page.goto('/components');
     const r = JSON.parse(await page.evaluate(PROBE));
     await page.close();
     assert.ok(r.tile, '/components has no #bounded specimen');
     assert.equal(r.mode, scheme);
+    t.diagnostic(`list ${scheme} ${width}px: ${r.states.map((s) => `${s.rows} rows ${s.height}px`).join(', ')}`);
 
     /* the four contract states, in order */
     assert.deepEqual(r.states.map((s) => s.rows), [0, 3, CAP, CAP + 40], 'empty, fewer than the cap, exactly the cap, more than the cap');
@@ -103,25 +131,96 @@ for (const scheme of ['dark', 'light']) for (const width of [1280, 375]) {
       assert.equal(r.grown[n].shown, CAP);
     }
 
-    /* the count row: "+N more" above the cap, absent at or below it */
+    /* the count: "+N more" above the cap, no text at or below it. The status line is there
+       whenever the section has rows, so the step from 5 rows to 6 is announced. */
     assert.equal(more.more, '+40 more');
-    assert.deepEqual([none.more, few.more, cap.more], [null, null, null]);
-    assert.equal(more.moreRole, 'status', 'the count row is announced');
+    assert.deepEqual([none.more, few.more, cap.more], [null, '', '']);
+    assert.deepEqual([few.moreRole, cap.moreRole, more.moreRole], ['status', 'status', 'status']);
+    assert.deepEqual([few.moreHeight, cap.moreHeight], [0, 0], 'an empty count takes no room');
     assert.equal(more.moreColor, r.text2Rgb, 'quiet body text on --text-2');
     assert.equal(more.moreFont, r.bodyFont, 'never mono');
     assert.equal(more.moreCase, 'none', 'never uppercase');
 
-    /* the action: named Show all, with the section's name in its accessible name */
-    for (const s of [few, cap, more]) {
+    /* the action: at the cap and above, named Show all, with the section's name in its accessible name */
+    for (const s of [cap, more]) {
       assert.equal(s.allText, 'Show all', s.name);
+      assert.ok(s.allShown, s.name);
       assert.ok(s.name && s.all.startsWith('Show all') && s.all.toLowerCase().includes(s.name.toLowerCase()), `"${s.all}" names "${s.name}"`);
+      assert.ok(Math.abs(s.allRight) < 0.5, `${s.name}: the action sits on the trailing edge (${s.allRight}px off)`);
     }
     assert.ok(none.empty, 'the empty state says what belongs here');
     assert.equal(none.all, null, 'nothing to show all of');
+    assert.equal(few.allShown, false, 'below the cap nothing is hidden, so there is no Show all');
+
+    /* the count sits beside its own action, 12px away (--s-3), not across the section */
+    assert.equal(more.allGap, 12);
+    /* the name leads: at least the row label's size */
+    assert.ok(parseFloat(more.nameSize) >= 16 && parseFloat(more.nameSize) > parseFloat(more.rowSize), `name ${more.nameSize}, row ${more.rowSize}`);
+    /* one radius across states */
+    assert.equal(none.radius, more.radius);
 
     /* the override: 1 to 12 rows; anything else is the default, never unbounded */
     assert.deepEqual(r.caps, { 3: 3, 8: 8, 12: 12, 99: CAP, x: CAP });
 
+    assert.ok(r.scrollWidth <= r.clientWidth, `no sideways scroll (${r.scrollWidth} vs ${r.clientWidth})`);
+  });
+}
+
+const TABLE_PROBE = `(async () => {
+  await document.fonts.ready;
+  await new Promise((r) => setTimeout(r, 300));
+  const out = {};
+  for (const sec of document.querySelectorAll('.bounded')) {
+    const rows = sec.querySelector('.bounded-rows');
+    const all = sec.querySelector('.bounded-all');
+    out[sec.id] = {
+      height: sec.getBoundingClientRect().height,
+      shown: rows ? [...rows.children].filter((r) => r.getClientRects().length > 0).length : 0,
+      all: !!all && all.getClientRects().length > 0,
+      allHeight: all ? all.getBoundingClientRect().height : 0,
+    };
+  }
+  const t = document.querySelector('#t${CAP} .bounded-rows');
+  const before = out.t${CAP}.height;
+  const added = Array.from({ length: 40 }, () => t.appendChild(t.lastElementChild.cloneNode(true)));
+  out.grown = { before, after: document.querySelector('#t${CAP}').getBoundingClientRect().height };
+  added.forEach((r) => r.remove());
+  out.coarse = matchMedia('(pointer:coarse)').matches;
+  out.coarseRule = [...document.styleSheets].flatMap((sh) => [...sh.cssRules]).filter((r) => r.media && /pointer:\\s*coarse/.test(r.conditionText))
+    .flatMap((r) => [...r.cssRules]).filter((r) => r.selectorText === '.bounded-all').map((r) => r.style.minHeight)[0] ?? null;
+  out.theme = document.documentElement.dataset.theme;
+  out.scrollWidth = document.documentElement.scrollWidth; out.clientWidth = document.documentElement.clientWidth;
+  return JSON.stringify(out);
+})()`;
+
+for (const scheme of ['dark', 'light']) for (const width of [1280, 375]) {
+  test(`a bounded table holds its height, plain and in glass, at ${width}px in ${scheme}`, { timeout: 60000 }, async (ctx) => {
+    const page = await run.page({ width, height: 900, scheme });
+    await page.goto(TABLE_PAGE(scheme));
+    const r = JSON.parse(await page.evaluate(TABLE_PROBE));
+    await page.close();
+    assert.equal(r.theme, scheme);
+    const t = (n) => r[`t${n}`], g = (n) => r[`g${n}`];
+    ctx.diagnostic(`table ${scheme} ${width}px: ${[0, 3, CAP, CAP + 40].map((n) => `${n} rows ${t(n).height}px`).join(', ')}; in glass: ${[3, CAP, CAP + 40].map((n) => `${n} rows ${g(n).height}px`).join(', ')}`);
+
+    assert.deepEqual([t(0).shown, t(3).shown, t(CAP).shown, t(CAP + 40).shown], [0, 3, CAP, CAP]);
+    assert.ok(t(CAP).height > 0);
+    assert.equal(t(CAP + 40).height, t(CAP).height, `plain table: ${t(CAP).height}px at ${CAP} rows, ${t(CAP + 40).height}px at ${CAP + 40}`);
+    assert.equal(g(CAP + 40).height, g(CAP).height, `table in glass: ${g(CAP).height}px at ${CAP} rows, ${g(CAP + 40).height}px at ${CAP + 40}`);
+    assert.equal(r.grown.after, r.grown.before, 'rows pushed into the table at the cap do not move it');
+    assert.ok(t(3).height < t(CAP).height && g(3).height < g(CAP).height && t(0).height <= t(CAP).height);
+
+    /* Show all: at the cap and above; below the cap only with data-all="always". The cap is the section's own. */
+    assert.deepEqual(
+      { below: r.below.all, belowAlways: r['below-always'].all, at: r.at.all, cap3At: r['cap3-at'].all, cap8Below: r['cap8-below'].all, cap8Always: r['cap8-always'].all, oddBelow: r['odd-below'].all, table3: t(3).all, table5: t(CAP).all, glass3: g(3).all },
+      { below: false, belowAlways: true, at: true, cap3At: true, cap8Below: false, cap8Always: true, oddBelow: false, table3: false, table5: true, glass3: false },
+    );
+    /* no dead room under a section with nothing more to show */
+    assert.ok(r['below-always'].height > r.below.height);
+
+    /* a 44px target for a finger: the served sheet carries the rule, and the action follows the pointer it has */
+    assert.equal(r.coarseRule, '44px');
+    assert.equal(r.at.allHeight, r.coarse ? 44 : 32);
     assert.ok(r.scrollWidth <= r.clientWidth, `no sideways scroll (${r.scrollWidth} vs ${r.clientWidth})`);
   });
 }
