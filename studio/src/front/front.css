@@ -48,8 +48,12 @@
   .front .hero-live .wgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .front .hero .display { font-size: clamp(2.4rem, 4.4vw, 4.2rem); }
 }
-@media (max-width: 1099.98px) {
-  .front .hero-live .wtile[data-id="live"] { display: none; }
+/* Stacked, the live home drops its third tile once its own width holds fewer than 4 columns
+   (it would sit alone under the others). Split, it is pinned at 4 columns and keeps all three. */
+@media (max-width: 1359.98px) {
+  @container wgrid (max-width: 687.98px) {
+    .front .hero-live .wtile[data-id="live"] { display: none; }
+  }
 }
 @media (max-width: 559.98px) {
   .front .hero { gap: var(--s-6); padding: var(--s-2) 0 var(--s-7); }

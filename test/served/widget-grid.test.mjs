@@ -112,6 +112,16 @@ test('the home hero, stacked at a 1000px viewport, follows its container', { tim
   const hero = (await measure('/', 1000, 900)).find((g) => g.name === 'Live home');
   assert.equal(hero.forced, null);
   assert.equal(hero.cols, columnsFor(hero.wrap));
+  assert.equal(hero.cols, 4);
+  /* 4 columns hold all three tiles, L beside two M: no hole where the third was hidden */
+  assert.equal(hero.tiles.filter(([, w]) => w > 0).length, 3);
+});
+
+test('the home hero under 688px of its own width drops to two tiles', { timeout: 60000 }, async () => {
+  const hero = (await measure('/', 700, 900)).find((g) => g.name === 'Live home');
+  assert.ok(hero.wrap < 688, `the hero grid is ${hero.wrap}px wide`);
+  assert.equal(hero.cols, columnsFor(hero.wrap));
+  assert.equal(hero.tiles.filter(([, w]) => w > 0).length, 2);
 });
 
 /* Edit mode on /widgets with the Home grid's wrapper held at 688px: small tiles are 160px wide. */
