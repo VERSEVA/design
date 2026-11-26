@@ -2,7 +2,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export function theme({ pkgRoot, registry, dirFlag, rest, writeFileInto }) {
+export const match = 'theme';
+export const order = 50;
+export const usage = ['npx verseva theme add <name> [--dir d] [--force]'];
+
+/* Returning without exiting hands over to the help text (exit 2). */
+export function run({ pkgRoot, registry, dirFlag, rest, writeFileInto }) {
+  if (rest[0] !== 'add' || !rest[1]) return;
   const theme = registry.themes.find((t) => t.name === rest[1]);
   if (!theme) {
     console.error(`unknown theme: ${rest[1]} (try: verseva list)`);

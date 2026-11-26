@@ -4,31 +4,19 @@
  * in YOUR project as source you own; unlike anything else, the gate suite can
  * prove the result stayed on-signature.
  *
- * Commands:
- *   verseva list                       what the registry holds
- *   verseva init                       verseva.json + a "gate" script + import hints
- *   verseva add <name...> [--dir d] [--force]
- *       name forms: bare (this package's registry), @ns/name (a namespace from
- *       verseva.json "registries"), a full https URL, or a local .json item file
- *   verseva block add <name> [--dir d] [--force]
- *   verseva theme add <name> [--dir d] [--force]   gate-proven accent presets
- *   verseva build [--output d]         flatten the registry into hostable
- *                                      per-item JSON (default site/r)
- *   verseva mcp init [--client claude|cursor|vscode]
- *                                      wire the verseva MCP server for agents
+ * Commands: one module each, bin/cmd-<name>.mjs, discovered at startup. A module exports
+ *   match   the command word, or an array of them
+ *   run     (ctx) => void; it exits when done, or returns to fall through to the help
+ *   usage   its help lines
+ *   order   a number; the help lists commands in ascending order
+ * Adding a command is adding one file. Nothing in this file changes.
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { list } from './cmd-list.mjs';
-import { init } from './cmd-init.mjs';
-import { add } from './cmd-add.mjs';
-import { block } from './cmd-block.mjs';
-import { theme } from './cmd-theme.mjs';
-import { build } from './cmd-build.mjs';
-import { mcp } from './cmd-mcp.mjs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const pkgRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const binDir = path.dirname(fileURLToPath(import.meta.url));
+const pkgRoot = path.join(binDir, '..');
 const registry = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'registry.json'), 'utf8'));
 
 const args = process.argv.slice(2);
@@ -106,24 +94,19 @@ function localItem(name) {
   };
 }
 
-/* One file per subcommand (bin/cmd-<name>.mjs), one dispatch line each. Every command exits. */
+/* Discovery reads this file's own directory and nothing else: regular files named
+   cmd-<name>.mjs. A symlink is not a regular file, so nothing outside bin/ is ever loaded,
+   and no path from the arguments or the working directory is imported. */
+const commands = [];
+for (const ent of fs.readdirSync(binDir, { withFileTypes: true })) {
+  if (!ent.isFile() || !/^cmd-[a-z0-9-]+\.mjs$/.test(ent.name)) continue;
+  commands.push({ file: ent.name, ...(await import(pathToFileURL(path.join(binDir, ent.name)).href)) });
+}
+commands.sort((a, b) => a.order - b.order || a.file.localeCompare(b.file));
+
 const ctx = { pkgRoot, registry, config, rest, dirFlag, valueOf, readJson, writeFileInto, rewriteBlockHrefs, localItem };
+const command = commands.find((c) => [c.match].flat().includes(cmd));
+if (command) await command.run(ctx);
 
-if (cmd === 'list') list(ctx);
-if (cmd === 'init') init(ctx);
-if (cmd === 'add' && rest[0] !== undefined) await add(ctx);
-if (cmd === 'block' && rest[0] === 'add' && rest[1]) block(ctx);
-if (cmd === 'theme' && rest[0] === 'add' && rest[1]) theme(ctx);
-if (cmd === 'build') build(ctx);
-if (cmd === 'mcp' && rest[0] === 'init') mcp(ctx);
-
-console.log(`verseva · the source-distribution CLI
-
-  npx verseva list
-  npx verseva init
-  npx verseva add <name | @ns/name | url | file.json ...> [--dir d] [--force]
-  npx verseva block add <name> [--dir d] [--force]
-  npx verseva theme add <name> [--dir d] [--force]
-  npx verseva build [--output d]
-  npx verseva mcp init [--client claude|cursor|vscode]`);
+console.log(['verseva · the source-distribution CLI', '', ...commands.flatMap((c) => c.usage).map((l) => `  ${l}`)].join('\n'));
 process.exit(cmd === undefined || cmd === 'help' ? 0 : 2);

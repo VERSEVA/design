@@ -2,7 +2,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export function block({ pkgRoot, registry, dirFlag, rest, rewriteBlockHrefs, writeFileInto }) {
+export const match = 'block';
+export const order = 40;
+export const usage = ['npx verseva block add <name> [--dir d] [--force]'];
+
+/* Returning without exiting hands over to the help text (exit 2). */
+export function run({ pkgRoot, registry, dirFlag, rest, rewriteBlockHrefs, writeFileInto }) {
+  if (rest[0] !== 'add' || !rest[1]) return;
   const block = registry.blocks.find((b) => b.name === rest[1]);
   if (!block) {
     console.error(`unknown block: ${rest[1]} (try: verseva list)`);
