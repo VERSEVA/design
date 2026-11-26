@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import {
   LAYOUT_KEY, SIZE_LABEL, BREAKPOINTS,
@@ -6,9 +7,10 @@ import {
 } from './widget-state';
 import type { Columns, LayoutItem, Removed, RowMove, WidgetSize, WidgetSpec } from './widget-state';
 import { WidgetGallery } from './widget-gallery';
-import type { WidgetGalleryLabels } from './widget-gallery';
 import { cx } from './cx';
 import { inert } from './inert';
+import type { WidgetGridLabels } from './widget-state';
+import { WIDGET_GRID_LABELS } from './widget-state';
 
 export interface WidgetRenderState {
   /** The size the tile renders at (already fitted to the columns). */
@@ -33,33 +35,11 @@ export interface WidgetDefinition extends WidgetSpec {
 /** Per-widget status the product reports. */
 export interface WidgetStatus { loading?: boolean; error?: string; disabled?: boolean }
 
-export interface WidgetGridLabels {
-  region: string;
-  empty: string;
-  add: string;
-  retry: string;
-  undo: string;
-  move: string;
-  remove: (name: string) => string;
-  moveUp: (name: string) => string;
-  moveDown: (name: string) => string;
-  size: (name: string) => string;
-  restored: (name: string) => string;
-  gallery?: Partial<WidgetGalleryLabels>;
-}
+export type { WidgetGridLabels } from './widget-state';
 
-export const WIDGET_GRID_LABELS: WidgetGridLabels = {
-  region: 'Widgets',
-  empty: 'No widgets',
-  add: 'Add widget',
-  retry: 'Retry',
-  undo: 'Undo',
-  move: 'Move',
-  remove: (name) => `Remove ${name}`,
-  moveUp: (name) => `Move ${name} up`,
-  moveDown: (name) => `Move ${name} down`,
-  size: (name) => `${name} size`,
-  restored: (name) => `${name} restored`,
+export {
+  /** @deprecated Import from './widget-state'. Read from this client file, a server component gets a client reference, not the values. */
+  WIDGET_GRID_LABELS,
 };
 
 export interface WidgetGridProps {

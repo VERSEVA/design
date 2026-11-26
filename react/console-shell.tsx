@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import { COLLAPSE_KEY, COLLAPSE_SHORTCUT, isCollapseShortcut, railTipPosition, readCollapsed, safeStorage, writeCollapsed } from './console-state';
 import { cx } from './cx';

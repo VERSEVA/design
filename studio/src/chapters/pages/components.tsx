@@ -10,7 +10,7 @@ import './components.css';
 /* The sections with a specimen, in page order: sample i of components.code.json (built by
    studio/scripts/chapter-code.mjs from the frozen page) is the sample of SAMPLED[i]. The samples
    load on first intent, so they stay out of the main chunk. */
-export const SAMPLED = ['spacing', 'button', 'field', 'secret', 'switch', 'permission-picking', 'sel-two-line', 'card', 'glass', 'badge', 'toast', 'modal', 'erase', 'table', 'table-pin', 'bulk', 'stat', 'chart', 'seg', 'fchip', 'search', 'rows', 'kv', 'tline', 'skeleton', 'select', 'tabs', 'menu', 'rowmenu', 'tooltip', 'crumbsdoc', 'pagerdoc', 'progressdoc', 'calloutdoc', 'emptydoc', 'accdoc', 'topnav', 'sidenav', 'sheet', 'navshell', 'accordion-nav', 'shell', 'shell-rail', 'switcher', 'capsule', 'topbar', 'notifications', 'whatsnew', 'panel-states', 'drawer-states'];
+export const SAMPLED = ['spacing', 'button', 'field', 'secret', 'switch', 'permission-picking', 'sel-two-line', 'card', 'glass', 'badge', 'toast', 'modal', 'erase', 'table', 'table-pin', 'bounded', 'bulk', 'stat', 'chart', 'seg', 'fchip', 'search', 'rows', 'kv', 'tline', 'skeleton', 'select', 'tabs', 'menu', 'rowmenu', 'tooltip', 'crumbsdoc', 'pagerdoc', 'progressdoc', 'calloutdoc', 'emptydoc', 'accdoc', 'topnav', 'sidenav', 'sheet', 'navshell', 'accordion-nav', 'shell', 'shell-rail', 'switcher', 'capsule', 'topbar', 'notifications', 'whatsnew', 'panel-states', 'drawer-states'];
 let samples: Promise<string[]> | undefined;
 const sample = (id: string) => () => (samples ??= import('./components.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
 
@@ -60,6 +60,34 @@ function SecretSpecimen({ name, id, stored = false, view = false, filled = false
         </div>
       </div>
     </div>
+  );
+}
+
+/* The bounded specimen's rows: one list, cut to each state's length (0, 3, the cap, the cap plus 40), and whole in the table. */
+const QUOTE_CLIENTS = ['Northline Foods', 'Harbor Botanics', 'Cedar Mills', 'Alder Freight', 'Juniper Labs'];
+const QUOTES = Array.from({ length: 45 }, (_, i) => ({ id: `Q-${2081 - i}`, client: QUOTE_CLIENTS[i % 5], amount: (48220 - i * 917).toLocaleString('en-US', { minimumFractionDigits: 2 }) }));
+const BOUNDED_CAP = 5;
+
+function BoundedSpecimen({ id, name, rows }: { id: string; name: string; rows: number }) {
+  return (
+    <section className="bounded" aria-labelledby={id}>
+      <h3 className="bounded-name" id={id}>{name}</h3>
+      <div className="lrows bounded-rows">
+        {QUOTES.slice(0, rows).map((q) => (
+          <div className="lrow" key={q.id}>
+            <span className="tx">
+              <b>{q.id}</b>
+              <span className="metaline">{q.client}</span>
+            </span>
+            <span className="val">{q.amount}</span>
+          </div>
+        ))}
+      </div>
+      <div className="bounded-foot">
+        <p className="bounded-more" role="status">{rows > BOUNDED_CAP ? `+${rows - BOUNDED_CAP} more` : null}</p>
+        {rows >= BOUNDED_CAP && <button className="btn btn-secondary sm bounded-all" type="button" aria-label={`Show all ${name}`}>Show all</button>}
+      </div>
+    </section>
   );
 }
 
@@ -677,6 +705,47 @@ export function Page() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          </SpecimenTile>
+          <SpecimenTile id="bounded" name="Bounded section" icon={ICON.data} size="xl" meta="4 states" code={sample('bounded')}>
+            <div className="demo">
+              <div className="specimen">
+                <section className="bounded" aria-labelledby="bd-drafts">
+                  <h3 className="bounded-name" id="bd-drafts">Drafts</h3>
+                  <div className="empty">
+                    <b>No drafts yet</b>
+                    <button className="btn btn-secondary sm" type="button">New quote</button>
+                  </div>
+                </section>
+                <BoundedSpecimen id="bd-pending" name="Pending" rows={3} />
+                <BoundedSpecimen id="bd-verified" name="Verified" rows={BOUNDED_CAP} />
+                <BoundedSpecimen id="bd-quotes" name="Quotes" rows={BOUNDED_CAP + 40} />
+                <section className="bounded" aria-labelledby="bd-invoices">
+                  <h3 className="bounded-name" id="bd-invoices">Invoices</h3>
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Quote</th>
+                        <th>Client</th>
+                        <th className="num">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bounded-rows">
+                      {QUOTES.map((q) => (
+                        <tr key={q.id}>
+                          <td>{q.id}</td>
+                          <td>{q.client}</td>
+                          <td className="num">{q.amount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="bounded-foot">
+                    <p className="bounded-more" role="status">{`+${QUOTES.length - BOUNDED_CAP} more`}</p>
+                    <button className="btn btn-secondary sm bounded-all" type="button" aria-label="Show all Invoices">Show all</button>
+                  </div>
+                </section>
               </div>
             </div>
           </SpecimenTile>

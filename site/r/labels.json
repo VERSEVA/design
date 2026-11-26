@@ -1,0 +1,12 @@
+{
+  "name": "labels",
+  "kind": "util",
+  "description": "Built-in words and limits for parts with no state module; pure, so server code can read them",
+  "deps": [],
+  "files": [
+    {
+      "path": "react/labels.ts",
+      "content": "/**\n * Built-in words and limits for parts that have no state module of their own. Pure and\n * React-free, so server code can read and spread them; the client files re-export them.\n */\n\nexport interface SmartStackLabels {\n  pause: string;\n  resume: string;\n  /** Dot name. */\n  show: (label: string, index: number, total: number) => string;\n  /** Slide name. */\n  slide: (label: string, index: number, total: number) => string;\n  /** Step buttons, used instead of dots above three pages; index is the page they go to. */\n  prev: (index: number, total: number) => string;\n  next: (index: number, total: number) => string;\n}\n\nexport const SMART_STACK_LABELS: SmartStackLabels = {\n  pause: 'Pause rotation',\n  resume: 'Resume rotation',\n  show: (label) => `Show ${label}`,\n  slide: (label, i, n) => `${i + 1} of ${n}: ${label}`,\n  prev: (i, n) => `Previous: ${i + 1} of ${n}`,\n  next: (i, n) => `Next: ${i + 1} of ${n}`,\n};\n/** A one-row tile fits the pause button and three 44px dots; above that the nav steps instead. */\nexport const MAX_DOTS = 3;\n"
+    }
+  ]
+}
