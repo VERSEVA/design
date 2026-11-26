@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import {
   SEEN_KEY, changeTone, displayVersion, formatReleaseDate, isFresh, isUnread, kindLabel,

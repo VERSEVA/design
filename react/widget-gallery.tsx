@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import { SIZE_LABEL, sizeOptions } from './widget-state';
 import type { Columns, WidgetSize } from './widget-state';

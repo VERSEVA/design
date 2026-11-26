@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import { Menu } from './menu';
 import type { MenuItemDef } from './menu';

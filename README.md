@@ -110,6 +110,8 @@ Upgrading from 1.1.0 or 1.2.0: re-add `menu` first (`npx verseva add menu --forc
 full working page with its css hrefs pointed at `node_modules`. The registry is
 `registry.json` in this package; every listed file ships in the tarball.
 
+Experimental: the same parts import straight from the package, `import { Sparkline } from '@verseva/design/react/viz'`. It is raw `.tsx` source, so your bundler transpiles it (in Next.js, add the package to `transpilePackages`), and prop shapes may change in a minor release until the export is declared stable.
+
 `add` also takes `@namespace/item` (mapped in `verseva.json` under `registries`),
 full URLs, and local `.json` item files, and `npx verseva build` flattens YOUR
 registry into hostable per-item JSON so anyone can distribute on the same rails.
