@@ -136,6 +136,9 @@
 /* dividers sit above each row, so the last row on screen ends the same at the cap and past it */
 .bounded-rows>.lrow,.bounded-rows>tr>td{border-bottom:0}
 .bounded-rows>.lrow+.lrow,.bounded-rows>tr+tr>td{border-top:1px solid var(--hairline)}
+/* a table outside a glass panel closes with a line above the foot; glass draws its own edge */
+.bounded .table{border-bottom:1px solid var(--hairline)}
+.glass .bounded .table{border-bottom:0}
 .bounded .empty{border-radius:var(--r-md)}
 /* the seam above the foot belongs to its parts: an empty count and no action leave no room behind */
 .bounded-foot{display:flex;align-items:center;justify-content:flex-end;gap:var(--s-3)}
@@ -145,19 +148,21 @@
 @media (pointer:coarse){.bounded-all{min-height:44px}}
 /* Show all is for a section with rows it is not showing: it renders at the cap and above. Below
    the cap it is dropped, unless data-all="always" keeps it for a scoped view that adds filters
-   or sorting. Kept apart from the cap rules, so a browser without :has still caps the rows. */
-.bounded:not([data-all="always"],[data-cap="1"],[data-cap="2"],[data-cap="3"],[data-cap="4"],[data-cap="6"],[data-cap="7"],[data-cap="8"],[data-cap="9"],[data-cap="10"],[data-cap="11"],[data-cap="12"]):not(:has(.bounded-rows>:nth-child(5))) .bounded-all,
-.bounded[data-cap="1"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(1))) .bounded-all,
-.bounded[data-cap="2"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(2))) .bounded-all,
-.bounded[data-cap="3"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(3))) .bounded-all,
-.bounded[data-cap="4"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(4))) .bounded-all,
-.bounded[data-cap="6"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(6))) .bounded-all,
-.bounded[data-cap="7"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(7))) .bounded-all,
-.bounded[data-cap="8"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(8))) .bounded-all,
-.bounded[data-cap="9"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(9))) .bounded-all,
-.bounded[data-cap="10"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(10))) .bounded-all,
-.bounded[data-cap="11"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(11))) .bounded-all,
-.bounded[data-cap="12"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(12))) .bounded-all{display:none}
+   or sorting, and never while the count has text (a short first page with more rows behind it).
+   Kept apart from the cap rules: a browser without :has still caps the rows and holds the
+   height, and shows the action below the cap as well. */
+.bounded:not([data-all="always"],[data-cap="1"],[data-cap="2"],[data-cap="3"],[data-cap="4"],[data-cap="6"],[data-cap="7"],[data-cap="8"],[data-cap="9"],[data-cap="10"],[data-cap="11"],[data-cap="12"]):not(:has(.bounded-rows>:nth-child(5))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="1"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(1))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="2"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(2))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="3"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(3))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="4"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(4))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="6"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(6))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="7"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(7))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="8"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(8))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="9"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(9))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="10"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(10))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="11"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(11))):not(:has(.bounded-more:not(:empty))) .bounded-all,
+.bounded[data-cap="12"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(12))):not(:has(.bounded-more:not(:empty))) .bounded-all{display:none}
 
 /* ---- Badge / status chip (always paired with text, never a dot alone) ---- */
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:500;letter-spacing:.01em;padding:3px 10px;border-radius:var(--r-pill)}

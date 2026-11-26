@@ -33,9 +33,11 @@ test('every data-cap from 1 to 12 but the default has its own rule, and all of t
 
 test('Show all is dropped below the cap, per cap, unless data-all="always"; apart from the cap rules', () => {
   const others = [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12];
-  assert.ok(BLOCK.includes(`.bounded:not([data-all="always"],${others.map((n) => `[data-cap="${n}"]`).join(',')}):not(:has(.bounded-rows>:nth-child(5))) .bounded-all`), 'default');
+  /* never while the count says rows exist: a short first page with more behind it keeps its way to them */
+  const SAID = ':not(:has(.bounded-more:not(:empty)))';
+  assert.ok(BLOCK.includes(`.bounded:not([data-all="always"],${others.map((n) => `[data-cap="${n}"]`).join(',')}):not(:has(.bounded-rows>:nth-child(5)))${SAID} .bounded-all`), 'default');
   for (const n of others) {
-    assert.ok(BLOCK.includes(`.bounded[data-cap="${n}"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(${n}))) .bounded-all`), `data-cap ${n}`);
+    assert.ok(BLOCK.includes(`.bounded[data-cap="${n}"]:not([data-all="always"]):not(:has(.bounded-rows>:nth-child(${n})))${SAID} .bounded-all`), `data-cap ${n}`);
   }
   /* a browser without :has drops a whole rule: the cap rule must not share one with :has */
   const rules = [...BLOCK.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => m[1]);
@@ -45,6 +47,11 @@ test('Show all is dropped below the cap, per cap, unless data-all="always"; apar
 test('rows are divided on the top edge, lists and tables alike', () => {
   assert.ok(BLOCK.includes('.bounded-rows>.lrow,.bounded-rows>tr>td{border-bottom:0}'));
   assert.ok(BLOCK.includes('.bounded-rows>.lrow+.lrow,.bounded-rows>tr+tr>td{border-top:1px solid var(--hairline)}'));
+});
+
+test('a bounded table closes with a line above the foot, and glass keeps its own edge', () => {
+  assert.ok(BLOCK.includes('.bounded .table{border-bottom:1px solid var(--hairline)}'));
+  assert.ok(BLOCK.includes('.glass .bounded .table{border-bottom:0}'));
 });
 
 test('count and action sit together on the trailing edge; 44px for a finger; one radius', () => {

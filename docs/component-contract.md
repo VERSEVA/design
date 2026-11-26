@@ -117,7 +117,8 @@ bounded: it is the place the rows live.
   host sends, so a host that forgets to slice still holds its height. Send only the first page
   anyway: dropped rows are still downloaded. Inside `.bounded-rows`, `.lrow` and table rows are
   divided on their top edge, so the last row on screen ends the same at the cap and past it,
-  also inside `.glass`.
+  also inside `.glass`. A bounded table outside a glass panel closes with a `--hairline` line
+  above the foot.
 - **Foot:** `.bounded-foot` holds the count and the action together on the trailing edge,
   `--s-3` apart, so the count reads with its own action.
   - **Count:** `.bounded-more`, reading "+N more", with `role="status"`. The element is always
@@ -129,9 +130,12 @@ bounded: it is the place the rows live.
     name includes the section name (`aria-label="Show all Quotes"`). 44px tall on a coarse
     pointer. The accent is not spent here.
   - **When it shows:** at the cap and above, so the height at the cap equals the height past
-    it. Below the cap nothing is hidden and the action is dropped (the CSS drops it too, where
-    `:has` is supported). `data-all="always"` on the wrapper keeps it below the cap, for a
-    scoped view that adds filters or sorting.
+    it. Below the cap nothing is hidden and the action is dropped (the CSS drops it too).
+    `data-all="always"` on the wrapper keeps it below the cap, for a scoped view that adds
+    filters or sorting. The CSS never drops it while the count has text: a first page shorter
+    than the cap with more rows behind it (3 shown of 10) reads "+7 more" and keeps its action.
+  - **Without `:has`:** the rows are still capped and the height still holds; the only
+    difference is that Show all also shows below the cap.
 - **Name:** `.bounded-name` on the section's heading, in the display face at the body step, so
   it leads its rows; the section is `aria-labelledby` it.
 - **States:** empty = the states trio's empty block in place of the rows (at `--r-md`, the
@@ -140,7 +144,7 @@ bounded: it is the place the rows live.
   action. Loading = `.skel` rows, at most the cap.
 - **Motion:** none. Rows do not animate in or out of a bounded section.
 - **React:** `BoundedSection` (`npx verseva add bounded-section`) slices to the cap, counts from
-  `total` when the host holds only the first page, takes `href` or `onShowAll` (one is
+  `total` when the host holds only the first page ("+N" is `total` minus the rows on screen), takes `href` or `onShowAll` (one is
   required), `showAllBelowCap` for `data-all="always"`, and `getKey` for stable row keys. A cap
   outside 1 to 12 falls back to 5 and warns in development. It renders lists; for a table, put
   the classes on by hand. Charts are bounded by their own contract, not this part.

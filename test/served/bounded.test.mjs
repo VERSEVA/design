@@ -19,16 +19,16 @@ const CAP = 5;
 const TABLE_PAGE = (theme) => `/__probe/bounded-${theme}`;
 const tr = (i) => `<tr><td>Q-${2081 - i}</td><td>Northline Foods</td><td class="num">${48220 - i * 917}.00</td></tr>`;
 const lrow = (i) => `<div class="lrow"><span class="tx"><b>Q-${2081 - i}</b><span class="metaline">Northline Foods</span></span><span class="val">${48220 - i * 917}.00</span></div>`;
-const foot = (n, cap) => `<div class="bounded-foot"><p class="bounded-more" role="status">${n > cap ? `+${n - cap} more` : ''}</p><button class="btn btn-secondary sm bounded-all" type="button" aria-label="Show all Quotes">Show all</button></div>`;
+const foot = (n, cap, more = n > cap ? `+${n - cap} more` : '') => `<div class="bounded-foot"><p class="bounded-more" role="status">${more}</p><button class="btn btn-secondary sm bounded-all" type="button" aria-label="Show all Quotes">Show all</button></div>`;
 const head = (id) => `<h3 class="bounded-name" id="${id}-n">Quotes</h3>`;
 const table = (id, n) => `<section class="bounded" id="${id}" aria-labelledby="${id}-n">${head(id)}${n === 0
   ? '<div class="empty"><b>No quotes yet</b><button class="btn btn-secondary sm" type="button">New quote</button></div>'
   : `<table class="table"><thead><tr><th>Quote</th><th>Client</th><th class="num">Amount</th></tr></thead><tbody class="bounded-rows">${Array.from({ length: n }, (_, i) => tr(i)).join('')}</tbody></table>${foot(n, CAP)}`}</section>`;
-const list = (id, n, attrs = '', cap = CAP) => `<section class="bounded" id="${id}" aria-labelledby="${id}-n"${attrs}>${head(id)}<div class="lrows bounded-rows">${Array.from({ length: n }, (_, i) => lrow(i)).join('')}</div>${foot(n, cap)}</section>`;
+const list = (id, n, attrs = '', cap = CAP, more) => `<section class="bounded" id="${id}" aria-labelledby="${id}-n"${attrs}>${head(id)}<div class="lrows bounded-rows">${Array.from({ length: n }, (_, i) => lrow(i)).join('')}</div>${foot(n, cap, more)}</section>`;
 const tablePage = (theme) => `<!doctype html><html data-theme="${theme}"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/components.css"><body>
 ${[0, 3, CAP, CAP + 40].map((n) => table(`t${n}`, n)).join('')}
 ${[3, CAP, CAP + 40].map((n) => `<div class="glass">${table(`g${n}`, n)}</div>`).join('')}
-${list('below', 3)}${list('below-always', 3, ' data-all="always"')}${list('at', CAP)}${list('cap3-at', 3, ' data-cap="3"', 3)}${list('cap8-below', CAP, ' data-cap="8"', 8)}${list('cap8-always', CAP, ' data-cap="8" data-all="always"', 8)}${list('odd-below', 3, ' data-cap="99"')}
+${list('below', 3)}${list('below-always', 3, ' data-all="always"')}${list('at', CAP)}${list('cap3-at', 3, ' data-cap="3"', 3)}${list('cap8-below', CAP, ' data-cap="8"', 8)}${list('cap8-always', CAP, ' data-cap="8" data-all="always"', 8)}${list('odd-below', 3, ' data-cap="99"')}${list('short-page', 3, '', CAP, '+7 more')}${list('short-page-cap8', 3, ' data-cap="8"', 8, '+7 more')}
 </body></html>`;
 
 let run;
@@ -71,8 +71,20 @@ const PROBE = `(async () => {
       empty: !!sec.querySelector('.empty'),
     };
   };
-  const secs = [...tile.querySelectorAll('.bounded')];
+  const secs = [...tile.querySelectorAll('.bounded')].filter((s) => !s.querySelector('.table'));
   const states = secs.map(read);
+  const tableSec = tile.querySelector('.bounded:has(.table)');
+  let table = null;
+  if (tableSec) {
+    table = read(tableSec);
+    table.columns = tableSec.querySelectorAll('thead th').length;
+    table.closing = getComputedStyle(tableSec.querySelector('.table')).borderBottomWidth;
+    const hidden = [...tableSec.querySelector('.bounded-rows').children].slice(${CAP});
+    const parent = tableSec.querySelector('.bounded-rows');
+    hidden.forEach((r) => r.remove());
+    table.heightAtCap = tableSec.getBoundingClientRect().height;
+    hidden.forEach((r) => parent.appendChild(r));
+  }
   const atCap = secs.find((s) => s.querySelector('.bounded-rows')?.children.length === ${CAP});
   const over = secs.find((s) => (s.querySelector('.bounded-rows')?.children.length ?? 0) > ${CAP});
   const grown = {};
@@ -101,7 +113,7 @@ const PROBE = `(async () => {
   const bodyFont = getComputedStyle(document.body).fontFamily;
   probe.remove();
   const el = document.documentElement;
-  return JSON.stringify({ tile: true, mode: el.dataset.theme === 'light' ? 'light' : 'dark', states, grown, caps, text2, text2Rgb, bodyFont, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth });
+  return JSON.stringify({ tile: true, mode: el.dataset.theme === 'light' ? 'light' : 'dark', states, table, grown, caps, text2, text2Rgb, bodyFont, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth });
 })()`;
 
 for (const scheme of ['dark', 'light']) for (const width of [1280, 375]) {
@@ -162,6 +174,13 @@ for (const scheme of ['dark', 'light']) for (const width of [1280, 375]) {
     /* the override: 1 to 12 rows; anything else is the default, never unbounded */
     assert.deepEqual(r.caps, { 3: 3, 8: 8, 12: 12, 99: CAP, x: CAP });
 
+    /* the table specimen: the same rule on a tbody */
+    assert.ok(r.table, '#bounded has no bounded table');
+    t.diagnostic(`table specimen ${scheme} ${width}px: ${r.table.rows} rows ${r.table.height}px, ${CAP} rows ${r.table.heightAtCap}px`);
+    assert.deepEqual([r.table.rows, r.table.shown, r.table.more, r.table.allShown, r.table.closing], [CAP + 40, CAP, '+40 more', true, '1px']);
+    assert.equal(r.table.height, r.table.heightAtCap, `table: ${r.table.heightAtCap}px at ${CAP} rows, ${r.table.height}px at ${CAP + 40}`);
+    assert.ok(r.table.name && r.table.all.toLowerCase().includes(r.table.name.toLowerCase()));
+
     assert.ok(r.scrollWidth <= r.clientWidth, `no sideways scroll (${r.scrollWidth} vs ${r.clientWidth})`);
   });
 }
@@ -178,6 +197,7 @@ const TABLE_PROBE = `(async () => {
       shown: rows ? [...rows.children].filter((r) => r.getClientRects().length > 0).length : 0,
       all: !!all && all.getClientRects().length > 0,
       allHeight: all ? all.getBoundingClientRect().height : 0,
+      closing: sec.querySelector('.table') ? getComputedStyle(sec.querySelector('.table')).borderBottomWidth : null,
     };
   }
   const t = document.querySelector('#t${CAP} .bounded-rows');
@@ -210,11 +230,14 @@ for (const scheme of ['dark', 'light']) for (const width of [1280, 375]) {
     assert.equal(r.grown.after, r.grown.before, 'rows pushed into the table at the cap do not move it');
     assert.ok(t(3).height < t(CAP).height && g(3).height < g(CAP).height && t(0).height <= t(CAP).height);
 
-    /* Show all: at the cap and above; below the cap only with data-all="always". The cap is the section's own. */
+    /* Show all: at the cap and above; below the cap only with data-all="always". The cap is the section's own.
+       A first page shorter than the cap with more rows behind it (3 shown, "+7 more") keeps its way to them. */
     assert.deepEqual(
-      { below: r.below.all, belowAlways: r['below-always'].all, at: r.at.all, cap3At: r['cap3-at'].all, cap8Below: r['cap8-below'].all, cap8Always: r['cap8-always'].all, oddBelow: r['odd-below'].all, table3: t(3).all, table5: t(CAP).all, glass3: g(3).all },
-      { below: false, belowAlways: true, at: true, cap3At: true, cap8Below: false, cap8Always: true, oddBelow: false, table3: false, table5: true, glass3: false },
+      { shortPage: r['short-page'].all, shortPageCap8: r['short-page-cap8'].all, below: r.below.all, belowAlways: r['below-always'].all, at: r.at.all, cap3At: r['cap3-at'].all, cap8Below: r['cap8-below'].all, cap8Always: r['cap8-always'].all, oddBelow: r['odd-below'].all, table3: t(3).all, table5: t(CAP).all, glass3: g(3).all },
+      { shortPage: true, shortPageCap8: true, below: false, belowAlways: true, at: true, cap3At: true, cap8Below: false, cap8Always: true, oddBelow: false, table3: false, table5: true, glass3: false },
     );
+    /* a table outside glass closes with a line above the foot; glass draws its own edge */
+    assert.deepEqual([t(CAP).closing, t(CAP + 40).closing, g(CAP).closing], ['1px', '1px', '0px']);
     /* no dead room under a section with nothing more to show */
     assert.ok(r['below-always'].height > r.below.height);
 
