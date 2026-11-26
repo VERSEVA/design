@@ -170,6 +170,94 @@ describe('DateRange, segmented', () => {
   });
 });
 
+describe('DateRange, what counts as chosen', () => {
+  const LAST_WEEK: DateRangeValue = { range: '7', from: '2026-11-16', to: '2026-11-22', compare: false };
+
+  it('a preset is chosen only when its name and both dates match; other dates under its name read as Custom', () => {
+    const { container } = render(<DateRange id="t" presets={PRESETS} custom value={LAST_WEEK} onChange={() => {}} />);
+    expect(screen.getAllByRole('radio').map((b) => [b.textContent, b.getAttribute('aria-checked'), b.tabIndex])).toEqual([['This week', 'false', -1], ['4 weeks', 'false', -1], ['Custom', 'true', 0]]);
+    expect(container.querySelector<HTMLElement>('.range-fields')!.hidden).toBe(false);
+    expect([input('from').value, input('to').value]).toEqual(['2026-11-16', '2026-11-22']);
+    expect(container.querySelector('.range-ctl > .metaline')!.textContent).toBe('16 Nov to 22 Nov 2026');
+  });
+
+  it('without Custom nothing is chosen, and the first preset is the tab stop', () => {
+    render(<DateRange id="t" presets={PRESETS} value={LAST_WEEK} onChange={() => {}} />);
+    expect(screen.getAllByRole('radio').map((b) => [b.getAttribute('aria-checked'), b.tabIndex])).toEqual([['false', 0], ['false', -1]]);
+  });
+
+  it('the menu trigger reads Custom, the host formatter, or the range itself, never nothing', () => {
+    const face = () => document.querySelector('.menu > .btn')!.textContent;
+    const { rerender } = render(<DateRange id="t" variant="menu" presets={PRESETS} custom value={LAST_WEEK} onChange={() => {}} />);
+    expect(face()).toBe('Range: Custom16 Nov to 22 Nov 2026');
+    expect([...document.querySelectorAll('.menu-item')].map((b) => b.getAttribute('aria-checked'))).toEqual(['false', 'false', 'true']);
+    rerender(<DateRange id="t" variant="menu" presets={PRESETS} custom value={LAST_WEEK} onChange={() => {}} formatCustom={() => '1 week'} />);
+    expect(face()).toBe('Range: 1 week16 Nov to 22 Nov 2026');
+    rerender(<DateRange id="t" variant="menu" presets={PRESETS} compare value={{ ...LAST_WEEK, compare: true }} onChange={() => {}} />);
+    expect(face()).toBe('Range: 16 Nov to 22 Nov 2026 · vs previous');
+    expect(document.querySelector('.menu > .btn .metaline')).toBeNull();
+  });
+
+  it('two presets with one value: the first is chosen, React gets distinct keys, and development hears about it', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(<DateRange id="t" presets={[...PRESETS, { ...PRESETS[0], label: 'Again' }]} value={WEEK} onChange={() => {}} min="soon" />);
+    expect(screen.getAllByRole('radio').map((b) => b.getAttribute('aria-checked'))).toEqual(['true', 'false', 'false']);
+    expect(error).not.toHaveBeenCalled();
+    expect(warn.mock.calls.map((c) => String(c[0]))).toEqual(['DateRange: two presets share the value "7"; the first one is the one chosen.', 'DateRange: min="soon" is not a YYYY-MM-DD date and is ignored.']);
+    warn.mockRestore(); error.mockRestore();
+  });
+});
+
+describe('DateRange, the fields and the host', () => {
+  const CUSTOM: DateRangeValue = { range: 'custom', from: '2026-11-02', to: '2026-11-15', compare: false };
+
+  it('when the host refuses a change, the fields go back to the value', () => {
+    const onChange = vi.fn();
+    render(<DateRange id="t" presets={PRESETS} custom value={CUSTOM} onChange={onChange} />);
+    fireEvent.change(input('to'), { target: { value: '2026-11-22' } });
+    fireEvent.blur(input('to'));
+    expect(onChange.mock.calls).toEqual([[{ ...CUSTOM, to: '2026-11-22' }]]);
+    expect(input('to').value).toBe('2026-11-15');
+  });
+
+  it('when the host changes the dates, the field being typed in keeps its text and the other follows', () => {
+    const { rerender } = render(<DateRange id="t" presets={PRESETS} custom value={CUSTOM} onChange={() => {}} />);
+    fireEvent.change(input('from'), { target: { value: '2026-10-05' } });
+    rerender(<DateRange id="t" presets={PRESETS} custom value={{ ...CUSTOM, from: '2026-11-09', to: '2026-11-29' }} onChange={() => {}} />);
+    expect([input('from').value, input('to').value]).toEqual(['2026-10-05', '2026-11-29']);
+  });
+
+  it('a half-typed year is a missing date, not year 2', () => {
+    const onChange = vi.fn();
+    render(<DateRange id="t" presets={PRESETS} custom value={CUSTOM} onChange={onChange} />);
+    fireEvent.change(input('from'), { target: { value: '0002-11-02' } });
+    fireEvent.blur(input('from'));
+    expect([document.getElementById('t-from-e')!.textContent, onChange.mock.calls.length]).toEqual(['Enter a start date', 0]);
+  });
+
+  it('ignores a malformed min or max', () => {
+    const onChange = vi.fn();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(<DateRange id="t" presets={PRESETS} custom value={CUSTOM} onChange={onChange} min="nope" max="2026-99-99" />);
+    expect([input('from').getAttribute('min'), input('from').getAttribute('max')]).toEqual([null, null]);
+    fireEvent.change(input('to'), { target: { value: '2026-11-22' } });
+    fireEvent.blur(input('to'));
+    expect(onChange).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
+  it('the range line is a polite live region, and the menu groups its presets apart from Compare', () => {
+    const { container, unmount } = render(<DateRange id="t" presets={PRESETS} value={WEEK} onChange={() => {}} />);
+    expect(container.querySelector('.range-ctl > .metaline')!.getAttribute('aria-live')).toBe('polite');
+    unmount();
+    const menu = render(<DateRange id="t" variant="menu" presets={PRESETS} custom compare value={WEEK} onChange={() => {}} />);
+    const group = menu.container.querySelector('.menu-list > [role="group"]')!;
+    expect([group.getAttribute('aria-label'), [...group.children].map((c) => c.getAttribute('role'))]).toEqual(['Range', ['menuitemradio', 'menuitemradio', 'menuitemradio']]);
+    expect([...menu.container.querySelector('.menu-list')!.children].map((c) => c.getAttribute('role'))).toEqual(['group', 'separator', 'menuitemcheckbox']);
+  });
+});
+
 describe('DateRange, menu', () => {
   const trigger = () => document.querySelector<HTMLButtonElement>('.menu > .btn')!;
   const list = () => document.querySelector<HTMLElement>('.menu-list')!;

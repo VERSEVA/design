@@ -119,7 +119,7 @@ test('segmented: custom dates snap on blur, never while typing; an invalid range
     await tick();
     const fixed = { to: field(s, 'to'), emits: emits(s) - base, value: val(s) };
     const still = spec('range', 3);
-    return JSON.stringify({ start, typing, snapped, bad, empty, fixed, invalidSpecimen: { from: field(still, 'from'), to: field(still, 'to'), fields: shown(still.querySelector('.range-fields')), checked: checked(still), emits: emits(still) } });
+    return JSON.stringify({ start, typing, snapped, bad, empty, fixed, invalidSpecimen: { from: field(still, 'from'), to: field(still, 'to'), fields: shown(still.querySelector('.range-fields')), checked: checked(still), emits: emits(still), value: val(still), line: still.querySelector('.range-ctl > .metaline').textContent } });
   `);
   await page.close();
   assert.deepEqual([r.start.type, r.start.labels, r.start.from.value, r.start.to.value], ['date', ['From', 'To'], '2026-11-23', '2026-11-29']);
@@ -130,8 +130,10 @@ test('segmented: custom dates snap on blur, never while typing; an invalid range
   assert.deepEqual(r.bad.value, r.snapped.value, 'the value is still the last valid one');
   assert.deepEqual([r.empty.to.error, r.empty.to.help, r.empty.emits], [true, 'Enter an end date', 1]);
   assert.deepEqual(r.fixed, { to: { value: '2026-11-15', error: false, invalid: null, help: null, described: false }, emits: 2, value: { range: 'custom', from: '2026-11-02', to: '2026-11-15', compare: false } }, 'Enter commits, snapped, and the error clears');
-  /* the invalid state as a specimen: a value whose start is after its end */
-  assert.deepEqual([r.invalidSpecimen.checked, r.invalidSpecimen.fields, r.invalidSpecimen.to.error, r.invalidSpecimen.to.help, r.invalidSpecimen.from.error, r.invalidSpecimen.emits], [['custom'], true, true, 'End is before start', false, 0]);
+  /* the invalid state as a specimen: the value stays valid, only the field that was typed is wrong */
+  assert.deepEqual([r.invalidSpecimen.checked, r.invalidSpecimen.fields, r.invalidSpecimen.to.error, r.invalidSpecimen.to.help, r.invalidSpecimen.to.value, r.invalidSpecimen.from.error, r.invalidSpecimen.emits], [['custom'], true, true, 'End is before start', '2026-10-25', false, 0]);
+  assert.deepEqual(r.invalidSpecimen.value, { range: 'custom', from: '2026-11-02', to: '2026-11-15', compare: false });
+  assert.equal(r.invalidSpecimen.line, '2 Nov to 15 Nov 2026 · UTC', 'the range line never shows a range that cannot be emitted');
 });
 
 test('segmented: arrows, Home and End move and choose; one tab stop; focus order follows the row', { timeout: 120000 }, async () => {
@@ -194,6 +196,8 @@ test('menu: one trigger shows the preset; arrows, Home, End; Escape closes and r
     await click(trig);
     await click(items()[3]);
     const dlg = document.querySelector('dialog.sheet, dialog.modal');
+    const mbox = dlg.getBoundingClientRect();
+    out.centred = { dx: Math.abs(mbox.left + mbox.width / 2 - innerWidth / 2), dy: Math.abs(mbox.top + mbox.height / 2 - innerHeight / 2), left: mbox.left, top: mbox.top };
     out.custom = { dialog: !!dlg && dlg.matches(':modal'), kind: dlg ? dlg.className : null, title: dlg?.querySelector('h4')?.textContent, labelled: dlg ? document.getElementById(dlg.getAttribute('aria-labelledby'))?.textContent : null, active: active(), menu: shown(list), close: dlg?.querySelector('.bd > .btn.icon')?.getAttribute('aria-label'), buttons: dlg ? [...dlg.querySelectorAll('.ft .btn')].map((b) => b.textContent) : [] };
     const before = emits(s);
     dlg.dispatchEvent(new Event('cancel', { cancelable: true }));
@@ -234,6 +238,7 @@ test('menu: one trigger shows the preset; arrows, Home, End; Escape closes and r
   assert.deepEqual([r.outside.open, r.outside.expanded], [false, 'false'], 'a press outside closes it');
   /* Custom from the menu on a desktop: the existing modal on a native dialog */
   assert.deepEqual(r.custom, { dialog: true, kind: 'modal', title: 'Custom range', labelled: 'Custom range', active: 'from', menu: false, close: 'Close', buttons: ['Cancel', 'Apply'] });
+  assert.ok(r.centred.dx < 1 && r.centred.dy < 1 && r.centred.left > 100 && r.centred.top > 100, `the modal opens centred, not pinned to a corner (${JSON.stringify(r.centred)})`);
   assert.deepEqual(r.cancelled, { dialog: false, onTrigger: true, emits: 0 }, 'Escape on the dialog closes it, returns focus and emits nothing');
   assert.deepEqual([r.badApply.dialog, r.badApply.to.error, r.badApply.to.help, r.badApply.active, r.badApply.emits], [true, true, 'End is before start', 'to', 0], 'an invalid range stays open on the field that is wrong');
   assert.deepEqual(r.applied, { dialog: false, onTrigger: true, emits: 1, value: { range: 'custom', from: '2026-10-05', to: '2026-10-18', compare: true }, face: 'Range: Custom5 Oct to 18 Oct 2026 · vs previous' });
@@ -308,7 +313,9 @@ for (const scheme of ['dark', 'light']) {
       document.body.appendChild(probeEl);
       const surface = getComputedStyle(probeEl).backgroundColor, text1 = getComputedStyle(probeEl).color;
       probeEl.remove();
-      const a = spec('range', 0), few = spec('range', 1), c = spec('range', 2), dis = spec('range', 4), mdis = spec('range-menu', 2);
+      const a = spec('range', 0), few = spec('range', 1), c = spec('range', 2), dis = spec('range', 4), mcustom = spec('range-menu', 2), mcmp = spec('range-menu', 3), mdis = spec('range-menu', 4);
+      const chip = a.querySelector('.fchip');
+      const face = (m) => m.querySelector('.menu > .btn').textContent;
       const on = getComputedStyle(radio(a, '7')), off = getComputedStyle(radio(a, '28'));
       return JSON.stringify({
         mode: document.documentElement.dataset.theme === 'light' ? 'light' : 'dark',
@@ -318,6 +325,12 @@ for (const scheme of ['dark', 'light']) {
         disabled: { all: [...dis.querySelectorAll('button, input')].every((e) => e.disabled), count: dis.querySelectorAll('button, input').length, opacity: getComputedStyle(radio(dis, '7')).opacity, cursor: getComputedStyle(radio(dis, '7')).cursor },
         menuDisabled: mdis.querySelector('.menu > .btn').disabled,
         states: [document.querySelectorAll('#range .specimen').length, document.querySelectorAll('#range-menu .specimen').length],
+        names: ['range', 'range-menu'].map((t) => [...document.querySelectorAll('#' + t + ' .range-state > .range-state-name')].map((n) => n.textContent)),
+        named: [...document.querySelectorAll('#range .range-state, #range-menu .range-state')].every((b) => b.children.length === 2 && b.lastElementChild.classList.contains('specimen')),
+        chip: { font: getComputedStyle(chip).fontFamily, parent: getComputedStyle(chip.parentElement).fontFamily },
+        live: a.querySelector('.range-ctl > .metaline').getAttribute('aria-live'),
+        menuCustom: { face: face(mcustom), checked: [...mcustom.querySelectorAll('.menu-item')].map((b) => b.getAttribute('aria-checked')) },
+        menuCompare: { face: face(mcmp), checked: [...mcmp.querySelectorAll('.menu-item')].map((b) => b.getAttribute('aria-checked')) },
       });
     `);
     await page.close();
@@ -329,6 +342,12 @@ for (const scheme of ['dark', 'light']) {
     assert.deepEqual([r.custom.from.value, r.custom.to.value, r.custom.from.error, r.custom.to.error], ['2026-10-05', '2026-11-01', false, false]);
     assert.ok(r.disabled.all && r.disabled.count >= 5, 'every control in the disabled specimen is disabled');
     assert.deepEqual([r.disabled.opacity, r.disabled.cursor, r.menuDisabled], ['0.45', 'not-allowed', true]);
-    assert.deepEqual(r.states, [5, 3]);
+    assert.deepEqual(r.states, [5, 5]);
+    assert.deepEqual(r.names, [['Default', 'Two presets', 'Custom, compare on', 'Invalid range', 'Disabled'], ['Default', 'Two presets', 'Custom range', 'Compare on', 'Disabled']]);
+    assert.ok(r.named, 'each state is a name over its specimen');
+    assert.equal(r.chip.font, r.chip.parent, 'a filter chip is set in the face of the text around it');
+    assert.equal(r.live, 'polite');
+    assert.deepEqual(r.menuCustom, { face: 'Range: Custom5 Oct to 1 Nov 2026', checked: ['false', 'false', 'false', 'true', 'false'] });
+    assert.deepEqual(r.menuCompare, { face: 'Range: This week23 Nov to 29 Nov 2026 · vs previous', checked: ['true', 'false', 'false', 'false', 'true'] });
   });
 }

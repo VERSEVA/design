@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CUSTOM_RANGE, DATE_RANGE_LABELS, isDate, dayText, rangeText, checkRange, snapRange, moveIndex } from '../react/date-range-state.ts';
+import { CUSTOM_RANGE, DATE_RANGE_LABELS, isDate, dayText, rangeText, checkRange, snapRange, moveIndex, chosenPreset } from '../react/date-range-state.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const css = fs.readFileSync(path.join(root, 'components.css'), 'utf8');
@@ -13,11 +13,19 @@ const css = fs.readFileSync(path.join(root, 'components.css'), 'utf8');
 test('a date is a real calendar day written YYYY-MM-DD', () => {
   for (const ok of ['2026-11-29', '2024-02-29']) assert.equal(isDate(ok), true, ok);
   for (const bad of ['', '2026-2-9', '2026-02-30', '2026-13-01', '29/11/2026', null, undefined, 20261129]) assert.equal(isDate(bad), false, String(bad));
+  /* a half-typed year is not a date: the field reads 0002 while the user is still typing 2026 */
+  for (const bad of ['0002-11-02', '0202-11-02', '0999-12-31']) assert.equal(isDate(bad), false, bad);
+  assert.equal(isDate('1000-01-01'), true);
 });
 
 test('the range line reads day and month, then the full end date, in UTC', () => {
   assert.equal(rangeText('2026-11-23', '2026-11-29'), '23 Nov to 29 Nov 2026');
-  assert.equal(rangeText('2025-12-29', '2026-01-04'), '29 Dec to 4 Jan 2026');
+  /* across a year end the start carries its own year, or the range reads backwards */
+  assert.equal(rangeText('2025-12-29', '2026-01-04'), '29 Dec 2025 to 4 Jan 2026');
+  assert.equal(rangeText('2025-12-01', '2026-11-29'), '1 Dec 2025 to 29 Nov 2026');
+  assert.equal(rangeText('2025-11-23', '2026-11-29'), '23 Nov 2025 to 29 Nov 2026');
+  assert.notEqual(rangeText('2025-11-23', '2026-11-29'), rangeText('2026-11-23', '2026-11-29'));
+  assert.equal(rangeText('2026-01-01', '2026-12-31'), '1 Jan to 31 Dec 2026');
   assert.equal(dayText('2026-01-05'), '5 Jan 2026');
   assert.equal(rangeText('', 'soon'), ' to soon', 'what is not a date is left as written');
 });
@@ -31,7 +39,19 @@ test('a custom range is two dates, the start not after the end, inside min and m
   const lim = { min: '2026-01-05', max: '2026-11-29' };
   assert.deepEqual(checkRange('2026-01-05', '2026-11-29', lim), { ok: true, errors: {} });
   assert.deepEqual(checkRange('2025-12-29', '2026-12-06', lim), { ok: false, errors: { from: 'Earliest start is 5 Jan 2026', to: 'Latest end is 29 Nov 2026' } });
+  /* a malformed limit is no limit */
+  assert.deepEqual(checkRange('2026-11-02', '2026-11-29', { min: 'soon', max: '2026-13-40' }), { ok: true, errors: {} });
+  assert.deepEqual(checkRange('2026-11-02', '2026-11-29', { min: '0002-01-01', max: '2026-11-08' }), { ok: false, errors: { to: 'Latest end is 8 Nov 2026' } });
   assert.deepEqual(checkRange('2026-11-16', '2026-11-08', { labels: { ...DATE_RANGE_LABELS, endBeforeStart: 'Fin avant le debut' } }).errors, { to: 'Fin avant le debut' });
+});
+
+test('a preset is chosen only when its name and both dates match the value; the first of two wins', () => {
+  const presets = [{ value: '7', label: 'This week', from: '2026-11-23', to: '2026-11-29' }, { value: '28', label: '4 weeks', from: '2026-11-02', to: '2026-11-29' }, { value: '28', label: 'Again', from: '2026-11-02', to: '2026-11-29' }];
+  assert.equal(chosenPreset(presets, { range: '7', from: '2026-11-23', to: '2026-11-29', compare: false }), 0);
+  assert.equal(chosenPreset(presets, { range: '28', from: '2026-11-02', to: '2026-11-29', compare: true }), 1);
+  assert.equal(chosenPreset(presets, { range: '7', from: '2026-11-16', to: '2026-11-22', compare: false }), -1, 'last week under the name of this week');
+  assert.equal(chosenPreset(presets, { range: 'custom', from: '2026-11-23', to: '2026-11-29', compare: false }), -1);
+  assert.equal(chosenPreset([], { range: '7', from: '2026-11-23', to: '2026-11-29', compare: false }), -1);
 });
 
 test('snapping is the host function, per edge, and leaves a half-typed date alone', () => {
@@ -72,6 +92,8 @@ test('components.css carries the prototype rules, rule for rule', () => {
     '.seg button[aria-checked="true"]{background:var(--surface);color:var(--text-1);font-weight:600;box-shadow:var(--e-1)}',
     'dialog.sheet,dialog.modal{padding:0;color:var(--text-1);max-width:none;max-height:none}',
     'dialog.sheet{margin:auto auto var(--s-2)}',
+    'dialog.modal{margin:auto}',
+    '.fchip{font-family:inherit}',
     'dialog.sheet::backdrop,dialog.modal::backdrop{background:color-mix(in srgb,var(--bg) 45%,transparent)}',
   ]) assert.ok(css.includes(rule), rule);
   /* the radiogroup form looks exactly like the tablist form */
