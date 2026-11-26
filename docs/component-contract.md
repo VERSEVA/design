@@ -548,23 +548,32 @@ color-alone).
 - **Hover:** per-mark tooltips; ≥2 series get a legend.
 - **Withheld data is never zero (1.7.1).** A missing point and a suppressed count are not small
   numbers, and a chart that draws them as one is a defect.
-  - **Suppressed item (`Bars`, `HBars`: `suppressed`, `display`).** A privacy floor. The item keeps
-    its slot and draws the EMPTY TRACK (`.vtrack`, or an `.htrack` with nothing in it, on
-    `[data-suppressed]`), with no fill. It prints `display` (for example `<5`; `n/a` when none is
-    given) and never the value. The value stays out of the scale maximum, the bar length, the
-    `title`, the hover text and every attribute: the same chart renders the same markup whatever the
-    suppressed value is. `format` is never called with it. The kit does not sort; a consumer that
-    sorts must not order suppressed items by their value.
-  - **The empty track** is `--surface-2` bounded by a dashed `--text-3` line: the text ladder, since
-    a hairline cannot carry meaning (law 11). Never the accent, never a status hue, never a sign
-    color. The printed `display` is body type at the value's size (law 4: a person reads it).
-  - **`display` alone** replaces the printed value and the `title`; the fill still draws to scale.
+  - **Suppressed item (`Bars`, `HBars`: `suppressed: true` with `display`).** A privacy floor. The
+    item keeps its slot and draws the WITHHELD STUB on `[data-suppressed]`, with no fill, and prints
+    `display` (the floor label, for example `<5`), never the value. The value stays out of the scale
+    maximum, the bar length, the `title`, the hover text and every attribute: the same chart renders
+    the same markup whatever the suppressed value is. `format` is never called with it. The kit does
+    not sort; a consumer that sorts must not order suppressed items by their value.
+  - **The stub is one fixed size,** never a bar length: `.vtrack` is `--s-3` tall with the label
+    sitting on it; a suppressed `.htrack` carries a `--s-6` stub at the start of its track. Both are
+    a 135deg hatch of `--text-3` over nothing: the text ladder, since a hairline cannot carry
+    meaning (law 11). Never the accent, a status hue or a sign color; never full height (that reads
+    as the largest value) and never a plain soft block (that reads as a loading skeleton). The
+    `display` is set like the numbers beside it, on their baseline.
+  - **`display` is required with `suppressed: true`** (the item types say so). If it is missing at
+    run time the item prints no label, its `title` carries the withheld word, and development warns.
+  - **`display` without `suppressed: true` is not a privacy floor:** it only replaces the printed
+    value and the `title`; the bar still draws from the real value and counts toward the scale.
   - **Gap (`LineChart` series, `Sparkline`: `null`).** The line breaks at a null and resumes after
     it; the area fill breaks with it. No point is drawn there, it is never interpolated across, and
-    it is left out of the scale. Hover on a null index shows no value and no marker for that series.
-    The end dot marks the last index, so a series ending in a null has none. A value alone between
-    two gaps is drawn as a dot. A real `0` is a value and draws on the baseline. All nulls render
-    the empty state. The dashed `--data-alt` second series is unchanged alongside gaps.
+    it is left out of the scale. A 1px `--text-3` segment on the baseline spans the gap, so it reads
+    as withheld and not as a fault. Hover on a null index shows no value and no marker for that
+    series, and names it with the withheld word in `--text-2`. The end dot marks the last index, so
+    a series ending in a null has none. A value alone between two gaps is an r=3 dot. A real `0` is
+    a value and draws on the baseline; `NaN` is a gap. All nulls render the empty state. The dashed
+    `--data-alt` second series is unchanged alongside gaps.
+  - **The withheld word is copy:** `vizLabels={{ withheld }}` on `LineChart`, `Bars` and `HBars`,
+    default `Withheld` (`react/viz-state.ts`).
 
 ## Widgets: `.wgrid`, `.wtile`, `.wstack`, `.wgal` (1.6.0)
 

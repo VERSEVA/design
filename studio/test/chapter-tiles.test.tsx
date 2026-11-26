@@ -12,7 +12,6 @@ import { REDESIGNED } from './redesigned';
 import chapters from '../src/data/chapters.json';
 import { fireEvent } from '@testing-library/react';
 import { FILTERS } from '../src/gallery/meta';
-import { LineChart } from '../../react/viz';
 
 /* The spans as the stylesheets write them, read from components.css (.wgrid columns, .wtile[data-size]
    spans, the 1100px override) and tiles.css (XL on one content row), so a CSS change reaches this test. */
@@ -332,10 +331,9 @@ describe('Data viz tiles (law 3)', () => {
   });
 });
 
-/* Issue 205: the two withheld-data specimens. Suppressed values is the kit's own parts; Gaps is written
-   markup, so it is held to what LineChart renders for the same series (the gradient id aside). */
+/* Issue 205: the two withheld-data specimens, both the kit's own parts. */
 describe('Data viz tiles: withheld data', () => {
-  it('shows a suppressed bar as the empty track with its display, in both bar forms, and no fill', () => {
+  it('shows a suppressed bar as the stub with its display, in both bar forms, beside a true zero, and no fill', () => {
     const root = page('data-viz');
     const bar = root.querySelector('#suppressed .bar[data-suppressed]')!;
     expect(bar.querySelector('.fill')).toBeNull();
@@ -345,25 +343,26 @@ describe('Data viz tiles: withheld data', () => {
     expect(row.querySelector('.htrack')!.children).toHaveLength(0);
     expect(row.querySelector('.hcount')!.textContent).toBe('<5');
     expect(root.querySelectorAll('#suppressed .htrack i.alt')).toHaveLength(1);
+    expect([...root.querySelectorAll('#suppressed .vlab')].map((v) => v.textContent)).toContain('0');
+    expect([...root.querySelectorAll('#suppressed .hcount')].map((v) => v.textContent)).toContain('0');
+    expect(root.querySelector('#suppressed')!.innerHTML).not.toMatch(/title="(Tue|Clinic C): \d/);
   });
 
-  it('draws Gaps exactly as LineChart renders the same series', () => {
-    const kit = render(
-      <LineChart
-        height={130}
-        labels={['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8']}
-        series={[
-          { name: 'Visits', values: [62, 70, 66, null, null, 78, 88, 95] },
-          { name: 'Booked', values: [41, 44, 40, 52, 58, null, 61, 72] },
-        ]}
-      />,
-    ).container.querySelector('.vizplot')!;
-    const spec = page('data-viz').querySelector('#gaps .vizplot')!;
-    const canon = (el: Element) => el.outerHTML.replace(/id="[^"]+"/, 'id="g"').replace(/url\(#[^)]+\)/, 'url(#g)');
-    expect(canon(spec)).toBe(canon(kit));
-    const [area, first, second] = [...spec.querySelectorAll('path')].map((p) => p.getAttribute('d')!);
-    expect([area, first, second].map((d) => d.split('M').length - 1)).toEqual([2, 2, 2]);
-    expect(spec.querySelectorAll('path')[2].getAttribute('stroke-dasharray')).toBe('5 4');
+  it('shows a gap in a line and its area, a lone value as a dot, a series ending in a gap, and a sparkline gap', () => {
+    const root = page('data-viz');
+    const [visits, booked] = [...root.querySelectorAll('#gaps .vizplot svg > g')];
+    expect([...visits.querySelectorAll('path')].map((p) => p.getAttribute('d')!.split('M').length - 1)).toEqual([2, 2]);
+    expect(booked.querySelector('path')!.getAttribute('stroke-dasharray')).toBe('5 4');
+    /* Booked: one lone value after its gap (a dot), then a trailing gap, so no end dot beyond it */
+    expect([...booked.querySelectorAll('circle')].map((c) => c.getAttribute('cx'))).toEqual(['270']);
+    expect(root.querySelectorAll('#gaps .vizplot line[data-gap]')).toHaveLength(3);
+    expect(root.querySelectorAll('#gaps .spark line[data-gap]')).toHaveLength(1);
+    expect(root.querySelector('#gaps .spark path[fill="none"]')!.getAttribute('d')!.split('M').length - 1).toBe(2);
+  });
+
+  it('captions both with a takeaway', () => {
+    const root = page('data-viz');
+    for (const id of ['suppressed', 'gaps']) expect(root.querySelectorAll(`#${id} .specimen > .takeaway`), id).toHaveLength(1);
   });
 });
 

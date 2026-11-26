@@ -88,11 +88,12 @@ for (const scheme of ['dark', 'light']) {
   });
 }
 
-/* Withheld data (issue 205). The empty track of a suppressed bar is a boundary that carries meaning, so its
-   dashed line clears 3:1 against the ground it sits on AND against the track's own fill; the printed display
-   clears 4.5:1 and is body type; nothing in the slot is the accent, and the slot holds no fill. Every colour
-   is composited over the real backdrop: each ancestor's background down to the first opaque one. The ratios
-   go to the test log. */
+/* Withheld data (issue 205). A suppressed bar is a short hatched stub: the hatch is the text ladder, so its
+   stripes clear 3:1 against the ground they sit on (and against the track fill on a horizontal row); the stub
+   is one fixed size, never a bar length; the printed display clears 4.5:1 in the face and size of the numbers
+   beside it; nothing is the accent. A gap's baseline mark clears 3:1, and hovering a gap on the live chart
+   names it withheld at 4.5:1 with no value and no marker. Every colour is composited over the real backdrop:
+   each ancestor's background down to the first opaque one. The ratios go to the test log. */
 const WITHHELD = `(async () => {
   await new Promise((r) => setTimeout(r, 1500));
   document.getAnimations().forEach((a) => { try { a.finish(); } catch (e) {} });
@@ -105,6 +106,7 @@ const WITHHELD = `(async () => {
     return null;
   };
   const resolve = (v) => { probe.style.backgroundColor = v; return parse(getComputedStyle(probe).backgroundColor); };
+  const px = (v) => { probe.style.width = v; return getComputedStyle(probe).width; };
   const over = (c, bg) => [0, 1, 2].map((i) => c[i] * c[3] + bg[i] * (1 - c[3])).concat(1);
   const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
   const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
@@ -118,46 +120,102 @@ const WITHHELD = `(async () => {
     return layers.reverse().reduce((bg, c) => over(c, bg), resolve('var(--bg)'));
   };
   const accent = resolve('var(--accent)').slice(0, 3).join();
-  const tile = document.querySelector('[data-chapter="data-viz"] #suppressed');
-  const out = { tracks: [], labels: [], bad: [] };
+  const root = document.querySelector('[data-chapter="data-viz"]');
+  const tile = root.querySelector('#suppressed');
+  const out = { stubs: [], labels: [], gaps: [], hover: null, bad: [] };
+
   for (const el of tile.querySelectorAll('.bar[data-suppressed] .vtrack, .hbar[data-suppressed] .htrack')) {
     const cs = getComputedStyle(el);
     const g = ground(el);
-    const fill = over(parse(cs.backgroundColor), g);
-    const line = over(parse(cs.borderTopColor), g);
+    const own = parse(cs.backgroundColor);
+    const fill = over(own, g);
+    const hatch = /repeating-linear-gradient\\(135deg/.test(cs.backgroundImage) ? parse(cs.backgroundImage) : null;
     const name = el.className;
-    const r = { name, onGround: ratio(line, g), onFill: ratio(line, fill), fillOnGround: ratio(fill, g) };
-    out.tracks.push(r);
-    if (cs.borderTopStyle !== 'dashed' || parseFloat(cs.borderTopWidth) < 1) out.bad.push(name + ' has no dashed line');
-    if (r.onGround < 3) out.bad.push(name + ' line on ground ' + r.onGround.toFixed(2) + ':1');
-    if (r.onFill < 3) out.bad.push(name + ' line on its fill ' + r.onFill.toFixed(2) + ':1');
+    if (!hatch) { out.bad.push(name + ' has no 135deg hatch'); continue; }
+    const stripe = over(hatch, fill);
+    const box = el.getBoundingClientRect();
+    const r = { name, onGround: ratio(stripe, g), onFill: ratio(stripe, fill), w: box.width, h: box.height, stub: name === 'vtrack' ? cs.height : cs.backgroundSize.split(' ')[0] };
+    out.stubs.push(r);
+    if (r.onGround < 3) out.bad.push(name + ' hatch on ground ' + r.onGround.toFixed(2) + ':1');
+    if (r.onFill < 3) out.bad.push(name + ' hatch on its fill ' + r.onFill.toFixed(2) + ':1');
     if (el.children.length) out.bad.push(name + ' holds a fill');
-    if (!el.getClientRects().length || el.getBoundingClientRect().width < 8 || el.getBoundingClientRect().height < 8) out.bad.push(name + ' is not drawn as a slot');
-    for (const c of [cs.backgroundColor, cs.borderTopColor]) if (parse(c).slice(0, 3).join() === accent) out.bad.push(name + ' spends the accent');
+    if (hatch.slice(0, 3).join() === accent) out.bad.push(name + ' spends the accent');
+    if (name === 'vtrack') {
+      if (cs.height !== px('var(--s-3)')) out.bad.push('vtrack is ' + cs.height + ', not --s-3');
+      const fills = [...tile.querySelectorAll('.bar .fill')].map((f) => f.getBoundingClientRect().height).filter((h) => h > 0);
+      if (!(box.height < Math.min(...fills))) out.bad.push('vtrack is as tall as a bar: ' + box.height + ' vs ' + fills.join(','));
+      const lab = el.previousElementSibling.getBoundingClientRect();
+      if (Math.abs(lab.bottom - box.top) > 6) out.bad.push('the display does not sit on the stub');
+    } else {
+      if (r.stub !== px('var(--s-6)')) out.bad.push('htrack stub is ' + r.stub + ', not --s-6');
+      if (cs.backgroundRepeat !== 'no-repeat') out.bad.push('htrack hatch repeats along the track');
+      const plain = getComputedStyle(tile.querySelector('.hbar:not([data-suppressed]) .htrack'));
+      if (plain.backgroundColor !== cs.backgroundColor || plain.height !== cs.height) out.bad.push('the suppressed track is not the track of its neighbours');
+    }
   }
-  for (const el of tile.querySelectorAll('.vlab[data-display], .hcount[data-display]')) {
+  for (const el of tile.querySelectorAll('[data-suppressed] .vlab, [data-suppressed] .hcount')) {
     const cs = getComputedStyle(el);
     const g = ground(el);
     const r = { name: el.className, text: el.textContent, onGround: ratio(over(parse(cs.color), g), g), size: cs.fontSize, face: cs.fontFamily.split(',')[0].trim() };
     out.labels.push(r);
     if (r.onGround < 4.5) out.bad.push(r.name + ' label ' + r.onGround.toFixed(2) + ':1');
-    if (/mono/i.test(r.face)) out.bad.push(r.name + ' label is mono: ' + r.face);
-    const plain = tile.querySelector('.' + el.className + ':not([data-display])');
-    if (getComputedStyle(plain).fontSize !== cs.fontSize) out.bad.push(r.name + ' label is not at the value size');
+    const plain = getComputedStyle(tile.querySelector(':not([data-suppressed]) > .' + el.className));
+    if (plain.fontSize !== cs.fontSize || plain.fontFamily !== cs.fontFamily || plain.color !== cs.color) out.bad.push(r.name + ' label is not set like the numbers beside it');
   }
+  if (out.stubs.length === 2) {
+    const [v, lab] = [tile.querySelector('.bar[data-suppressed] .vlab'), tile.querySelector('.bar:not([data-suppressed]) .vlab')];
+    if (getComputedStyle(v).lineHeight !== getComputedStyle(lab).lineHeight) out.bad.push('display and value sit on different line boxes');
+  }
+
+  const gapTile = root.querySelector('#gaps');
+  for (const el of gapTile.querySelectorAll('line[data-gap]')) {
+    const cs = getComputedStyle(el);
+    const g = ground(el);
+    const r = ratio(over(parse(cs.stroke), g), g);
+    out.gaps.push(r);
+    if (r < 3) out.bad.push('gap baseline ' + r.toFixed(2) + ':1');
+    if (parse(cs.stroke).slice(0, 3).join() === accent) out.bad.push('gap baseline spends the accent');
+  }
+
+  /* Hover the live chart at W4: Visits is a gap there, Booked is 52. */
+  const svg = gapTile.querySelector('.vizplot svg');
+  svg.scrollIntoView({ block: 'center' });
+  await new Promise((r) => setTimeout(r, 300));
+  const box = svg.getBoundingClientRect();
+  const at = (i) => box.left + (box.width * (6 + (308 * i) / 7)) / 320;
+  svg.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: at(3), clientY: box.top + box.height / 2 }));
+  await new Promise((r) => setTimeout(r, 300));
+  const tip = gapTile.querySelector('.viztip');
+  if (!tip) out.bad.push('no hover readout on the live chart');
+  else {
+    const rows = [...tip.querySelectorAll('span')];
+    const w = tip.querySelector('span[data-withheld]');
+    out.hover = { label: tip.querySelector('b').textContent, rows: rows.map((x) => x.textContent), markers: svg.querySelectorAll('circle[r="4"]').length };
+    if (w) {
+      const g = ground(w);
+      out.hover.word = ratio(over(parse(getComputedStyle(w).color), g), g);
+      if (out.hover.word < 4.5) out.bad.push('withheld word ' + out.hover.word.toFixed(2) + ':1');
+      if (getComputedStyle(w).color !== getComputedStyle(probe).color && getComputedStyle(w).color === getComputedStyle(rows[1]).color) out.bad.push('withheld word is set like a value');
+    }
+  }
+  svg.dispatchEvent(new PointerEvent('pointerout', { bubbles: true, relatedTarget: document.body }));
   probe.remove();
   return JSON.stringify(out);
 })()`;
 
 for (const scheme of ['dark', 'light']) {
-  test(`/data-viz suppressed track clears 3:1 and its display 4.5:1, with no fill and no accent (${scheme})`, { timeout: 60000 }, async (t) => {
+  test(`/data-viz withheld data: hatched stubs and gap marks clear 3:1, display and hover word 4.5:1, no accent (${scheme})`, { timeout: 60000 }, async (t) => {
     const page = await run.page({ width: 1440, height: 900, scheme });
     await page.goto('/data-viz');
     const r = JSON.parse(await page.evaluate(WITHHELD));
     await page.close();
-    t.diagnostic(`${scheme}: ` + r.tracks.map((x) => `${x.name} line ${x.onGround.toFixed(2)}:1 on ground, ${x.onFill.toFixed(2)}:1 on its fill (fill ${x.fillOnGround.toFixed(2)}:1)`).concat(r.labels.map((x) => `${x.name} "${x.text}" ${x.onGround.toFixed(2)}:1, ${x.size} ${x.face}`)).join('; '));
-    assert.equal(r.tracks.length, 2, 'one vertical and one horizontal empty track');
-    assert.equal(r.labels.length, 2);
+    t.diagnostic(`${scheme}: ` + r.stubs.map((x) => `${x.name} hatch ${x.onGround.toFixed(2)}:1 on ground, ${x.onFill.toFixed(2)}:1 on its fill, stub ${x.stub} (box ${Math.round(x.w)}x${Math.round(x.h)})`)
+      .concat(r.labels.map((x) => `${x.name} "${x.text}" ${x.onGround.toFixed(2)}:1, ${x.size} ${x.face}`))
+      .concat([`gap baseline ${Math.min(...r.gaps).toFixed(2)}:1 (${r.gaps.length} marks)`, `hover word ${r.hover?.word?.toFixed(2)}:1`]).join('; '));
     assert.deepEqual(r.bad, []);
+    assert.equal(r.stubs.length, 2, 'one vertical and one horizontal stub');
+    assert.equal(r.labels.length, 2);
+    assert.equal(r.gaps.length, 4, 'three gap marks on the chart, one on the sparkline');
+    assert.deepEqual(r.hover && { label: r.hover.label, rows: r.hover.rows, markers: r.hover.markers }, { label: 'W4', rows: ['Visits Withheld', 'Booked 52'], markers: 1 });
   });
 }
