@@ -92,7 +92,8 @@ function* walk(p, exclude = []) {
     yield p;
     return;
   }
-  for (const entry of fs.readdirSync(p, { withFileTypes: true })) {
+  const entries = fs.readdirSync(p, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  for (const entry of entries) {
     if (entry.isDirectory()) {
       if (!SKIP_DIRS.has(entry.name) && !exclude.includes(entry.name)) yield* walk(path.join(p, entry.name));
     } else if (SCAN_EXT.has(path.extname(entry.name))) {
@@ -121,9 +122,11 @@ function readConfig() {
 /* Blank a region but keep its newlines, so line numbers hold. */
 const blank = (s) => s.replace(/[^\n]/g, ' ');
 
-/* The text the tag reader sees: comment bodies gone, and in HTML the script and style bodies too. */
+// The text the tag reader sees: comments between elements gone (in JSX only the brace-wrapped
+// form, so a comment opener inside a string blanks nothing), and in HTML the script and style
+// bodies too.
 function readable(text, jsx) {
-  if (jsx) return text.replace(/\/\*[\s\S]*?\*\//g, blank);
+  if (jsx) return text.replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, blank);
   return text
     .replace(/<!--[\s\S]*?-->/g, blank)
     .replace(/(<(script|style)\b[^>]*>)([\s\S]*?)(<\/\2\s*>)/gi, (_, open, _tag, body, close) => open + blank(body) + close);
@@ -153,6 +156,10 @@ function tagEnd(text, i, jsx) {
       const nl = text.indexOf('\n', j);
       if (nl === -1) return -1;
       j = nl;
+    } else if (jsx && ch === '/' && text[j + 1] === '*') {
+      const close = text.indexOf('*/', j + 2);
+      if (close === -1) return -1;
+      j = close + 1;
     } else if (jsx && ch === '{') depth++;
     else if (jsx && ch === '}') depth--;
     else if (ch === '>' && depth <= 0) return j + 1;
@@ -169,6 +176,7 @@ function attributes(body, jsx) {
   while (i < body.length) {
     const ch = body[i];
     if (jsx && ch === '/' && body[i + 1] === '/') { const nl = body.indexOf('\n', i); i = nl === -1 ? body.length : nl; continue; }
+    if (jsx && ch === '/' && body[i + 1] === '*') { const close = body.indexOf('*/', i + 2); i = close === -1 ? body.length : close + 2; continue; }
     if (jsx && ch === '{') { i = braceEnd(body, i); continue; } // spread
     const name = body.slice(i).match(/^[A-Za-z_:@][\w:.-]*/)?.[0];
     if (!name) { i++; continue; }
@@ -298,7 +306,8 @@ function scan(text, jsx, classes, parts) {
         const line = lineOf(m.index);
         const above = line - 2;
         if (MARKER_RE.test(text.slice(m.index, end))) {
-          // waived inside the tag
+          /* Waived inside the tag: its lines are spent, so the marker does not also cover the next line. */
+          for (let l = line - 1; l < lineOf(end - 1); l++) spent.add(l);
         } else if (above >= 0 && !spent.has(above) && MARKER_RE.test(rawLines[above])) {
           spent.add(above);
         } else {
