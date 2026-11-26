@@ -97,15 +97,49 @@ function localItem(name) {
 /* Discovery reads this file's own directory and nothing else: regular files named
    cmd-<name>.mjs. A symlink is not a regular file, so nothing outside bin/ is ever loaded,
    and no path from the arguments or the working directory is imported. */
+const RESERVED = new Set(['help', '--help', '-h', '--version']);
+const isLines = (v) => Array.isArray(v) && v.every((l) => typeof l === 'string');
+const isWords = (v) => v.length > 0 && v.every((w) => typeof w === 'string' && w.length > 0);
+const stop = (line) => {
+  console.error(`verseva: ${line}`);
+  process.exit(1);
+};
+
+/* A module that fails to load, lacks one of its four exports, or claims a word that is
+   reserved or already taken stops every command with one line naming the file. */
 const commands = [];
-for (const ent of fs.readdirSync(binDir, { withFileTypes: true })) {
-  if (!ent.isFile() || !/^cmd-[a-z0-9-]+\.mjs$/.test(ent.name)) continue;
-  commands.push({ file: ent.name, ...(await import(pathToFileURL(path.join(binDir, ent.name)).href)) });
+const claimed = new Map();
+const found = fs.readdirSync(binDir, { withFileTypes: true })
+  .filter((ent) => ent.isFile() && /^cmd-[a-z0-9-]+\.mjs$/.test(ent.name))
+  .map((ent) => ent.name)
+  .sort();
+for (const name of found) {
+  const file = `bin/${name}`;
+  let mod;
+  try {
+    mod = await import(pathToFileURL(path.join(binDir, name)).href);
+  } catch (e) {
+    stop(`${file} failed to load (${String(e?.message ?? e).split('\n')[0]})`);
+  }
+  const claims = [mod.match].flat();
+  const bad = [
+    !isWords(claims) && 'match',
+    typeof mod.run !== 'function' && 'run',
+    !isLines(mod.usage) && 'usage',
+    !Number.isFinite(mod.order) && 'order',
+  ].filter(Boolean);
+  if (bad.length) stop(`${file} is not a command module (missing or invalid export: ${bad.join(', ')})`);
+  for (const word of claims) {
+    if (RESERVED.has(word)) stop(`${file} claims the reserved word "${word}"`);
+    if (claimed.has(word)) stop(`command "${word}" is claimed by both ${claimed.get(word)} and ${file}`);
+    claimed.set(word, file);
+  }
+  commands.push({ file, claims, run: mod.run, usage: mod.usage, order: mod.order });
 }
 commands.sort((a, b) => a.order - b.order || a.file.localeCompare(b.file));
 
 const ctx = { pkgRoot, registry, config, rest, dirFlag, valueOf, readJson, writeFileInto, rewriteBlockHrefs, localItem };
-const command = commands.find((c) => [c.match].flat().includes(cmd));
+const command = commands.find((c) => c.claims.includes(cmd));
 if (command) await command.run(ctx);
 
 console.log(['verseva · the source-distribution CLI', '', ...commands.flatMap((c) => c.usage).map((l) => `  ${l}`)].join('\n'));

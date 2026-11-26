@@ -97,3 +97,65 @@ test('discovery loads only regular cmd-<name>.mjs files in the package bin direc
   }
   assert.deepEqual(fs.readdirSync(outside).filter((f) => f.endsWith('.loaded')), []);
 });
+
+/** One line on stderr, exit 1, and nothing that looks like a stack trace. */
+function assertOneLine(r, pattern) {
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, pattern);
+  assert.equal(r.out.trimEnd().split('\n').length, 1, `expected one line, got:\n${r.out}`);
+}
+
+test('a match word claimed twice, or a reserved word, stops startup naming the files', () => {
+  const dup = copyOfPackage();
+  fs.writeFileSync(path.join(dup, 'bin', 'cmd-other.mjs'), probe('list', 5));
+  for (const args of [['list'], ['init'], []]) {
+    const r = run(path.join(dup, 'bin', 'verseva.mjs'), args, tmp());
+    assertOneLine(r, /^verseva: command "list" is claimed by both bin\/cmd-list\.mjs and bin\/cmd-other\.mjs\n$/);
+  }
+
+  /* an array of match words is checked word by word */
+  const arr = copyOfPackage();
+  fs.writeFileSync(path.join(arr, 'bin', 'cmd-other.mjs'), probe('other', 5).replace("match = 'other'", "match = ['other', 'build']"));
+  assertOneLine(run(path.join(arr, 'bin', 'verseva.mjs'), [], tmp()), /"build" is claimed by both bin\/cmd-build\.mjs and bin\/cmd-other\.mjs/);
+
+  for (const word of ['help', '--help', '-h', '--version']) {
+    const pkg = copyOfPackage();
+    fs.writeFileSync(path.join(pkg, 'bin', 'cmd-taken.mjs'), probe(word, 5));
+    const r = run(path.join(pkg, 'bin', 'verseva.mjs'), ['list'], tmp());
+    assertOneLine(r, new RegExp(`^verseva: bin/cmd-taken\\.mjs claims the reserved word "${word}"\\n$`));
+  }
+});
+
+test('a module with a missing or invalid export, or one that throws on import, stops startup in one line', () => {
+  const good = probe('probe', 15);
+  const cases = {
+    'no usage': [good.replace(/^export const usage.*\n/m, ''), /usage/],
+    'no order': [good.replace(/^export const order.*\n/m, ''), /order/],
+    'no match': [good.replace(/^export const match.*\n/m, ''), /match/],
+    'no run': [good.replace('export function run', 'function run'), /run/],
+    'usage not lines': [good.replace(/^export const usage.*$/m, "export const usage = 'npx verseva probe';"), /usage/],
+    'usage with a non-string': [good.replace(/^export const usage.*$/m, 'export const usage = [undefined];'), /usage/],
+    'order not a number': [good.replace('order = 15', "order = 'first'"), /order/],
+    'empty match': [good.replace("match = 'probe'", 'match = []'), /match/],
+    'run not a function': [good.replace('export function run', 'export const run = 1; function _run'), /run/],
+  };
+  for (const [name, [source, names]] of Object.entries(cases)) {
+    const pkg = copyOfPackage();
+    fs.writeFileSync(path.join(pkg, 'bin', 'cmd-probe.mjs'), source);
+    for (const args of [[], ['list']]) {
+      const r = run(path.join(pkg, 'bin', 'verseva.mjs'), args, tmp());
+      assertOneLine(r, /^verseva: bin\/cmd-probe\.mjs is not a command module \(missing or invalid export: /);
+      assert.match(r.out, names, name);
+      assert.doesNotMatch(r.out, /undefined/, name);
+    }
+  }
+
+  const broken = { 'throws on import': "throw new Error('boom');\n" + good, 'does not parse': 'export const match = ;\n' };
+  for (const [name, source] of Object.entries(broken)) {
+    const pkg = copyOfPackage();
+    fs.writeFileSync(path.join(pkg, 'bin', 'cmd-probe.mjs'), source);
+    const r = run(path.join(pkg, 'bin', 'verseva.mjs'), ['list'], tmp());
+    assertOneLine(r, /^verseva: bin\/cmd-probe\.mjs failed to load \(/);
+    assert.doesNotMatch(r.out, /\n\s+at /, name);
+  }
+});
