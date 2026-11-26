@@ -14,10 +14,13 @@
  *   are skipped.
  * - Owned elements: button, table, input, textarea, select, dialog, and
  *   any element with role="button" or role="dialog".
- * - An element passes when it carries a class from the contract class set
- *   (components.css, read at run time), or sits anywhere inside a parent
- *   part: the fixed floor in contract-classes.mjs, or a part the contract
- *   styles that element under (".searchbox input", ".tabbar button").
+ * - An element passes when it carries a root part class (a class that
+ *   leads a compound in components.css, read at run time; modifiers,
+ *   spacing utilities and .sr-only do not count), or sits anywhere inside
+ *   a parent part for that element: the floor in contract-classes.mjs, or
+ *   a part the contract styles it under (".searchbox input").
+ * - In .jsx and .tsx, comments and the contents of string literals are
+ *   not scanned for tags.
  * - Each file is judged on its own. Capitalised components are never
  *   followed. A className with no string literal is unknown, not a
  *   finding; one literal holding a contract class passes.
@@ -122,11 +125,55 @@ function readConfig() {
 /* Blank a region but keep its newlines, so line numbers hold. */
 const blank = (s) => s.replace(/[^\n]/g, ' ');
 
-// The text the tag reader sees: comments between elements gone (in JSX only the brace-wrapped
-// form, so a comment opener inside a string blanks nothing), and in HTML the script and style
-// bodies too.
+/* A JSX file as the tag reader sees it: comments blanked, and every tag opener inside a string
+   or template literal blanked, so neither is scanned for tags. One pass; an unclosed comment is
+   blanked to the end of the file once. A quote with no partner on its line is text (an
+   apostrophe), not a string. Class names inside strings are untouched. */
+function readableJsx(text) {
+  const out = text.split('');
+  const n = text.length;
+  const wipe = (a, b) => { for (let k = a; k < b; k++) if (out[k] !== '\n') out[k] = ' '; };
+  const returns = []; // brace depth at which each open template placeholder ends
+  let depth = 0;
+  let inTemplate = false;
+  let i = 0;
+  while (i < n) {
+    const ch = text[i];
+    if (inTemplate) {
+      if (ch === '\\') i += 2;
+      else if (ch === '`') { inTemplate = false; i++; }
+      else if (ch === '$' && text[i + 1] === '{') { returns.push(depth++); inTemplate = false; i += 2; }
+      else { if (ch === '<') out[i] = ' '; i++; }
+    } else if (ch === '/' && text[i + 1] === '/') {
+      let end = text.indexOf('\n', i);
+      if (end === -1) end = n;
+      wipe(i, end);
+      i = end;
+    } else if (ch === '/' && text[i + 1] === '*') {
+      const close = text.indexOf('*/', i + 2);
+      const end = close === -1 ? n : close + 2;
+      wipe(i, end);
+      i = end;
+    } else if (ch === '"' || ch === "'") {
+      let j = i + 1;
+      while (j < n && text[j] !== ch && text[j] !== '\n') j += text[j] === '\\' ? 2 : 1;
+      if (text[j] === ch) {
+        for (let k = i + 1; k < j; k++) if (out[k] === '<') out[k] = ' ';
+        i = j + 1;
+      } else i++;
+    } else {
+      if (ch === '`') inTemplate = true;
+      else if (ch === '{') depth++;
+      else if (ch === '}' && --depth === returns.at(-1)) { returns.pop(); inTemplate = true; }
+      i++;
+    }
+  }
+  return out.join('');
+}
+
+/* The text the tag reader sees. In HTML: comments, script bodies and style bodies blanked. */
 function readable(text, jsx) {
-  if (jsx) return text.replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, blank);
+  if (jsx) return readableJsx(text);
   return text
     .replace(/<!--[\s\S]*?-->/g, blank)
     .replace(/(<(script|style)\b[^>]*>)([\s\S]*?)(<\/\2\s*>)/gi, (_, open, _tag, body, close) => open + blank(body) + close);
@@ -152,14 +199,6 @@ function tagEnd(text, i, jsx) {
       const next = skipQuote(text, j);
       if (next === -1) return -1;
       j = next - 1;
-    } else if (jsx && ch === '/' && text[j + 1] === '/' && depth === 0) {
-      const nl = text.indexOf('\n', j);
-      if (nl === -1) return -1;
-      j = nl;
-    } else if (jsx && ch === '/' && text[j + 1] === '*') {
-      const close = text.indexOf('*/', j + 2);
-      if (close === -1) return -1;
-      j = close + 1;
     } else if (jsx && ch === '{') depth++;
     else if (jsx && ch === '}') depth--;
     else if (ch === '>' && depth <= 0) return j + 1;
@@ -175,8 +214,6 @@ function attributes(body, jsx) {
   let i = 0;
   while (i < body.length) {
     const ch = body[i];
-    if (jsx && ch === '/' && body[i + 1] === '/') { const nl = body.indexOf('\n', i); i = nl === -1 ? body.length : nl; continue; }
-    if (jsx && ch === '/' && body[i + 1] === '*') { const close = body.indexOf('*/', i + 2); i = close === -1 ? body.length : close + 2; continue; }
     if (jsx && ch === '{') { i = braceEnd(body, i); continue; } // spread
     const name = body.slice(i).match(/^[A-Za-z_:@][\w:.-]*/)?.[0];
     if (!name) { i++; continue; }
@@ -301,7 +338,7 @@ function scan(text, jsx, classes, parts) {
       const unknown = classAttr !== undefined && classAttr.literal === null;
       const passes = unknown
         || own.some((c) => classes.has(c))
-        || stack.some((e) => e.classes.some((c) => parts.any.has(c) || parts[owned.tag].has(c)));
+        || stack.some((e) => e.classes.some((c) => parts[owned.tag].has(c)));
       if (!passes) {
         const line = lineOf(m.index);
         const above = line - 2;
@@ -354,4 +391,4 @@ if (findings.length) {
   log('\nBuild each from its section of docs/component-contract.md, or mark a ratified exception with "recipe-ok: <reason>".');
   process.exit(strict ? 1 : 0);
 }
-console.log(`${NAME}: clean (${checked} contract-owned element${checked === 1 ? '' : 's'}, ${classes.size} contract classes)`);
+console.log(`${NAME}: clean (${checked} contract-owned element${checked === 1 ? '' : 's'}, ${classes.size} root part classes)`);

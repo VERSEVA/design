@@ -2,11 +2,14 @@
  * The contract class set, read from components.css at run time (no build
  * step). The recipe gate asks two things of it:
  *
- * - contractClasses(): every class name a selector in components.css names.
- * - contractParts(): the parent parts, the classes whose descendants the
- *   contract styles as bare elements. `any` is the fixed floor; the keyed
- *   sets are read from every ".part <element>" rule, per element, so a part
- *   that styles its buttons does not cover an input.
+ * - contractClasses(): every root part class. A root class leads a compound
+ *   in some selector (".btn", ".menu-item", ".field"). A modifier that only
+ *   ever rides on another class (".btn.sm") is not one, and neither are the
+ *   spacing utilities or .sr-only: a utility-built element can carry those
+ *   and still be built by hand.
+ * - contractParts(): the parent parts, keyed per element. A fixed floor,
+ *   plus every ".part <element>" rule in components.css, so a part that
+ *   styles its buttons does not cover an input.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,10 +20,18 @@ const DEFAULT_CSS = path.join(path.dirname(fileURLToPath(import.meta.url)), '..'
 /* Elements the contract owns. role="button" and role="dialog" count as theirs. */
 export const OWNED = ['button', 'table', 'input', 'textarea', 'select', 'dialog'];
 
-/* The floor of parent parts, whatever the element inside them. */
-export const PART_FLOOR = ['seg', 'tabs', 'chips', 'menu', 'pick', 'switcher', 'field', 'sel', 'switch'];
+/* The floor of parent parts, per element. Every name is a class components.css ships (a test holds that). */
+export const PART_FLOOR = {
+  button: ['seg', 'menu', 'switcher', 'pick'],
+  input: ['field', 'sel', 'pick', 'switch'],
+  textarea: ['field'],
+  select: ['field'],
+};
 
-const CLASS_RE = /\.([a-zA-Z_-][\w-]*)/g;
+/* Classes a hand-built element can carry without being a contract part. */
+const UTILITY_RE = /^(?:(?:mt|mb|pt|pb|gap)-\d+|sr-only)$/;
+
+const FN_PSEUDO = '\\((?:[^()]|\\([^()]*\\))*\\)';
 
 /* Selector preludes only: comments, declarations, at-rule heads and keyframe steps dropped. */
 function selectors(css) {
@@ -34,28 +45,46 @@ function selectors(css) {
   return out;
 }
 
+/* The compounds of one selector list, as arrays in source order. :is() and :where() style what
+   they list, so their contents are read as selectors of their own; every other functional
+   pseudo-class only filters and is dropped. */
+function compoundLists(sel) {
+  const lifted = [];
+  const flat = sel
+    .replace(new RegExp(`:(?:is|where)${FN_PSEUDO}`, 'g'), (m) => { lifted.push(m.slice(m.indexOf('(') + 1, -1)); return ''; })
+    .replace(new RegExp(`:[\\w-]+${FN_PSEUDO}`, 'g'), '');
+  const lists = flat.split(',').map((part) => part.trim().split(/[\s>+~]+/).filter(Boolean));
+  for (const inner of lifted) lists.push(...compoundLists(inner));
+  return lists;
+}
+
+/* The class a compound leads with. A class on an element selector ("a.active") is a state of that element, not a part. */
+const leadClass = (compound) => compound.match(/^\.([a-zA-Z_-][\w-]*)/)?.[1];
+
 export function contractClasses(file = DEFAULT_CSS) {
   const classes = new Set();
   for (const sel of selectors(fs.readFileSync(file, 'utf8'))) {
-    for (const m of sel.matchAll(CLASS_RE)) classes.add(m[1]);
+    for (const compounds of compoundLists(sel)) {
+      for (const compound of compounds) {
+        const lead = leadClass(compound);
+        if (lead && !UTILITY_RE.test(lead)) classes.add(lead);
+      }
+    }
   }
   return classes;
 }
 
 export function contractParts(file = DEFAULT_CSS) {
-  const parts = { any: new Set(PART_FLOOR) };
-  for (const tag of OWNED) parts[tag] = new Set();
+  const parts = {};
+  for (const tag of OWNED) parts[tag] = new Set(PART_FLOOR[tag] ?? []);
   for (const sel of selectors(fs.readFileSync(file, 'utf8'))) {
-    /* Functional pseudo-classes only filter; drop them so their commas and spaces do not split. */
-    const flat = sel.replace(/:[\w-]+\((?:[^()]|\([^()]*\))*\)/g, '');
-    for (const part of flat.split(',')) {
-      const compounds = part.trim().split(/[\s>+~]+/).filter(Boolean);
+    for (const compounds of compoundLists(sel)) {
       compounds.forEach((compound, i) => {
         const tag = compound.match(/^[a-z]+/)?.[0];
         if (!OWNED.includes(tag)) return;
         for (const before of compounds.slice(0, i)) {
-          const lead = before.match(/^\.([a-zA-Z_-][\w-]*)/);
-          if (lead) parts[tag].add(lead[1]);
+          const lead = leadClass(before);
+          if (lead) parts[tag].add(lead);
         }
       });
     }
