@@ -49,7 +49,10 @@ export interface CommandBarProps {
   className?: string;
 }
 
-export { COMMAND_BAR_LABELS };
+export {
+  /** @deprecated Import from './command-state'. Read from this client file, a server component gets a client reference, not the values. */
+  COMMAND_BAR_LABELS,
+};
 export type CommandBarLabels = typeof COMMAND_BAR_LABELS;
 
 type AskStatus = 'loading' | 'streaming' | 'done' | 'error';

@@ -43,9 +43,15 @@ export interface WhatsNewProps {
 
 export interface PlatformMarkProps { platform: Platform; onOpen: () => void; labels?: Partial<PlatformMarkLabels>; className?: string }
 
-export { WHATS_NEW_LABELS };
+export {
+  /** @deprecated Import from './console-state'. Read from this client file, a server component gets a client reference, not the values. */
+  WHATS_NEW_LABELS,
+};
 export type WhatsNewLabels = typeof WHATS_NEW_LABELS;
-export { PLATFORM_MARK_LABELS };
+export {
+  /** @deprecated Import from './console-state'. Read from this client file, a server component gets a client reference, not the values. */
+  PLATFORM_MARK_LABELS,
+};
 export type PlatformMarkLabels = typeof PLATFORM_MARK_LABELS;
 
 /**

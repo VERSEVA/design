@@ -50,7 +50,10 @@ export interface ConsoleTopbarProps {
   className?: string;
 }
 
-export { CONSOLE_TOPBAR_LABELS };
+export {
+  /** @deprecated Import from './console-state'. Read from this client file, a server component gets a client reference, not the values. */
+  CONSOLE_TOPBAR_LABELS,
+};
 export type ConsoleTopbarLabels = typeof CONSOLE_TOPBAR_LABELS;
 
 /** True while an aria-modal dialog (What's new or any app modal) is open: page shortcuts stand down. */
