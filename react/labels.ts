@@ -25,3 +25,11 @@ export const SMART_STACK_LABELS: SmartStackLabels = {
 };
 /** A one-row tile fits the pause button and three 44px dots; above that the nav steps instead. */
 export const MAX_DOTS = 3;
+
+/** The chart kit's copy (viz.tsx): a product passes its own words through `vizLabels`. */
+export interface VizLabels {
+  /** Named where a value is withheld, after a series or item name: a null in a line on hover, a suppressed bar with no display in its title, an all-null chart in its plot. */
+  withheld: string;
+}
+
+export const VIZ_LABELS: VizLabels = { withheld: 'withheld' };

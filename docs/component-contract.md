@@ -631,7 +631,7 @@ color-alone).
     withheld word, centred in the plot in `--text-2`. Only an empty array is the empty state. The dashed
     `--data-alt` second series is unchanged alongside gaps.
   - **The withheld word is copy:** `vizLabels={{ withheld }}` on `LineChart`, `Bars` and `HBars`,
-    default `withheld`, lowercase since it follows a name (`react/viz-state.ts`).
+    default `withheld`, lowercase since it follows a name (`react/labels.ts`).
   - **`Bars` and `HBars` hold no state and no hook:** they render without a client boundary.
 
 ## Widgets: `.wgrid`, `.wtile`, `.wstack`, `.wgal` (1.6.0)

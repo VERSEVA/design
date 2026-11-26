@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { cx } from './cx';
-import { VIZ_LABELS, type VizLabels } from './viz-state';
+import { VIZ_LABELS, type VizLabels } from './labels';
 
 /**
  * The chart kit, synthesized from the portfolio's shipped viz. Doctrine in
@@ -17,7 +17,7 @@ import { VIZ_LABELS, type VizLabels } from './viz-state';
  * the plot, so the hatch never stretches with it; all nulls is one full band). A suppressed
  * bar is a privacy floor: its value is never read, so it cannot reach a bar
  * length, the scale, a title or any attribute. The word for withheld is
- * copy: `vizLabels` overrides it (defaults in viz-state.ts).
+ * copy: `vizLabels` overrides it (defaults in labels.ts).
  */
 
 declare const process: { env: { NODE_ENV?: string } };
