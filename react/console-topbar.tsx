@@ -4,6 +4,7 @@ import { Menu } from './menu';
 import type { MenuItemDef } from './menu';
 import { badgeCount, displayVersion, isSearchShortcut, safeHref, shortcutLabel, unreadCount, withDefaults } from './console-state';
 import { cx } from './cx';
+import { CONSOLE_TOPBAR_LABELS } from './console-state';
 
 export interface Crumb { label: string; href?: string }
 
@@ -49,20 +50,7 @@ export interface ConsoleTopbarProps {
   className?: string;
 }
 
-export const CONSOLE_TOPBAR_LABELS = {
-  breadcrumb: 'Breadcrumb',
-  notifications: 'Notifications',
-  notificationsUnread: (n: number) => `Notifications, ${n} unread`,
-  markAllRead: 'Mark all read',
-  noNotifications: 'No notifications',
-  viewAll: 'View all',
-  loading: 'Loading',
-  unread: 'Unread',
-  retry: 'Try again',
-  guides: 'Guides',
-  guidesUnread: "Guides, What's new unread",
-  whatsNew: "What's new",
-};
+export { CONSOLE_TOPBAR_LABELS };
 export type ConsoleTopbarLabels = typeof CONSOLE_TOPBAR_LABELS;
 
 /** True while an aria-modal dialog (What's new or any app modal) is open: page shortcuts stand down. */

@@ -111,6 +111,8 @@ full working page with its css hrefs pointed at `node_modules`. The registry is
 `registry.json` in this package; every listed file ships in the tarball.
 
 Experimental: the same parts import straight from the package, `import { Sparkline } from '@verseva/design/react/viz'`. It is raw `.tsx` source, so your bundler transpiles it (in Next.js, add the package to `transpilePackages`), and prop shapes may change in a minor release until the export is declared stable.
+The source is type-checked under your compiler flags: it is clean under default `strict`, and `noUncheckedIndexedAccess` currently reports errors in `viz` and the widget files.
+In a server component, import default labels and limits from the pure modules (`command-state`, `console-state`, `widget-state`, `labels`), not from the client file that re-exports them.
 
 `add` also takes `@namespace/item` (mapped in `verseva.json` under `registries`),
 full URLs, and local `.json` item files, and `npx verseva build` flattens YOUR

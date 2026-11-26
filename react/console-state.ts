@@ -246,3 +246,42 @@ export function withDefaults<T extends object>(defaults: T, overrides?: Partial<
   }
   return out;
 }
+
+/* The console parts' built-in words. Pure data, so server code can read and spread them. */
+export const CONSOLE_TOPBAR_LABELS = {
+  breadcrumb: 'Breadcrumb',
+  notifications: 'Notifications',
+  notificationsUnread: (n: number) => `Notifications, ${n} unread`,
+  markAllRead: 'Mark all read',
+  noNotifications: 'No notifications',
+  viewAll: 'View all',
+  loading: 'Loading',
+  unread: 'Unread',
+  retry: 'Try again',
+  guides: 'Guides',
+  guidesUnread: "Guides, What's new unread",
+  whatsNew: "What's new",
+};
+
+export const WHATS_NEW_LABELS = {
+  close: 'Close',
+  body: 'Release notes',
+  empty: 'No release notes',
+  loading: 'Loading',
+  retry: 'Try again',
+  /** Change kind words; kindLabel's English when absent. */
+  kinds: {} as Partial<Record<ChangeKind, string>>,
+};
+
+export const PLATFORM_MARK_LABELS = { action: "What's new" };
+
+export const ORG_SWITCHER_LABELS = {
+  menu: 'Organizations',
+  settings: 'Organization settings',
+  members: 'Members and roles',
+  billing: 'Billing',
+  invite: 'Invite people',
+  create: 'New organization',
+};
+
+export const ACCOUNT_CAPSULE_LABELS = { menu: 'Account', profile: 'Profile', appearance: 'Appearance', signOut: 'Sign out' };

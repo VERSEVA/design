@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Menu } from './menu';
 import type { MenuItemDef } from './menu';
 import { initials, safeHref, withDefaults } from './console-state';
+import { ACCOUNT_CAPSULE_LABELS } from './console-state';
 
 export interface AccountUser {
   name: string;
@@ -30,7 +31,7 @@ export interface AccountCapsuleProps {
   className?: string;
 }
 
-export const ACCOUNT_CAPSULE_LABELS = { menu: 'Account', profile: 'Profile', appearance: 'Appearance', signOut: 'Sign out' };
+export { ACCOUNT_CAPSULE_LABELS };
 export type AccountCapsuleLabels = typeof ACCOUNT_CAPSULE_LABELS;
 
 const icon = (d: React.ReactNode) => (
