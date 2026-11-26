@@ -163,25 +163,56 @@ test('/widgets at 1100px: beside its rail the Container specimen shows 2 columns
   assert.equal(grids.find((g) => g.name === 'Revenue sizes').cols, 4);
 });
 
-/* A React grid in default mode, put in a shrink-to-fit parent on the live page, keeps its width. */
-test('/widgets: a default-mode React grid is the direct child of its parent and survives a shrink-to-fit parent', { timeout: 60000 }, async () => {
+/* The same four cases on a live React grid in default mode (/widgets, Revenue sizes, 1280px): the
+   grid is moved into a consumer-style parent and styled by class, as a consumer would. With a
+   wrapper between the parent and .wgrid each of these fails. */
+const LIVE = (kind) => `(async () => {
+  await new Promise((r) => setTimeout(r, 900));
+  const g = document.querySelector('.wgrid[aria-label="Revenue sizes"]');
+  const root = g.parentElement.classList.contains('wgrid-wrap') ? g.parentElement : g;
+  const css = document.createElement('style');
+  css.textContent = '.gp{display:grid;grid-template-columns:232px 1fr}.gp > .wgrid{grid-column:1 / -1}.ib{display:inline-block}.ph{height:300px}.ph .wgrid{height:100%;overflow:auto}.st{height:3000px}.st .wgrid{position:sticky;top:0}';
+  document.head.append(css);
+  const box = document.createElement('div');
+  box.className = '${kind}';
+  root.replaceWith(box);
+  box.append(root);
+  if ('${kind}' === 'st') { const mark = document.createElement('div'); mark.style.cssText = 'position:absolute;height:1px;width:1px'; box.style.position = 'relative'; mark.style.top = '1200px'; box.append(mark); mark.scrollIntoView({ block: 'start' }); }
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const r = g.getBoundingClientRect(), q = box.getBoundingClientRect();
+  return JSON.stringify({ direct: root === g, w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top), boxW: Math.round(q.width), boxTop: Math.round(q.top), cols: getComputedStyle(g).gridTemplateColumns.split(' ').length });
+})()`;
+async function live(kind) {
   const page = await run.page({ width: 1280, height: 900, scheme: 'light' });
   await page.goto('/widgets');
-  const r = JSON.parse(await page.evaluate(`(async () => {
-    await new Promise((r) => setTimeout(r, 900));
-    const g = document.querySelector('.wgrid[aria-label="Revenue sizes"]');
-    const direct = !g.parentElement.classList.contains('wgrid-wrap');
-    const box = document.createElement('div');
-    box.style.display = 'inline-block';
-    g.replaceWith(box);
-    box.append(g);
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    return JSON.stringify({ direct, w: Math.round(g.getBoundingClientRect().width), cols: getComputedStyle(g).gridTemplateColumns.split(' ').length });
-  })()`));
+  const r = JSON.parse(await page.evaluate(LIVE(kind)));
   await page.close();
   assert.ok(r.direct, 'the grid has a wrapper in default mode');
+  return r;
+}
+
+test('/widgets, live default-mode React grid: a parent rule places it across both tracks', { timeout: 60000 }, async () => {
+  const r = await live('gp');
+  assert.ok(r.boxW > 600, `the parent is ${r.boxW}px wide`);
+  assert.equal(r.w, r.boxW);
+  assert.equal(r.cols, 4);
+});
+
+test('/widgets, live default-mode React grid: a shrink-to-fit parent does not collapse it', { timeout: 60000 }, async () => {
+  const r = await live('ib');
   assert.ok(r.w > 400, `the grid is ${r.w}px wide`);
   assert.equal(r.cols, 4);
+});
+
+test('/widgets, live default-mode React grid: height:100% resolves against a 300px parent', { timeout: 60000 }, async () => {
+  const r = await live('ph');
+  assert.equal(r.h, 300);
+});
+
+test('/widgets, live default-mode React grid: position:sticky holds it while its parent scrolls away', { timeout: 60000 }, async () => {
+  const r = await live('st');
+  assert.ok(r.boxTop < -500, `the parent scrolled to ${r.boxTop}px`);
+  assert.ok(r.top >= 0, `the grid is at ${r.top}px`);
 });
 
 test('the home hero is in default mode: 4 columns at a 1400px viewport, as on staging', { timeout: 60000 }, async () => {
