@@ -34,6 +34,7 @@
 .wx-xl > .wtile-rows { align-content: start; }
 /* Container specimen: a 232px rail beside a grid in container mode. */
 .wx-beside { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: var(--s-5); align-items: start; }
+.wx-main { min-width: 0; }
 .wx-rail { display: grid; gap: var(--s-1); margin: 0; padding: var(--s-3); border-radius: var(--r-lg); list-style: none; }
 .wx-rail li { display: flex; align-items: center; gap: var(--s-2); min-height: 44px; padding: 0 var(--s-3); color: var(--text-2); font-size: .875rem; }
 .wx-rail svg { width: 18px; height: 18px; }

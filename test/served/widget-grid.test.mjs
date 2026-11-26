@@ -223,6 +223,79 @@ test('the home hero is in default mode: 4 columns at a 1400px viewport, as on st
   assert.deepEqual(hero.tiles, [['l', 290.67], ['m', 290.67], ['m', 290.67]]);
 });
 
+/* The Container specimen on /widgets, a React grid in container mode holding one XL tile, with its
+   wrapper held at each width on a 1000px viewport. The React part writes the fitted size, so the
+   XL tile reads xl in 4 columns, l in 2 and m in 1: its size must follow the columns the CSS shows. */
+const HOLD = (widths) => `(async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  await sleep(900);
+  const g = document.querySelector('.wgrid[aria-label="Container widgets"]');
+  const out = [];
+  for (const w of ${JSON.stringify(widths)}) {
+    g.parentElement.style.width = w + 'px';
+    await sleep(250);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    out.push({ w, wrap: g.parentElement.className, cols: getComputedStyle(g).gridTemplateColumns.split(' ').length, size: g.querySelector('.wtile[data-id="ct-revenue"]').dataset.size, sizes: [...g.querySelectorAll(':scope > .wtile')].map((t) => t.dataset.size) });
+  }
+  return JSON.stringify(out);
+})()`;
+
+test('/widgets, live container-mode React grid: tile sizes follow the CSS columns at 768, 688, 687, 560 and 559px (1000px viewport)', { timeout: 60000 }, async () => {
+  const page = await run.page({ width: 1000, height: 900, scheme: 'light' });
+  await page.goto('/widgets');
+  const rows = JSON.parse(await page.evaluate(HOLD([768, 688, 687, 560, 559, 688])));
+  await page.close();
+  const fitted = { 4: 'xl', 2: 'l', 1: 'm' };
+  for (const r of rows) {
+    assert.equal(r.wrap, 'wgrid-wrap');
+    assert.equal(r.cols, containerColumns(r.w), `${r.w}px`);
+    assert.equal(r.size, fitted[r.cols], `${r.w}px: the XL tile reads ${r.size} in ${r.cols} columns`);
+    if (r.cols < 2) assert.ok(!r.sizes.includes('l'), `${r.w}px: L view in 1 column`);
+  }
+});
+
+/* Edit mode on that grid at a 688px wrapper: Revenue, set to small, is 160px wide with four sizes. */
+const LIVE_PILL = `(async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  await sleep(900);
+  const g = document.querySelector('.wgrid[aria-label="Container widgets"]');
+  g.parentElement.style.width = '688px';
+  g.closest('.wx-main').querySelector('.wx-head .btn').click();
+  await sleep(500);
+  const t = () => g.querySelector('.wtile[data-id="ct-revenue"]');
+  t().querySelector('.wtile-sizes button').click();
+  await sleep(700);
+  const box = (el) => { const r = el.getBoundingClientRect(); return { l: Math.round(r.left), t: Math.round(r.top), r: Math.round(r.right), b: Math.round(r.bottom) }; };
+  return JSON.stringify({
+    editing: g.hasAttribute('data-editing'), size: t().dataset.size, cols: getComputedStyle(g).gridTemplateColumns.split(' ').length,
+    tile: box(t()), remove: box(t().querySelector('.wtile-x')), move: box(t().querySelector('.wtile-move')),
+    pill: box(t().querySelector('.wtile-sizes')), buttons: [...t().querySelectorAll('.wtile-sizes button')].map(box),
+  });
+})()`;
+
+function assertPill(r) {
+  assert.equal(r.cols, 4);
+  assert.equal(r.tile.r - r.tile.l, 160);
+  assert.equal(r.buttons.length, 4);
+  assert.equal(new Set(r.buttons.map((b) => b.t)).size, 2, 'two rows');
+  assert.equal(new Set(r.buttons.map((b) => b.l)).size, 2, 'two columns');
+  for (const part of [r.pill, r.move]) {
+    assert.ok(part.l >= r.tile.l && part.r <= r.tile.r && part.b <= r.tile.b, `inside the tile: ${JSON.stringify(part)} in ${JSON.stringify(r.tile)}`);
+    assert.ok(part.t >= r.remove.b, 'below the remove button');
+  }
+  assert.ok(r.move.r <= r.pill.l, 'Move sits beside the sizes');
+}
+
+test('/widgets, live container-mode React grid in edit mode at 688px: the 160px small tile holds its four-size pill 2 by 2', { timeout: 60000 }, async () => {
+  const page = await run.page({ width: 1000, height: 900, scheme: 'light', reducedMotion: true });
+  await page.goto('/widgets');
+  const r = JSON.parse(await page.evaluate(LIVE_PILL));
+  await page.close();
+  assert.ok(r.editing, 'the grid is not in edit mode');
+  assert.equal(r.size, 's');
+  assertPill(r);
+});
+
 /* Edit mode in container mode at a 688px wrapper and a 1000px viewport: the small tile is 160px wide. */
 const PILL = `(() => {
   const box = (el) => { const r = el.getBoundingClientRect(); return { l: Math.round(r.left), t: Math.round(r.top), r: Math.round(r.right), b: Math.round(r.bottom) }; };
@@ -239,14 +312,5 @@ test('container mode, edit mode at a 688px wrapper: a 160px small tile holds its
   await page.goto('/__probe/editing-688');
   const r = JSON.parse(await page.evaluate(PILL));
   await page.close();
-  assert.equal(r.cols, 4);
-  assert.equal(r.tile.r - r.tile.l, 160);
-  assert.equal(r.buttons.length, 4);
-  assert.equal(new Set(r.buttons.map((b) => b.t)).size, 2, 'two rows');
-  assert.equal(new Set(r.buttons.map((b) => b.l)).size, 2, 'two columns');
-  for (const part of [r.pill, r.move]) {
-    assert.ok(part.l >= r.tile.l && part.r <= r.tile.r && part.b <= r.tile.b, `inside the tile: ${JSON.stringify(part)} in ${JSON.stringify(r.tile)}`);
-    assert.ok(part.t >= r.remove.b, 'below the remove button');
-  }
-  assert.ok(r.move.r <= r.pill.l, 'Move sits beside the sizes');
+  assertPill(r);
 });

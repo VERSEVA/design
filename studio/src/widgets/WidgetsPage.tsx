@@ -298,7 +298,7 @@ function HomeSpecimen() {
 }
 
 const BESIDE: LayoutItem[] = [
-  { id: 'ct-revenue', kind: 'revenue', size: 'm' },
+  { id: 'ct-revenue', kind: 'revenue', size: 'xl' },
   { id: 'ct-tasks', kind: 'tasks', size: 's' },
   { id: 'ct-runway', kind: 'runway', size: 's' },
   { id: 'ct-pipeline', kind: 'pipeline', size: 'm' },
@@ -307,12 +307,22 @@ const BESIDE: LayoutItem[] = [
 
 /** Container mode beside a 232px rail: the grid counts columns from the room it has. */
 function ContainerSpecimen() {
+  const [editing, setEditing] = React.useState(false);
+  const editRef = React.useRef<HTMLButtonElement>(null);
   return (
     <div className="wx-beside">
       <ul className="wx-rail glass" aria-label="Console sections">
         {NAV.map((t) => <li key={t.label}>{t.icon}{t.label}</li>)}
       </ul>
-      <WidgetGrid container definitions={DEFINITIONS} defaultLayout={BESIDE} storageKey={null} longPress={0} labels={{ region: 'Container widgets' }} />
+      <div className="wx-main">
+        <div className="wx-head">
+          <b>Home</b>
+          <button type="button" ref={editRef} className="btn btn-secondary sm" aria-pressed={editing} onClick={() => setEditing((e) => !e)}>
+            {I.edit}<span>{editing ? 'Done' : 'Edit'}</span>
+          </button>
+        </div>
+        <WidgetGrid container definitions={DEFINITIONS} defaultLayout={BESIDE} editing={editing} onEditingChange={setEditing} toggleRef={editRef} storageKey={null} longPress={0} labels={{ region: 'Container widgets' }} />
+      </div>
     </div>
   );
 }
