@@ -61,17 +61,26 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
   if (seen !== isSet) {
     setSeen(isSet);
     setSaved(false);
+    /* A value stored from elsewhere does not take what the user is typing: edit mode holds. */
+    if (isSet && filled) setReplacing(true);
   }
 
+  const focusNext = React.useRef<'input' | 'replace' | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
-  /* Whenever the input leaves the page (saved, cancelled, unmounted) it leaves empty. */
+  /* Whenever the input leaves the page (saved, cancelled, unmounted) it leaves empty, the
+     has-text flag and the error go with it, and focus it was holding goes to Replace. */
   const attachInput = React.useCallback((node: HTMLInputElement | null) => {
-    if (!node && inputRef.current) inputRef.current.value = '';
+    const gone = node ? null : inputRef.current;
+    if (gone) {
+      if (document.activeElement === gone) focusNext.current = 'replace';
+      gone.value = '';
+      setFilled(false);
+      setError(null);
+    }
     inputRef.current = node;
   }, []);
   const saveRef = React.useRef<HTMLButtonElement>(null);
   const replaceRef = React.useRef<HTMLButtonElement>(null);
-  const focusNext = React.useRef<'input' | 'replace' | null>(null);
   const mounted = React.useRef(false);
 
   const stored = isSet || saved;

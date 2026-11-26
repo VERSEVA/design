@@ -212,6 +212,43 @@ describe('SecretField: the value is gone after save', () => {
     expect(document.activeElement).toBe(button('Replace'));
   });
 
+  it('keeps what the user is typing when the host reports a stored value from elsewhere', () => {
+    const view = (isSet: boolean) => <SecretField label="Access token" isSet={isSet} onSave={() => Promise.resolve()} />;
+    const { container, rerender } = render(view(false));
+    const typed = input(container)!;
+    typed.focus();
+    type(typed, SECRET);
+    rerender(view(true));
+    expect(input(container)).toBe(typed);
+    expect(typed.value).toBe(SECRET);
+    expect(document.activeElement).toBe(typed);
+    expect(container.querySelector('.badge')!.textContent).toBe('Set');
+    expect((button('Save') as HTMLButtonElement).disabled).toBe(false);
+    expectNowhere(container, typed);
+    fireEvent.click(button('Cancel'));
+    expect(typed.value).toBe('');
+    expect(document.activeElement).toBe(button('Replace'));
+    fireEvent.click(button('Replace'));
+    expect((button('Save') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('moves focus to Replace when a stored value arrives while the empty input has focus', () => {
+    const view = (isSet: boolean) => <SecretField label="Access token" isSet={isSet} onSave={() => Promise.resolve()} />;
+    const { container, rerender } = render(view(false));
+    input(container)!.focus();
+    rerender(view(true));
+    expect(input(container)).toBeNull();
+    expect(document.activeElement).toBe(button('Replace'));
+  });
+
+  it('leaves focus alone when a stored value arrives and the field did not have it', () => {
+    const view = (isSet: boolean) => <><button type="button">Elsewhere</button><SecretField label="Access token" isSet={isSet} onSave={() => Promise.resolve()} /></>;
+    const { rerender } = render(view(false));
+    button('Elsewhere').focus();
+    rerender(view(true));
+    expect(document.activeElement).toBe(button('Elsewhere'));
+  });
+
   it('settles quietly when it unmounts mid-save', async () => {
     const spies = spyConsole();
     const d = deferred();
