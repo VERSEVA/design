@@ -16,7 +16,8 @@ describe('studio routes and the Vercel config', () => {
   });
 
   it('counts four gates, one per bin/*-gate.mjs check', () => {
-    const gates = fs.readdirSync(path.join(repo, 'bin')).filter((f) => /-gate\.mjs$/.test(f) && f !== 'verseva-gate.mjs');
+    /* recipe-gate.mjs is advisory and not part of the suite verseva-gate runs, so it is not one of the four. */
+    const gates = fs.readdirSync(path.join(repo, 'bin')).filter((f) => /-gate\.mjs$/.test(f) && f !== 'verseva-gate.mjs' && f !== 'recipe-gate.mjs');
     expect(gates.length).toBe(4);
   });
 });
