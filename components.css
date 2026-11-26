@@ -646,7 +646,7 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
    --s-1, whichever is larger, and never on it. HTML over the plot's frame, so the hatch keeps its angle
    however the svg stretches. An all-null chart also says the withheld word, centred in the plot. */
 .vizframe{display:block;position:relative;height:100%}
-.vizgap{position:absolute;top:max(var(--vizgap-top),calc(var(--vizgap-base) + var(--s-1)));height:var(--s-1);background:repeating-linear-gradient(135deg,var(--text-3) 0 2px,transparent 2px 5px);pointer-events:none}
+.vizgap{position:absolute;top:max(var(--vizband-top),calc(var(--vizband-base) + var(--s-1)));height:var(--s-1);background:repeating-linear-gradient(135deg,var(--text-3) 0 2px,transparent 2px 5px);pointer-events:none}
 .vizgap-word{position:absolute;inset:0;display:grid;place-items:center;font-size:11.5px;color:var(--text-2);pointer-events:none}
 
 /* ---- Console recipes (1.2.0, promoted from the Studio CRM) ---- */

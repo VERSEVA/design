@@ -104,7 +104,7 @@ const gapBands = (series: readonly (readonly (Pt | null)[])[], w: number, h: num
   }
   return merged.map(([x1, x2]) => (
     <i key={x1} className="vizgap" aria-hidden="true"
-      style={{ left: `${(x1 / w) * 100}%`, width: `${((x2 - x1) / w) * 100}%`, '--vizgap-base': `${(base / h) * 100}%`, '--vizgap-top': `${((base + BAND_GAP) / h) * 100}%` } as React.CSSProperties} />
+      style={{ left: `${(x1 / w) * 100}%`, width: `${((x2 - x1) / w) * 100}%`, '--vizband-base': `${(base / h) * 100}%`, '--vizband-top': `${((base + BAND_GAP) / h) * 100}%` } as React.CSSProperties} />
   ));
 };
 

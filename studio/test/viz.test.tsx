@@ -371,7 +371,7 @@ const bandEls = (root: Element) => [...root.querySelectorAll<HTMLElement>('i.viz
 /* [x, width, y] in viewBox units, from the percentages the band is positioned with (W x H is the viewBox).
    y is 2 units below the baseline, in the plot's own units, so the clearance grows with the stroke when a plot is drawn large. */
 const gapBands = (root: Element, W: number, H: number) =>
-  bandEls(root).map((b) => [round((parseFloat(b.style.left) * W) / 100), round((parseFloat(b.style.width) * W) / 100), round((parseFloat(b.style.getPropertyValue('--vizgap-top')) * H) / 100)]);
+  bandEls(root).map((b) => [round((parseFloat(b.style.left) * W) / 100), round((parseFloat(b.style.width) * W) / 100), round((parseFloat(b.style.getPropertyValue('--vizband-top')) * H) / 100)]);
 const SPARK = [140, 40] as const;
 const PLOT = [320, 140] as const;
 
@@ -465,8 +465,8 @@ describe('Sparkline: null gaps', () => {
 
   it('holds the band clear of the baseline by 2 plot units or --s-1, whichever is larger (CSS takes the max)', () => {
     const band = bandEls(render(<Sparkline values={[2, null, 4]} />).container)[0];
-    expect(band.style.getPropertyValue('--vizgap-base')).toBe('75%');
-    expect(band.style.getPropertyValue('--vizgap-top')).toBe('80%');
+    expect(band.style.getPropertyValue('--vizband-base')).toBe('75%');
+    expect(band.style.getPropertyValue('--vizband-top')).toBe('80%');
     expect(band.style.top).toBe('');
   });
 

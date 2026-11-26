@@ -184,7 +184,7 @@ const WITHHELD = `(async () => {
     if (cs.backgroundImage !== stubHatch) out.bad.push('gap band hatch is not the bar stub hatch');
     if (cs.height !== px('var(--s-1)')) out.bad.push('gap band is ' + cs.height + ' tall, not --s-1');
     /* clear of the zero baseline by at least --s-1: the baseline is the custom property the band carries */
-    const baseY = plot.top + (plot.height * parseFloat(el.style.getPropertyValue('--vizgap-base'))) / 100;
+    const baseY = plot.top + (plot.height * parseFloat(el.style.getPropertyValue('--vizband-base'))) / 100;
     r.clear = box.top - baseY;
     if (r.clear < parseFloat(px('var(--s-1)')) - 0.5) out.bad.push('gap band is ' + r.clear.toFixed(1) + 'px under the baseline, less than --s-1');
     if (el.closest('svg')) out.bad.push('gap band is inside the stretched svg');
