@@ -7,7 +7,9 @@ import { render, fireEvent } from '@testing-library/react';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as React from 'react';
-import { BoundedSection, boundedCap, BOUNDED_CAP, type BoundedSectionProps } from '../../react/bounded-section';
+import { BoundedSection, type BoundedSectionProps } from '../../react/bounded-section';
+import * as Part from '../../react/bounded-section';
+import { boundedCap, BOUNDED_CAP } from '../../react/bounded-state';
 
 const quotes = (n: number) => Array.from({ length: n }, (_, i) => `Q-${2081 - i}`);
 const EMPTY = <div className="empty"><b>No quotes yet</b></div>;
@@ -176,6 +178,10 @@ describe('BoundedSection', () => {
     rerender(tree(['c', 'b', 'a']));
     expect(container.querySelector('[data-q="a"] input')).toBe(input);
     expect([...container.querySelectorAll<HTMLElement>('.lrow')].map((r) => r.dataset.q)).toEqual(['c', 'b', 'a']);
+  });
+
+  it('still re-exports the limits from the client file, the same values as the pure module', () => {
+    expect([Part.BOUNDED_CAP, Part.boundedCap]).toEqual([BOUNDED_CAP, boundedCap]);
   });
 
   it("starts with 'use client': it attaches a handler", () => {
