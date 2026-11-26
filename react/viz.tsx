@@ -27,7 +27,7 @@ type Pt = readonly [number, number];
 /** A value the chart can draw. Null, undefined, NaN and the infinities are gaps. */
 const known = (v: number | null | undefined): v is number => typeof v === 'number' && Number.isFinite(v);
 
-/** The gap band: 2 below the zero baseline and `--s-1` tall, so a chart with a gap keeps this much room under its plot. */
+/** The gap band: 2 plot units below the zero baseline (it scales with the stroke, so a large plot keeps the clearance) and `--s-1` tall; a chart with a gap keeps this much room under its plot. */
 const BAND_GAP = 2;
 const BAND = 4;
 /** A series that draws a band: any gap at all. All gaps is one band across the plot; an empty array is not a gap. */
@@ -102,7 +102,7 @@ const gapBands = (series: readonly (readonly (Pt | null)[])[], w: number, h: num
   }
   return merged.map(([x1, x2]) => (
     <i key={x1} className="vizgap" aria-hidden="true"
-      style={{ left: `${(x1 / w) * 100}%`, width: `${((x2 - x1) / w) * 100}%`, top: `${(base / h) * 100}%` }} />
+      style={{ left: `${(x1 / w) * 100}%`, width: `${((x2 - x1) / w) * 100}%`, top: `${((base + BAND_GAP) / h) * 100}%` }} />
   ));
 };
 

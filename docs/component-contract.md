@@ -566,8 +566,8 @@ color-alone).
     value and the `title`; the bar still draws from the real value and counts toward the scale.
   - **Gap (`LineChart` series, `Sparkline`: `null`).** The line breaks at a null and resumes after
     it; the area fill breaks with it. No point is drawn there, it is never interpolated across, and
-    it is left out of the scale. A hatched band marks the gap: `.vizgap`, `--s-1` tall, 2px BELOW
-    the zero baseline and never on it, the stub's own 135deg `--text-3` hatch. It is HTML over the
+    it is left out of the scale. A hatched band marks the gap: `.vizgap`, `--s-1` tall, 2 plot units BELOW
+    the zero baseline (2px at the plot's drawn size, more when it is drawn larger) and never on it, the stub's own 135deg `--text-3` hatch. It is HTML over the
     plot (`.vizframe`), not part of the stretched svg, so the hatch keeps its angle; it is
     `aria-hidden` and carries no value. Its place and width come only from which indices are null:
     the null indices and half a step either side, never narrower than one step. Bands mark an
