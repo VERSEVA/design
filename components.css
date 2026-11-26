@@ -112,6 +112,33 @@
   .pin thead th,.pin .pin-head{top:0}
 }
 
+/* ---- Bounded section (contract: no section's height grows with its data) ----
+   .bounded wraps a list, feed or table; .bounded-rows marks the element whose children are
+   the rows (.lrows, a tbody, an ol). Rows past the cap are dropped here, whatever the host
+   sends: 5 by default, data-cap="1" to "12" per instance, and any other value falls back
+   to 5, so no value leaves a section unbounded. The foot holds the count (.bounded-more,
+   only above the cap) and the Show all action (.bounded-all, a neutral .btn). No motion. */
+.bounded{min-width:0}
+.bounded-name{margin:0 0 var(--s-3);font-size:.875rem;font-weight:600;color:var(--text-1)}
+.bounded:not([data-cap="6"],[data-cap="7"],[data-cap="8"],[data-cap="9"],[data-cap="10"],[data-cap="11"],[data-cap="12"]) .bounded-rows>:nth-child(n+6),
+.bounded[data-cap="1"] .bounded-rows>:nth-child(n+2),
+.bounded[data-cap="2"] .bounded-rows>:nth-child(n+3),
+.bounded[data-cap="3"] .bounded-rows>:nth-child(n+4),
+.bounded[data-cap="4"] .bounded-rows>:nth-child(n+5),
+.bounded[data-cap="6"] .bounded-rows>:nth-child(n+7),
+.bounded[data-cap="7"] .bounded-rows>:nth-child(n+8),
+.bounded[data-cap="8"] .bounded-rows>:nth-child(n+9),
+.bounded[data-cap="9"] .bounded-rows>:nth-child(n+10),
+.bounded[data-cap="10"] .bounded-rows>:nth-child(n+11),
+.bounded[data-cap="11"] .bounded-rows>:nth-child(n+12),
+.bounded[data-cap="12"] .bounded-rows>:nth-child(n+13){display:none}
+/* dividers sit above each row, so the last row on screen ends the same at the cap and past it */
+.bounded-rows>.lrow{border-bottom:0}
+.bounded-rows>.lrow+.lrow{border-top:1px solid var(--hairline)}
+.bounded-foot{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);margin-top:var(--s-3)}
+.bounded-more{margin:0;font-size:.8125rem;color:var(--text-2)}
+.bounded-all{margin-left:auto}
+
 /* ---- Badge / status chip (always paired with text, never a dot alone) ---- */
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:500;letter-spacing:.01em;padding:3px 10px;border-radius:var(--r-pill)}
 .badge svg{width:10px;height:10px}

@@ -99,6 +99,37 @@ nothing. Pinning is decided per list when the list is built; a list that turns l
   `--sticky-bottom` is a floating bottom bar's height), and the header pins to the box's top.
   Use `.pin.box` for any list that can outgrow its column on a desktop.
 
+## Bounded section: `.bounded` (every list, feed and table in a section)
+
+**A section never grows with its data** (owner ruling 2026-11-12). A list, feed or table that
+sits in a section of a page shows at most its cap of rows, a count of the rest, and a Show all
+action that opens the scoped view (the full list on its own page, drawer or sheet, where `.pin`
+applies). The section is the same height at 5 rows and at 5,000. The scoped view itself is not
+bounded: it is the place the rows live.
+
+- **Default cap: 5.** Override per instance with `data-cap="1"` to `data-cap="12"` on the
+  wrapper. Any other value falls back to 5, so no value leaves a section unbounded.
+- **Mechanism:** `.bounded` on the section; `.bounded-rows` on the element whose children are
+  the rows (`.lrows`, a `tbody`, an `ol`). The CSS drops every row past the cap, whatever the
+  host sends, so a host that forgets to slice still holds its height. Send only the first page
+  anyway: dropped rows are still downloaded.
+- **Foot:** `.bounded-foot` holds the count and the action on one line, and is present whenever
+  the section has rows, so the height is the same at the cap and past it.
+  - **Count:** `.bounded-more`, reading "+N more", only when there are more rows than the cap.
+    Quiet body text on `--text-2`: never mono, never uppercase, never the accent. It carries
+    `role="status"`, so a change in the count is announced.
+  - **Action:** `.bounded-all` on a neutral `.btn.btn-secondary.sm` reading "Show all", a link
+    or a button the host wires. Its accessible name includes the section name
+    (`aria-label="Show all Quotes"`). The accent is not spent here.
+- **Name:** `.bounded-name` on the section's heading; the section is `aria-labelledby` it.
+- **States:** empty = the states trio's empty block in place of the rows, no foot; fewer than
+  the cap = the rows and the action, no count; exactly the cap = the same; more than the cap =
+  the cap, the count and the action. Loading = `.skel` rows, at most the cap.
+- **Motion:** none. Rows do not animate in or out of a bounded section.
+- **React:** `BoundedSection` (`npx verseva add bounded-section`) slices to the cap, counts from
+  `total` when the host holds only the first page, and renders a link with `href` or a button
+  with `onShowAll`. Charts are bounded by their own contract, not this part.
+
 ## Badge: `.badge` · Toast: `.toast` · Modal: `.modal`
 
 Badge: caption type, tinted fg/bg pairs, always with text. Toast: `--surface-2` + `--e-2`,

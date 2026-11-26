@@ -6,6 +6,8 @@
 
 - **`--exclude <dir>` on the gate suite.** `verseva-gate` and the hex, spacing and type gates take a repeatable `--exclude <dir>` that skips the directory of that name directly under a scan path. Top level only: the same name deeper in the tree is still scanned, and nothing is excluded unless the flag is passed. This repo passes `--exclude swift` so the coming Swift package's sources stay out of the web gates.
 
+- **Bounded section: `.bounded`.** A section never grows with its data (owner ruling 2026-11-12). `.bounded` on a section and `.bounded-rows` on its rows element cap the rows on screen at 5, or at `data-cap="1"` to `"12"` per instance; any other value falls back to 5. The foot (`.bounded-foot`) holds a quiet "+N more" count (`.bounded-more`, only above the cap, announced) and a neutral Show all action (`.bounded-all`) named with its section. New contract section, the `BoundedSection` React part (`verseva add bounded-section`), and the `#bounded` specimen on Components with all four states. A served test holds the height at the cap equal to the height at the cap plus 40, in dark and light.
+
 ### Fixed
 
 - **The studio side nav sits flush against the window's left edge.** The shell centred everything at 1440px, so on wide screens the nav, expanded or as the rail, floated in from the left. The body is now full bleed; only the content column is capped (1208px) and centred. A served test checks the nav's left edge at 1920 on `/` and `/components`, in both states.
