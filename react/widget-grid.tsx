@@ -37,7 +37,10 @@ export interface WidgetStatus { loading?: boolean; error?: string; disabled?: bo
 
 export type { WidgetGridLabels } from './widget-state';
 
-export { WIDGET_GRID_LABELS };
+export {
+  /** @deprecated Import from './widget-state'. Read from this client file, a server component gets a client reference, not the values. */
+  WIDGET_GRID_LABELS,
+};
 
 export interface WidgetGridProps {
   definitions: readonly WidgetDefinition[];

@@ -11,7 +11,10 @@ export interface GalleryEntry { kind: string; name: string; icon?: React.ReactNo
 
 export type { WidgetGalleryLabels } from './widget-state';
 
-export { WIDGET_GALLERY_LABELS };
+export {
+  /** @deprecated Import from './widget-state'. Read from this client file, a server component gets a client reference, not the values. */
+  WIDGET_GALLERY_LABELS,
+};
 
 export interface WidgetGalleryProps {
   open: boolean;

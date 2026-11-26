@@ -31,7 +31,10 @@ export interface AccountCapsuleProps {
   className?: string;
 }
 
-export { ACCOUNT_CAPSULE_LABELS };
+export {
+  /** @deprecated Import from './console-state'. Read from this client file, a server component gets a client reference, not the values. */
+  ACCOUNT_CAPSULE_LABELS,
+};
 export type AccountCapsuleLabels = typeof ACCOUNT_CAPSULE_LABELS;
 
 const icon = (d: React.ReactNode) => (

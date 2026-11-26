@@ -36,7 +36,10 @@ export interface OrgSwitcherProps {
   className?: string;
 }
 
-export { ORG_SWITCHER_LABELS };
+export {
+  /** @deprecated Import from './console-state'. Read from this client file, a server component gets a client reference, not the values. */
+  ORG_SWITCHER_LABELS,
+};
 export type OrgSwitcherLabels = typeof ORG_SWITCHER_LABELS;
 
 const icon = (d: React.ReactNode) => (

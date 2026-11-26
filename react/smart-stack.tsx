@@ -9,7 +9,11 @@ export interface StackPage { label: string; content: React.ReactNode }
 
 export type { SmartStackLabels } from './labels';
 
-export { SMART_STACK_LABELS, MAX_DOTS };
+export {
+  /** @deprecated Import from './labels'. Read from this client file, a server component gets a client reference, not the values. */
+  SMART_STACK_LABELS,
+  MAX_DOTS,
+};
 
 export interface SmartStackProps {
   pages: readonly StackPage[];
