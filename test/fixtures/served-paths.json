@@ -135,6 +135,7 @@
     "/react/cx.ts": "file",
     "/react/field.tsx": "file",
     "/react/inert.ts": "file",
+    "/react/labels.ts": "file",
     "/react/live-activity.tsx": "file",
     "/react/menu.tsx": "file",
     "/react/modal.tsx": "file",

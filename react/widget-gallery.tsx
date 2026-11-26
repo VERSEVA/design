@@ -1,27 +1,17 @@
 'use client';
 import * as React from 'react';
-import { SIZE_LABEL, sizeOptions } from './widget-state';
+import { sizeOptions } from './widget-state';
 import type { Columns, WidgetSize } from './widget-state';
 import { cx } from './cx';
+import type { WidgetGalleryLabels } from './widget-state';
+import { WIDGET_GALLERY_LABELS } from './widget-state';
 
 /** What the gallery lists: one row per widget kind. WidgetDefinition satisfies it. */
 export interface GalleryEntry { kind: string; name: string; icon?: React.ReactNode; sizes: readonly WidgetSize[] }
 
-export interface WidgetGalleryLabels {
-  title: string;
-  close: string;
-  /** Group name for a kind's add buttons. */
-  addKind: (name: string) => string;
-  /** One add button. */
-  addSize: (name: string, size: WidgetSize) => string;
-}
+export type { WidgetGalleryLabels } from './widget-state';
 
-export const WIDGET_GALLERY_LABELS: WidgetGalleryLabels = {
-  title: 'Add widget',
-  close: 'Close',
-  addKind: (name) => `Add ${name}`,
-  addSize: (name, size) => `Add ${name}, ${SIZE_LABEL[size]}`,
-};
+export { WIDGET_GALLERY_LABELS };
 
 export interface WidgetGalleryProps {
   open: boolean;

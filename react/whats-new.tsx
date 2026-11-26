@@ -6,6 +6,7 @@ import {
 } from './console-state';
 import type { ChangeKind, Release, ReleaseChange } from './console-state';
 import { cx } from './cx';
+import { WHATS_NEW_LABELS, PLATFORM_MARK_LABELS } from './console-state';
 
 export type { ChangeKind, Release, ReleaseChange };
 
@@ -42,17 +43,9 @@ export interface WhatsNewProps {
 
 export interface PlatformMarkProps { platform: Platform; onOpen: () => void; labels?: Partial<PlatformMarkLabels>; className?: string }
 
-export const WHATS_NEW_LABELS = {
-  close: 'Close',
-  body: 'Release notes',
-  empty: 'No release notes',
-  loading: 'Loading',
-  retry: 'Try again',
-  /** Change kind words; kindLabel's English when absent. */
-  kinds: {} as Partial<Record<ChangeKind, string>>,
-};
+export { WHATS_NEW_LABELS };
 export type WhatsNewLabels = typeof WHATS_NEW_LABELS;
-export const PLATFORM_MARK_LABELS = { action: "What's new" };
+export { PLATFORM_MARK_LABELS };
 export type PlatformMarkLabels = typeof PLATFORM_MARK_LABELS;
 
 /**

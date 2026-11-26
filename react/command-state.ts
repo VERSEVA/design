@@ -118,3 +118,26 @@ export function firstSelectable(options: ReadonlyArray<{ disabled?: boolean }>):
 export function isAsyncIterable(x: unknown): x is AsyncIterable<string> {
   return typeof x === 'object' && x !== null && typeof (x as { [Symbol.asyncIterator]?: unknown })[Symbol.asyncIterator] === 'function';
 }
+
+/** The command bar's built-in words. Pure data, so server code can read and spread it. */
+export const COMMAND_BAR_LABELS = {
+  dialog: 'Command bar',
+  input: 'Search, run, or ask',
+  placeholder: 'Search, run, or ask',
+  results: 'Commands',
+  count: (n: number) => (n === 1 ? '1 result' : `${n} results`),
+  ask: (q: string) => `Ask “${q}”`,
+  askMode: 'Ask',
+  noResults: 'No results',
+  answer: 'Answer',
+  thinking: 'Thinking',
+  askFailed: 'The answer did not load.',
+  retry: 'Retry',
+  pin: 'Pin to Home',
+  again: 'Ask another',
+  move: 'move',
+  run: 'run',
+  askKey: 'ask',
+  close: 'close',
+  closeButton: 'Close',
+};

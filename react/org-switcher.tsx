@@ -4,6 +4,7 @@ import { Menu } from './menu';
 import type { MenuItemDef } from './menu';
 import { initials, withDefaults } from './console-state';
 import { cx } from './cx';
+import { ORG_SWITCHER_LABELS } from './console-state';
 
 export interface Org {
   id: string;
@@ -35,14 +36,7 @@ export interface OrgSwitcherProps {
   className?: string;
 }
 
-export const ORG_SWITCHER_LABELS = {
-  menu: 'Organizations',
-  settings: 'Organization settings',
-  members: 'Members and roles',
-  billing: 'Billing',
-  invite: 'Invite people',
-  create: 'New organization',
-};
+export { ORG_SWITCHER_LABELS };
 export type OrgSwitcherLabels = typeof ORG_SWITCHER_LABELS;
 
 const icon = (d: React.ReactNode) => (
