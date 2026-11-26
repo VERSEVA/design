@@ -8,24 +8,50 @@ import { cx } from './cx';
  * (--data-alt, dashed as its secondary encoding), deltas colored by
  * MEANING, hover as the default layer on plots. All colors are CSS vars;
  * no hex ever enters this file.
+ *
+ * Withheld data (1.7.1). A null in a line is a gap: the line and its area
+ * break there, no point is drawn, and it is never zero or bridged. A
+ * suppressed bar is a privacy floor: its value is never read, so it cannot
+ * reach a bar length, the scale, a title or any attribute.
  */
 
-const pts = (vals: number[], w: number, h: number, pad = 4, max?: number) => {
-  const top = max ?? Math.max(...vals, 1);
+type Pt = readonly [number, number];
+const known = (v: number | null | undefined): v is number => v != null;
+
+/** One slot per index, so a gap keeps its place on the x axis; a null has no point. */
+const pts = (vals: readonly (number | null)[], w: number, h: number, pad = 4, max?: number): (Pt | null)[] => {
+  const top = max ?? Math.max(...vals.filter(known), 1);
   const iw = w - pad * 2;
   const ih = h - pad * 2;
-  return vals.map((v, i) => [
+  return vals.map((v, i) => (known(v) ? [
     pad + (vals.length === 1 ? iw / 2 : (iw * i) / (vals.length - 1)),
     pad + ih * (1 - v / top),
-  ] as const);
+  ] as const : null));
 };
-const linePath = (p: readonly (readonly [number, number])[]) =>
+/** The unbroken runs of points between gaps. */
+const runs = (p: readonly (Pt | null)[]) => {
+  const out: Pt[][] = [];
+  let run: Pt[] | null = null;
+  for (const pt of p) {
+    if (!pt) { run = null; continue; }
+    if (!run) out.push((run = []));
+    run.push(pt);
+  }
+  return out;
+};
+const seg = (p: readonly Pt[]) =>
   p.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
-const areaPath = (p: readonly (readonly [number, number])[], h: number, pad = 4) =>
-  `M${p[0][0].toFixed(1)} ${h - pad} ${linePath(p).slice(1)} L${p[p.length - 1][0].toFixed(1)} ${h - pad} Z`;
+/** One subpath per run. A value alone between gaps gets a zero-length line, which the round cap draws as a dot. */
+const linePath = (p: readonly (Pt | null)[]) =>
+  runs(p).map((r) => (r.length === 1 && p.length > 1 ? `${seg(r)} L${r[0][0].toFixed(1)} ${r[0][1].toFixed(1)}` : seg(r))).join(' ');
+/** One closed subpath per run, so the fill stops at a gap; a run of one has no width to fill. */
+const areaPath = (p: readonly (Pt | null)[], h: number, pad = 4) =>
+  runs(p).filter((r) => r.length > 1 || p.length === 1)
+    .map((r) => `M${r[0][0].toFixed(1)} ${h - pad} ${seg(r).slice(1)} L${r[r.length - 1][0].toFixed(1)} ${h - pad} Z`).join(' ');
 
 export interface SparklineProps {
-  values: number[];
+  /** A null is a gap: the line breaks there and no point is drawn. */
+  values: (number | null)[];
   /** Fixed scale top; defaults to the series max. */
   max?: number;
   area?: boolean;
@@ -38,11 +64,12 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
   const W = 140;
   const H = 40;
   const p = pts(values, W, H, 4, max);
+  const any = p.some(Boolean);
   const last = p[p.length - 1];
   return (
     <span className={cx('spark', className)}>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-        {last && area && (
+        {any && area && (
           <>
             <defs>
               <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
@@ -53,12 +80,8 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
             <path d={areaPath(p, H)} fill={`url(#${id})`} />
           </>
         )}
-        {last && (
-          <>
-            <path d={linePath(p)} fill="none" stroke="var(--data-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx={last[0]} cy={last[1]} r="3" fill="var(--data-3)" />
-          </>
-        )}
+        {any && <path d={linePath(p)} fill="none" stroke="var(--data-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
+        {last && <circle cx={last[0]} cy={last[1]} r="3" fill="var(--data-3)" />}
       </svg>
     </span>
   );
@@ -66,7 +89,8 @@ export function Sparkline({ values, max, area = true, className }: SparklineProp
 
 export interface LineChartProps {
   labels: string[];
-  series: { name: string; values: number[] }[];
+  /** A null is a gap in that series: no line, no point, no hover value. */
+  series: { name: string; values: (number | null)[] }[];
   /** A dashed reference line (an average, a target) with its mono tag. */
   reference?: { value: number; label: string };
   height?: number;
@@ -85,10 +109,10 @@ export function LineChart({ labels, series, reference, height = 140, format = St
   const W = 320;
   const pad = 6;
   const shown = series.slice(0, 2);
-  const top = Math.max(...shown.flatMap((s) => s.values), reference?.value ?? 1);
+  const top = Math.max(...shown.flatMap((s) => s.values.filter(known)), reference?.value ?? 1);
   const [hover, setHover] = React.useState<number | null>(null);
   const all = shown.map((s) => pts(s.values, W, height, pad, top));
-  const hoverX = hover === null ? undefined : all.find((p) => p[hover])?.[hover][0];
+  const hoverX = hover === null ? undefined : all.find((p) => p[hover])?.[hover]?.[0];
   const refY = reference ? pad + (height - pad * 2) * (1 - reference.value / top) : 0;
 
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -104,9 +128,11 @@ export function LineChart({ labels, series, reference, height = 140, format = St
         aria-label={shown.map((s) => s.name).join(' vs ')}
         onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {reference && <line className="refline" x1={pad} y1={refY} x2={W - pad} y2={refY} />}
-        {all.map((p, si) => (
+        {all.map((p, si) => {
+          const last = p[p.length - 1];
+          return (
           <g key={shown[si].name}>
-            {p.length > 0 && <>
+            {p.some(Boolean) && <>
             {si === 0 && (
               <>
                 <defs>
@@ -122,22 +148,23 @@ export function LineChart({ labels, series, reference, height = 140, format = St
               stroke={si === 0 ? 'var(--data-3)' : 'var(--data-alt)'}
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
               strokeDasharray={si === 1 ? '5 4' : undefined} />
-            <circle cx={p[p.length - 1][0]} cy={p[p.length - 1][1]} r="3"
-              fill={si === 0 ? 'var(--data-3)' : 'var(--data-alt)'} />
+            {last && <circle cx={last[0]} cy={last[1]} r="3"
+              fill={si === 0 ? 'var(--data-3)' : 'var(--data-alt)'} />}
             </>}
           </g>
-        ))}
+          );
+        })}
         {hover !== null && (
           <g>
             {hoverX !== undefined && (
               <line x1={hoverX} y1={pad} x2={hoverX} y2={height - pad}
                 stroke="var(--text-3)" strokeWidth="1" opacity="0.5" />
             )}
-            {all.map((p, si) => p[hover] && (
-              <circle key={si} cx={p[hover][0]} cy={p[hover][1]} r="4"
+            {all.map((p, si) => { const h = p[hover]; return h && (
+              <circle key={si} cx={h[0]} cy={h[1]} r="4"
                 fill={si === 0 ? 'var(--data-3)' : 'var(--data-alt)'}
                 stroke="var(--surface)" strokeWidth="2" />
-            ))}
+            ); })}
           </g>
         )}
       </svg>
@@ -145,7 +172,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
       {hover !== null && (
         <div className="viztip" role="status">
           <b>{labels[hover]}</b>
-          {shown.map((s) => s.values[hover] !== undefined && <span key={s.name}>{s.name} {format(s.values[hover])}</span>)}
+          {shown.map((s) => { const v = s.values[hover]; return known(v) && <span key={s.name}>{s.name} {format(v)}</span>; })}
         </div>
       )}
       <div className="xlabels mt-2" aria-hidden="true">
@@ -162,8 +189,15 @@ export function LineChart({ labels, series, reference, height = 140, format = St
   );
 }
 
+/** What a withheld item prints when it carries no `display`. Never its value. */
+const WITHHELD = 'n/a';
+
 export interface BarsProps {
-  data: { label: string; value: number; level?: 0 | 1 | 2 | 3 }[];
+  /**
+   * `display` replaces the printed value. `suppressed` withholds the item: the empty track, `display`
+   * (or a placeholder) and nothing drawn from `value`, which also stays out of the scale.
+   */
+  data: { label: string; value: number; display?: string; suppressed?: boolean; level?: 0 | 1 | 2 | 3 }[];
   /** Prints each value on/above its mark, the portfolio default. */
   showValues?: boolean;
   height?: number;
@@ -172,40 +206,67 @@ export interface BarsProps {
 
 /** Vertical bars, numbers on the marks, no axis. */
 export function Bars({ data, showValues = true, height = 120, className }: BarsProps) {
-  const top = Math.max(...data.map((d) => d.value), 1);
+  const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   return (
     <div className={cx(className)}>
       <div className="bars" style={{ height }}>
-        {data.map((d) => (
-          <div className="bar" key={d.label} title={`${d.label}: ${d.value}`}>
-            {showValues && <span className="vlab">{d.value}</span>}
+        {data.map((d) => {
+          if (d.suppressed) {
+            const shown = d.display ?? WITHHELD;
+            return (
+              <div className="bar" key={d.label} title={`${d.label}: ${shown}`} data-suppressed="">
+                {showValues && <span className="vlab" data-display="">{shown}</span>}
+                <div className="vtrack" />
+                <span className="mlab">{d.label}</span>
+              </div>
+            );
+          }
+          const shown = d.display ?? d.value;
+          return (
+          <div className="bar" key={d.label} title={`${d.label}: ${shown}`}>
+            {showValues && <span className="vlab" data-display={d.display === undefined ? undefined : ''}>{shown}</span>}
             <div className="fill" style={{ height: `${(d.value / top) * 100}%`, background: d.level !== undefined ? `var(--data-${d.level})` : undefined }} />
             <span className="mlab">{d.label}</span>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 export interface HBarsProps {
-  data: { label: string; value: number; alt?: boolean }[];
+  /** `display` and `suppressed` as on `Bars`; `format` never sees a suppressed value. */
+  data: { label: string; value: number; display?: string; suppressed?: boolean; alt?: boolean }[];
   format?: (v: number) => string;
   className?: string;
 }
 
 /** Label / track / mono count rows: the axis-free distribution. */
 export function HBars({ data, format = String, className }: HBarsProps) {
-  const top = Math.max(...data.map((d) => d.value), 1);
+  const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   return (
     <div className={cx('hbars', className)}>
-      {data.map((d) => (
-        <div className="hbar" key={d.label} title={`${d.label}: ${format(d.value)}`}>
+      {data.map((d) => {
+        if (d.suppressed) {
+          const shown = d.display ?? WITHHELD;
+          return (
+            <div className="hbar" key={d.label} title={`${d.label}: ${shown}`} data-suppressed="">
+              <span className="hlabel">{d.label}</span>
+              <span className="htrack" />
+              <span className="hcount" data-display="">{shown}</span>
+            </div>
+          );
+        }
+        const shown = d.display ?? format(d.value);
+        return (
+        <div className="hbar" key={d.label} title={`${d.label}: ${shown}`}>
           <span className="hlabel">{d.label}</span>
           <span className="htrack"><i className={d.alt ? 'alt' : undefined} style={{ width: `${(d.value / top) * 100}%` }} /></span>
-          <span className="hcount">{format(d.value)}</span>
+          <span className="hcount" data-display={d.display === undefined ? undefined : ''}>{shown}</span>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

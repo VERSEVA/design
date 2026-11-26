@@ -476,6 +476,11 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .bar:hover .fill{opacity:.82}
 .bar .mlab{font-family:var(--font-mono);font-size:10px;color:var(--chart-label,var(--text-3))}
 .bar .vlab{font-family:var(--font-mono);font-size:10px;color:var(--text-2)}
+/* Withheld data (1.7.1). A suppressed bar is the slot with nothing in it: the full-height track, bounded on
+   the text ladder (law 11: a hairline cannot carry meaning) and never the accent. A printed display string
+   ("<5") is read by a person, so it takes the body face at the value's own size (law 4). */
+.bar .vtrack{flex:1;min-height:0;width:100%;max-width:34px;box-sizing:border-box;border:1px dashed var(--text-3);border-bottom:0;border-radius:4px 4px 0 0;background:var(--surface-2)}
+.bar .vlab[data-display],.hbar .hcount[data-display]{font-family:var(--font-sans)}
 .heat{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}
 .heat span{aspect-ratio:1;border-radius:5px;background:var(--data-0);cursor:default}
 .heat span.d1{background:var(--data-1)}
@@ -593,6 +598,7 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .hbar .htrack{height:8px;min-width:0;flex:1;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
 .hbar .htrack i{display:block;height:100%;border-radius:var(--r-pill);background:var(--data-3)}
 .hbar .htrack i.alt{background:var(--data-alt)}
+.hbar[data-suppressed] .htrack{box-sizing:border-box;border:1px dashed var(--text-3)}
 .hbar .hcount{width:40px;flex:none;text-align:right;font-family:var(--font-mono);font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-1)}
 
 /* Activity strip + calendar cells: ONE intensity language via the ladder */
