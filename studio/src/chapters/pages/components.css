@@ -13,4 +13,5 @@
 [data-chapter="components"] #shell .specimen, [data-chapter="components"] #shell-rail .specimen, [data-chapter="components"] #topbar .specimen, [data-chapter="components"] #notifications .specimen, [data-chapter="components"] #whatsnew .specimen { flex: 1 1 100%; min-width: 0; }
 [data-chapter="components"] #panel-states .specimen { flex: 1 1 380px; min-width: 0; }
 [data-chapter="components"] #drawer-states .specimen { flex: 1 1 100%; min-width: 0; }
+[data-chapter="components"] #bounded .specimen { flex: 1 1 100%; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s-5); align-items: start; }
 @media (max-width: 600px) { [data-chapter="components"] .bulk-demo .client { display: none;} [data-chapter="components"] .bulk-demo .table th, [data-chapter="components"] .bulk-demo .table td { padding-inline: var(--s-3);} }

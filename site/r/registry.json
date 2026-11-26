@@ -121,6 +121,15 @@
       "description": "Skeleton bars that mirror the real layout"
     },
     {
+      "name": "bounded-section",
+      "file": "react/bounded-section.tsx",
+      "kind": "component",
+      "deps": [
+        "cx"
+      ],
+      "description": "Section capped at 5 rows (1 to 12 per instance) with a +N more count and a Show all action; its height never grows with its data"
+    },
+    {
       "name": "console-nav",
       "file": "react/console-nav.tsx",
       "kind": "component",

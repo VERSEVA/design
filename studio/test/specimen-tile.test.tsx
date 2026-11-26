@@ -218,17 +218,17 @@ describe('Components as tiles', () => {
   it('renders every section as a tile in one bento grid, in rail order, each named by its h2 (the rail drops a " · variant" suffix)', () => {
     const { container } = render(<Components />);
     const tiles = [...container.querySelectorAll<HTMLElement>('.chap .wgrid.sgrid > section.stile')];
-    expect(tiles.length).toBe(50);
+    expect(tiles.length).toBe(51);
     expect(tiles.map((t) => t.id)).toEqual(comp.sections.map((s) => s.id));
     expect(tiles.map((t) => t.querySelector(':scope > .wtile-body > .wtile-hd > h2.stile-name')!.textContent!.split(' · ')[0])).toEqual(comp.sections.map((s) => s.label));
-    expect(container.querySelectorAll('.chap h2').length).toBe(50);
+    expect(container.querySelectorAll('.chap h2').length).toBe(51);
   });
 
   it('sizes each tile to its content: button rows M, tables and consoles XL', () => {
     const { container } = render(<Components />);
     const size = (id: string) => container.querySelector(`#${id}`)!.getAttribute('data-size');
     expect(size('button')).toBe('m');
-    for (const id of ['table', 'table-pin', 'bulk', 'shell', 'shell-rail', 'topbar', 'notifications', 'whatsnew']) expect(size(id), id).toBe('xl');
+    for (const id of ['table', 'table-pin', 'bounded', 'bulk', 'shell', 'shell-rail', 'topbar', 'notifications', 'whatsnew']) expect(size(id), id).toBe('xl');
     for (const t of container.querySelectorAll('section.stile')) expect(['s', 'm', 'l', 'xl'], t.id).toContain(t.getAttribute('data-size'));
   });
 
