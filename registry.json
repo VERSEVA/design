@@ -3,7 +3,8 @@
   "homepage": "https://design.verseva.com",
   "components": [
     { "name": "cx", "file": "react/cx.ts", "kind": "util", "deps": [], "description": "Class-join helper; the only utility the kit needs" },
-    { "name": "inert", "file": "react/inert.ts", "kind": "util", "deps": [], "description": "inert props that type-check and render the same on React 18 and 19" },
+    { "name": "inert-for", "file": "react/inert-for.ts", "kind": "util", "deps": [], "description": "inert props for a given React version string; no react import" },
+    { "name": "inert", "file": "react/inert.ts", "kind": "util", "deps": ["inert-for"],"description": "inert props that type-check and render the same on React 18 and 19" },
     { "name": "button", "file": "react/button.tsx", "kind": "component", "deps": ["cx"], "description": "Primary/secondary/ghost/destructive, sm-lg, loading; press sits it down 1px" },
     { "name": "badge", "file": "react/badge.tsx", "kind": "component", "deps": ["cx"], "description": "Status word on a tint; never a dot alone" },
     { "name": "card", "file": "react/card.tsx", "kind": "component", "deps": ["cx"], "description": "Card + header/body/footer at the r-md posture" },

@@ -1,17 +1,9 @@
-// Small React utilities (react/cx.ts, react/inert.ts). Node strips the types on import.
+// Small React utilities (react/cx.ts, react/inert-for.ts). Node strips the types on import.
+// inertFor lives in react/inert-for.ts so it imports without 'react', which the root does not install.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { cx } from '../react/cx.ts';
-
-// react/inert.ts imports 'react', which the root package does not install.
-// When it cannot be resolved, the inertFor tests skip with that reason instead of failing.
-let inertFor;
-let inertSkip = false;
-try {
-  ({ inertFor } = await import('../react/inert.ts'));
-} catch (err) {
-  inertSkip = `react/inert.ts not importable by the root test runner (${err.code ?? err.message})`;
-}
+import { inertFor } from '../react/inert-for.ts';
 
 describe('cx', () => {
   test('joins strings with a space', () => {
@@ -25,7 +17,7 @@ describe('cx', () => {
   });
 });
 
-describe('inertFor', { skip: inertSkip }, () => {
+describe('inertFor', () => {
   test('off returns no props', () => {
     assert.deepEqual(inertFor('18.3.1', false), {});
     assert.deepEqual(inertFor('19.0.0', false), {});
