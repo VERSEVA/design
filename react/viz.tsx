@@ -29,7 +29,8 @@ const known = (v: number | null | undefined): v is number => typeof v === 'numbe
 /** The gap band: 2 below the zero baseline and `--s-1` tall, so a chart with a gap keeps this much room under its plot. */
 const BAND_GAP = 2;
 const BAND = 4;
-const hasGap = (vals: readonly (number | null)[]) => vals.some((v) => !known(v));
+/** A series that draws a band: it has a gap and something known beside it. All gaps is the empty state. */
+const hasGap = (vals: readonly (number | null)[]) => vals.some((v) => !known(v)) && vals.some(known);
 /** Room under the plot for the band; none for a series with no gap, so it renders as it always did. */
 const reserve = (gapped: boolean) => (gapped ? BAND_GAP + BAND : 0);
 
@@ -171,7 +172,6 @@ export function LineChart({ labels, series, reference, height = 140, format = St
   const base = height - pad - foot;
   const all = shown.map((s) => pts(s.values, W, height, pad, top, foot));
   const hatch = `${id}h`;
-  const banded = gapped && all.some((p) => p.some(Boolean));
   const hoverX = hover === null ? undefined : all.find((p) => p[hover])?.[hover]?.[0];
   const refY = reference ? pad + (height - pad * 2 - foot) * (1 - reference.value / top) : 0;
 
@@ -187,7 +187,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
       <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img"
         aria-label={shown.map((s) => s.name).join(' vs ')}
         onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-        {banded && gapHatch(hatch)}
+        {gapped && gapHatch(hatch)}
         {reference && <line className="refline" x1={pad} y1={refY} x2={W - pad} y2={refY} />}
         {all.map((p, si) => {
           const last = p[p.length - 1];

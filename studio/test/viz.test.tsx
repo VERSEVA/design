@@ -523,6 +523,14 @@ describe('LineChart: null gaps', () => {
     expect(screen.getByRole('status').textContent).toBe('WedA withheld');
   });
 
+  it('reserves nothing and emits no hatch when the only series with a gap is all null', () => {
+    const full = { name: 'A', values: [1, 2, 3, 4, 5] };
+    const alone = render(<LineChart labels={labels} series={[full]} />).container;
+    const withEmpty = render(<LineChart labels={labels} series={[full, { name: 'B', values: [null, null, null, null, null] }]} />).container;
+    expect(withEmpty.querySelectorAll('pattern, rect')).toHaveLength(0);
+    expect(withEmpty.querySelector('path[fill="none"]')!.getAttribute('d')).toBe(alone.querySelector('path[fill="none"]')!.getAttribute('d'));
+  });
+
   it('shows the withheld word, no value and no hover point for a series that is null at the hovered index', () => {
     const seen: unknown[] = [];
     const { container } = render(
