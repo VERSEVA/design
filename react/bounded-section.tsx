@@ -58,9 +58,13 @@ export function BoundedSection<T>({
   const id = React.useId();
   const n = boundedCap(cap);
   const count = Math.max(total ?? 0, items.length);
-  const more = count - n;
+  const shown = Math.min(items.length, n);
+  /* what the section is not showing: past the cap, or past a first page shorter than the cap */
+  const more = count - shown;
   const wired = href !== undefined || onShowAll !== undefined;
-  const showAll = wired && (count >= n || showAllBelowCap);
+  const showAll = wired && (count >= n || more > 0 || showAllBelowCap);
+  /* the CSS counts rendered rows; a short first page with more behind it has to say so */
+  const always = showAllBelowCap || (more > 0 && shown < n);
   const Name = `h${level}` as 'h2' | 'h3' | 'h4';
   const action = { className: 'btn btn-secondary sm bounded-all', 'aria-label': `${showAllLabel} ${name}` };
 
@@ -76,13 +80,13 @@ export function BoundedSection<T>({
       {...rest}
       aria-labelledby={id}
       data-cap={n === BOUNDED_CAP ? undefined : n}
-      data-all={showAllBelowCap ? 'always' : undefined}
+      data-all={always ? 'always' : undefined}
     >
       <Name className="bounded-name" id={id}>{name}</Name>
       {items.length === 0 ? empty : (
         <>
           <div className={cx(rowsClassName, 'bounded-rows')}>
-            {items.slice(0, n).map((item, i) => <React.Fragment key={getKey ? getKey(item, i) : i}>{children(item, i)}</React.Fragment>)}
+            {items.slice(0, shown).map((item, i) => <React.Fragment key={getKey ? getKey(item, i) : i}>{children(item, i)}</React.Fragment>)}
           </div>
           <div className="bounded-foot">
             <p className="bounded-more" role="status">{more > 0 ? moreLabel(more) : null}</p>

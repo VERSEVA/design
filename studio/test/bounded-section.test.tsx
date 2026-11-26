@@ -124,6 +124,15 @@ describe('BoundedSection', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
+  it('a first page shorter than the cap with more behind it: counts what is not shown, keeps Show all, tells the CSS', () => {
+    const s = section(3, { total: 10 });
+    expect([s.rows, s.more!.textContent, s.all!.textContent, s.root.getAttribute('data-all')]).toEqual([3, '+7 more', 'Show all', 'always']);
+    const capped = section(3, { total: 10, cap: 8 });
+    expect([capped.more!.textContent, capped.root.getAttribute('data-all')]).toEqual(['+7 more', 'always']);
+    expect(section(8, { total: 10 }).root.hasAttribute('data-all')).toBe(false);
+    expect(section(3, { total: 3 }).root.hasAttribute('data-all')).toBe(false);
+  });
+
   it('counts from total when items is the first page', () => {
     expect(section(5, { total: 1204 }).more!.textContent).toBe('+1199 more');
     expect(section(5, { total: 5 }).more!.textContent).toBe('');

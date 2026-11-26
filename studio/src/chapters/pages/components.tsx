@@ -16,7 +16,7 @@ const sample = (id: string) => () => (samples ??= import('./components.code.json
 
 export const INSTALL = "<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/tokens.css\">\n<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/components.css\">\n\n<!-- consumer surfaces boot light (law 9): -->\n<html data-theme=\"light\">\n\n<!-- enforce before you ship: -->\nnpx verseva-gate --tokens node_modules/@verseva/design/tokens.css src\n\n<!-- React, source-distribution (the shadcn model): components land in\n     YOUR project as source you own -->\nnpx verseva init\nnpx verseva add button field toast console-nav\nnpx verseva block add quote-tool";
 
-/* The bounded specimen's rows: one list, cut to each state's length (0, 3, the cap, the cap plus 40). */
+/* The bounded specimen's rows: one list, cut to each state's length (0, 3, the cap, the cap plus 40), and whole in the table. */
 const QUOTE_CLIENTS = ['Northline Foods', 'Harbor Botanics', 'Cedar Mills', 'Alder Freight', 'Juniper Labs'];
 const QUOTES = Array.from({ length: 45 }, (_, i) => ({ id: `Q-${2081 - i}`, client: QUOTE_CLIENTS[i % 5], amount: (48220 - i * 917).toLocaleString('en-US', { minimumFractionDigits: 2 }) }));
 const BOUNDED_CAP = 5;
@@ -660,6 +660,31 @@ export function Page() {
                 <BoundedSpecimen id="bd-pending" name="Pending" rows={3} />
                 <BoundedSpecimen id="bd-verified" name="Verified" rows={BOUNDED_CAP} />
                 <BoundedSpecimen id="bd-quotes" name="Quotes" rows={BOUNDED_CAP + 40} />
+                <section className="bounded" aria-labelledby="bd-invoices">
+                  <h3 className="bounded-name" id="bd-invoices">Invoices</h3>
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Quote</th>
+                        <th>Client</th>
+                        <th className="num">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bounded-rows">
+                      {QUOTES.map((q) => (
+                        <tr key={q.id}>
+                          <td>{q.id}</td>
+                          <td>{q.client}</td>
+                          <td className="num">{q.amount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="bounded-foot">
+                    <p className="bounded-more" role="status">{`+${QUOTES.length - BOUNDED_CAP} more`}</p>
+                    <button className="btn btn-secondary sm bounded-all" type="button" aria-label="Show all Invoices">Show all</button>
+                  </div>
+                </section>
               </div>
             </div>
           </SpecimenTile>
