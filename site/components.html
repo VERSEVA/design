@@ -730,6 +730,94 @@ npx verseva block add quote-tool</code></pre></div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
+  <section class="comp" id="range">
+    <h2>Date range</h2>
+    <div class="demo"><div class="specimen">
+      <div class="range-ctl">
+        <div class="seg" role="radiogroup" aria-label="Range">
+          <button type="button" role="radio" aria-checked="true" tabindex="0" data-v="7">This week</button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-v="28">4 weeks</button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-v="91">13 weeks</button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-v="custom">Custom</button>
+        </div>
+        <div class="range-fields" hidden>
+          <div class="field">
+            <label for="rg-a-from">From</label>
+            <input type="date" id="rg-a-from" data-k="from" min="2025-10-27" max="2026-11-29" value="2026-11-23">
+            <p class="help" id="rg-a-from-e" hidden></p>
+          </div>
+          <div class="field">
+            <label for="rg-a-to">To</label>
+            <input type="date" id="rg-a-to" data-k="to" min="2025-10-27" max="2026-11-29" value="2026-11-29">
+            <p class="help" id="rg-a-to-e" hidden></p>
+          </div>
+        </div>
+        <button type="button" class="fchip" aria-pressed="false" aria-label="Compare with previous period">Compare</button>
+        <p class="metaline" aria-live="polite">23 Nov to 29 Nov 2026 · UTC</p>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="range-menu">
+    <h2>Range menu</h2>
+    <div class="demo"><div class="specimen">
+      <div class="menu" data-range="menu">
+        <button type="button" class="btn btn-secondary" id="rm-a-t" aria-haspopup="menu" aria-expanded="false" aria-controls="rm-a-m">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <rect x="2.5" y="3.5" width="11" height="10" rx="2"></rect>
+            <path d="M2.5 7h11M5.5 2v3M10.5 2v3"></path>
+          </svg>
+          <span class="sr-only">Range: </span>
+          <span data-lbl>This week</span>
+          <span class="metaline" data-dates>23 Nov to 29 Nov 2026</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M4.5 6.5L8 10l3.5-3.5"></path>
+          </svg>
+        </button>
+        <div class="menu-list" role="menu" id="rm-a-m" aria-labelledby="rm-a-t" hidden>
+          <div role="group" aria-label="Range">
+            <button type="button" class="menu-item" role="menuitemradio" aria-checked="true" tabindex="-1" data-v="7">
+              <span>This week</span>
+              <span class="metaline">23 Nov to 29 Nov 2026</span>
+              <svg class="tick" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M3.5 8.5l3 3 6-7"></path>
+              </svg>
+            </button>
+            <button type="button" class="menu-item" role="menuitemradio" aria-checked="false" tabindex="-1" data-v="28">
+              <span>4 weeks</span>
+              <span class="metaline">2 Nov to 29 Nov 2026</span>
+              <svg class="tick" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M3.5 8.5l3 3 6-7"></path>
+              </svg>
+            </button>
+            <button type="button" class="menu-item" role="menuitemradio" aria-checked="false" tabindex="-1" data-v="91">
+              <span>13 weeks</span>
+              <span class="metaline">31 Aug to 29 Nov 2026</span>
+              <svg class="tick" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M3.5 8.5l3 3 6-7"></path>
+              </svg>
+            </button>
+            <button type="button" class="menu-item" role="menuitemradio" aria-checked="false" aria-haspopup="dialog" tabindex="-1" data-v="custom">
+              <span>Custom</span>
+              <svg class="tick" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M3.5 8.5l3 3 6-7"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="menu-sep" role="separator"></div>
+          <button type="button" class="menu-item" role="menuitemcheckbox" aria-checked="false" tabindex="-1" data-v="cmp">
+            <span>Compare with previous period</span>
+            <svg class="tick" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M3.5 8.5l3 3 6-7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
   <section class="comp" id="tooltip">
     <h2>Tooltip</h2>
     <div class="demo"><div class="specimen">

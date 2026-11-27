@@ -1166,3 +1166,47 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 }
 @keyframes cmdk-in{from{opacity:0;transform:translateY(-8px) scale(.98)}}
 @keyframes cmdk-blink{50%{opacity:0}}
+
+/* ---- Date range (1.8): .range-ctl, .range-fields ---------------------------
+   Sets the period a page of charts covers. Composes .seg (as a radiogroup), .fchip, .field,
+   .metaline, .menu, .sheet and .modal; the only new classes are the wrapper and the custom-date
+   row. .range-ctl is one wrapping row: presets, custom dates, Compare, the range line.
+   .range-fields holds the two date fields: inline on a desktop, inside a .sheet under 560px.
+   The compact form is a plain .menu with data-range, so it adds no class. */
+.range-ctl{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--s-3)}
+.range-ctl>.metaline{align-self:center}
+.range-fields{display:flex;flex-wrap:wrap;gap:var(--s-3)}
+.range-fields[hidden]{display:none}
+.range-fields .field{flex:1 1 10rem;min-width:0}
+.range-ctl>.range-fields{flex:0 1 22rem}
+.range-fields .field input{width:100%}
+@media (max-width:559.98px){
+  .range-ctl>.range-fields{display:none}
+  .range-ctl>.seg{display:flex;width:100%}
+  .range-ctl>.seg button{flex:1;padding-inline:var(--s-2);white-space:nowrap}
+}
+@media (pointer:coarse){.range-ctl>.seg button{min-height:44px}}
+/* the rest of the part's targets, 44px for a finger */
+@media (pointer:coarse){.range-ctl>.fchip,.range-fields .field input,.menu[data-range]>.btn,.menu[data-range] .menu-item,dialog.sheet .ft .btn,dialog.modal .ft .btn{min-height:44px}}
+.range-ctl>.seg button:disabled,.range-ctl>.fchip:disabled{opacity:.45;cursor:not-allowed}
+/* the menu's one-of-a-set presets sit in a group, laid out as the list lays out its items */
+.menu[data-range] .menu-list>[role="group"]{display:grid;gap:2px}
+/* the trigger's label stays on one line and its icons keep their size; the dates beside it may wrap */
+.menu[data-range]>.btn [data-lbl]{white-space:nowrap}
+.menu[data-range]>.btn>svg{flex:none}
+/* every filter chip: a button takes the system face unless told; the chip reads in the face around it */
+.fchip{font-family:inherit}
+
+/* .seg as a radiogroup: same pressed look as the tablist form */
+.seg button[aria-checked="true"]{background:var(--surface);color:var(--text-1);font-weight:600;box-shadow:var(--e-1)}
+
+/* ---- Overlays on a native <dialog> (focus trap, Esc, inert page) ----------- */
+dialog.sheet,dialog.modal{padding:0;color:var(--text-1);max-width:none;max-height:none}
+dialog.sheet{margin:auto auto var(--s-2)}
+/* a host reset (*{margin:0}) takes the browser's centring off an open dialog; put it back */
+dialog.modal{margin:auto}
+dialog.sheet::backdrop,dialog.modal::backdrop{background:color-mix(in srgb,var(--bg) 45%,transparent)}
+.modal .bd{position:relative}
+.modal .bd>.btn.icon{position:absolute;top:var(--s-3);right:var(--s-3);width:44px;height:44px}
+.modal .bd:has(>.btn.icon) h4{padding-right:var(--s-7)}
+dialog.modal{width:min(calc(100% - var(--s-5)),420px)}
