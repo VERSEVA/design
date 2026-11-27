@@ -16,8 +16,8 @@
  * checked from the stat before any read (manifest 64 KB, theme 1 MB), and the file is opened
  * with O_NOFOLLOW and O_NONBLOCK and re-checked by its descriptor. A theme is re-read on every
  * request under the same guards, so an edit shows on reload and a theme swapped for a symlink
- * after startup is a 404. A file with a second hard link is refused (that name could be a file
- * outside the working directory). The server binds 127.0.0.1 only, answers only a Host of
+ * after startup is a 404. A hard link is allowed (a pnpm store links package files); its name
+ * must still resolve inside the working directory. The server binds 127.0.0.1 only, answers only a Host of
  * 127.0.0.1:<port> or localhost:<port> (DNS rebinding gets 421), refuses a request a browser marks
  * as started by another site (Sec-Fetch-Site, 403), takes GET and HEAD, and serves
  * a fixed set of package files plus /theme/<id>.css by manifest id. The URL is matched as raw
@@ -30,6 +30,7 @@
  * The pieces are exported for the next ticket's checks: loadManifest, readTheme, boardPage,
  * createBoardServer.
  */
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
@@ -63,8 +64,6 @@ function guardedRead(root, given, max, { outside } = {}) {
   try { real = fs.realpathSync(abs); } catch { throw new BoardError(`${shown} not found`); }
   if (real !== abs) throw refused(`${shown} is a symlink (or sits behind one)`);
   if (!st.isFile()) throw refused(`${shown} is not a regular file`);
-  /* A second hard link can be a name for a file outside the working directory. */
-  if (st.nlink > 1) throw refused(`${shown} has more than one hard link`);
   const over = () => new BoardError(`${shown} is over ${max >= 1024 * 1024 ? `${max / (1024 * 1024)} MB` : `${max / 1024} KB`}`);
   if (st.size > max) throw over();
   let fd;
@@ -75,7 +74,7 @@ function guardedRead(root, given, max, { outside } = {}) {
   }
   try {
     const fst = fs.fstatSync(fd);
-    if (!fst.isFile() || fst.ino !== st.ino || fst.dev !== st.dev || fst.nlink > 1) throw refused(`${shown} changed while it was read`);
+    if (!fst.isFile() || fst.ino !== st.ino || fst.dev !== st.dev) throw refused(`${shown} changed while it was read`);
     /* Sized to the stat, one byte over: a file that grew since is refused, never read past max. */
     const cap = Math.min(fst.size, max);
     const buf = Buffer.alloc(cap + 1);
@@ -161,14 +160,20 @@ const CSS = 'text/css; charset=utf-8';
 const JS = 'text/javascript; charset=utf-8';
 const HTML = 'text/html; charset=utf-8';
 const TEXT = 'text/plain; charset=utf-8';
-const CSP = "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+/* Scripts run from this origin or by the sha256 of each inline script in the page actually served,
+   computed at startup, so the policy cannot drift from the page and needs no 'unsafe-inline'. */
+const scriptHashes = (html) => [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+  .map((m) => `'sha256-${createHash('sha256').update(m[1], 'utf8').digest('base64')}'`);
+const csp = (html) => `default-src 'none'; script-src 'self'${scriptHashes(html).map((h) => ` ${h}`).join('')}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`;
 const THEME_PATH = /^\/theme\/([a-z0-9][a-z0-9-]{0,63})\.css$/;
 
 /** The board's http server, not yet listening. Hosts are allowed once the port is known. */
 export function createBoardServer({ root, pkgRoot, themes, onThemeRefused = () => {} }) {
   const read = (rel) => fs.readFileSync(path.join(pkgRoot, rel), 'utf8');
+  const page = boardPage(read('site/components.html'), themes);
+  const CSP = csp(page);
   const files = new Map([
-    ['/', [HTML, boardPage(read('site/components.html'), themes)]],
+    ['/', [HTML, page]],
     ['/tokens.css', [CSS, read('tokens.css')]],
     ['/components.css', [CSS, read('components.css')]],
     ['/site.css', [CSS, read('site/site.css')]],

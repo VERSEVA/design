@@ -8,6 +8,7 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -180,17 +181,24 @@ test('a non-.css theme, a symlinked theme and a theme behind a symlinked directo
   assertRefused(await board(['--manifest', 'manifest.json'], dir), /refused: linked\/probe\.css is a symlink/);
 });
 
-test('a hardlinked manifest or theme is refused: a second name can point outside the working directory', async () => {
-  const outside = tmp();
-  fs.writeFileSync(path.join(outside, 'private.css'), '[data-brand="probe"] { --secret: 1; }\n');
+test('a hard-linked theme inside the working directory is served; a hard link outside it is still refused', async () => {
+  /* pnpm stores package files as hard links: a preset in node_modules must work */
+  const store = tmp();
+  fs.writeFileSync(path.join(store, 'preset.css'), '[data-brand="probe"] { --accent: var(--text-2); }\n');
   const cwd = project([{ id: 'probe', label: 'Probe', css: 'brand/link.css' }]);
-  fs.linkSync(path.join(outside, 'private.css'), path.join(cwd, 'brand', 'link.css'));
+  fs.linkSync(path.join(store, 'preset.css'), path.join(cwd, 'brand', 'link.css'));
   const r = await board(['--manifest', 'manifest.json'], cwd);
-  assertRefused(r, /refused: brand\/link\.css has more than one hard link/);
-  assert.doesNotMatch(r.out, /secret/);
-  fs.writeFileSync(path.join(outside, 'm.json'), JSON.stringify({ themes: [] }));
-  fs.linkSync(path.join(outside, 'm.json'), path.join(cwd, 'm.json'));
-  assertRefused(await board(['--manifest', 'm.json'], cwd), /refused: m\.json has more than one hard link/);
+  assert.ok(r.url, r.out);
+  try {
+    const res = await get(r.url, '/theme/probe.css');
+    assert.equal(res.status, 200);
+    assert.equal(res.body, fs.readFileSync(path.join(store, 'preset.css'), 'utf8'));
+  } finally {
+    await stop(r.child);
+  }
+  /* the second name of that link, outside the working directory, is refused by containment */
+  const away = project([{ id: 'probe', label: 'Probe', css: path.join(store, 'preset.css') }]);
+  assertRefused(await board(['--manifest', 'manifest.json'], away), /refused: theme "probe" is outside the working directory/);
 });
 
 test('run from the filesystem root, every file is outside the working directory', async () => {
@@ -249,6 +257,14 @@ test('it serves the page, the package css and themes by id, with nosniff and the
     assert.equal(page.headers['content-type'], 'text/html; charset=utf-8');
     assert.equal(page.headers['x-content-type-options'], 'nosniff');
     assert.match(page.headers['content-security-policy'], /frame-ancestors 'none'/);
+    /* scripts run by hash, never by 'unsafe-inline': the one inline script's sha256, from the page served */
+    const scriptSrc = page.headers['content-security-policy'].split(';').map((d) => d.trim()).find((d) => d.startsWith('script-src '));
+    assert.ok(scriptSrc, page.headers['content-security-policy']);
+    assert.doesNotMatch(scriptSrc, /unsafe-inline/);
+    const inline = [...page.body.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    assert.equal(inline.length, 1);
+    const hash = createHash('sha256').update(inline[0], 'utf8').digest('base64');
+    assert.equal(scriptSrc, `script-src 'self' 'sha256-${hash}'`);
     assert.match(page.body, /<link rel="stylesheet" href="\/tokens\.css">/);
     assert.match(page.body, /<link rel="stylesheet" href="\/components\.css">/);
     assert.match(page.body, /data-board-theme="probe"/);

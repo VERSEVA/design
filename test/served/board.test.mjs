@@ -57,6 +57,7 @@ test('the switcher lists the manifest themes and picking one applies it', { time
     for (const t of example.themes) {
       const s = JSON.parse(await page.evaluate(`(async () => { ${sleep}
         document.getElementById('board-current').click();
+        /* the menu opens through the page's own inline script: it runs only if its CSP hash matches */
         if (document.getElementById('board-themes').hidden) throw new Error('menu did not open');
         document.querySelector('#board-themes [data-board-theme="${t.id}"]').click();
         await new Promise((r) => { const l = document.getElementById('board-theme'); if (l.sheet) r(); else l.addEventListener('load', r, { once: true }); });

@@ -206,9 +206,7 @@ runs from the package root.
 
 Contained by construction: the manifest and every theme must be regular files
 inside the working directory (a path that leaves it, a symlink anywhere on the
-path, a file with a second hard link, a FIFO or a directory is refused; a pnpm
-store links its files, so copy a preset out of `node_modules` before naming it),
-themes end in `.css`, and sizes are
+path, a FIFO or a directory is refused), themes end in `.css`, and sizes are
 capped (manifest 64 KB, at most 64 themes, theme 1 MB). The server binds
 127.0.0.1 only, answers only a `127.0.0.1` or `localhost` Host on its port,
 refuses requests a browser marks as started by another site,
