@@ -289,7 +289,7 @@ describe('Data viz tiles (law 3)', () => {
   it('gives the data accent to one focus tile, Line + area; every other chart is on the text ladder', () => {
     const root = page('data-viz');
     expect([...root.querySelectorAll('section.stile[data-focus]')].map((t) => t.id)).toEqual(['lines']);
-    expect(root.querySelectorAll('section.stile:not([data-focus])').length).toBe(11);
+    expect(root.querySelectorAll('section.stile:not([data-focus])').length).toBe(12);
   });
 
   it('names no colour inline: magnitude goes through data-l, categories through series classes', () => {
@@ -394,5 +394,40 @@ describe('Decks tiles', () => {
     expect([...root.querySelectorAll('section.stile')].map((t) => [t.id, t.getAttribute('data-size')])).toEqual([['slide-anatomy', 'm'], ['structure', 'm']]);
     expect(root.querySelector('#slide-anatomy .slide-mock h3')!.textContent).toBe('One claim, stated as a verdict');
     expect(root.querySelectorAll('#structure tbody tr').length).toBe(5);
+  });
+});
+
+/* Issue 217: the step funnel, the kit's own Funnel, in a panel and in M and L widget tiles. */
+describe('Data viz tiles: step funnel', () => {
+  it('draws the panel in all five states', () => {
+    const root = page('data-viz');
+    const panels = [...root.querySelectorAll('#funnel .fpanels section.glass')];
+    expect(panels).toHaveLength(5);
+    const [normal, withheld, single, empty, loading] = panels;
+    expect(normal.querySelectorAll('ol.funnel[data-share] > li.hbar')).toHaveLength(5);
+    expect(normal.querySelector('[data-biggest]')!.closest('li')!.querySelector('.hlabel')!.textContent).toBe('Form starts');
+    const stub = withheld.querySelector('li.hbar[data-suppressed]')!;
+    expect(stub.querySelector('.hcount')!.textContent).toBe('<5');
+    expect(stub.querySelector('.htrack')!.children).toHaveLength(0);
+    expect(single.querySelectorAll('li.hbar')).toHaveLength(1);
+    expect(empty.querySelector('.empty b')!.textContent).toBe('No funnel events');
+    expect(loading.getAttribute('aria-busy')).toBe('true');
+    expect(loading.querySelectorAll('li.hbar .skel').length).toBe(25);
+  });
+
+  it('draws M tiles in the tile form and L tiles in the panel form', () => {
+    const root = page('data-viz');
+    const tiles = [...root.querySelectorAll('#funnel .wgrid > .wtile')];
+    expect(tiles.map((t) => t.getAttribute('data-size'))).toEqual(['m', 'm', 'l', 'l', 'm', 'm', 'm']);
+    expect(root.querySelectorAll('#funnel .wtile[data-size="m"] ol.funnel[data-share]')).toHaveLength(0);
+    expect(root.querySelectorAll('#funnel .wtile[data-size="l"] ol.funnel[data-share]')).toHaveLength(2);
+    expect(root.querySelector('#funnel .wtile:nth-child(6) .wtile-sub')!.textContent).toBe('No funnel events');
+  });
+
+  it('keeps the withheld value out of the page, and captions the finding', () => {
+    const root = page('data-viz');
+    expect(root.querySelector('#funnel')!.innerHTML).not.toMatch(/Contact requests<\/th><td>3</);
+    expect(root.querySelectorAll('#funnel .specimen > .takeaway')).toHaveLength(1);
+    expect(root.querySelector('#funnel .takeaway')!.textContent).toMatch(/biggest drop/);
   });
 });
