@@ -20,7 +20,6 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { contractClasses } from './contract-classes.mjs';
 
 export const match = 'doctor';
 export const order = 65;
@@ -302,6 +301,8 @@ export async function run({ rest, config }) {
   try {
     const root = fs.realpathSync(process.cwd());
     const v = versions(root);
+    /* Loaded on use: contract-classes reads package files at import, and discovery must load every cmd- module without them. */
+    const { contractClasses } = await import('./contract-classes.mjs');
     const classes = contractClasses();
     const overrides = [];
     const { files, skipped } = cssFiles(root, excludedDir(root, config?.dir));
