@@ -159,6 +159,33 @@ test('path escape: a symlinked package.json or lockfile is refused, exit 2', () 
   }
 });
 
+test('path escape: a symlinked verseva.json is refused, exit 2', () => {
+  const outside = tmp();
+  fs.writeFileSync(path.join(outside, 'verseva.json'), JSON.stringify({ dir: 'src' }));
+  const cwd = consumer('lagging');
+  fs.symlinkSync(path.join(outside, 'verseva.json'), path.join(cwd, 'verseva.json'));
+  const r = doctor(cwd, ['--json']);
+  assert.equal(r.code, 2);
+  assert.match(r.err, /^verseva doctor: refused: verseva\.json is a symlink/);
+  assert.equal(r.out, '');
+});
+
+test('a long report survives a pipe in full', () => {
+  const cwd = consumer('clean');
+  fs.writeFileSync(path.join(cwd, 'src', 'big.css'), '.btn { color: red; }\n'.repeat(5000));
+  const r = doctor(cwd, ['--json']);
+  assert.equal(r.code, 0, r.err);
+  assert.equal(JSON.parse(r.out).overrides.length, 5000);
+});
+
+test('a keyframe step is not a selector', () => {
+  const cwd = consumer('clean');
+  fs.writeFileSync(path.join(cwd, 'src', 'k.css'), '@keyframes k { from { opacity: 0; } 50% { opacity: .5; } to { opacity: 1; } }\n');
+  const r = doctor(cwd, ['--json']);
+  assert.equal(r.code, 0, r.err);
+  assert.deepEqual(JSON.parse(r.out).overrides, []);
+});
+
 test('errors exit 2 in one line: no package.json, invalid package.json', () => {
   const none = doctor(tmp());
   assert.equal(none.code, 2);
@@ -169,6 +196,11 @@ test('errors exit 2 in one line: no package.json, invalid package.json', () => {
   assert.equal(bad.code, 2);
   assert.match(bad.err, /^verseva doctor: package\.json is not valid JSON/);
   assert.equal(bad.err.trimEnd().split('\n').length, 1);
+  const lock = consumer('lagging');
+  fs.writeFileSync(path.join(lock, 'package-lock.json'), '{ nope');
+  const badLock = doctor(lock);
+  assert.equal(badLock.code, 2);
+  assert.match(badLock.err, /^verseva doctor: package-lock\.json is not valid JSON/);
 });
 
 test('no lockfile or a non-version pin: installed unknown, still exit 0', () => {

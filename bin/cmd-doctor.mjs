@@ -2,10 +2,11 @@
  * verseva doctor: how far this product's @verseva/design lags the latest release, and every
  * place its own CSS overrides a package class.
  *
- * Trust boundary. It reads only inside the working directory: the root is resolved to its real
- * path once, symlinks are never followed (a symlinked package.json or package-lock.json is
- * refused), every file read is re-checked by real path, and node_modules, dot directories and
- * the verseva.json "dir" are not scanned. The one network call is a single HTTPS GET to the
+ * Trust boundary. Of the consumer's files it reads only inside the working directory: the root
+ * is resolved to its real path once, symlinks are never followed (a symlinked package.json,
+ * package-lock.json or verseva.json is refused), every file read is re-checked by real path, and
+ * node_modules, dot directories and the verseva.json "dir" are not scanned. The one package file
+ * it reads is this package's own components.css, for the contract class set. The one network call is a single HTTPS GET to the
  * public npm registry for the latest version, with a short timeout and no redirects; offline it
  * prints "latest unknown" and still reports overrides. Nothing is sent and nothing is written.
  *
@@ -157,7 +158,7 @@ export function overridesIn(css, classes) {
     const prelude = raw.slice(cut);
     const lead = prelude.length - prelude.trimStart().length;
     const body = prelude.trim();
-    if (!body || body.startsWith('@') || /^(from|to|[\d.]+%)\b/.test(body)) continue;
+    if (!body || body.startsWith('@') || /^(?:from|to|[\d.]+%)(?![\w-])/.test(body)) continue;
     const base = m.index + cut + lead;
     for (const [at, part] of splitList(clean.slice(base, base + body.length))) {
       const sel = part.replace(/\[[^\]]*\]/g, ' ').replace(FILTER_PSEUDO, ' ');
@@ -201,6 +202,9 @@ export async function run({ rest, config }) {
   const strict = process.argv.includes('--strict');
   try {
     const root = fs.realpathSync(process.cwd());
+    let cfg = null;
+    try { cfg = fs.lstatSync(path.join(root, 'verseva.json')); } catch { /* none */ }
+    if (cfg?.isSymbolicLink()) throw new DoctorError('refused: verseva.json is a symlink; doctor reads only inside the working directory');
     const v = versions(root);
     const classes = contractClasses();
     const overrides = [];
@@ -210,7 +214,9 @@ export async function run({ rest, config }) {
     overrides.sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : a.line - b.line));
     const latest = await latestVersion();
     const report = { schema: 1, package: PKG, ...v, latest, lag: lagOf(v.installed, latest), overrides };
-    console.log(json ? JSON.stringify(report, null, 2) : text(report));
+    const out = `${json ? JSON.stringify(report, null, 2) : text(report)}\n`;
+    /* A pipe can take stdout asynchronously: wait for the write before exiting, or a long report is cut. */
+    await new Promise((resolve) => process.stdout.write(out, resolve));
     process.exit(strict && overrides.length ? 1 : 0);
   } catch (e) {
     console.error(`verseva doctor: ${e instanceof DoctorError ? e.message : printable(String(e?.message ?? e).split('\n')[0])}`);
