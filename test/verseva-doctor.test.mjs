@@ -325,6 +325,21 @@ test('a reader that closes the pipe early: no stack trace, the normal exit code'
   assert.deepEqual(strict, { code: 1, err: '' });
 });
 
+test('deep :is() nesting: bounded time, the file is skipped, the report still lists the rest', () => {
+  const cwd = consumer('lagging');
+  const open = ':is(';
+  fs.writeFileSync(path.join(cwd, 'src', 'deep.css'), `.btn${open.repeat(Math.floor((1_000_000 - 20) / open.length))} { color: red; }\n`);
+  fs.writeFileSync(path.join(cwd, 'src', 'ok.css'), '.x:is(.a, :is(.b, :where(.field))) { color: red; }\n');
+  const t0 = Date.now();
+  const r = doctor(cwd, ['--json'], { timeout: 10_000 });
+  const ms = Date.now() - t0;
+  assert.equal(r.code, 0, r.err);
+  const out = JSON.parse(r.out);
+  assert.deepEqual(out.overrides.map((o) => [o.file, o.classes]), [['src/app.css', ['btn']], ['src/ok.css', ['field']]]);
+  assert.deepEqual(out.skipped, [{ file: 'src/deep.css', reason: 'nesting over 32' }]);
+  assert.ok(ms < 1000, `took ${ms} ms`);
+});
+
 test('doctor is listed in the help', () => {
   let out = '';
   try {

@@ -187,24 +187,36 @@ function mask(css) {
   return [a.join(''), b.join('')];
 }
 
+/* Deeper parenthesis nesting than this makes a selector unreadable: its file is skipped. */
+const MAX_DEPTH = 32;
+class NestingError extends Error {}
+
 /** The selector with :not(), :has() and every other filtering functional pseudo-class removed
-    (their contents too, however nested); :is() and :where() keep their contents. A depth scan. */
+    (their contents too, however nested); :is() and :where() keep their contents. One linear
+    pass with a stack, no recursion; nesting over MAX_DEPTH throws NestingError. */
 function stylingPart(sel) {
   let out = '';
+  const stack = [];
+  let dropping = 0;
   let i = 0;
   while (i < sel.length) {
-    const m = sel[i] === ':' ? /^::?([\w-]+)\(/.exec(sel.slice(i, i + 64)) : null;
-    if (!m) { out += sel[i++]; continue; }
-    const open = i + m[0].length - 1;
-    let depth = 0;
-    let j = open;
-    for (; j < sel.length; j++) {
-      if (sel[j] === '(') depth++;
-      else if (sel[j] === ')' && --depth === 0) break;
+    const c = sel[i];
+    const m = c === ':' ? /^::?([\w-]+)\(/.exec(sel.slice(i, i + 64)) : null;
+    if (m || c === '(') {
+      const drop = m ? !(m[1] === 'is' || m[1] === 'where') : false;
+      stack.push(drop);
+      if (stack.length > MAX_DEPTH) throw new NestingError(`nesting over ${MAX_DEPTH}`);
+      if (drop) dropping++;
+      out += ' ';
+      i += m ? m[0].length : 1;
+    } else if (c === ')') {
+      if (stack.length && stack.pop()) dropping--;
+      out += ' ';
+      i++;
+    } else {
+      out += dropping ? ' ' : c;
+      i++;
     }
-    const inner = sel.slice(open + 1, j);
-    out += m[1] === 'is' || m[1] === 'where' ? ` ${stylingPart(inner)} ` : ' ';
-    i = j + 1;
   }
   return out;
 }
@@ -306,8 +318,13 @@ export async function run({ rest, config }) {
     const classes = contractClasses();
     const overrides = [];
     const { files, skipped } = cssFiles(root, excludedDir(root, config?.dir));
+    /* One unreadable file is listed under skipped; it never stops the report. */
     for (const [abs, rel] of files) {
-      for (const row of overridesIn(fs.readFileSync(abs, 'utf8'), classes)) overrides.push({ file: rel, ...row });
+      try {
+        for (const row of overridesIn(fs.readFileSync(abs, 'utf8'), classes)) overrides.push({ file: rel, ...row });
+      } catch (e) {
+        skipped.push({ file: rel, reason: e instanceof NestingError ? e.message : 'unreadable' });
+      }
     }
     const byFileLine = (a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : (a.line ?? 0) - (b.line ?? 0));
     overrides.sort(byFileLine);
