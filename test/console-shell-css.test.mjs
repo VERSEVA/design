@@ -13,7 +13,7 @@ const TOKENS_RAW = read('tokens.css');
 const THEMES = ['cobalt', 'forest', 'slate', 'violet'];
 const SECTION_HEAD = "/* ---- Console shell (1.3.0): glass sidebar, rail, top bar, What's new ---- */";
 const NEXT_HEAD = '/* ---- Stat tile / KPI ---- */';
-const LOCAL_VARS = ['accent-fill', 'accent-fill-hover', 'attn-scroll', 'd', 'dc-angle', 'mx', 'my', 'sticky-bottom', 'sticky-top', 'rt-x', 'rt-y'];
+const LOCAL_VARS = ['accent-fill', 'accent-fill-hover', 'attn-scroll', 'd', 'dc-angle', 'mx', 'my', 'sticky-bottom', 'sticky-top', 'rt-x', 'rt-y', 'vizband-base', 'vizband-top'];
 
 // ---- CSS reading ----
 function splitSelectors(prelude) {

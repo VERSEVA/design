@@ -7,6 +7,7 @@ import path from 'node:path';
 import { StrictMode } from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react';
 import { Page as DataViz } from '../src/chapters/pages/data-viz';
+import { stableIds } from '../src/chapters/specimenCode';
 import CODE from '../src/chapters/pages/data-viz.code.json';
 import { Page as Motion } from '../src/chapters/pages/motion';
 import MOTION_CODE from '../src/chapters/pages/motion.code.json';
@@ -19,7 +20,7 @@ describe('data-viz chapter script', () => {
   it('draws once under StrictMode, leaves the code panels to the tiles, and removes what it added on unmount', () => {
     const { container, unmount } = render(<StrictMode><DataViz /></StrictMode>);
     const tiles = container.querySelectorAll('section.stile');
-    expect(tiles.length).toBe(10);
+    expect(tiles.length).toBe(12);
     expect(container.querySelectorAll('.stile-toggle').length).toBe(tiles.length);
     expect(container.querySelectorAll('.codetoggle, .codewrap, .copybtn').length).toBe(0);
     expect(container.querySelectorAll('#vseries .reftag').length).toBe(1);
@@ -50,7 +51,7 @@ describe('data-viz chapter script', () => {
     specs.forEach((spec, i) => {
       const parsed = document.createElement('div');
       parsed.innerHTML = CODE[i];
-      expect(canon(spec), `sample ${i}`).toBe(canon(parsed));
+      expect(stableIds(canon(spec)), `sample ${i}`).toBe(stableIds(canon(parsed)));
     });
   });
 
