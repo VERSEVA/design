@@ -39,6 +39,29 @@ const PROBE = `(async () => {
       if (chip && !inside(chip.getBoundingClientRect(), lr)) bad.push(name(chip) + ' chip outside its row');
     }
   }
+  /* Every studio funnel sits inside a .wtile (the specimen tile is one), so the forms a funnel takes outside
+     a tile are measured on clones: the normal panel list at a phone panel's 343px (under 26rem: the track on
+     its own line, kept) and at 30rem (26 to 34rem: the two-line form with the share). */
+  const loose = [];
+  for (const w of ['343px', '30rem']) {
+    const host = document.createElement('div');
+    host.style.cssText = 'position:absolute;left:0;top:0;width:' + w;
+    host.appendChild(tile.querySelector('.fpanels ol.funnel[data-share]').cloneNode(true));
+    document.body.appendChild(host);
+    const li = host.querySelectorAll('li.hbar')[1];
+    const lr = li.getBoundingClientRect();
+    const cells = [...li.children].filter(shown);
+    const track = li.querySelector('.htrack').getBoundingClientRect();
+    loose.push({
+      w,
+      head: shown(host.querySelector('.funnel-head')),
+      share: shown(li.querySelector('.funnel-share')),
+      track: shown(li.querySelector('.htrack')) && track.width > 0,
+      ownLine: track.top >= li.querySelector('.hlabel').getBoundingClientRect().bottom - 0.5,
+      clipped: cells.filter((c) => !inside(c.getBoundingClientRect(), lr) || (c.scrollWidth > c.clientWidth + 1 && !c.classList.contains('htrack'))).map((c) => c.className),
+    });
+    host.remove();
+  }
   const chip = tile.querySelector('.funnel-drop[data-biggest] .badge');
   const tracks = [...tile.querySelectorAll('.wtile[data-size="m"] ol.funnel .htrack')].filter(shown).length;
   return JSON.stringify({
@@ -46,7 +69,7 @@ const PROBE = `(async () => {
     rows: tile.querySelectorAll('ol.funnel > li.hbar').length,
     sideways: Math.max(tile.scrollWidth - tile.clientWidth, Math.round(tile.getBoundingClientRect().right - document.documentElement.clientWidth)),
     chipColor: chip && getComputedStyle(chip).color,
-    tracks,
+    tracks, loose,
   });
 })()`;
 
@@ -65,6 +88,10 @@ for (const width of [375, 768, 1280]) {
       if (width >= 768) assert.ok(r.tracks > 0, 'M tiles draw their tracks');
       else assert.equal(r.tracks, 0);
       assert.ok(r.chipColor, 'the biggest drop carries its chip');
+      assert.deepEqual(r.loose, [
+        { w: '343px', head: false, share: false, track: true, ownLine: true, clipped: [] },
+        { w: '30rem', head: false, share: true, track: true, ownLine: true, clipped: [] },
+      ]);
       await page.close();
     });
   }
