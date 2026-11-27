@@ -30,9 +30,13 @@ export const MAX_DOTS = 3;
 export interface VizLabels {
   /** Named where a value is withheld, after a series or item name: a null in a line on hover, a suppressed bar with no display in its title, an all-null chart in its plot. */
   withheld: string;
+  /** The column header of the hidden data table on a one-series part (Sparkline, Bars, HBars). */
+  value: string;
+  /** The hidden data table's name when the part has no `label` (a LineChart is named by its series instead). */
+  table: string;
 }
 
-export const VIZ_LABELS: VizLabels = { withheld: 'withheld' };
+export const VIZ_LABELS: VizLabels = { withheld: 'withheld', value: 'Value', table: 'Chart data' };
 
 export interface SecretFieldLabels {
   /** The badge beside the label once a value is stored. */
