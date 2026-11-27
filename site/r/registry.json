@@ -17,6 +17,13 @@
       "description": "inert props that type-check and render the same on React 18 and 19"
     },
     {
+      "name": "labels",
+      "file": "react/labels.ts",
+      "kind": "util",
+      "deps": [],
+      "description": "Built-in words and limits for parts with no state module; pure, so server code can read them"
+    },
+    {
       "name": "button",
       "file": "react/button.tsx",
       "kind": "component",
@@ -112,6 +119,23 @@
         "cx"
       ],
       "description": "Skeleton bars that mirror the real layout"
+    },
+    {
+      "name": "bounded-state",
+      "file": "react/bounded-state.ts",
+      "kind": "util",
+      "deps": [],
+      "description": "Bounded section limits: the default cap, the largest cap, and the cap the CSS can hold; pure, so server code can read them"
+    },
+    {
+      "name": "bounded-section",
+      "file": "react/bounded-section.tsx",
+      "kind": "component",
+      "deps": [
+        "cx",
+        "bounded-state"
+      ],
+      "description": "Section capped at 5 rows (1 to 12 per instance) with a +N more count and a Show all action at the cap and above; its height never grows with its data"
     },
     {
       "name": "console-nav",
@@ -275,6 +299,7 @@
       "file": "react/smart-stack.tsx",
       "kind": "component",
       "deps": [
+        "labels",
         "inert",
         "cx"
       ],

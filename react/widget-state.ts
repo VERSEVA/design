@@ -243,3 +243,49 @@ export const movedMessage = (name: string, index: number, total: number) => `${n
 export const resizedMessage = (name: string, size: WidgetSize) => `${name} resized to ${SIZE_LABEL[size]}`;
 export const removedMessage = (name: string) => `${name} removed`;
 export const addedMessage = (name: string) => `${name} added`;
+
+/* The widget parts' built-in words. Pure data, so server code can read and spread them. */
+export interface WidgetGalleryLabels {
+  title: string;
+  close: string;
+  /** Group name for a kind's add buttons. */
+  addKind: (name: string) => string;
+  /** One add button. */
+  addSize: (name: string, size: WidgetSize) => string;
+}
+
+export const WIDGET_GALLERY_LABELS: WidgetGalleryLabels = {
+  title: 'Add widget',
+  close: 'Close',
+  addKind: (name) => `Add ${name}`,
+  addSize: (name, size) => `Add ${name}, ${SIZE_LABEL[size]}`,
+};
+
+export interface WidgetGridLabels {
+  region: string;
+  empty: string;
+  add: string;
+  retry: string;
+  undo: string;
+  move: string;
+  remove: (name: string) => string;
+  moveUp: (name: string) => string;
+  moveDown: (name: string) => string;
+  size: (name: string) => string;
+  restored: (name: string) => string;
+  gallery?: Partial<WidgetGalleryLabels>;
+}
+
+export const WIDGET_GRID_LABELS: WidgetGridLabels = {
+  region: 'Widgets',
+  empty: 'No widgets',
+  add: 'Add widget',
+  retry: 'Retry',
+  undo: 'Undo',
+  move: 'Move',
+  remove: (name) => `Remove ${name}`,
+  moveUp: (name) => `Move ${name} up`,
+  moveDown: (name) => `Move ${name} down`,
+  size: (name) => `${name} size`,
+  restored: (name) => `${name} restored`,
+};
