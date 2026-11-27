@@ -289,6 +289,8 @@ export function LineChart({ labels, series, reference, height = 140, format = St
  * fill, and nothing is read from `value`, which also stays out of the scale.
  */
 type Shown = { display?: string; suppressed?: false } | { display: string; suppressed: true };
+/** The item shape every withheld-aware part shares (a funnel step is one). */
+export type ShownItem = { label: string; value: number } & Shown;
 export type BarsItem = { label: string; value: number; level?: 0 | 1 | 2 | 3 } & Shown;
 export type HBarsItem = { label: string; value: number; alt?: boolean } & Shown;
 

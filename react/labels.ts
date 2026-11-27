@@ -34,6 +34,44 @@ export interface VizLabels {
 
 export const VIZ_LABELS: VizLabels = { withheld: 'withheld' };
 
+/** The step funnel's copy (funnel.tsx): a product passes its own words through `labels`. */
+export interface FunnelLabels {
+  /** Names the list, and captions the hidden table when no `label` is given. */
+  list: string;
+  /** Column labels: the panel's head row and the hidden table's header. */
+  step: string;
+  count: string;
+  /** Share of the first step, e.g. "Of landing" where the first step is landing views. */
+  share: string;
+  drop: string;
+  /** The neutral chip on the biggest drop. */
+  biggest: string;
+  /** The empty state. */
+  empty: string;
+  /** Read before a share, for a screen reader: "of first 25%". */
+  shareSr: string;
+  /** A fall from the previous step, read for a screen reader. */
+  dropSr: (percent: number) => string;
+  /** A rise from the previous step, read for a screen reader. */
+  riseSr: (percent: number) => string;
+  /** A drop beside a withheld step: never exact, printed as a dash. */
+  notExact: string;
+}
+
+export const FUNNEL_LABELS: FunnelLabels = {
+  list: 'Funnel steps',
+  step: 'Step',
+  count: 'Count',
+  share: 'Of first',
+  drop: 'Drop',
+  biggest: 'Biggest drop',
+  empty: 'No funnel events',
+  shareSr: 'of first',
+  dropSr: (p) => `drop ${p}%`,
+  riseSr: (p) => `rise ${p}%`,
+  notExact: 'drop not exact',
+};
+
 export interface SecretFieldLabels {
   /** The badge beside the label once a value is stored. */
   set: string;

@@ -742,6 +742,41 @@ color-alone).
     default `withheld`, lowercase since it follows a name (`react/labels.ts`).
   - **`Bars` and `HBars` hold no state and no hook:** they render without a client boundary.
 
+## Step funnel: `.funnel` (1.8)
+
+How many reach each step of a flow, the drop between steps, and the biggest drop. React:
+`Funnel` (`npx verseva add funnel`), no state and no hook, so it renders without a client boundary.
+
+- **Steps are bar items:** `{ label, value, display?, suppressed? }`, the `HBars` item shape; a
+  suppressed step needs `display`. In order, first step first. The kit does not sort.
+- **Rows:** an `ol.funnel`; each step is an `.hbar` row on one fixed-column grid so every track has
+  the same width: label, a bar scaled to the first step, the count (mono, tabular), the share of
+  the first step (`.funnel-share`, panel form only), and the drop from the step before
+  (`.funnel-drop`). The first step has no drop. A rise prints `+N%`; a fall prints `−N%`.
+- **The biggest drop** carries `[data-biggest]` and a word chip, `.badge.neutral` with "Biggest
+  drop" and its icon: neutral, never coloured by sign, never the accent. Only a fall is flagged;
+  no fall, no chip.
+- **A suppressed step is a privacy floor,** as for `HBars`: `.hbar[data-suppressed]` draws the
+  withheld stub with no fill and prints `display`. Its value is never read: not for a bar length,
+  the scale, a share, a drop, the flag, an attribute or a title. Its share is a dash; a drop next to
+  it prints a dash, reads "drop not exact", and is never the biggest. When the first step is
+  suppressed (or zero) the bars scale to the largest known step and every share is a dash. The same
+  steps render the same markup whatever the suppressed value is.
+- **Forms:** the panel form (`share`, `[data-share]`) adds the share column and a `.funnel-head`
+  column-label row, `aria-hidden` (the rows and the table carry their own words). The tile form has
+  neither. In a widget grid: M takes the tile form, L the panel form. Under 34rem of its own width
+  the panel form puts the track on its own line and drops the head; under 26rem every form does
+  and drops the share; under 26rem inside a `.wtile` the track drops out.
+- **States:** normal, a suppressed step, a single step (a full bar, no drop), empty (`.empty`, or
+  the host's own `empty`, e.g. `.wtile-sub` in a tile), loading (five `.skel` rows of the same
+  grid, `aria-hidden`; the host marks its panel `aria-busy`).
+- **Accessibility:** a visually hidden data table (`.sr-only`) with a caption (`label`), one row
+  per step, Step, Count, share and Drop columns; the visible list is then `aria-hidden`.
+  `table={false}` drops the table and the list is read, named by `label`.
+- **Copy:** `labels` (`react/labels.ts`, `FUNNEL_LABELS`): the column words, the chip, the empty
+  line and the screen reader phrases. The share column defaults to "Of first"; a product names its
+  first step ("Of landing").
+
 ## Widgets: `.wgrid`, `.wtile`, `.wstack`, `.wgal` (1.6.0)
 
 An adaptive home: a grid of tiles, each picking its view from its size. React parts
