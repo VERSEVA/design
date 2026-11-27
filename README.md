@@ -102,6 +102,7 @@ npx verseva init
 npx verseva add button field toast console-shell console-nav org-switcher account-capsule console-topbar whats-new viz motion
 npx verseva block add pulse
 npx verseva list
+npx verseva brief button   # source + the laws that bind it + its contract section
 ```
 
 Upgrading from 1.1.0 or 1.2.0: re-add `menu` first (`npx verseva add menu --force`). `add` keeps files you already have, and the console shell parts need the 1.3.0 Menu.
@@ -184,7 +185,8 @@ npx verseva mcp init --client claude   # cursor | vscode
 ```
 
 One zero-dependency stdio server. The agent can list the registry, read any
-component's source, read the tokens and the laws, install components, and run
+component's source, get one component as a brief (`get_brief`: source, only the
+laws that bind it, its contract section), read the tokens and the laws, install components, and run
 the full gate suite with `run_gate` to PROVE its output stayed on-signature
 before calling anything done. No other design system gives an agent proof.
 
