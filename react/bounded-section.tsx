@@ -1,17 +1,17 @@
 'use client';
 import * as React from 'react';
 import { cx } from './cx';
+import { BOUNDED_CAP, BOUNDED_MAX_CAP, boundedCap } from './bounded-state';
 
 /* Bundlers replace process.env.NODE_ENV; without one there is no process and no warning. */
 declare const process: { env: { NODE_ENV?: string } } | undefined;
 
-export const BOUNDED_CAP = 5;
-const MAX_CAP = 12;
-
-/** The cap the CSS can hold: a whole number from 1 to 12. Anything else is the default, 5. */
-export function boundedCap(cap: number = BOUNDED_CAP): number {
-  return Number.isInteger(cap) && cap >= 1 && cap <= MAX_CAP ? cap : BOUNDED_CAP;
-}
+export {
+  /** @deprecated Import from './bounded-state'. Read from this client file, a server component gets a client reference, not the value. */
+  BOUNDED_CAP,
+  /** @deprecated Import from './bounded-state'. Read from this client file, a server component gets a client reference, not the function. */
+  boundedCap,
+};
 
 /** Show all needs somewhere to go: a link, a handler, or both. */
 type ShowAll = { href: string; onShowAll?: () => void } | { href?: undefined; onShowAll: () => void };
@@ -70,7 +70,7 @@ export function BoundedSection<T>({
 
   React.useEffect(() => {
     if (typeof process === 'undefined' || process.env.NODE_ENV === 'production') return;
-    if (cap !== undefined && n !== cap) console.warn(`BoundedSection: cap ${cap} is not a whole number from 1 to ${MAX_CAP}; using ${BOUNDED_CAP}.`);
+    if (cap !== undefined && n !== cap) console.warn(`BoundedSection: cap ${cap} is not a whole number from 1 to ${BOUNDED_MAX_CAP}; using ${BOUNDED_CAP}.`);
     if (!wired) console.warn('BoundedSection: pass href or onShowAll; without one there is no Show all action.');
   }, [cap, n, wired]);
 
