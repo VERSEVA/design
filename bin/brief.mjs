@@ -69,7 +69,9 @@ function fenced(source, lang) {
 export function buildBrief(pkgRoot, registry, name) {
   if (typeof name !== 'string') return { error: 'refused: name must be a string naming a registry component' };
   if (name.length > 64 || !NAME.test(name)) {
-    return { error: `refused: ${JSON.stringify(name.slice(0, 64))} is not a registry name (lowercase letters, digits and hyphens; no paths or URLs)` };
+    /* Shown as printable ASCII only: a line or paragraph separator in the input cannot split the line. */
+    const shown = JSON.stringify(name.slice(0, 64).replace(/[^\x20-\x7e]/g, '?'));
+    return { error: `refused: ${shown} is not a registry name (lowercase letters, digits and hyphens; no paths or URLs)` };
   }
   const comp = registry.components.find((c) => c.name === name);
   if (!comp) return { error: `unknown component: ${name} (try: verseva list)` };

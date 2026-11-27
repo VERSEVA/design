@@ -191,7 +191,7 @@ rl.on('line', (line) => {
         protocolVersion: '2024-11-05',
         capabilities: { tools: {} },
         serverInfo: { name: 'verseva', version: pkg.version },
-        instructions: 'VERSEVA Design as a server. Read get_brief for each component you build (its laws and contract), get_tokens for values; add_component for source; ALWAYS finish surface work with run_gate: done means proven.',
+        instructions: 'VERSEVA Design as a server. Read get_brief for each component you build (its laws and contract), get_laws + get_tokens for the whole surface; add_component for source; ALWAYS finish surface work with run_gate: done means proven.',
       },
     });
     return;

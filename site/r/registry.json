@@ -114,7 +114,8 @@
       ],
       "laws": [
         3,
-        10
+        10,
+        11
       ],
       "contract": "selection-controls-sel-switch",
       "description": "Switch + Checkbox; the word carries the state"
@@ -128,7 +129,9 @@
       ],
       "laws": [
         3,
+        7,
         8,
+        11,
         12
       ],
       "contract": "segmented-seg--filter-chips-fchip--search-searchbox",
@@ -143,8 +146,10 @@
       ],
       "laws": [
         3,
+        4,
         7,
-        10
+        10,
+        11
       ],
       "contract": "segmented-seg--filter-chips-fchip--search-searchbox",
       "description": "Filter chips with counts, single or multi"
@@ -155,6 +160,7 @@
       "kind": "component",
       "deps": [],
       "laws": [
+        1,
         2,
         10
       ],
@@ -184,6 +190,7 @@
         "cx"
       ],
       "laws": [
+        3,
         4,
         5,
         10
@@ -221,6 +228,7 @@
         "bounded-state"
       ],
       "laws": [
+        3,
         6,
         10
       ],
@@ -236,6 +244,7 @@
       ],
       "laws": [
         3,
+        4,
         8,
         10,
         12
@@ -290,6 +299,7 @@
         "cx"
       ],
       "laws": [
+        3,
         4,
         10,
         12
@@ -306,6 +316,8 @@
         "cx"
       ],
       "laws": [
+        3,
+        4,
         7,
         10,
         12
@@ -323,6 +335,8 @@
       ],
       "laws": [
         1,
+        4,
+        7,
         9,
         12
       ],
@@ -348,6 +362,7 @@
       "laws": [
         1,
         3,
+        7,
         8,
         10
       ],
@@ -377,6 +392,7 @@
       ],
       "laws": [
         3,
+        4,
         8,
         10
       ],
@@ -434,6 +450,7 @@
         "cx"
       ],
       "laws": [
+        5,
         8
       ],
       "contract": "global-floor-every-component",
@@ -455,6 +472,7 @@
         "cx"
       ],
       "laws": [
+        3,
         7,
         8
       ],
@@ -472,6 +490,7 @@
       ],
       "laws": [
         1,
+        3,
         7
       ],
       "contract": "widgets-wgrid-wtile-wstack-wgal-160",
@@ -490,6 +509,7 @@
       "laws": [
         1,
         3,
+        6,
         7,
         8
       ],
@@ -516,6 +536,7 @@
         1,
         3,
         4,
+        7,
         8
       ],
       "contract": "command-bar-cmdk--three-column-top-bar-160",
