@@ -1,5 +1,6 @@
 // Test preload for verseva doctor: replaces globalThis.fetch so no test reaches the network.
-// DOCTOR_STUB=offline rejects every call; otherwise it answers with DOCTOR_STUB_LATEST.
+// DOCTOR_STUB=offline rejects every call; otherwise it answers with DOCTOR_STUB_LATEST
+// (DOCTOR_STUB_PAD adds that many bytes of padding to the answer).
 // Each call is appended to DOCTOR_STUB_LOG as one JSON line.
 import fs from 'node:fs';
 
@@ -14,6 +15,7 @@ globalThis.fetch = async (url, init = {}) => {
     }) + '\n');
   }
   if (process.env.DOCTOR_STUB === 'offline') throw new TypeError('fetch failed');
-  const body = process.env.DOCTOR_STUB_BODY ?? JSON.stringify({ name: '@verseva/design', version: process.env.DOCTOR_STUB_LATEST });
+  const pad = Number(process.env.DOCTOR_STUB_PAD ?? 0);
+  const body = process.env.DOCTOR_STUB_BODY ?? JSON.stringify({ name: '@verseva/design', version: process.env.DOCTOR_STUB_LATEST, ...(pad ? { pad: 'x'.repeat(pad) } : {}) });
   return new Response(body, { status: 200, headers: { 'content-type': 'application/json' } });
 };

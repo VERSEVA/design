@@ -2,7 +2,7 @@
 // through a fetch stub preloaded with --import, so no test reaches the network.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -24,17 +24,18 @@ function consumer(name) {
 }
 
 /** Run `verseva doctor` in cwd with the stub. Returns code, stdout, stderr and the fetch calls. */
-function doctor(cwd, args = [], { latest = '1.7.0', offline = false, body } = {}) {
+function doctor(cwd, args = [], { latest = '1.7.0', offline = false, body, pad, timeout } = {}) {
   const log = path.join(tmp(), 'calls.log');
   const env = { ...process.env, DOCTOR_STUB_LOG: log, DOCTOR_STUB_LATEST: latest, DOCTOR_STUB: offline ? 'offline' : '' };
   if (body !== undefined) env.DOCTOR_STUB_BODY = body;
+  if (pad !== undefined) env.DOCTOR_STUB_PAD = String(pad);
   let code = 0;
   let out = '';
   let err = '';
   try {
-    out = execFileSync(process.execPath, ['--import', stub, bin, 'doctor', ...args], { encoding: 'utf8', cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    out = execFileSync(process.execPath, ['--import', stub, bin, 'doctor', ...args], { encoding: 'utf8', cwd, env, stdio: ['ignore', 'pipe', 'pipe'], timeout, maxBuffer: 64 * 1024 * 1024 });
   } catch (e) {
-    code = e.status;
+    code = e.signal ? `signal ${e.signal}` : e.status;
     out = e.stdout ?? '';
     err = e.stderr ?? '';
   }
@@ -67,7 +68,9 @@ test('--json is the documented shape, alone on stdout', () => {
     installedFrom: 'package-lock.json',
     latest: '1.7.0',
     lag: { major: 0, minor: 2, patch: 0 },
+    state: 'behind',
     overrides: [OVERRIDE],
+    skipped: [],
   });
 });
 
@@ -159,14 +162,15 @@ test('path escape: a symlinked package.json or lockfile is refused, exit 2', () 
   }
 });
 
-test('path escape: a symlinked verseva.json is refused, exit 2', () => {
+test('path escape: a symlinked verseva.json is refused by the entry file, exit 1, nothing of it printed', () => {
   const outside = tmp();
-  fs.writeFileSync(path.join(outside, 'verseva.json'), JSON.stringify({ dir: 'src' }));
+  fs.writeFileSync(path.join(outside, 'verseva.json'), 'SECRET_TOKEN_abc123 \u001b[2J not json');
   const cwd = consumer('lagging');
   fs.symlinkSync(path.join(outside, 'verseva.json'), path.join(cwd, 'verseva.json'));
   const r = doctor(cwd, ['--json']);
-  assert.equal(r.code, 2);
-  assert.match(r.err, /^verseva doctor: refused: verseva\.json is a symlink/);
+  assert.equal(r.code, 1);
+  assert.match(r.err, /^verseva: refused: verseva\.json is a symlink; fix or remove it\n$/);
+  assert.doesNotMatch(r.err, /SECRET|\u001b/);
   assert.equal(r.out, '');
 });
 
@@ -238,6 +242,87 @@ test('one row per selector in a list; rows sorted by file then line; control cha
   const text = doctor(cwd);
   assert.doesNotMatch(text.out, /\u001b/);
   assert.match(text.out, /a\?\[2Jz\.css:1 {2}\.btn\.mine/);
+});
+
+test('linear time: a 1 MB stylesheet with no braces, unclosed comments and quotes', () => {
+  const cwd = consumer('clean');
+  const chunk = '.btn /* "x \'y ';
+  fs.writeFileSync(path.join(cwd, 'src', 'flat.css'), chunk.repeat(Math.floor(1_000_000 / chunk.length)));
+  const t0 = Date.now();
+  const r = doctor(cwd, ['--json'], { timeout: 10_000 });
+  const ms = Date.now() - t0;
+  assert.equal(r.code, 0, r.err);
+  assert.deepEqual(JSON.parse(r.out).overrides, []);
+  assert.ok(ms < 5000, `took ${ms} ms`);
+});
+
+test('a CSS file over 1 MB is skipped and named in the report', () => {
+  const cwd = consumer('lagging');
+  fs.writeFileSync(path.join(cwd, 'src', 'huge.css'), '.btn { color: red; }\n'.repeat(60_000));
+  const j = doctor(cwd, ['--json'], { timeout: 10_000 });
+  assert.equal(j.code, 0, j.err);
+  const out = JSON.parse(j.out);
+  assert.deepEqual(out.overrides, [OVERRIDE]);
+  assert.deepEqual(out.skipped, [{ file: 'src/huge.css', reason: 'over 1 MB' }]);
+  const t = doctor(cwd, [], { timeout: 10_000 });
+  assert.match(t.out, /\n {2}skipped {4}src\/huge\.css \(over 1 MB\)/);
+});
+
+test('bidirectional control characters are stripped from text output', () => {
+  const cwd = consumer('clean');
+  fs.writeFileSync(path.join(cwd, 'a‮z⁦.css'), '.btn { color: red; }\n');
+  const r = doctor(cwd);
+  assert.equal(r.code, 0, r.err);
+  assert.doesNotMatch(r.out, /[‪-‮⁦-⁩]/);
+  assert.match(r.out, /a\?z\?\.css:1/);
+});
+
+test('a registry answer over 1 MB counts as latest unknown', () => {
+  const r = doctor(consumer('lagging'), ['--json'], { pad: 1_100_000 });
+  assert.equal(r.code, 0, r.err);
+  assert.equal(JSON.parse(r.out).latest, null);
+});
+
+test('prerelease is behind its release; newer than latest is ahead', () => {
+  const cases = [['1.7.0-rc.1', '1.7.0', 'behind', /lag\s+behind \(prerelease\)/], ['1.8.0', '1.7.0', 'ahead', /lag\s+ahead of latest/], ['1.7.0', '1.7.0', 'current', /lag\s+up to date/]];
+  for (const [installed, latest, state, line] of cases) {
+    const cwd = consumer('clean');
+    fs.writeFileSync(path.join(cwd, 'package-lock.json'), JSON.stringify({ packages: { 'node_modules/@verseva/design': { version: installed } } }));
+    const j = JSON.parse(doctor(cwd, ['--json'], { latest }).out);
+    assert.equal(j.state, state, installed);
+    assert.deepEqual(j.lag, { major: 0, minor: 0, patch: 0 }, installed);
+    assert.match(doctor(cwd, [], { latest }).out, line, installed);
+  }
+  const off = JSON.parse(doctor(consumer('clean'), ['--json'], { offline: true }).out);
+  assert.equal(off.state, null);
+});
+
+test('a class inside :not(), even nested in :is() or :where(), is not an override', () => {
+  const cwd = consumer('clean');
+  fs.writeFileSync(path.join(cwd, 'src', 'n.css'), '.mine:not(:is(.x, :where(.btn))) { color: red; }\n:is(.mine, :where(.field)) { color: red; }\n');
+  const r = doctor(cwd, ['--json']);
+  assert.equal(r.code, 0, r.err);
+  assert.deepEqual(JSON.parse(r.out).overrides.map((o) => [o.line, o.classes]), [[2, ['field']]]);
+});
+
+/** Spawn doctor, read one chunk of stdout, then close the pipe (like `| head -c 100`). */
+function doctorClosedEarly(cwd, args) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, ['--import', stub, bin, 'doctor', ...args], { cwd, env: { ...process.env, DOCTOR_STUB_LATEST: '1.7.0' }, stdio: ['ignore', 'pipe', 'pipe'] });
+    let err = '';
+    child.stderr.on('data', (d) => { err += d; });
+    child.stdout.once('data', () => child.stdout.destroy());
+    child.on('close', (code) => resolve({ code, err }));
+  });
+}
+
+test('a reader that closes the pipe early: no stack trace, the normal exit code', async () => {
+  const cwd = consumer('clean');
+  fs.writeFileSync(path.join(cwd, 'src', 'big.css'), '.btn { color: red; }\n'.repeat(20_000));
+  const plain = await doctorClosedEarly(cwd, ['--json']);
+  assert.deepEqual(plain, { code: 0, err: '' });
+  const strict = await doctorClosedEarly(cwd, ['--json', '--strict']);
+  assert.deepEqual(strict, { code: 1, err: '' });
 });
 
 test('doctor is listed in the help', () => {
