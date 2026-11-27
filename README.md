@@ -134,10 +134,18 @@ the latest release, and every rule in YOUR CSS that targets a package class
 (the contract class set from `components.css`), as file, line and selector.
 The installed version comes from `package-lock.json`, else an exact pin in
 `package.json`; the latest comes from one HTTPS GET to the public npm registry
-(5 second timeout, no redirects). Offline it prints `latest unknown` and still
-reports overrides. It reads only inside the working directory: no symlinks are
-followed, and `node_modules`, dot directories and the `verseva.json` `dir` are
-not scanned. Exit 0 always, 1 under `--strict` with an override, 2 on error.
+(5 second timeout, no redirects, an answer over 1 MB counts as unknown). Offline
+it prints `latest unknown` and still reports overrides. It reads only inside the
+working directory: no symlinks are followed, `node_modules`, dot directories and
+the `verseva.json` `dir` are not scanned, and a CSS file over 1 MB is skipped and
+named. Exit 0 always, 1 under `--strict` with an override, 2 on error; a reader
+that closes the pipe early (`| head`) does not change the code.
+
+Limits: a malformed or symlinked `verseva.json` stops the CLI with exit 1 before
+doctor runs, as it does for every command. Only `package-lock.json` is read, so a
+pnpm or yarn lockfile, a range or operator pin such as `=1.4.0` with no
+`package-lock.json`, and a workspace or `file:` package all report installed
+unknown.
 
 `--json` (schema 1):
 
@@ -150,16 +158,22 @@ not scanned. Exit 0 always, 1 under `--strict` with an override, 2 on error.
   "installedFrom": "package-lock.json",
   "latest": "1.7.0",
   "lag": { "major": 0, "minor": 2, "patch": 0 },
+  "state": "behind",
   "overrides": [
     { "file": "src/app.css", "line": 5, "selector": ".checkout .btn", "classes": ["btn"] }
-  ]
+  ],
+  "skipped": []
 }
 ```
 
 `declared` is the range in `package.json` (or `null`), `installed` and
 `installedFrom` are `null` when no version can be read, `latest` and `lag` are
-`null` when the registry is unreachable. `lag` counts the first level that
-differs; the levels below it are 0. `overrides` holds one row per selector (a
+`null` when the registry is unreachable. `state` is `behind`, `current` or
+`ahead` (`null` with `lag`); a prerelease is behind its release. `lag` counts the
+first numeric level that differs, the levels below it 0 (all 0 unless `behind`).
+`skipped` lists CSS files not scanned, as `{ "file", "reason" }` (`over 1 MB`).
+`:not()`, `:has()` and other filtering pseudo-classes do not count as targeting
+a class; `:is()` and `:where()` do. `overrides` holds one row per selector (a
 selector list gives one row per member), sorted by file then line; `file` is a
 POSIX path relative to the working directory.
 

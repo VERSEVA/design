@@ -37,12 +37,17 @@ const [cmd, ...rest] = words;
 function readJson(file) {
   try {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
-  } catch (e) {
-    console.error(`verseva: ${file} is not valid JSON (${e.message}); fix or remove it`);
+  } catch {
+    console.error(`verseva: ${file} is not valid JSON; fix or remove it`);
     process.exit(1);
   }
 }
 
+/* A symlinked verseva.json is refused before it is read: its target's content never reaches the output. */
+if (fs.lstatSync('verseva.json', { throwIfNoEntry: false })?.isSymbolicLink()) {
+  console.error('verseva: refused: verseva.json is a symlink; fix or remove it');
+  process.exit(1);
+}
 const config = fs.existsSync('verseva.json') ? readJson('verseva.json') : {};
 
 /** Containment: written filenames flatten to basenames, extensions are
