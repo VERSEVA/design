@@ -14,10 +14,18 @@ type BarItem = React.ComponentProps<typeof Bars>['data'][number];
 type HBarItem = React.ComponentProps<typeof HBars>['data'][number];
 const bare = <T,>(item: { label: string; value: number }) => ({ ...item, suppressed: true }) as unknown as T;
 
-const table = (c: Element) => c.querySelector('table')!;
-const caption = (c: Element) => table(c).querySelector('caption')?.textContent ?? null;
-const head = (c: Element) => [...table(c).querySelectorAll('thead th')].map((th) => th.textContent);
-const rows = (c: Element) => [...table(c).querySelectorAll('tbody tr')].map((tr) => [...tr.children].map((x) => x.textContent));
+/* A <table>, or (Sparkline, which sits in phrasing content) the same table built from ARIA roles on spans. */
+const table = (c: Element) => c.querySelector('table, [role="table"]')!;
+const caption = (c: Element) => {
+  const t = table(c);
+  return t.tagName === 'TABLE' ? t.querySelector('caption')?.textContent ?? null : t.getAttribute('aria-label');
+};
+const head = (c: Element) => [...table(c).querySelectorAll('thead th, [role="columnheader"]')].map((th) => th.textContent);
+const rows = (c: Element) => {
+  const t = table(c);
+  const trs = t.tagName === 'TABLE' ? [...t.querySelectorAll('tbody tr')] : [...t.querySelectorAll('[role="row"]')].slice(1);
+  return trs.map((tr) => [...tr.children].map((x) => x.textContent));
+};
 
 let warn: ReturnType<typeof vi.spyOn>;
 beforeEach(() => { warn = vi.spyOn(console, 'warn').mockImplementation(() => {}); });
@@ -38,7 +46,7 @@ describe('the hidden data table', () => {
   it('Bars: prints values in the table even when showValues is off', () => {
     const { container } = render(<Bars showValues={false} data={[{ label: 'a', value: 5 }]} />);
     expect(rows(container)).toEqual([['a', '5']]);
-    expect(caption(container)).toBeNull();
+    expect(caption(container)).toBe(VIZ_LABELS.table);
   });
 
   it('HBars: one row per item, formatted, each visible row aria-hidden and titled', () => {
@@ -78,6 +86,38 @@ describe('the hidden data table', () => {
     expect(head(container)).toEqual([VIZ_LABELS.value]);
     expect(rows(container)).toEqual([['1', '12'], ['2', ''], ['3', '14']]);
     expect(container.querySelector('.spark svg')!.getAttribute('aria-hidden')).toBe('true');
+    expect(table(container).querySelectorAll('[role="rowheader"]')).toHaveLength(3);
+    expect(table(container).querySelectorAll('[role="cell"]').length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('Sparkline: inside a paragraph, the server markup parses back unchanged and the table stays hidden', () => {
+    const html = renderToStaticMarkup(<p>Visits <Sparkline values={[1, null, 3]} /> this week</p>);
+    expect(html).not.toMatch(/<(table|caption|thead|tbody|tr|th|td)\b/);
+    const doc = new DOMParser().parseFromString(`<!doctype html><body>${html}</body>`, 'text/html');
+    expect(doc.body.innerHTML).toBe(html);
+    expect(doc.body.children).toHaveLength(1);
+    const t = doc.querySelector('[role="table"]')!;
+    expect(t.closest('.sr-only')).not.toBeNull();
+    expect(t.closest('p')).not.toBeNull();
+  });
+
+  it('names a table with no label from vizLabels, default "Chart data"; a LineChart by its series', () => {
+    expect(caption(render(<Bars data={[{ label: 'a', value: 1 }]} />).container)).toBe(VIZ_LABELS.table);
+    expect(VIZ_LABELS.table).toBe('Chart data');
+    expect(caption(render(<HBars data={[{ label: 'a', value: 1 }]} vizLabels={{ table: 'Stages' }} />).container)).toBe('Stages');
+    expect(caption(render(<Sparkline values={[1]} />).container)).toBe(VIZ_LABELS.table);
+    expect(caption(render(<LineChart labels={['a']} series={[{ name: 'A', values: [1] }, { name: 'B', values: [2] }]} />).container)).toBe('A vs B');
+    expect(caption(render(<LineChart label="Mine" labels={['a']} series={[{ name: 'A', values: [1] }]} />).container)).toBe('Mine');
+  });
+
+  it('LineChart: the legend and the reference tag are aria-hidden with the table, and read without it', () => {
+    const props = { labels: ['a', 'b'], series: [{ name: 'A', values: [1, 2] }, { name: 'B', values: [2, 1] }], reference: { value: 1, label: 'AVG' } };
+    const on = render(<LineChart {...props} />).container;
+    expect(on.querySelector('.vizlegend')!.getAttribute('aria-hidden')).toBe('true');
+    expect(on.querySelector('.reftag')!.getAttribute('aria-hidden')).toBe('true');
+    const off = render(<LineChart {...props} table={false} />).container;
+    expect(off.querySelector('.vizlegend')!.hasAttribute('aria-hidden')).toBe(false);
+    expect(off.querySelector('.reftag')!.hasAttribute('aria-hidden')).toBe(false);
   });
 
   it('table={false} renders no table and the plot as it was', () => {
@@ -178,7 +218,7 @@ describe('the data-viz chapter', () => {
     const { container } = render(<DataViz />);
     const r = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
     expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
-    const caps = [...container.querySelectorAll('#suppressed table caption, #gaps table caption')].map((c) => c.textContent);
+    const caps = [...container.querySelectorAll('#suppressed table caption, #gaps table caption, #gaps [role="table"]')].map((c) => c.textContent || c.getAttribute('aria-label'));
     expect(caps).toHaveLength(4);
     expect(caps.every(Boolean)).toBe(true);
   }, 60000);
