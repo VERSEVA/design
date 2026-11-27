@@ -70,7 +70,8 @@ themes, so a brand theme file passed via `--tokens` is measured, not trusted:
 Ratified exceptions carry `hex-ok` on the line with a reason in the adjacent comment.
 
 `verseva-gate` also runs `verseva-recipe-gate` after the four, as advisory: findings print
-under an `advisory:` heading and never change the exit code. It flags contract-owned elements
+under an `advisory:` heading and never change the exit code, even on an error or a hang (it is
+stopped after 60 seconds); `--no-advisory` skips it. It flags contract-owned elements
 (button, table, field, select, dialog) built without contract classes, and a project with no
 material use. Run it alone with `--strict` to fail on findings. Waive one element with
 `recipe-ok: <reason>`; in `verseva.json`, `recipeAllow` lists path substrings to skip and

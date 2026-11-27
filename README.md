@@ -227,7 +227,8 @@ npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src
 | `verseva-type-gate` | Off-token faces, sizes below 9.5px, `font:` shorthand included | `type-ok` + reason |
 
 A fifth gate, `verseva-recipe-gate`, is advisory: `verseva-gate` runs it after the four and
-prints its findings under an `advisory:` heading; it never changes the exit code. It reports
+prints its findings under an `advisory:` heading; it never changes the exit code, even when it
+errors or hangs (it is stopped after 60 seconds). `--no-advisory` skips it. It reports
 buttons, tables, fields, selects and dialogs built without the contract's classes, and a
 project that consumes none of the signature material (`--glass-*`, `--nav-*`,
 `--accent-bloom`, or a material class). Run it alone with `--strict` to exit 1 on findings.
