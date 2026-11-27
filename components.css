@@ -534,7 +534,7 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .bar:hover .fill{opacity:.82}
 .bar .mlab{margin-bottom:calc(-1lh - var(--s-1));font-family:var(--font-mono);font-size:10px;color:var(--chart-label,var(--text-3))}
 .bar .vlab{font-family:var(--font-mono);font-size:10px;color:var(--text-2)}
-/* Withheld data (1.7.1). A suppressed bar is a short hatched stub, the same height whatever was withheld,
+/* Withheld data (1.8.0). A suppressed bar is a short hatched stub, the same height whatever was withheld,
    so it never reads as a value (a tall slot reads as the biggest bar) or as a loading skeleton. The hatch is
    the text ladder over nothing (law 11: a hairline cannot carry meaning), never the accent. The display
    ("<5") sits on the stub in the value's own face and size, on the baseline of its neighbours' numbers. */

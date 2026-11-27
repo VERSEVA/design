@@ -69,7 +69,7 @@
     "assemble": "node scripts/assemble.mjs",
     "tokens:resolve": "node bin/resolve-tokens.mjs",
     "test:served": "node --test --test-concurrency=1 test/served/*.test.mjs",
-    "typecheck": "node studio/node_modules/typescript/bin/tsc --noEmit -p studio/tsconfig.json",
+    "typecheck": "node studio/node_modules/typescript/bin/tsc --noEmit -p studio/tsconfig.json && node studio/node_modules/typescript/bin/tsc -p test/react-types/tsconfig.react19.json",
     "gate:studio": "node bin/verseva-gate.mjs --no-advisory --tokens tokens.css --tokens themes/cobalt.css --tokens themes/forest.css --tokens themes/violet.css --tokens themes/slate.css --allow GLTFExporter --exclude swift studio/dist",
     "prepublishOnly": "npm test && npm run gate"
   }

@@ -1,5 +1,5 @@
 // @vitest-environment node
-// Byte-identity for calls written before 1.7.1 (issue 205): the static markup of every chart part,
+// Byte-identity for calls written before 1.8.0 (issue 205): the static markup of every chart part,
 // for the inputs the kit was already tested with, held against viz-baseline.json. That file was
 // written from the kit as it stood before suppressed items and null gaps landed, so a change to
 // what an existing call renders fails here. VSV_WRITE_BASELINE=1 rewrites it, on purpose only.

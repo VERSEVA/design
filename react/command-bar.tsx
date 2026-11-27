@@ -141,7 +141,7 @@ export function CommandBar({
   const result = React.useMemo(() => buildSections(commands, query, { canAsk: Boolean(onAsk), forced }), [commands, query, onAsk, forced]);
   const { options } = result;
   const key = `${forced ? 1 : 0}:${query}`;
-  const sel = selState.key === key && selState.i >= 0 && selState.i < options.length && !options[selState.i].disabled
+  const sel = selState.key === key && selState.i >= 0 && selState.i < options.length && !options[selState.i]?.disabled
     ? selState.i
     : firstSelectable(options);
   const select = (i: number) => setSelState({ key, i });
@@ -269,9 +269,9 @@ export function CommandBar({
       return;
     }
     const list = [...(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])];
-    if (!list.length) { e.preventDefault(); return; }
     const first = list[0];
     const last = list[list.length - 1];
+    if (!first || !last) { e.preventDefault(); return; }
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   };

@@ -12,7 +12,7 @@ import { chartCap } from './bounded-state';
  * MEANING, hover as the default layer on plots. All colors are CSS vars;
  * no hex ever enters this file.
  *
- * Withheld data (1.7.1). A null in a line is a gap: the line and its area
+ * Withheld data (1.8.0). A null in a line is a gap: the line and its area
  * break there, no point is drawn, it is never zero or bridged, and a hatched
  * band under the plot says those indices are withheld, not broken (HTML over
  * the plot, so the hatch never stretches with it; all nulls is one full band). A suppressed
@@ -26,7 +26,7 @@ import { chartCap } from './bounded-state';
  * beside a number that already says it; the part then renders as it did before.
  *
  * Bounded charts (1.8). `cap` on Bars and HBars keeps the first `cap` items by position (the kit never sorts)
- * and folds the rest into one Other mark, last, on the alt fill. Other is a privacy floor of its own: a
+ * and folds the rest into one Other mark, last, on the alt fill (Other is extra: `cap` + 1 marks). Other is a privacy floor of its own: a
  * suppressed item is never read into it and makes it suppressed, and so does a total under VIZ_FLOOR. `cap`
  * on LineChart keeps the newest `cap` points and drops the oldest, and says so in its legend and caption.
  * Without `cap` each part renders exactly as before.
@@ -81,7 +81,11 @@ const drawn = (p: readonly (Pt | null)[]) => runs(p).filter((r) => r.length > 1 
 const linePath = (p: readonly (Pt | null)[]) => drawn(p).map(seg).join(' ');
 /** One closed subpath per run down to the baseline, so the fill stops at a gap. */
 const areaPath = (p: readonly (Pt | null)[], base: number) =>
-  drawn(p).map((r) => `M${r[0][0].toFixed(1)} ${base} ${seg(r).slice(1)} L${r[r.length - 1][0].toFixed(1)} ${base} Z`).join(' ');
+  drawn(p).flatMap((r) => {
+    const a = r[0];
+    const z = r[r.length - 1];
+    return a && z ? [`M${a[0].toFixed(1)} ${base} ${seg(r).slice(1)} L${z[0].toFixed(1)} ${base} Z`] : [];
+  }).join(' ');
 /** A value alone between gaps has no line to sit on: it is a dot. The last index is the end dot's. */
 const lone = (p: readonly (Pt | null)[]) =>
   p.length === 1 ? [] : p.filter((pt, i): pt is Pt => !!pt && !p[i - 1] && !p[i + 1] && i < p.length - 1);
@@ -124,7 +128,8 @@ const gapBands = (series: readonly (readonly (Pt | null)[])[], w: number, h: num
 type Row = readonly [string, readonly string[]];
 /**
  * The hidden data table: one row per item or x label, one column per series. A withheld cell holds what
- * the part prints (a suppressed item's display, or empty for a null), never a value.
+ * the part prints (a suppressed item's display, the withheld word for a LineChart null, or empty for a
+ * Sparkline null), never a value.
  */
 const dataTable = (name: string, cols: readonly string[], rows: readonly Row[]) => (
   <div className="sr-only">
@@ -271,7 +276,7 @@ export function LineChart({ labels: every, series: whole, reference, height = 14
           const line = linePath(p);
           const hue = si === 0 ? 'var(--data-3)' : 'var(--data-alt)';
           return (
-          <g key={shown[si].name}>
+          <g key={shown[si]?.name}>
             {p.some(Boolean) && <>
             {fill && (
               <>
@@ -334,14 +339,14 @@ export function LineChart({ labels: every, series: whole, reference, height = 14
       {(shown.length > 1 || windowed) && (
         <div className="vizlegend mt-2" aria-hidden={table ? 'true' : undefined}>
           {shown.length > 1 && <>
-          <span><i /> {shown[0].name}</span>
-          <span><i className="alt" /> {shown[1].name}</span>
+          <span><i /> {shown[0]?.name}</span>
+          <span><i className="alt" /> {shown[1]?.name}</span>
           </>}
           {windowed && <span>{L.window(labels.length)}</span>}
         </div>
       )}
       {table && dataTable(caption(label ?? shown.map((s) => s.name).join(' vs '), windowed ? L.window(labels.length) : undefined), shown.map((s) => s.name),
-        labels.map((x, i) => [x, shown.map((s) => { const v = s.values[i]; return known(v) ? format(v) : ''; })]))}
+        labels.map((x, i) => [x, shown.map((s) => { const v = s.values[i]; return v === undefined ? '' : known(v) ? format(v) : L.withheld; })]))}
     </div>
   );
 }
@@ -398,7 +403,7 @@ export interface BarsProps {
   /** Prints each value on/above its mark, the portfolio default. */
   showValues?: boolean;
   height?: number;
-  /** Marks drawn before the fold: items past it become one Other mark, last. Absent draws every item. */
+  /** Marks drawn before the fold: items past it become one Other mark, last. Other is extra: `cap` does not count it, so `cap={3}` draws 4 marks. Absent draws every item. */
   cap?: number;
   /** Caption of the hidden data table. */
   label?: string;
@@ -448,7 +453,7 @@ export interface HBarsProps {
   /** `format` never sees a suppressed value. */
   data: HBarsItem[];
   format?: (v: number) => string;
-  /** Rows drawn before the fold: items past it become one Other row, last, on the alt fill. Absent draws every item. */
+  /** Rows drawn before the fold: items past it become one Other row, last, on the alt fill. Other is extra: `cap` does not count it, so `cap={3}` draws 4 rows. Absent draws every item. */
   cap?: number;
   /** Caption of the hidden data table. */
   label?: string;

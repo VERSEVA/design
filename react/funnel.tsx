@@ -80,11 +80,11 @@ export function Funnel({ steps, share = false, loading = false, label, table = t
 
   /* The scale: the first step when it is known and above zero; otherwise the largest known step. */
   const first = steps[0];
-  const base = !first.suppressed && first.value > 0 ? first.value : null;
+  const base = first && !first.suppressed && first.value > 0 ? first.value : null;
   const top = base ?? Math.max(...steps.filter((s) => !s.suppressed).map((s) => s.value), 1);
   const rows = steps.map((s, i) => {
     const prev = steps[i - 1];
-    const drop: Drop = i === 0 ? null : !s.suppressed && !prev.suppressed && prev.value > 0 ? 1 - s.value / prev.value : undefined;
+    const drop: Drop = i === 0 || !prev ? null : !s.suppressed && !prev.suppressed && prev.value > 0 ? 1 - s.value / prev.value : undefined;
     return {
       step: s,
       count: s.suppressed ? s.display : s.display ?? format(s.value),
