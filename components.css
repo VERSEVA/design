@@ -520,13 +520,19 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .chartcard .sub{font-size:.75rem;color:var(--text-3);margin-bottom:12px}
 .takeaway{margin-top:12px;font-size:.8125rem;color:var(--text-2);border-top:1px solid var(--hairline);padding-top:9px}
 .bars{display:flex;align-items:flex-end;gap:8px;height:130px;border-bottom:1px solid var(--chart-grid,var(--hairline));padding:0 2px}
-.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;cursor:default}
-.bar .fill{width:100%;max-width:34px;background:var(--data-3,var(--accent));border-radius:4px 4px 0 0;transition:opacity var(--dur-1) var(--ease-standard)}
+/* The fill's height is a share of the PLOT, never of the column with its label rows (issue 214): the column
+   is set in the labels' face and size, so 1lh is a label row, and its content box keeps one row and the gap
+   out at the foot for the name (hung there by a negative margin) and, when the chart prints values, one
+   at the head, where the value above the tallest fill overflows to. The fill never shrinks, so 42 and 57
+   draw 42:57 of the plot. */
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:var(--s-1);height:100%;box-sizing:border-box;padding-bottom:calc(1lh + var(--s-1));font-family:var(--font-mono);font-size:10px;cursor:default}
+.bars:has(> .bar > .vlab) > .bar{padding-top:calc(1lh + var(--s-1))}
+.bar .fill{flex-shrink:0;width:100%;max-width:34px;background:var(--data-3,var(--accent));border-radius:4px 4px 0 0;transition:opacity var(--dur-1) var(--ease-standard)}
 .bar .fill[data-l="0"]{background:var(--data-0)}
 .bar .fill[data-l="1"]{background:var(--data-1)}
 .bar .fill[data-l="2"]{background:var(--data-2)}
 .bar:hover .fill{opacity:.82}
-.bar .mlab{font-family:var(--font-mono);font-size:10px;color:var(--chart-label,var(--text-3))}
+.bar .mlab{margin-bottom:calc(-1lh - var(--s-1));font-family:var(--font-mono);font-size:10px;color:var(--chart-label,var(--text-3))}
 .bar .vlab{font-family:var(--font-mono);font-size:10px;color:var(--text-2)}
 /* Withheld data (1.7.1). A suppressed bar is a short hatched stub, the same height whatever was withheld,
    so it never reads as a value (a tall slot reads as the biggest bar) or as a loading skeleton. The hatch is

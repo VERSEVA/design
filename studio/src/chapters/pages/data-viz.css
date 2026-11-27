@@ -10,7 +10,15 @@
 [data-chapter="data-viz"] .vcard .src { font-family: var(--font-mono); font-size: 9.5px; color: var(--text-3); letter-spacing: .04em; }
 [data-chapter="data-viz"] .bignum { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 26px; font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1.1; }
 [data-chapter="data-viz"] .bignum small { font-size: 12px; color: var(--text-3); font-family: var(--font-sans); font-weight: 500; letter-spacing: 0; }
-[data-chapter="data-viz"] .goal { position: relative; }
+[data-chapter="data-viz"] .goal { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) max-content; column-gap: var(--s-2); }
+/* The goal sits on the plot the fills are a share of (issue 214): the bars box less a label row and its gap
+   at the head and the foot, read in the labels' own face and size, and the box's 1px baseline. */
+[data-chapter="data-viz"] .goal .goalplot { position: absolute; inset-inline: 0; top: calc(1lh + var(--s-1)); bottom: calc(1lh + var(--s-1) + 1px); font-family: var(--font-mono); font-size: 10px; }
+/* The tag has its own column beside the plot, on the same plot box, so no bar runs under it; the line crosses
+   the gap to it. */
+[data-chapter="data-viz"] .goal .goaltag { grid-column: 2; grid-row: 1; padding-block: calc(1lh + var(--s-1)) calc(1lh + var(--s-1) + 1px); font-family: var(--font-mono); font-size: 10px; }
+[data-chapter="data-viz"] .goal .goaltag .reftag { position: relative; right: auto; display: block; }
+[data-chapter="data-viz"] .goal .bars { grid-column: 1; grid-row: 1; }
 [data-chapter="data-viz"] .goal .goalline { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--text-3); opacity: .7; }
 [data-chapter="data-viz"] .stackcol { display: flex; flex-direction: column-reverse; width: 34px; height: 120px; gap: 2px; }
 [data-chapter="data-viz"] .stackrow { display: flex; gap: var(--s-4); align-items: flex-end; }

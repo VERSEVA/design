@@ -701,6 +701,10 @@ color-alone).
   series colors.
 - **Marks:** thin; bars gapped ≥2px, rounded at the data end only, ALWAYS from zero; lines 2px;
   grid recessive at `--hairline`; ONE axis.
+- **A bar's length is a share of the plot (1.8):** a `.fill` height is a percentage of the plot,
+  the `.bars` box less one label row and its gap at the foot (the name) and, when the chart prints
+  values, one at the head (the value over the tallest bar). The label rows never squeeze a fill, so
+  42 and 57 draw 42:57. Anything drawn against the scale (a goal line) sits on that plot.
 - **Labels:** text tokens, never series color; selective direct labels; internals ≤10px mono.
 - **Takeaway caption, mandatory:** label the MEANING, not the axis.
 - **Hover:** per-mark tooltips; ≥2 series get a legend.
