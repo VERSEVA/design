@@ -109,10 +109,10 @@ test('the brief for each component carries exactly its laws, its contract sectio
   }
 });
 
-test('the button brief is exactly laws 3, 7, 8 and 11, and the CLI and MCP briefs are the same text', async () => {
+test('the button brief is exactly laws 2, 3, 7, 8 and 11, and the CLI and MCP briefs are the same text', async () => {
   const r = cli(['brief', 'button']);
   assert.equal(r.code, 0);
-  assert.deepEqual(lawMarkers(r.out), [3, 7, 8, 11]);
+  assert.deepEqual(lawMarkers(r.out), [2, 3, 7, 8, 11]);
   const got = await mcp([{ name: 'get_brief', arguments: { name: 'button' } }]);
   assert.notEqual(got[0].isError, true);
   assert.equal(got[0].content[0].text, r.out);
@@ -162,4 +162,33 @@ test('a registry entry whose law or anchor does not resolve fails closed in one 
     assertOneLine(cli(['brief', 'button'], { pkg }), new RegExp(`^registry is inconsistent: button .*${pattern.source}`));
     fs.rmSync(pkg, { recursive: true, force: true });
   }
+});
+
+test('a component file that is a symlink is not followed, even when it points inside the package', () => {
+  const pkg = fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-brief-'));
+  for (const d of ['bin', 'docs', 'react']) fs.cpSync(path.join(root, d), path.join(pkg, d), { recursive: true });
+  fs.copyFileSync(path.join(root, 'registry.json'), path.join(pkg, 'registry.json'));
+  const outside = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-outside-')), 'secret.tsx');
+  fs.writeFileSync(outside, 'OUTSIDE-MARKER\n');
+  fs.rmSync(path.join(pkg, 'react', 'button.tsx'));
+  fs.symlinkSync(outside, path.join(pkg, 'react', 'button.tsx'));
+  const r = cli(['brief', 'button'], { pkg });
+  assertOneLine(r, /^registry is inconsistent: button file "react\/button\.tsx" is a symlink/);
+  assert.doesNotMatch(r.out, /OUTSIDE-MARKER/);
+  /* a link to a file inside the package is refused too */
+  fs.rmSync(path.join(pkg, 'react', 'button.tsx'));
+  fs.symlinkSync(path.join(pkg, 'react', 'card.tsx'), path.join(pkg, 'react', 'button.tsx'));
+  assertOneLine(cli(['brief', 'button'], { pkg }), /^registry is inconsistent: button file "react\/button\.tsx" is a symlink/);
+  /* a symlinked directory on the way out of the package is caught by the real path */
+  fs.rmSync(path.join(pkg, 'react'), { recursive: true });
+  fs.symlinkSync(path.dirname(outside), path.join(pkg, 'react'));
+  fs.writeFileSync(path.join(path.dirname(outside), 'button.tsx'), 'OUTSIDE-MARKER\n');
+  const viaDir = cli(['brief', 'button'], { pkg });
+  assertOneLine(viaDir, /^registry is inconsistent: button file "react\/button\.tsx" resolves outside the package/);
+  assert.doesNotMatch(viaDir.out, /OUTSIDE-MARKER/);
+  /* a package reached through a symlinked path still briefs normally */
+  const linked = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-link-')), 'pkg');
+  fs.symlinkSync(root, linked);
+  assert.equal(cli(['brief', 'card'], { pkg: linked }).code, 0);
+  fs.rmSync(pkg, { recursive: true, force: true });
 });

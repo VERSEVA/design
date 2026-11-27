@@ -31,6 +31,7 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         7,
         8,
@@ -47,7 +48,9 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
+        7,
         10
       ],
       "contract": "badge-badge--toast-toast--modal-modal",
@@ -78,6 +81,7 @@
         "cx"
       ],
       "laws": [
+        2,
         4,
         7,
         11
@@ -96,7 +100,9 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
+        4,
         7,
         8,
         10,
@@ -113,7 +119,9 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
+        7,
         10,
         11
       ],
@@ -128,6 +136,7 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         7,
         8,
@@ -145,6 +154,7 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         4,
         7,
@@ -162,6 +172,7 @@
       "laws": [
         1,
         2,
+        7,
         10
       ],
       "contract": "badge-badge--toast-toast--modal-modal",
@@ -176,6 +187,7 @@
       ],
       "laws": [
         1,
+        2,
         7,
         8
       ],
@@ -190,9 +202,11 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         4,
         5,
+        7,
         10
       ],
       "contract": "stat-tile-stat",
@@ -229,7 +243,10 @@
       ],
       "laws": [
         3,
+        4,
+        5,
         6,
+        7,
         10
       ],
       "contract": "bounded-section-bounded-every-list-feed-and-table-in-a-section",
@@ -243,9 +260,12 @@
         "console-state"
       ],
       "laws": [
+        2,
         3,
         4,
+        7,
         8,
+        9,
         10,
         12
       ],
@@ -269,7 +289,10 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
+        7,
+        9,
         12
       ],
       "contract": "console-shell-cshell-cside-switcher-capsule-tbar-drawer",
@@ -284,6 +307,9 @@
         "console-state"
       ],
       "laws": [
+        2,
+        7,
+        9,
         12
       ],
       "contract": "console-shell-cshell-cside-switcher-capsule-tbar-drawer",
@@ -299,8 +325,11 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         4,
+        7,
+        9,
         10,
         12
       ],
@@ -316,9 +345,11 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         4,
         7,
+        9,
         10,
         12
       ],
@@ -335,6 +366,7 @@
       ],
       "laws": [
         1,
+        2,
         4,
         7,
         9,
@@ -361,9 +393,11 @@
       ],
       "laws": [
         1,
+        2,
         3,
         7,
         8,
+        9,
         10
       ],
       "contract": "live-activity-lact-lact-panel-160",
@@ -378,6 +412,7 @@
       ],
       "laws": [
         3,
+        7,
         11
       ],
       "contract": "global-floor-every-component",
@@ -391,8 +426,10 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         4,
+        7,
         8,
         10
       ],
@@ -407,7 +444,9 @@
         "cx"
       ],
       "laws": [
+        2,
         6,
+        7,
         11
       ],
       "contract": "global-floor-every-component",
@@ -435,8 +474,11 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         4,
+        5,
+        7,
         11
       ],
       "contract": "charts-chartcard-bars-heat-the-data-contract",
@@ -472,6 +514,7 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
         7,
         8
@@ -508,7 +551,9 @@
       ],
       "laws": [
         1,
+        2,
         3,
+        5,
         6,
         7,
         8
@@ -534,10 +579,12 @@
       ],
       "laws": [
         1,
+        2,
         3,
         4,
         7,
-        8
+        8,
+        9
       ],
       "contract": "command-bar-cmdk--three-column-top-bar-160",
       "description": "Command bar on the K chord: actions, go-to and recent filtered as you type; an Ask row only with onAsk, the answer streamed in place"
@@ -558,11 +605,12 @@
         "cx"
       ],
       "laws": [
+        2,
         3,
+        4,
         7,
         8,
-        11,
-        12
+        11
       ],
       "contract": "date-range-range-ctl-range-fields-18",
       "description": "Date range control: host presets as a segmented radiogroup or one menu trigger, Compare, custom dates snapped on blur and in a sheet on a phone; controlled, never touches the URL"
