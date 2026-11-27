@@ -37,6 +37,21 @@ export const BASELINE: Record<string, React.ReactElement> = {
   'ring': <><Ring value={140} center="Over" /><Ring value={-10} center="Under" sub="left" /></>,
   'activity strip': <ActivityStrip levels={[0, 2, 3]} todayIndex={2} labels={labels} />,
   'trend': <><Trend delta="-4 kg" judgment="good" /><Trend delta="−52 s" judgment="good" /><Trend delta="0" judgment="flat" /><Trend delta="+3" judgment="bad" /></>,
+  /* Issue 194: the same parts with the table on, suppressed items and gaps, written from the kit before `cap` existed. */
+  'table on: sparkline gaps': <Sparkline values={[1, null, 3, 2]} label="Visits" />,
+  'table on: linechart two series, gaps, reference': (
+    <LineChart labels={['W1', 'W2', 'W3', 'W4', 'W5', 'W6']} series={[{ name: 'A', values: [1, 2, null, 4, 5, 6] }, { name: 'B', values: [6, 5, 4] }]}
+      reference={{ value: 3, label: 'AVG' }} format={(v) => `${v} kg`} label="Weekly" />
+  ),
+  'table on: linechart three series': <LineChart labels={labels} series={[{ name: 'A', values: [1, 2, 3] }, { name: 'B', values: [3, 2, 1] }, { name: 'C', values: [2, 2, 2] }]} />,
+  'table on: bars six items, suppressed, display, level': (
+    <Bars label="By day" data={[{ label: 'a', value: 5 }, { label: 'b', value: 10, level: 2 }, { label: 'c', value: 0, suppressed: true, display: '<5' },
+      { label: 'd', value: 7, display: '7+' }, { label: 'e', value: 3 }, { label: 'f', value: 9 }]} />
+  ),
+  'table on: hbars six items, suppressed, alt': (
+    <HBars label="By source" format={(v) => `${v}%`} data={[{ label: 'u', value: 20 }, { label: 'v', value: 0, suppressed: true, display: '<5' },
+      { label: 'w', value: 12, alt: true }, { label: 'x', value: 8 }, { label: 'y', value: 6 }, { label: '(other)', value: 9, alt: true }]} />
+  ),
 };
 
 const file = path.resolve(__dirname, 'viz-baseline.json');
