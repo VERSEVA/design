@@ -12,7 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { start, root } from './chrome.mjs';
-import { pdfPages } from './pdf-text.mjs';
+import { pdfPages, pdfPaint, luminance } from './pdf-text.mjs';
 
 const URL_PATH = '/templates/document.html';
 const RUNNING = 'Onboardingreview,Q3';
@@ -30,36 +30,59 @@ before(async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vsv-doc-'));
   execFileSync(process.execPath, [path.join(root, 'bin/verseva.mjs'), 'add', 'document', '--dir', 'out'], { cwd: dir, encoding: 'utf8' });
   added = path.join(dir, 'out', 'document.html');
+  pdf.light = await printed('light');
+  pdf.dark = await printed('dark');
+  pages = pdfPages(pdf.light);
+});
+const pdf = {};
+/* The template printed to PDF from light (its default) or from dark (data-theme removed). */
+async function printed(theme) {
   const p = await run.page({ width: 1280, height: 900 });
   try {
     await p.goto(URL_PATH);
+    if (theme === 'dark') await p.evaluate(`delete document.documentElement.dataset.theme`);
     const { data } = await p.send('Page.printToPDF', { preferCSSPageSize: true, printBackground: true });
-    pages = pdfPages(Buffer.from(data, 'base64'));
+    return Buffer.from(data, 'base64');
   } finally { await p.close(); }
-});
+}
 after(async () => { await run?.stop(); });
 
 test('print carries the running header on every page', () => {
-  assert.ok(pages.length >= SECTIONS.length + 1, `${pages.length} printed pages`);
+  assert.ok(pages.length >= 2, `${pages.length} printed pages`);
   for (const [i, t] of pages.entries()) assert.ok(t.includes(RUNNING), `page ${i + 1} has the running header`);
 });
 
-test('print opens every section after the first on a new page, in order', () => {
+test('print breaks a page only before the table section; the others flow', () => {
   const body = pages.map((t) => t.split(RUNNING).join(''));
+  const at = (h) => body.findIndex((t) => t.includes(h));
   let last = -1;
-  for (const [k, h] of SECTIONS.entries()) {
-    const at = body.findIndex((t) => t.includes(h));
-    assert.ok(at > last, `${h} on page ${at + 1}, after page ${last + 1}`);
-    if (k) assert.ok(body[at].startsWith(h), `${h} starts page ${at + 1}: ${body[at].slice(0, 40)}`);
-    last = at;
-  }
+  for (const h of SECTIONS) { assert.ok(at(h) >= last, `${h} in order`); last = at(h); }
+  assert.ok(body[at('Weeklyvolume')].startsWith('Weeklyvolume'), 'the table section opens a page');
+  for (const h of ['Findings', 'Nextsteps']) assert.ok(!body[at(h)].startsWith(h), `${h} flows on from the section before it`);
 });
 
 test(`print repeats the table header row on every page the ${ROWS}-row table spans`, () => {
   const spans = pages.map((t, i) => [i, t]).filter(([, t]) => Array.from({ length: ROWS }, (_, n) => week(n + 1)).some((w) => t.includes(w)));
-  assert.ok(spans.length >= 2, `the table spans ${spans.length} page(s); it must cross a page break`);
+  assert.equal(spans.length, 2, `the table spans ${spans.length} pages; it must cross one page break and fit two pages`);
+  for (const [i, t] of spans) {
+    const rows = Array.from({ length: ROWS }, (_, n) => week(n + 1)).filter((w) => t.includes(w)).length;
+    assert.ok(rows >= 2, `page ${i + 1} holds ${rows} table row(s): no orphan row under a repeated header`);
+  }
   for (const [i, t] of spans) for (const c of HEAD_CELLS) assert.ok(t.includes(c), `page ${i + 1} repeats the header cell ${c}: ${t.slice(0, 120)}`);
   for (let n = 1; n <= ROWS; n++) assert.equal(spans.filter(([, t]) => t.includes(week(n))).length, 1, `${week(n)} prints once`);
+});
+
+test('print is white paper with dark text, from light and from dark mode', () => {
+  for (const theme of ['light', 'dark']) {
+    for (const [i, pg] of pdfPaint(pdf[theme]).entries()) {
+      /* the largest opaque fill on the page is the paper's background, if one is painted at all */
+      const opaque = pg.fills.filter((f) => f.alpha >= 0.5);
+      const big = opaque.reduce((m, f) => (f.w * f.h > (m?.w ?? 0) * (m?.h ?? 0) ? f : m), null);
+      if (big) assert.ok(luminance(big.color) >= 0.98, `${theme}, page ${i + 1}: the largest fill is ${JSON.stringify(big)}, not white`);
+      const light = pg.text.filter((c) => c.alpha >= 0.5 && luminance(c.color) > 0.5);
+      assert.deepEqual(light, [], `${theme}, page ${i + 1}: light text on paper`);
+    }
+  }
 });
 
 test('print leaves the controls and the sources off the page', () => {
@@ -94,9 +117,14 @@ test('on a 375 by 812 phone the controls are 44px targets and nothing scrolls si
     await p.goto(URL_PATH);
     const r = await p.evaluate(`(() => ({
       sw: document.documentElement.scrollWidth,
+      printTop: document.querySelector('.doc-print').getBoundingClientRect().top,
+      metaTop: document.querySelector('.doc-meta span').getBoundingClientRect().top,
+      printLeft: document.querySelector('.doc-print').getBoundingClientRect().left,
+      metaLeft: document.querySelector('.doc-meta span').getBoundingClientRect().left,
       targets: [...document.querySelectorAll('.doc-print, .doc-src > summary')].map((e) => ({ t: e.textContent.trim(), h: e.getBoundingClientRect().height })),
     }))()`);
     assert.ok(r.sw <= 375, `page is ${r.sw}px wide`);
+    if (r.printTop > r.metaTop + 4) assert.ok(Math.abs(r.printLeft - r.metaLeft) <= 1, `a wrapped Print control starts its line (left ${r.printLeft}, line starts ${r.metaLeft})`);
     assert.ok(r.targets.length >= 2);
     for (const t of r.targets) assert.ok(t.h >= 44, `${t.t} is ${t.h}px tall`);
   } finally { await p.close(); }

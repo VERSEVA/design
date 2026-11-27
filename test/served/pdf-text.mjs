@@ -99,3 +99,67 @@ export function pdfPages(buf) {
     return text.normalize('NFKC').replace(/\s+/g, '');
   });
 }
+
+/* Per page: the filled rectangles (fill colour, alpha, width and height in the units the page
+   draws them) and the fill colour and alpha text is shown in. Enough to tell a page that paints a
+   coloured slab, or prints light text, from one on white paper with dark text. */
+export function pdfPaint(buf) {
+  const pdf = buf.toString('latin1');
+  const objs = objects(pdf);
+  const order = [];
+  const walk = (n) => {
+    const body = objs.get(n);
+    if (!body) return;
+    if (/\/Type\s*\/Pages\b/.test(body)) for (const k of body.match(/\/Kids\s*\[([^\]]*)\]/)[1].matchAll(/(\d+) 0 R/g)) walk(Number(k[1]));
+    else if (/\/Type\s*\/Page\b/.test(body)) order.push(n);
+  };
+  const root = [...objs.entries()].find(([, b]) => /\/Type\s*\/Catalog\b/.test(b));
+  walk(Number(root[1].match(/\/Pages\s+(\d+) 0 R/)[1]));
+  return order.map((n) => {
+    const page = objs.get(n);
+    const arr = page.match(/\/Contents\s*\[([^\]]*)\]/);
+    const refs = arr ? [...arr[1].matchAll(/(\d+) 0 R/g)].map((m) => Number(m[1])) : [Number(page.match(/\/Contents\s+(\d+) 0 R/)[1])];
+    const fills = [];
+    const text = [];
+    const res = dictEntry(objs, page, 'Resources') ?? '';
+    const gsDict = dictEntry(objs, res, 'ExtGState') ?? '';
+    /* each graphics state: its fill alpha (/ca) and whether it turns a soft mask on or off (a
+       masked fill, such as a blurred shadow, is not paint the reader sees at full strength) */
+    const gsOf = new Map([...gsDict.matchAll(/\/([\w.+-]+)\s+(\d+) 0 R/g)].map((m) => {
+      const body = objs.get(Number(m[2])) ?? '';
+      const ca = body.match(/\/ca\s+([\d.]+)/);
+      const mask = /\/SMask\s*\/None/.test(body) ? false : /\/SMask\s*<</.test(body) ? true : undefined;
+      return [m[1], { alpha: ca ? Number(ca[1]) : undefined, mask }];
+    }));
+    for (const ref of refs) {
+      const ops = streamOf(objs.get(ref));
+      let st = { color: [0, 0, 0], alpha: 1, mask: false };
+      const stack = [];
+      let inText = false;
+      /* a rectangle counts as painted only when it is filled straight away (not a clip: re W n) */
+      for (const m of ops.matchAll(/([-\d.]+) ([-\d.]+) ([-\d.]+) rg\b|([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+) re\s+f\*?(?=\s)|\/([\w.+-]+) gs\b|\bq\b|\bQ\b|\bBT\b|\bET\b|\bTj\b|\bTJ\b/g)) {
+        const op = m[0];
+        if (m[1] !== undefined) { st.color = [m[1], m[2], m[3]].map(Number); continue; }
+        if (m[4] !== undefined) { fills.push({ color: st.color, alpha: st.mask ? 0 : st.alpha, w: Math.abs(Number(m[6])), h: Math.abs(Number(m[7])) }); continue; }
+        if (m[8] !== undefined) {
+          const g = gsOf.get(m[8]) ?? {};
+          if (g.alpha !== undefined) st.alpha = g.alpha;
+          if (g.mask !== undefined) st.mask = g.mask;
+          continue;
+        }
+        if (op === 'q') { stack.push({ ...st }); continue; }
+        if (op === 'Q') { st = stack.pop() ?? st; continue; }
+        if (op === 'BT') { inText = true; continue; }
+        if (op === 'ET') { inText = false; continue; }
+        if (inText) text.push({ color: st.color, alpha: st.mask ? 0 : st.alpha });
+      }
+    }
+    return { fills, text };
+  });
+}
+
+/* Relative luminance of a 0..1 sRGB colour. */
+export const luminance = ([r, g, b]) => {
+  const f = (v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+};

@@ -6,7 +6,7 @@
 <title>Onboarding review, Q3</title>
 <!-- One self-contained document. `npx verseva add document` inlines the two stylesheets below,
      so the file it writes opens from file://. Boots light (law 9); delete data-theme for dark.
-     Print: A4, a running header on every page, each section after the first on a new page,
+     Print: A4 on light paper, a running header on every page, the table section on a new page,
      and the table repeats its header row on every page it spans. Without scripting the whole
      document reads as written; only the Print button needs the script. -->
 <link rel="stylesheet" href="../tokens.css">
@@ -24,6 +24,9 @@
   .doc-page h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(32px, 5vw, 48px); letter-spacing: -0.025em; line-height: 1.08; text-wrap: balance; }
   .doc-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); padding-top: var(--s-4); color: var(--text-2); font-size: 14px; }
   .doc-meta .doc-print { margin-left: auto; }
+  @media (max-width: 767.98px) {
+    .doc-meta .doc-print { margin-left: 0; }
+  }
 
   .doc-section { padding-top: var(--s-8); }
   .doc-section h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -0.015em; line-height: 1.2; }
@@ -68,13 +71,16 @@
   }
 
   @media print {
-    body { font-size: 10.5pt; background: var(--bg); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { background: none; }
+    body { font-size: 10.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .doc-page { max-width: none; padding: 0; }
-    .doc-section + .doc-section { break-before: page; padding-top: 0; }
+    .doc-section { padding-top: var(--s-6); }
+    .doc-section.doc-break { break-before: page; padding-top: 0; }
     .doc-section h2, .doc-section h2 + * { break-after: avoid; }
     .doc-scroll { overflow: visible; border: 0; border-radius: 0; background: none; }
     .doc-scroll .table thead { display: table-header-group; }
     .doc-scroll .table tr { break-inside: avoid; }
+    .doc-scroll .table th, .doc-scroll .table td { padding: var(--s-2) var(--s-3); }
     .doc-chart, .doc-page .statrow { break-inside: avoid; }
     .doc-js .doc-print, .doc-print, .doc-src { display: none; }
   }
@@ -121,7 +127,7 @@
     <details class="doc-src"><summary class="btn btn-ghost sm">Sources</summary><ul><li>Account records, 90-day status for accounts opened January to March.</li></ul></details>
   </section>
 
-  <section class="doc-section" id="weekly-volume">
+  <section class="doc-section doc-break" id="weekly-volume">
     <h2>Weekly volume</h2>
     <p>New accounts and time to first use, by week opened.</p>
     <div class="doc-block">
@@ -185,6 +191,14 @@
 (() => {
   document.documentElement.classList.add('doc-js');
   document.querySelector('.doc-print')?.addEventListener('click', () => print());
+  /* Paper is light: print with the light tokens, then put the reader's theme back. */
+  const root = document.documentElement;
+  let held = null;
+  const toPaper = () => { if (held === null) { held = root.getAttribute('data-theme') ?? ''; root.dataset.theme = 'light'; } };
+  const back = () => { if (held !== null) { if (held) root.dataset.theme = held; else delete root.dataset.theme; held = null; } };
+  addEventListener('beforeprint', toPaper);
+  addEventListener('afterprint', back);
+  matchMedia('print').addEventListener('change', (e) => (e.matches ? toPaper() : back()));
 })();
 </script>
 </body>

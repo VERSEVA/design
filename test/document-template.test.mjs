@@ -32,7 +32,7 @@ test('document is registered under blocks as a template, with no laws and no con
 test('one h1, four sections each opened by an h2, and no footer on the page', () => {
   const src = html();
   assert.equal((src.match(/<h1\b/g) ?? []).length, 1);
-  const sections = [...src.matchAll(/<section class="doc-section"[^>]*>\s*<h2\b/g)];
+  const sections = [...src.matchAll(/<section class="doc-section\b[^"]*"[^>]*>\s*<h2\b/g)];
   assert.equal(sections.length, 4);
   assert.doesNotMatch(src, /<footer\b/);
 });
