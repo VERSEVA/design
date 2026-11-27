@@ -426,7 +426,7 @@ if (findings.length) {
   for (const f of findings) log(`  ${f}`);
   log('\nBuild each from its section of docs/component-contract.md, or mark a ratified exception with "recipe-ok: <reason>".');
 } else {
-  log(`${NAME}: clean (${s(checked, 'contract-owned element')}, ${classes.size} root part classes)`);
+  log(`${NAME}: ${bare ? 'no hand-built elements' : 'clean'} (${s(checked, 'contract-owned element')}, ${classes.size} root part classes)`);
 }
 if (config.material === 'none') {
   log(`${NAME}: material census skipped (material: none)`);
