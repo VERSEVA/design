@@ -104,6 +104,7 @@ test('a swipe left moves forward, a swipe right moves back, a short drag does no
     await swipe(p, 1000, 300);
     assert.deepEqual(await onAfter(p, [2]), [2]);
     await swipe(p, 300, 1000);
+    assert.equal((await p.evaluate(STATE)).n, SLIDES, 'a swipe right stays in the deck (no browser back gesture)');
     assert.deepEqual(await onAfter(p, [1]), [1]);
     await swipe(p, 640, 620);
     assert.deepEqual(await onAfter(p, [1]), [1]);

@@ -65,7 +65,7 @@
   .deck-bar, .deck-ctl { display: none; }
 
   @media screen {
-    .deck-paged, .deck-paged body { height: 100%; overflow: hidden; }
+    .deck-paged, .deck-paged body { height: 100%; overflow: hidden; touch-action: pan-y; overscroll-behavior: none; }
     .deck-paged .deck-slide { position: fixed; inset: 0; overflow-y: auto; overscroll-behavior: contain; border: 0; opacity: 0; visibility: hidden; transform: translateY(var(--s-3)); transition: opacity var(--dur-3) var(--ease-entrance), transform var(--dur-3) var(--ease-entrance), visibility 0s linear var(--dur-3); }
     .deck-paged .deck-slide.deck-back { transform: translateY(calc(var(--s-3) * -1)); }
     .deck-paged .deck-slide.deck-on { opacity: 1; visibility: visible; transform: none; transition: opacity var(--dur-3) var(--ease-entrance), transform var(--dur-3) var(--ease-entrance), visibility 0s; }
