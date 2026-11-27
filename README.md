@@ -121,6 +121,48 @@ Contained by construction: written names flatten to basenames, symlink destinati
 are refused, only source extensions install, fetched items must embed content, deps
 stay on their item's origin, and registries are https-only.
 
+## Doctor
+
+```sh
+npx verseva doctor            # text report
+npx verseva doctor --json     # one JSON object on stdout
+npx verseva doctor --strict   # exit 1 when any override exists
+```
+
+Two kinds of drift, in one report: how far the installed `@verseva/design` lags
+the latest release, and every rule in YOUR CSS that targets a package class
+(the contract class set from `components.css`), as file, line and selector.
+The installed version comes from `package-lock.json`, else an exact pin in
+`package.json`; the latest comes from one HTTPS GET to the public npm registry
+(5 second timeout, no redirects). Offline it prints `latest unknown` and still
+reports overrides. It reads only inside the working directory: no symlinks are
+followed, and `node_modules`, dot directories and the `verseva.json` `dir` are
+not scanned. Exit 0 always, 1 under `--strict` with an override, 2 on error.
+
+`--json` (schema 1):
+
+```json
+{
+  "schema": 1,
+  "package": "@verseva/design",
+  "declared": "^1.5.0",
+  "installed": "1.5.0",
+  "installedFrom": "package-lock.json",
+  "latest": "1.7.0",
+  "lag": { "major": 0, "minor": 2, "patch": 0 },
+  "overrides": [
+    { "file": "src/app.css", "line": 5, "selector": ".checkout .btn", "classes": ["btn"] }
+  ]
+}
+```
+
+`declared` is the range in `package.json` (or `null`), `installed` and
+`installedFrom` are `null` when no version can be read, `latest` and `lag` are
+`null` when the registry is unreachable. `lag` counts the first level that
+differs; the levels below it are 0. `overrides` holds one row per selector (a
+selector list gives one row per member), sorted by file then line; `file` is a
+POSIX path relative to the working directory.
+
 ## Agents
 
 ```sh
