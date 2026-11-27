@@ -1,0 +1,4 @@
+/* A vendored copy of the contract: it defines the material, it does not consume it. */
+.navshell{padding:var(--nav-gap);background:linear-gradient(var(--nav-frame),var(--nav-frame)),var(--glass-fill-3);border:1px solid var(--glass-border)}
+.glass{background:var(--surface-body),var(--glass-fill-3);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow),var(--glass-glow),var(--glass-inset)}
+.tab.on{background:var(--accent-bloom)}

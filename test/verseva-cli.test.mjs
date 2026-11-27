@@ -149,6 +149,20 @@ test('a malformed verseva.json fails list with one line naming the file', () => 
   assert.doesNotMatch(r.out, /^\s+at /m);
 });
 
+test('a symlinked verseva.json is refused before it is read; a malformed one prints none of its content', () => {
+  const outside = tmp();
+  fs.writeFileSync(path.join(outside, 'secret.txt'), 'FAKE_TOKEN_9f8e7d \u001b[2J');
+  const cwd = tmp();
+  fs.symlinkSync(path.join(outside, 'secret.txt'), path.join(cwd, 'verseva.json'));
+  const r = run(['list'], cwd);
+  assert.deepEqual(r, { code: 1, out: 'verseva: refused: verseva.json is a symlink; fix or remove it\n' });
+
+  const bad = tmp();
+  fs.writeFileSync(path.join(bad, 'verseva.json'), 'FAKE_TOKEN_9f8e7d \u001b[2J');
+  const m = run(['list'], bad);
+  assert.deepEqual(m, { code: 1, out: 'verseva: verseva.json is not valid JSON; fix or remove it\n' });
+});
+
 test('a malformed .mcp.json fails mcp init and is left byte-identical', () => {
   const cwd = tmp();
   const file = path.join(cwd, '.mcp.json');
