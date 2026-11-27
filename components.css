@@ -1271,7 +1271,7 @@ dialog.modal{width:min(calc(100% - var(--s-5)),420px)}
 }
 .wtile-body>.funnel{gap:var(--s-1)}
 .wtile-body>.funnel>li{min-height:20px}
-/* A large tile has two rows of height: its steps spread down it, and where it is wide enough to keep its
-   tracks each row is 32px at least. */
-.wtile[data-size="l"]>.wtile-body>.funnel{flex:1;align-content:space-between}
+/* A large tile has two rows of height: its steps spread evenly down it (a short funnel does not split to
+   the top and bottom edges), and where it is wide enough to keep its tracks each row is 32px at least. */
+.wtile[data-size="l"]>.wtile-body>.funnel{flex:1;align-content:space-evenly}
 @container (min-width:26rem){.wtile[data-size="l"]>.wtile-body>.funnel>li{min-height:32px}}

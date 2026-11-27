@@ -786,7 +786,9 @@ How many reach each step of a flow, the drop between steps, and the biggest drop
   neither. In a widget grid: M takes the tile form, L the panel form. Under 34rem of its own width
   the panel form puts the track on its own line and drops the head; under 26rem every form does
   and drops the share; under 26rem in a tile (a funnel directly in `.wtile-body`) the track drops out.
-  A large tile spreads its steps down its height, each row 32px at least while it keeps its tracks.
+  A large tile spreads its steps evenly down its height, each row 32px at least while it keeps its
+  tracks. **The tile rules apply when `Funnel` is a direct child of `.wtile-body`:** a product that wraps
+  it in another element loses the tile density, the phone track rule and the large-tile spread.
 - **States:** normal, a suppressed step, a single step (a full bar, no drop), empty (`.empty`, or
   the host's own `empty`, e.g. `.wtile-sub` in a tile), loading (five `.skel` rows of the same
   grid, `aria-hidden`; the host marks its panel `aria-busy`).

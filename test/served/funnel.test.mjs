@@ -65,7 +65,7 @@ const PROBE = `(async () => {
   /* The panels keep a track on every step at every width, even inside the specimen tile. */
   const panelTracks = [...tile.querySelectorAll('.fpanels ol.funnel > li.hbar')]
     .filter((li) => !li.querySelector('.skel')).map((li) => shown(li.querySelector('.htrack')) && li.querySelector('.htrack').getBoundingClientRect().width > 0);
-  /* A large tile uses its height: the last step ends near the bottom of the body. */
+  /* A large tile uses its height: the steps spread evenly, so the last one ends in the bottom fifth of the body. */
   const fill = [...tile.querySelectorAll('.wtile[data-size="l"] > .wtile-body')].map((b) => {
     const cs = getComputedStyle(b);
     const top = b.getBoundingClientRect().top + parseFloat(cs.paddingTop);
@@ -101,7 +101,7 @@ for (const width of [375, 768, 1280]) {
       assert.ok(r.chipColor, 'the biggest drop carries its chip');
       assert.ok(r.panelTracks.length >= 11 && r.panelTracks.every(Boolean), `panel tracks: ${JSON.stringify(r.panelTracks)}`);
       /* two rows of height above a phone; on a phone an L tile shows its M view in one row */
-      if (width >= 768) assert.ok(r.fill.every((f) => f >= 0.9 && f <= 1.001), `large tile fill ${JSON.stringify(r.fill)}`);
+      if (width >= 768) assert.ok(r.fill.every((f) => f >= 0.8 && f <= 1.001), `large tile fill ${JSON.stringify(r.fill)}`);
       console.log(`fill ${width} ${scheme}: ${JSON.stringify(r.fill)}`);
       assert.deepEqual(r.loose, [
         { w: '343px', head: false, share: false, track: true, ownLine: true, clipped: [] },
