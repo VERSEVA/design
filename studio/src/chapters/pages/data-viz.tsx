@@ -17,7 +17,7 @@ import './data-viz.css';
 /* The sections with a specimen, in page order: sample i of data-viz.code.json is the sample of
    SAMPLED[i], generated from these specimens as drawn (studio/test/chapter-code.test.ts holds it
    byte for byte; VSV_WRITE_CODE=1 rewrites it). The samples load on first intent. */
-export const SAMPLED = ['stat', 'spark', 'lines', 'bars', 'stacked', 'hbars', 'heat', 'rings', 'gates', 'meaning', 'suppressed', 'gaps', 'funnel'];
+export const SAMPLED = ['stat', 'spark', 'lines', 'bars', 'stacked', 'hbars', 'heat', 'rings', 'gates', 'meaning', 'suppressed', 'gaps', 'fold', 'funnel'];
 let samples: Promise<string[]> | undefined;
 const sample = (id: string) => () => (samples ??= import('./data-viz.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
 
@@ -602,6 +602,45 @@ export function Page() {
                 <Sparkline label="Visits by week" values={[12, 14, 13, null, null, 17, 19, 22]} />
               </div>
               <div className="takeaway">Visits withheld for W4 and W5; Booked withheld for W6 and W8.</div>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="fold" name="Other and window" icon={ICON} size="xl" meta="3 capped" code={sample('fold')} focus={false}>
+          <div className="demo">
+            <div className="specimen">
+              <HBars
+                label="Visits by source"
+                cap={4}
+                data={[
+                  { label: 'Search', value: 48 },
+                  { label: 'Direct', value: 31 },
+                  { label: 'Email', value: 22 },
+                  { label: 'Social', value: 14 },
+                  { label: 'Referral', value: 6 },
+                  { label: 'Partner', value: 3 },
+                ]}
+              />
+              <Bars
+                label="Visits by clinic"
+                height={110}
+                cap={4}
+                data={[
+                  { label: 'A', value: 42 },
+                  { label: 'B', value: 57 },
+                  { label: 'C', value: 30 },
+                  { label: 'D', value: 18 },
+                  { label: 'E', value: 2, display: '<5', suppressed: true },
+                  { label: 'F', value: 6 },
+                ]}
+              />
+              <LineChart
+                label="Visits by week"
+                height={110}
+                cap={8}
+                labels={['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12', 'W13']}
+                series={[{ name: 'Visits', values: [40, 44, 41, 50, 62, 70, 66, 71, 78, 74, 88, 91, 95] }]}
+              />
+              <div className="takeaway">Other by source is 9 visits; Other by clinic is under 5.</div>
             </div>
           </div>
         </SpecimenTile>

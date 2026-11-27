@@ -20,7 +20,7 @@ describe('data-viz chapter script', () => {
   it('draws once under StrictMode, leaves the code panels to the tiles, and removes what it added on unmount', () => {
     const { container, unmount } = render(<StrictMode><DataViz /></StrictMode>);
     const tiles = container.querySelectorAll('section.stile');
-    expect(tiles.length).toBe(13);
+    expect(tiles.length).toBe(14);
     expect(container.querySelectorAll('.stile-toggle').length).toBe(tiles.length);
     expect(container.querySelectorAll('.codetoggle, .codewrap, .copybtn').length).toBe(0);
     expect(container.querySelectorAll('#vseries .reftag').length).toBe(1);

@@ -289,7 +289,7 @@ describe('Data viz tiles (law 3)', () => {
   it('gives the data accent to one focus tile, Line + area; every other chart is on the text ladder', () => {
     const root = page('data-viz');
     expect([...root.querySelectorAll('section.stile[data-focus]')].map((t) => t.id)).toEqual(['lines']);
-    expect(root.querySelectorAll('section.stile:not([data-focus])').length).toBe(12);
+    expect(root.querySelectorAll('section.stile:not([data-focus])').length).toBe(13);
   });
 
   it('names no colour inline: magnitude goes through data-l, categories through series classes', () => {
