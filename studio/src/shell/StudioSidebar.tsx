@@ -112,7 +112,7 @@ function RailGroup({ g, active, onTip }: { g: NavGroup; active: string | null; o
       <button
         ref={btn}
         type="button"
-        className={`railbtn${holds ? ' active' : ''}`}
+        className={`ibtn railbtn${holds ? ' active' : ''}`}
         aria-label={g.label}
         aria-expanded={open}
         aria-controls={id}
@@ -160,7 +160,7 @@ function SideRail({ path, onToggle, onTip }: { path: string; onToggle: () => voi
           const Icon = PAGE_ICONS[i.path];
           const on = i.path === active;
           return (
-            <a key={i.path} href={i.path} onClick={onStudioLink} className={`railbtn${on ? ' active' : ''}`} aria-label={i.label} aria-current={on ? (i.path === path ? 'page' : 'true') : undefined}
+            <a key={i.path} href={i.path} onClick={onStudioLink} className={`ibtn railbtn${on ? ' active' : ''}`} aria-label={i.label} aria-current={on ? (i.path === path ? 'page' : 'true') : undefined}
               onPointerEnter={tipFor(i.label)} onPointerLeave={() => onTip(null)} onFocus={tipFor(i.label)} onBlur={() => onTip(null)}>
               {Icon ? <Icon /> : null}
             </a>
@@ -170,7 +170,7 @@ function SideRail({ path, onToggle, onTip }: { path: string; onToggle: () => voi
       <nav aria-label="Groups" className="railset">
         {NAV.filter((g) => g.id !== 'studio').map((g) => <RailGroup key={g.id} g={g} active={active} onTip={onTip} />)}
       </nav>
-      <button type="button" className="collapse-row railbtn" aria-label="Expand sidebar" onClick={onToggle}
+      <button type="button" className="collapse-row ibtn railbtn" aria-label="Expand sidebar" onClick={onToggle}
         onPointerEnter={tipFor('Expand sidebar')} onPointerLeave={() => onTip(null)} onFocus={tipFor('Expand sidebar')} onBlur={() => onTip(null)}>
         <SidebarIcon />
       </button>
@@ -200,7 +200,7 @@ export function StudioSelect({ path }: { path: string }) {
   const route = routeFor(path);
   const go = (v: string) => navigate(v);
   return (
-    <label className="studio-select">
+    <label className="studio-select field">
       <span className="sr-only">Go to</span>
       <select value={route === NOT_FOUND ? '' : topOf(path)} onChange={(e) => go(e.target.value)} aria-label="Go to">
         {route === NOT_FOUND && <option value="" disabled hidden>Go to</option>}
