@@ -1,0 +1,7 @@
+{
+  "name": "doctor-clean",
+  "private": true,
+  "dependencies": {
+    "@verseva/design": "1.7.0"
+  }
+}
