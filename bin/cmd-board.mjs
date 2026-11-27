@@ -5,10 +5,16 @@
  * the author keeps private work.
  *
  * Manifest (JSON, at most 64 KB):
- *   { "themes": [ { "id": "<slug>", "label": "<text>", "css": "<path>" } ] }
+ *   { "themes": [ { "id": "<slug>", "label": "<text>", "css": "<path>", "bans": ["glass"] } ] }
  * id is the theme's [data-brand] slug (lowercase letters, digits and dashes, at most 64);
  * label is text, 1 to 64 characters, no control characters; css is a path resolved against the
- * working directory. At most 64 themes; unknown keys are refused.
+ * working directory; bans (optional) lists names from bin/board-bans.mjs, each once. At most 64
+ * themes; unknown keys and unknown ban names are refused.
+ *
+ * The page adds two checks above the specimens, drawn in the browser for the theme and mode on
+ * screen: a ratio per pair in bin/contrast-pairs.mjs (alpha composited over the real backdrop,
+ * the contrast gate's math) against its floor, and each declared ban asserted on every specimen
+ * its rows name.
  *
  * Trust boundary. The manifest and every theme file must be regular files inside the working
  * directory (resolved to its real path once): a path that leaves it, a symlink anywhere on the
@@ -27,14 +33,14 @@
  *
  * Exit 2 with one line on any startup error; 0 on Ctrl+C.
  *
- * The pieces are exported for the next ticket's checks: loadManifest, readTheme, boardPage,
- * createBoardServer.
+ * Exported for reuse and tests: loadManifest, readTheme, boardPage, createBoardServer.
  */
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BANS, isBan } from './board-bans.mjs';
 
 export const match = 'board';
 export const order = 67;
@@ -102,14 +108,21 @@ export function loadManifest(root, file) {
   return data.themes.map((t, i) => {
     const at = `themes[${i}]`;
     if (!isObject(t)) throw new BoardError(`${at} must be an object`);
-    for (const k of Object.keys(t)) if (!['id', 'label', 'css'].includes(k)) throw new BoardError(`${at} has unknown key "${printable(k).slice(0, 40)}"`);
+    for (const k of Object.keys(t)) if (!['id', 'label', 'css', 'bans'].includes(k)) throw new BoardError(`${at} has unknown key "${printable(k).slice(0, 40)}"`);
     if (typeof t.id !== 'string' || !ID.test(t.id)) throw new BoardError(`${at}.id must match ${ID.source} (the theme's [data-brand] slug)`);
     if (seen.has(t.id)) throw new BoardError(`${at}.id "${t.id}" is a duplicate`);
     seen.add(t.id);
     if (typeof t.label !== 'string' || t.label.length < 1 || t.label.length > 64) throw new BoardError(`${at}.label must be 1 to 64 characters`);
     if (CONTROL.test(t.label)) throw new BoardError(`${at}.label has a control character`);
     if (typeof t.css !== 'string' || !t.css || t.css.length > 1024) throw new BoardError(`${at}.css must be a path string`);
-    return { id: t.id, label: t.label, css: t.css };
+    const bans = t.bans ?? [];
+    if (!Array.isArray(bans) || bans.length > Object.keys(BANS).length) throw new BoardError(`${at}.bans must be an array of ban names (${Object.keys(BANS).join(', ')})`);
+    bans.forEach((b, j) => {
+      if (typeof b !== 'string') throw new BoardError(`${at}.bans[${j}] must be a ban name`);
+      if (!isBan(b)) throw new BoardError(`${at}.bans[${j}] "${printable(b).slice(0, 40)}" is not a known ban (${Object.keys(BANS).join(', ')})`);
+      if (bans.indexOf(b) !== j) throw new BoardError(`${at}.bans[${j}] "${b}" is a duplicate`);
+    });
+    return { id: t.id, label: t.label, css: t.css, bans: [...bans] };
   });
 }
 
@@ -129,19 +142,38 @@ function replaceOnce(html, pattern, to, name) {
   return html.replace(pattern, to);
 }
 
+/* The two check sections: skeletons only; bin/board-client.js fills rows as text. */
+const CHECKS = [
+  '<section class="comp" id="board-contrast" aria-labelledby="board-contrast-h">',
+  '<h2 id="board-contrast-h">Contrast</h2>',
+  '<div class="demo"><div class="specimen">',
+  '<span class="badge neutral" data-board-count></span>',
+  '<table class="table" aria-labelledby="board-contrast-h"><thead><tr><th>Text</th><th>Backdrop</th><th class="num">Ratio</th><th class="num">Floor</th><th>Result</th></tr></thead><tbody></tbody></table>',
+  '</div></div>',
+  '</section>',
+  '<section class="comp" id="board-bans" aria-labelledby="board-bans-h">',
+  '<h2 id="board-bans-h">Bans</h2>',
+  '<div class="demo"><div class="specimen">',
+  '<div class="chiprow"><span class="badge neutral" data-board-count></span></div>',
+  '<table class="table" aria-labelledby="board-bans-h"><thead><tr><th>Ban</th><th>Specimen</th><th>Property</th><th>Expected</th><th class="num">Checked</th><th>Result</th></tr></thead><tbody></tbody></table>',
+  '</div></div>',
+  '</section>',
+].join('\n');
+
 const TICK = '<svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
 
 /** The Components page, rewired: package css by absolute path, the brand switcher in the topbar,
     and the theme link the switcher drives. Labels go in escaped; nothing else from the manifest does. */
 export function boardPage(componentsHtml, themes) {
-  const item = (id, label, checked) => `<button type="button" class="menu-item" role="menuitemradio" aria-checked="${checked}" tabindex="-1" data-board-theme="${id}">${escapeHtml(label)}${TICK}</button>`;
+  /* ids and ban names are pattern-checked before they get here; labels are escaped text */
+  const item = (id, label, bans, checked) => `<button type="button" class="menu-item" role="menuitemradio" aria-checked="${checked}" tabindex="-1" data-board-theme="${id}" data-board-bans="${bans.join(' ')}">${escapeHtml(label)}${TICK}</button>`;
   const switcher = [
     '<nav aria-label="Brand theme"><div class="menu" id="board-switcher">',
     '<button type="button" class="btn btn-secondary sm" id="board-current" aria-haspopup="menu" aria-expanded="false" aria-controls="board-themes">Baseline</button>',
     '<div class="menu-list" id="board-themes" role="menu" aria-label="Brand themes" hidden>',
-    item('', 'Baseline', true),
+    item('', 'Baseline', [], true),
     themes.length ? '<div class="menu-sep" role="separator"></div>' : '',
-    ...themes.map((t) => item(t.id, t.label, false)),
+    ...themes.map((t) => item(t.id, t.label, t.bans ?? [], false)),
     '</div></div></nav>',
   ].join('');
   let html = componentsHtml;
@@ -149,10 +181,11 @@ export function boardPage(componentsHtml, themes) {
   html = replaceOnce(html, /<link rel="stylesheet" href="\.\.\/tokens\.css[^"]*">/, '<link rel="stylesheet" href="/tokens.css">', 'tokens.css link');
   html = replaceOnce(html, /<link rel="stylesheet" href="\.\.\/components\.css[^"]*">/, '<link rel="stylesheet" href="/components.css">', 'components.css link');
   html = replaceOnce(html, /<link rel="stylesheet" href="site\.css[^"]*">/, '<link rel="stylesheet" href="/site.css">\n<link rel="stylesheet" id="board-theme">', 'site.css link');
-  html = replaceOnce(html, /<script src="theme\.js[^"]*"><\/script>/, '<script src="/theme.js"></script>\n<script src="/board.js" defer></script>', 'theme.js script');
+  html = replaceOnce(html, /<script src="theme\.js[^"]*"><\/script>/, '<script src="/theme.js"></script>\n<script type="module" src="/board.js"></script>', 'theme.js script');
   html = replaceOnce(html, /<a class="wordmark" href="index\.html">/, '<a class="wordmark" href="/">', 'wordmark');
   html = replaceOnce(html, /(<header class="topbar">[\s\S]*?)<nav>[\s\S]*?<\/nav>/, (_, head) => head + switcher, 'topbar nav');
   html = replaceOnce(html, /<h1>Components<\/h1>/, '<h1>Board</h1>', 'hero heading');
+  html = replaceOnce(html, /<section class="comp" id="install">/, (first) => CHECKS + first, 'install section');
   return html;
 }
 
@@ -179,6 +212,8 @@ export function createBoardServer({ root, pkgRoot, themes, onThemeRefused = () =
     ['/site.css', [CSS, read('site/site.css')]],
     ['/theme.js', [JS, read('site/theme.js')]],
     ['/board.js', [JS, read('bin/board-client.js')]],
+    ['/board-bans.mjs', [JS, read('bin/board-bans.mjs')]],
+    ['/contrast-pairs.mjs', [JS, read('bin/contrast-pairs.mjs')]],
   ]);
   const byId = new Map(themes.map((t) => [t.id, t]));
   const hosts = new Set();

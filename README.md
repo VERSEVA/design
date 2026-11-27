@@ -194,7 +194,7 @@ topbar; `?brand=<id>` opens one directly; an edit to a theme file shows on reloa
 ```json
 {
   "themes": [
-    { "id": "acme", "label": "Acme", "css": "brand/theme.css" }
+    { "id": "acme", "label": "Acme", "css": "brand/theme.css", "bans": ["glass"] }
   ]
 }
 ```
@@ -203,6 +203,22 @@ topbar; `?brand=<id>` opens one directly; an edit to a theme file shows on reloa
 `label` is text (1 to 64 characters); `css` resolves against the working
 directory. `templates/theme-manifest.example.json` names the four presets and
 runs from the package root.
+
+Two checks sit above the specimens, for the theme and mode on screen. Contrast:
+every pair in `bin/contrast-pairs.mjs`, its alpha composited over the real
+backdrop (the contrast gate's math, read from the live computed tokens), with
+its ratio, its floor (4.5 body, 3 large text and UI parts) and pass or fail.
+Bans: `bans` (optional) names materials the theme bans, each proven on every
+specimen a row in `bin/board-bans.mjs` names. A ban passes only when every row
+matches at least one specimen and holds on all of them.
+
+| Ban | Specimen | Property | Expected |
+|---|---|---|---|
+| `glass` | `.card` | `backdrop-filter` | `none` |
+| `glass` | `.navshell`, `.bulkbar` | `backdrop-filter` | `blur(0px)` (or `none`) |
+| `bloom` | `.tab.on`, `.snav a[aria-current="page"]` | `background-image` | `none` |
+
+A ban name not in the table stops the board with one line and exit 2.
 
 Contained by construction: the manifest and every theme must be regular files
 inside the working directory (a path that leaves it, a symlink anywhere on the
