@@ -48,7 +48,7 @@ function session(requests, { timeoutMs = SESSION_TIMEOUT_MS, cwd, args = [bin] }
   });
 }
 
-test('initialize + tools/list expose the seven tools', async () => {
+test('initialize + tools/list expose the eight tools', async () => {
   const got = await session([
     { id: 1, method: 'initialize', params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 't', version: '0' } } },
     { method: 'notifications/initialized' },
@@ -56,7 +56,7 @@ test('initialize + tools/list expose the seven tools', async () => {
   ]);
   assert.equal(got[1].result.serverInfo.name, 'verseva');
   const names = got[2].result.tools.map((t) => t.name);
-  for (const n of ['list_registry', 'get_component', 'get_block', 'get_tokens', 'get_laws', 'add_component', 'run_gate']) {
+  for (const n of ['list_registry', 'get_component', 'get_brief', 'get_block', 'get_tokens', 'get_laws', 'add_component', 'run_gate']) {
     assert.ok(names.includes(n), `missing tool ${n}`);
   }
 });

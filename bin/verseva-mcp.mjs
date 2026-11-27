@@ -13,6 +13,7 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { buildBrief } from './brief.mjs';
 
 const pkgRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const registry = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'registry.json'), 'utf8'));
@@ -43,6 +44,11 @@ const TOOLS = [
     name: 'get_laws',
     description: 'The fourteen laws of the signature, dated and amended in the open. Binding on every surface built on the package.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'get_brief',
+    description: 'One component as a build brief: its source, only the laws that bind it (in full), and its contract section with its bans. Read this before building or changing that component. Takes a registry name only.',
+    inputSchema: { type: 'object', properties: { name: { type: 'string', description: 'a registry component name, e.g. button' } }, required: ['name'], additionalProperties: false },
   },
   {
     name: 'add_component',
@@ -91,6 +97,14 @@ function callTool(name, args = {}) {
   }
   if (name === 'get_tokens') return text(fs.readFileSync(path.join(pkgRoot, 'tokens.css'), 'utf8'));
   if (name === 'get_laws') return text(fs.readFileSync(path.join(pkgRoot, 'docs', 'laws.md'), 'utf8'));
+  if (name === 'get_brief') {
+    /* Trust boundary: one argument, a registry name. Anything else is refused in one line. */
+    if (args === null || typeof args !== 'object' || Array.isArray(args) || Object.keys(args).some((k) => k !== 'name')) {
+      return errText('refused: get_brief takes one argument, name');
+    }
+    const { text: brief, error } = buildBrief(pkgRoot, registry, args.name);
+    return error ? errText(error) : text(brief);
+  }
   if (name === 'add_component') {
     const comp = registry.components.find((c) => c.name === args.name);
     if (!comp) return errText(`unknown component: ${args.name}`);
@@ -177,7 +191,7 @@ rl.on('line', (line) => {
         protocolVersion: '2024-11-05',
         capabilities: { tools: {} },
         serverInfo: { name: 'verseva', version: pkg.version },
-        instructions: 'VERSEVA Design as a server. Read get_laws + get_tokens before building; add_component for source; ALWAYS finish surface work with run_gate: done means proven.',
+        instructions: 'VERSEVA Design as a server. Read get_brief for each component you build (its laws and contract), get_tokens for values; add_component for source; ALWAYS finish surface work with run_gate: done means proven.',
       },
     });
     return;
