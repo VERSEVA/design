@@ -6,7 +6,7 @@
   "files": [
     {
       "path": "react/bounded-state.ts",
-      "content": "/**\n * Bounded section limits. Pure and React-free, so server code can read them; the client\n * part (bounded-section) re-exports them.\n */\n\n/** Rows a bounded section shows by default. */\nexport const BOUNDED_CAP = 5;\n/** The largest cap the CSS holds a rule for. */\nexport const BOUNDED_MAX_CAP = 12;\n\n/** The cap the CSS can hold: a whole number from 1 to 12. Anything else is the default, 5. */\nexport function boundedCap(cap: number = BOUNDED_CAP): number {\n  return Number.isInteger(cap) && cap >= 1 && cap <= BOUNDED_MAX_CAP ? cap : BOUNDED_CAP;\n}\n"
+      "content": "/**\n * Bounded section limits. Pure and React-free, so server code can read them; the client\n * part (bounded-section) re-exports them.\n */\n\n/** Rows a bounded section shows by default. */\nexport const BOUNDED_CAP = 5;\n/** The largest cap the CSS holds a rule for. */\nexport const BOUNDED_MAX_CAP = 12;\n\n/** The cap the CSS can hold: a whole number from 1 to 12. Anything else is the default, 5. */\nexport function boundedCap(cap: number = BOUNDED_CAP): number {\n  return Number.isInteger(cap) && cap >= 1 && cap <= BOUNDED_MAX_CAP ? cap : BOUNDED_CAP;\n}\n\n/**\n * A chart's `cap` (Bars, HBars, LineChart): absent is no cap, so the chart renders as it always did. A whole\n * number from 1 applies, with no upper limit (no CSS rule holds a chart's marks). Anything else is the default, 5.\n */\nexport function chartCap(cap?: number): number | undefined {\n  if (cap === undefined) return undefined;\n  return Number.isInteger(cap) && cap >= 1 ? cap : BOUNDED_CAP;\n}\n"
     }
   ]
 }
