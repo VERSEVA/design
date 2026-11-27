@@ -18,6 +18,11 @@ import { VIZ_LABELS, type VizLabels } from './labels';
  * bar is a privacy floor: its value is never read, so it cannot reach a bar
  * length, the scale, a title or any attribute. The word for withheld is
  * copy: `vizLabels` overrides it (defaults in labels.ts).
+ *
+ * The values as a table (1.8). Every part also renders its values as a visually hidden data table
+ * (`.sr-only`), so keyboard, touch and screen reader users reach what `title` gives a pointer; the plot
+ * is then aria-hidden. `label` is its caption. `table={false}` opts out, for a decorative sparkline
+ * beside a number that already says it; the part then renders as it did before.
  */
 
 declare const process: { env: { NODE_ENV?: string } };
@@ -109,6 +114,21 @@ const gapBands = (series: readonly (readonly (Pt | null)[])[], w: number, h: num
   ));
 };
 
+type Row = readonly [string, readonly string[]];
+/**
+ * The hidden data table: one row per item or x label, one column per series. A withheld cell holds what
+ * the part prints (a suppressed item's display, or empty for a null), never a value.
+ */
+const dataTable = (label: string | undefined, cols: readonly string[], rows: readonly Row[], Wrap: 'div' | 'span' = 'div') => (
+  <Wrap className="sr-only">
+    <table>
+      {label ? <caption>{label}</caption> : null}
+      <thead><tr><td />{cols.map((c, i) => <th key={i} scope="col">{c}</th>)}</tr></thead>
+      <tbody>{rows.map(([h, cells], i) => <tr key={i}><th scope="row">{h}</th>{cells.map((c, j) => <td key={j}>{c}</td>)}</tr>)}</tbody>
+    </table>
+  </Wrap>
+);
+
 /** An all-null chart shows a band and nothing else, which can read as loading: it says the word in the plot. */
 const gapWord = (series: readonly (readonly (Pt | null)[])[], word: string) =>
   series.some((p) => p.length > 0) && !series.some((p) => p.some(Boolean)) ? <span className="vizgap-word">{word}</span> : null;
@@ -119,13 +139,17 @@ export interface SparklineProps {
   /** Fixed scale top; defaults to the series max. */
   max?: number;
   area?: boolean;
-  /** Copy: the word an all-null sparkline shows. */
+  /** Caption of the hidden data table. */
+  label?: string;
+  /** False drops the hidden data table: only for a decorative sparkline beside a number that says it. */
+  table?: boolean;
+  /** Copy: the word an all-null sparkline shows, and the table's value header. */
   vizLabels?: Partial<VizLabels>;
   className?: string;
 }
 
 /** Trend-at-a-glance: line + last-point dot, optional soft area. */
-export function Sparkline({ values, max, area = true, vizLabels, className }: SparklineProps) {
+export function Sparkline({ values, max, area = true, label, table = true, vizLabels, className }: SparklineProps) {
   const id = React.useId();
   const L = { ...VIZ_LABELS, ...vizLabels };
   const W = 140;
@@ -157,6 +181,7 @@ export function Sparkline({ values, max, area = true, vizLabels, className }: Sp
   return (
     <span className={cx('spark', className)}>
       {gapped ? <span className="vizframe">{plot}{gapBands([p], W, H, base, 4)}{gapWord([p], L.withheld)}</span> : plot}
+      {table && dataTable(label, [L.value], values.map((v, i) => [String(i + 1), [known(v) ? String(v) : '']]), 'span')}
     </span>
   );
 }
@@ -170,6 +195,10 @@ export interface LineChartProps {
   height?: number;
   /** Formats the hover readout; defaults to the raw number. */
   format?: (v: number) => string;
+  /** Caption of the hidden data table. */
+  label?: string;
+  /** False drops the hidden data table and keeps the plot as a named image. */
+  table?: boolean;
   /** Copy: the word a gap shows on hover, and an all-null chart shows in its plot. */
   vizLabels?: Partial<VizLabels>;
   className?: string;
@@ -180,7 +209,7 @@ export interface LineChartProps {
  * Series two rides --data-alt AND a dash, so identity survives print and
  * CVD. Hover is the default layer: crosshair + readout.
  */
-export function LineChart({ labels, series, reference, height = 140, format = String, vizLabels, className }: LineChartProps) {
+export function LineChart({ labels, series, reference, height = 140, format = String, label, table = true, vizLabels, className }: LineChartProps) {
   const id = React.useId();
   const L = { ...VIZ_LABELS, ...vizLabels };
   const W = 320;
@@ -203,8 +232,8 @@ export function LineChart({ labels, series, reference, height = 140, format = St
   };
 
   const plot = (
-      <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" role="img"
-        aria-label={shown.map((s) => s.name).join(' vs ')}
+      <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none"
+        {...(table ? { 'aria-hidden': 'true' as const } : { role: 'img', 'aria-label': shown.map((s) => s.name).join(' vs ') })}
         onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         {reference && <line className="refline" x1={pad} y1={refY} x2={W - pad} y2={refY} />}
         {all.map((p, si) => {
@@ -279,6 +308,8 @@ export function LineChart({ labels, series, reference, height = 140, format = St
           <span><i className="alt" /> {shown[1].name}</span>
         </div>
       )}
+      {table && dataTable(label, shown.map((s) => s.name),
+        labels.map((x, i) => [x, shown.map((s) => { const v = s.values[i]; return known(v) ? format(v) : ''; })]))}
     </div>
   );
 }
@@ -312,19 +343,23 @@ export interface BarsProps {
   /** Prints each value on/above its mark, the portfolio default. */
   showValues?: boolean;
   height?: number;
-  /** Copy: the word a suppressed item with no display carries in its title. */
+  /** Caption of the hidden data table. */
+  label?: string;
+  /** False drops the hidden data table. */
+  table?: boolean;
+  /** Copy: the word a suppressed item with no display carries in its title and table cell; the value header. */
   vizLabels?: Partial<VizLabels>;
   className?: string;
 }
 
 /** Vertical bars, numbers on the marks, no axis. */
-export function Bars({ data, showValues = true, height = 120, vizLabels, className }: BarsProps) {
+export function Bars({ data, showValues = true, height = 120, label, table = true, vizLabels, className }: BarsProps) {
   const L = { ...VIZ_LABELS, ...vizLabels };
   warnMissingDisplay('Bars', data);
   const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   return (
     <div className={cx(className)}>
-      <div className="bars" style={{ height }}>
+      <div className="bars" style={{ height }} aria-hidden={table ? 'true' : undefined}>
         {data.map((d) => {
           if (d.suppressed) {
             const display: string | undefined = d.display;
@@ -346,6 +381,7 @@ export function Bars({ data, showValues = true, height = 120, vizLabels, classNa
           );
         })}
       </div>
+      {table && dataTable(label, [L.value], data.map((d) => [d.label, [d.suppressed ? (d.display ?? L.withheld) : String(d.display ?? d.value)]]))}
     </div>
   );
 }
@@ -354,38 +390,46 @@ export interface HBarsProps {
   /** `format` never sees a suppressed value. */
   data: HBarsItem[];
   format?: (v: number) => string;
-  /** Copy: the word a suppressed item with no display carries in its title. */
+  /** Caption of the hidden data table. */
+  label?: string;
+  /** False drops the hidden data table. */
+  table?: boolean;
+  /** Copy: the word a suppressed item with no display carries in its title and table cell; the value header. */
   vizLabels?: Partial<VizLabels>;
   className?: string;
 }
 
 /** Label / track / mono count rows: the axis-free distribution. */
-export function HBars({ data, format = String, vizLabels, className }: HBarsProps) {
+export function HBars({ data, format = String, label, table = true, vizLabels, className }: HBarsProps) {
   const L = { ...VIZ_LABELS, ...vizLabels };
   warnMissingDisplay('HBars', data);
   const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
+  const hidden = table ? 'true' : undefined;
+  /* Formatted once, for the row and its table cell; never for a suppressed item. */
+  const printed = data.map((d) => (d.suppressed ? undefined : d.display ?? format(d.value)));
   return (
     <div className={cx('hbars', className)}>
-      {data.map((d) => {
+      {data.map((d, k) => {
         if (d.suppressed) {
           const display: string | undefined = d.display;
           return (
-            <div className="hbar" key={d.label} title={`${d.label}: ${display ?? L.withheld}`} data-suppressed="">
+            <div className="hbar" key={d.label} title={`${d.label}: ${display ?? L.withheld}`} data-suppressed="" aria-hidden={hidden}>
               <span className="hlabel">{d.label}</span>
               <span className="htrack" />
               <span className="hcount">{display}</span>
             </div>
           );
         }
-        const shown = d.display ?? format(d.value);
+        const shown = printed[k];
         return (
-        <div className="hbar" key={d.label} title={`${d.label}: ${shown}`}>
+        <div className="hbar" key={d.label} title={`${d.label}: ${shown}`} aria-hidden={hidden}>
           <span className="hlabel">{d.label}</span>
           <span className="htrack"><i className={d.alt ? 'alt' : undefined} style={{ width: `${(d.value / top) * 100}%` }} /></span>
           <span className="hcount">{shown}</span>
         </div>
         );
       })}
+      {table && dataTable(label, [L.value], data.map((d, k) => [d.label, [d.suppressed ? (d.display ?? L.withheld) : printed[k]!]]))}
     </div>
   );
 }
