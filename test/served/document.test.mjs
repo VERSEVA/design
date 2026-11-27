@@ -17,7 +17,8 @@ import { pdfPages } from './pdf-text.mjs';
 const URL_PATH = '/templates/document.html';
 const RUNNING = 'Onboardingreview,Q3';
 const SECTIONS = ['Summary', 'Findings', 'Weeklyvolume', 'Nextsteps'];
-const HEAD_ROW = 'WeekNewaccountsStartedwithin7daysMediandaystofirstuse';
+/* Each header cell; checked one by one, since glyph order in a PDF can vary with the font. */
+const HEAD_CELLS = ['Newaccounts', 'Startedwithin7days', 'Mediandaystofirstuse'];
 const ROWS = 36;
 const week = (n) => `Week${String(n).padStart(2, '0')}`;
 
@@ -57,7 +58,7 @@ test('print opens every section after the first on a new page, in order', () => 
 test(`print repeats the table header row on every page the ${ROWS}-row table spans`, () => {
   const spans = pages.map((t, i) => [i, t]).filter(([, t]) => Array.from({ length: ROWS }, (_, n) => week(n + 1)).some((w) => t.includes(w)));
   assert.ok(spans.length >= 2, `the table spans ${spans.length} page(s); it must cross a page break`);
-  for (const [i, t] of spans) assert.ok(t.includes(HEAD_ROW), `page ${i + 1} repeats the header row`);
+  for (const [i, t] of spans) for (const c of HEAD_CELLS) assert.ok(t.includes(c), `page ${i + 1} repeats the header cell ${c}: ${t.slice(0, 120)}`);
   for (let n = 1; n <= ROWS; n++) assert.equal(spans.filter(([, t]) => t.includes(week(n))).length, 1, `${week(n)} prints once`);
 });
 

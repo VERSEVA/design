@@ -95,6 +95,7 @@ export function pdfPages(buf) {
         if (m[2] !== undefined) for (let i = 0; i + map.width <= m[2].length; i += map.width) text += map.get(Number.parseInt(m[2].slice(i, i + map.width), 16)) ?? '';
       }
     }
-    return text.replace(/\s+/g, '');
+    /* NFKC folds ligature glyphs (U+FB01 for "fi") that some fonts map in their ToUnicode CMaps. */
+    return text.normalize('NFKC').replace(/\s+/g, '');
   });
 }
