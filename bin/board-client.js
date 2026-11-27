@@ -138,7 +138,7 @@ function drawBans(section, bans) {
   section.querySelector('tbody').replaceChildren(...rows.map((r) => {
     const tr = document.createElement('tr');
     tr.dataset.pass = String(r.pass);
-    tr.append(cell(r.ban), cell(r.row.specimen), cell(r.row.property), cell(r.row.expect), cell(String(r.checked), 'num'),
+    tr.append(cell(r.ban), cell(r.row.check), cell(r.row.specimen), cell(r.row.property), cell(r.row.expect), cell(String(r.checked), 'num'),
       resultCell(r.pass, r.pass ? 'Pass' : r.checked ? `Fail: ${r.seen}` : 'Fail: no specimen'));
     return tr;
   }));

@@ -212,11 +212,11 @@ Bans: `bans` (optional) names materials the theme bans, each proven on every
 specimen a row in `bin/board-bans.mjs` names. A ban passes only when every row
 matches at least one specimen and holds on all of them.
 
-| Ban | Specimen | Property | Expected |
-|---|---|---|---|
-| `glass` | `.card` | `backdrop-filter` | `none` |
-| `glass` | `.navshell`, `.bulkbar` | `backdrop-filter` | `blur(0px)` (or `none`) |
-| `bloom` | `.tab.on`, `.snav a[aria-current="page"]` | `background-image` | `none` |
+| Ban | Check | Specimen | Property | Expected |
+|---|---|---|---|---|
+| `glass` | theme adds no glass | `.card` | `backdrop-filter` | `none` |
+| `glass` | glass blur nulled | `.navshell`, `.bulkbar` | `backdrop-filter` | `blur(0px)` (or `none`) |
+| `bloom` | bloom nulled | `.tab.on`, `.snav a[aria-current="page"]` | `background-image` | `none` |
 
 A ban name not in the table stops the board with one line and exit 2.
 

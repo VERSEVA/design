@@ -4,22 +4,24 @@
  * asserts every row on every matching contract specimen). Browser-safe: no node: imports.
  *
  * A theme that bans a material nulls its tokens (docs/theming.md, "Bans must null"): glass by
- * --glass-blur: 0, bloom by --accent-bloom: none. Each row names a specimen selector, a computed
- * CSS property and the value that proves the ban. `match` is "equals" (the default) or
+ * --glass-blur: 0, bloom by --accent-bloom: none. Each row names what it checks (shown on the
+ * board), a specimen selector, a computed CSS property and the value that proves the ban. The
+ * .card row cannot fail on the package alone (a card carries no backdrop filter): it proves the
+ * theme added no glass of its own, and says so. `match` is "equals" (the default) or
  * "zero-blur": the value is none, or every blur() in it has a 0px radius.
  *
- * @typedef {{ specimen: string, property: string, expect: string, match?: 'equals' | 'zero-blur' }} BanRow
+ * @typedef {{ check: string, specimen: string, property: string, expect: string, match?: 'equals' | 'zero-blur' }} BanRow
  * @type {Readonly<Record<string, ReadonlyArray<BanRow>>>}
  */
 export const BANS = Object.freeze({
   bloom: Object.freeze([
-    Object.freeze({ specimen: '.tab.on', property: 'background-image', expect: 'none' }),
-    Object.freeze({ specimen: '.snav a[aria-current="page"]', property: 'background-image', expect: 'none' }),
+    Object.freeze({ check: 'bloom nulled', specimen: '.tab.on', property: 'background-image', expect: 'none' }),
+    Object.freeze({ check: 'bloom nulled', specimen: '.snav a[aria-current="page"]', property: 'background-image', expect: 'none' }),
   ]),
   glass: Object.freeze([
-    Object.freeze({ specimen: '.card', property: 'backdrop-filter', expect: 'none' }),
-    Object.freeze({ specimen: '.navshell', property: 'backdrop-filter', expect: 'blur(0px)', match: 'zero-blur' }),
-    Object.freeze({ specimen: '.bulkbar', property: 'backdrop-filter', expect: 'blur(0px)', match: 'zero-blur' }),
+    Object.freeze({ check: 'theme adds no glass', specimen: '.card', property: 'backdrop-filter', expect: 'none' }),
+    Object.freeze({ check: 'glass blur nulled', specimen: '.navshell', property: 'backdrop-filter', expect: 'blur(0px)', match: 'zero-blur' }),
+    Object.freeze({ check: 'glass blur nulled', specimen: '.bulkbar', property: 'backdrop-filter', expect: 'blur(0px)', match: 'zero-blur' }),
   ]),
 });
 
