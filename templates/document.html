@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onboarding review, Q3</title>
+<!-- One self-contained document. `npx verseva add document` inlines the two stylesheets below,
+     so the file it writes opens from file://. Boots light (law 9); delete data-theme for dark.
+     Print: A4 on light paper, a running header on every page, the table section on a new page,
+     and the table repeats its header row on every page it spans. Without scripting the whole
+     document reads as written; only the Print button needs the script. -->
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+  @page {
+    size: A4;
+    margin: 22mm 18mm 18mm;
+    @top-left { content: "Onboarding review, Q3"; font-family: var(--font-sans); font-size: 9pt; color: var(--text-2); }
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 16px; line-height: 1.6; }
+
+  .doc-page { max-width: var(--container-prose); margin: 0 auto; padding: var(--s-9) var(--s-5) var(--s-10); }
+  .doc-page h1 { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(32px, 5vw, 48px); letter-spacing: -0.025em; line-height: 1.08; text-wrap: balance; }
+  .doc-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); padding-top: var(--s-4); color: var(--text-2); font-size: 14px; }
+  .doc-meta .doc-print { margin-left: auto; }
+  @media (max-width: 767.98px) {
+    .doc-meta .doc-print { margin-left: 0; }
+  }
+
+  .doc-section { padding-top: var(--s-8); }
+  .doc-section h2 { font-family: var(--font-display); font-weight: var(--heading-weight); font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -0.015em; line-height: 1.2; }
+  .doc-section > p, .doc-section > ol { color: var(--text-2); padding-top: var(--s-3); max-width: 65ch; }
+  .doc-section > ol { padding-left: var(--s-5); display: grid; gap: var(--s-2); }
+  .doc-block { padding-top: var(--s-5); }
+
+  /* Labelled numbers: label above value, the class of number under it. */
+  .doc-page .statrow { gap: var(--s-4); }
+  .doc-page .stat { display: flex; flex-direction: column; gap: var(--s-2); }
+  .doc-page .stat .lbl { order: -1; margin: 0; font-size: 14px; color: var(--text-2); }
+  .doc-page .stat .num small { font-size: 16px; font-weight: 600; letter-spacing: 0; color: var(--text-2); }
+  .doc-page .badge { align-self: flex-start; }
+
+  /* The chart: one bar carries the point on --data-3, the rest sit on --data-1. */
+  .doc-chart > .bd { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-5); }
+  .doc-chart .hbars { gap: var(--s-3); }
+  .doc-chart .hbar { font-size: 14px; }
+  .doc-chart .hbar .hlabel { width: 128px; }
+  .doc-chart .hbar .htrack { height: 10px; }
+  .doc-chart .hbar .hcount { width: 48px; font-family: var(--font-sans); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .doc-chart .htrack i.doc-quiet { background: var(--data-1); }
+
+  /* The table scrolls inside its own box on a narrow screen; the page never does. */
+  .doc-scroll { overflow-x: auto; border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--surface); }
+  .doc-scroll .table th, .doc-scroll .table td { white-space: nowrap; }
+  .doc-scroll .table tr:last-child td { border-bottom: 0; }
+
+  /* Sources: off the face, behind one control. */
+  .doc-src { padding-top: var(--s-4); }
+  .doc-src > summary { list-style: none; }
+  .doc-src > summary::-webkit-details-marker { display: none; }
+  .doc-src > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .doc-src[open] > summary { background: var(--surface-2); }
+  .doc-src ul { padding: var(--s-3) 0 0 var(--s-5); display: grid; gap: var(--s-2); color: var(--text-2); font-size: 14px; }
+
+  /* The Print button works only with the script, so it shows only then. */
+  .doc-print { display: none; }
+  .doc-js .doc-print { display: inline-flex; }
+  @media (pointer: coarse) {
+    .doc-print, .doc-src > summary { min-height: 44px; }
+  }
+
+  @media print {
+    html, body { background: none; }
+    body { font-size: 10.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .doc-page { max-width: none; padding: 0; }
+    .doc-section { padding-top: var(--s-6); }
+    .doc-section.doc-break { break-before: page; padding-top: 0; }
+    .doc-section h2, .doc-section h2 + * { break-after: avoid; }
+    .doc-scroll { overflow: visible; border: 0; border-radius: 0; background: none; }
+    .doc-scroll .table thead { display: table-header-group; }
+    .doc-scroll .table tr { break-inside: avoid; }
+    .doc-scroll .table th, .doc-scroll .table td { padding: var(--s-2) var(--s-3); }
+    .doc-chart, .doc-page .statrow { break-inside: avoid; }
+    .doc-js .doc-print, .doc-print, .doc-src { display: none; }
+  }
+</style>
+</head>
+<body>
+<main class="doc-page">
+  <h1>Halve onboarding time by June</h1>
+  <div class="doc-meta">
+    <span>Onboarding review, Q3</span>
+    <span>Operations team</span>
+    <button class="btn btn-secondary sm doc-print" type="button">Print</button>
+  </div>
+
+  <section class="doc-section" id="summary">
+    <h2>Summary</h2>
+    <p>New accounts wait 14&nbsp;days before their first use. Running data import and access review side by side brings that to 7&nbsp;days for two weeks of engineering.</p>
+    <div class="doc-block">
+      <div class="statrow">
+        <div class="stat"><div class="num">14<small>&nbsp;days</small></div><div class="lbl">Time to first use today</div><span class="badge neutral">Fact</span></div>
+        <div class="stat"><div class="num">7<small>&nbsp;days</small></div><div class="lbl">Time to first use after the change</div><span class="badge neutral">Estimate</span></div>
+        <div class="stat"><div class="num">2<small>&nbsp;weeks</small></div><div class="lbl">Engineering cost</div><span class="badge neutral">Estimate</span></div>
+      </div>
+    </div>
+    <details class="doc-src"><summary class="btn btn-ghost sm">Sources</summary><ul><li>Onboarding log, accounts opened January to June.</li><li>Estimate: the longer of the two parallel steps, import at 5&nbsp;days, plus 2&nbsp;days of setup.</li></ul></details>
+  </section>
+
+  <section class="doc-section" id="findings">
+    <h2>Findings</h2>
+    <p>Accounts that start within 7&nbsp;days are the most likely to still be active after 90&nbsp;days.</p>
+    <div class="doc-block">
+      <div class="glass doc-chart">
+        <div class="bd">
+          <div class="hbars">
+            <div class="hbar"><span class="hlabel">7 days or fewer</span><span class="htrack"><i style="width:92%"></i></span><span class="hcount">92%</span></div>
+            <div class="hbar"><span class="hlabel">8 to 14 days</span><span class="htrack"><i class="doc-quiet" style="width:84%"></i></span><span class="hcount">84%</span></div>
+            <div class="hbar"><span class="hlabel">15 to 21 days</span><span class="htrack"><i class="doc-quiet" style="width:76%"></i></span><span class="hcount">76%</span></div>
+            <div class="hbar"><span class="hlabel">22 days or more</span><span class="htrack"><i class="doc-quiet" style="width:61%"></i></span><span class="hcount">61%</span></div>
+          </div>
+          <span class="badge neutral">Fact</span>
+        </div>
+      </div>
+    </div>
+    <details class="doc-src"><summary class="btn btn-ghost sm">Sources</summary><ul><li>Account records, 90-day status for accounts opened January to March.</li></ul></details>
+  </section>
+
+  <section class="doc-section doc-break" id="weekly-volume">
+    <h2>Weekly volume</h2>
+    <p>New accounts and time to first use, by week opened.</p>
+    <div class="doc-block">
+      <div class="doc-scroll">
+        <table class="table doc-table">
+          <thead><tr><th scope="col">Week</th><th scope="col" class="num">New accounts</th><th scope="col" class="num">Started within 7&nbsp;days</th><th scope="col" class="num">Median days to first use</th></tr></thead>
+          <tbody>
+          <tr><td>Week&nbsp;01</td><td class="num">21</td><td class="num">63%</td><td class="num">11&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;02</td><td class="num">19</td><td class="num">68%</td><td class="num">8&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;03</td><td class="num">17</td><td class="num">73%</td><td class="num">12&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;04</td><td class="num">15</td><td class="num">78%</td><td class="num">9&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;05</td><td class="num">22</td><td class="num">60%</td><td class="num">13&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;06</td><td class="num">20</td><td class="num">65%</td><td class="num">10&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;07</td><td class="num">18</td><td class="num">70%</td><td class="num">14&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;08</td><td class="num">16</td><td class="num">75%</td><td class="num">11&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;09</td><td class="num">14</td><td class="num">80%</td><td class="num">8&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;10</td><td class="num">21</td><td class="num">62%</td><td class="num">12&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;11</td><td class="num">19</td><td class="num">67%</td><td class="num">9&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;12</td><td class="num">17</td><td class="num">72%</td><td class="num">13&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;13</td><td class="num">15</td><td class="num">77%</td><td class="num">10&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;14</td><td class="num">22</td><td class="num">59%</td><td class="num">14&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;15</td><td class="num">20</td><td class="num">64%</td><td class="num">11&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;16</td><td class="num">18</td><td class="num">69%</td><td class="num">8&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;17</td><td class="num">16</td><td class="num">74%</td><td class="num">12&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;18</td><td class="num">14</td><td class="num">79%</td><td class="num">9&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;19</td><td class="num">21</td><td class="num">61%</td><td class="num">13&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;20</td><td class="num">19</td><td class="num">66%</td><td class="num">10&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;21</td><td class="num">17</td><td class="num">71%</td><td class="num">14&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;22</td><td class="num">15</td><td class="num">76%</td><td class="num">11&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;23</td><td class="num">22</td><td class="num">58%</td><td class="num">8&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;24</td><td class="num">20</td><td class="num">63%</td><td class="num">12&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;25</td><td class="num">18</td><td class="num">68%</td><td class="num">9&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;26</td><td class="num">16</td><td class="num">73%</td><td class="num">13&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;27</td><td class="num">14</td><td class="num">78%</td><td class="num">10&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;28</td><td class="num">21</td><td class="num">60%</td><td class="num">14&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;29</td><td class="num">19</td><td class="num">65%</td><td class="num">11&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;30</td><td class="num">17</td><td class="num">70%</td><td class="num">8&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;31</td><td class="num">15</td><td class="num">75%</td><td class="num">12&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;32</td><td class="num">22</td><td class="num">80%</td><td class="num">9&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;33</td><td class="num">20</td><td class="num">62%</td><td class="num">13&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;34</td><td class="num">18</td><td class="num">67%</td><td class="num">10&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;35</td><td class="num">16</td><td class="num">72%</td><td class="num">14&nbsp;days</td></tr>
+          <tr><td>Week&nbsp;36</td><td class="num">14</td><td class="num">77%</td><td class="num">11&nbsp;days</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <details class="doc-src"><summary class="btn btn-ghost sm">Sources</summary><ul><li>Onboarding log, weekly export.</li></ul></details>
+  </section>
+
+  <section class="doc-section" id="next-steps">
+    <h2>Next steps</h2>
+    <ol>
+      <li>Approve two weeks of engineering by the end of May.</li>
+      <li>Run import and review side by side for new accounts from June.</li>
+      <li>Report time to first use weekly for the first six weeks.</li>
+    </ol>
+  </section>
+</main>
+<script>
+(() => {
+  document.documentElement.classList.add('doc-js');
+  document.querySelector('.doc-print')?.addEventListener('click', () => print());
+  /* Paper is light: print with the light tokens, then put the reader's theme back. */
+  const root = document.documentElement;
+  let held = null;
+  const toPaper = () => { if (held === null) { held = root.getAttribute('data-theme') ?? ''; root.dataset.theme = 'light'; } };
+  const back = () => { if (held !== null) { if (held) root.dataset.theme = held; else delete root.dataset.theme; held = null; } };
+  addEventListener('beforeprint', toPaper);
+  addEventListener('afterprint', back);
+  matchMedia('print').addEventListener('change', (e) => (e.matches ? toPaper() : back()));
+})();
+</script>
+</body>
+</html>

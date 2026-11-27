@@ -25,6 +25,12 @@ export function Page() {
             <div className="callout"><b>Recommendation.</b>{" Which option, the one reason that carries it, and what would change your mind."}</div>
           </div>
         </SpecimenTile>
+        <SpecimenTile id="document-template" name="Document template" icon={DOC} size="xl" meta="4 sections">
+          <pre className="cmd">npx verseva add document</pre>
+          <div>
+            <a className="btn btn-secondary" href="/templates/document.html">Open the document</a>
+          </div>
+        </SpecimenTile>
       </SpecimenGrid>
       <footer className="site">
         <span>VERSEVA · open source · MIT</span>

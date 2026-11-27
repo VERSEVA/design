@@ -283,6 +283,13 @@ describe('Docs + PDF tiles', () => {
     expect(t.querySelector('.doc-mock h3')!.textContent).toBe('Say the decision in the title');
     expect(t.querySelector('.doc-mock .callout b')!.textContent).toBe('Recommendation.');
   });
+
+  it('links the document template, with its install command, in its own XL tile', () => {
+    const t = page('docs-pdf').querySelector('#document-template')!;
+    expect(t.getAttribute('data-size')).toBe('xl');
+    expect(t.querySelector('a.btn')!.getAttribute('href')).toBe('/templates/document.html');
+    expect(t.querySelector('pre.cmd')!.textContent).toBe('npx verseva add document');
+  });
 });
 
 describe('Data viz tiles (law 3)', () => {
