@@ -194,11 +194,12 @@ test('declared bans reach the switcher as data; every known ban is accepted', as
 test('the shipped ban table: each ban names specimens, a property and an expected value', async () => {
   const { BANS, holds } = await import('../bin/board-bans.mjs');
   assert.deepEqual(Object.keys(BANS).sort(), ['bloom', 'glass']);
-  assert.deepEqual(BANS.glass[0], { specimen: '.card', property: 'backdrop-filter', expect: 'none' });
+  assert.deepEqual(BANS.glass[0], { check: 'theme adds no glass', specimen: '.card', property: 'backdrop-filter', expect: 'none' });
   for (const rows of Object.values(BANS)) {
     assert.ok(rows.length > 0);
     for (const row of rows) {
       assert.equal(typeof row.specimen, 'string');
+      assert.match(row.check, /^[a-z ]+$/);
       assert.match(row.property, /^[a-z-]+$/);
       assert.equal(typeof row.expect, 'string');
     }
@@ -355,6 +356,30 @@ test('it serves the page, the package css and themes by id, with nosniff and the
     const head = await get(r.url, '/theme/probe.css', { method: 'HEAD' });
     assert.equal(head.status, 200);
     assert.equal(head.body, '');
+  } finally {
+    await stop(r.child);
+  }
+});
+
+test('the script hashes come from the package page before the manifest: an injected inline script is not covered', async () => {
+  const { boardPage, scriptPolicy } = await import('../bin/cmd-board.mjs');
+  const source = fs.readFileSync(path.join(root, 'site', 'components.html'), 'utf8');
+  const sha = (text) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`;
+  const own = [...source.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => sha(m[1]));
+  assert.equal(own.length, 1);
+  /* a page in which escaping has failed: an extra inline script arrived with the manifest */
+  const injected = 'window.pwned = 1';
+  const page = boardPage(source, [{ id: 'probe', label: 'Probe', css: 'x.css', bans: [] }]).replace('</body>', `<script>${injected}</script></body>`);
+  assert.ok(page.includes(`<script>${injected}</script>`));
+  const policy = scriptPolicy(source);
+  assert.equal(policy, `script-src 'self' ${own[0]}`);
+  assert.ok(!policy.includes(sha(injected)));
+  /* the served header carries exactly the package page's hashes */
+  const r = await board(['--manifest', 'manifest.json'], project());
+  assert.ok(r.url, r.out);
+  try {
+    const header = (await get(r.url, '/')).headers['content-security-policy'];
+    assert.ok(header.split(';').map((d) => d.trim()).includes(policy), header);
   } finally {
     await stop(r.child);
   }

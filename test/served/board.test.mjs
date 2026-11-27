@@ -150,7 +150,8 @@ const RATIOS = `JSON.stringify([...document.querySelectorAll('#board-contrast tb
 
 const BANS_STATE = `JSON.stringify({
   summary: [...document.querySelectorAll('#board-bans [data-board-ban]')].map((b) => [b.dataset.boardBan, b.dataset.pass, b.className, b.textContent]),
-  rows: [...document.querySelectorAll('#board-bans tbody tr')].map((tr) => ({ ban: tr.cells[0].textContent, specimen: tr.cells[1].textContent, property: tr.cells[2].textContent, expect: tr.cells[3].textContent, checked: Number(tr.cells[4].textContent), pass: tr.dataset.pass, result: tr.cells[5].textContent })),
+  rows: [...document.querySelectorAll('#board-bans tbody tr')].map((tr) => ({ ban: tr.cells[0].textContent, check: tr.cells[1].textContent, specimen: tr.cells[2].textContent, property: tr.cells[3].textContent, expect: tr.cells[4].textContent, checked: Number(tr.cells[5].textContent), pass: tr.dataset.pass, result: tr.cells[6].textContent })),
+  head: [...document.querySelectorAll('#board-bans thead th')].map((th) => th.textContent),
 })`;
 
 /** The contrast gate's own verbose lines for a theme file: "<fg> on <chain>" -> "r.rr:1". */
@@ -226,7 +227,10 @@ test('a theme that bans glass and nulls it passes; one that bans glass and leave
     await checked(page, b.url, 'nullglass');
     const ok = JSON.parse(await page.evaluate(BANS_STATE));
     assert.deepEqual(ok.summary, [['glass', 'true', 'badge ok', 'glass Pass']]);
-    assert.deepEqual(ok.rows.map((r) => [r.ban, r.specimen, r.property, r.expect]), BANS.glass.map((g) => ['glass', g.specimen, g.property, g.expect]));
+    assert.deepEqual(ok.head, ['Ban', 'Check', 'Specimen', 'Property', 'Expected', 'Checked', 'Result']);
+    assert.deepEqual(ok.rows.map((r) => [r.ban, r.check, r.specimen, r.property, r.expect]), BANS.glass.map((g) => ['glass', g.check, g.specimen, g.property, g.expect]));
+    /* the .card row says what it proves: the theme added no glass, not the package default */
+    assert.equal(ok.rows.find((r) => r.specimen === '.card').check, 'theme adds no glass');
     for (const r of ok.rows) {
       assert.ok(r.checked > 0, `${r.specimen} matched no specimen`);
       assert.equal(r.pass, 'true', r.specimen);
@@ -242,7 +246,7 @@ test('a theme that bans glass and nulls it passes; one that bans glass and leave
 
     await checked(page, b.url, 'nobans');
     const none = JSON.parse(await page.evaluate(BANS_STATE));
-    assert.deepEqual(none, { summary: [], rows: [] });
+    assert.deepEqual({ summary: none.summary, rows: none.rows }, { summary: [], rows: [] });
     assert.equal(await page.evaluate(`document.querySelector('#board-bans [data-board-count]').textContent`), '0 bans');
   } finally {
     await page.close();

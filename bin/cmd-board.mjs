@@ -155,7 +155,7 @@ const CHECKS = [
   '<h2 id="board-bans-h">Bans</h2>',
   '<div class="demo"><div class="specimen">',
   '<div class="chiprow"><span class="badge neutral" data-board-count></span></div>',
-  '<table class="table" aria-labelledby="board-bans-h"><thead><tr><th>Ban</th><th>Specimen</th><th>Property</th><th>Expected</th><th class="num">Checked</th><th>Result</th></tr></thead><tbody></tbody></table>',
+  '<table class="table" aria-labelledby="board-bans-h"><thead><tr><th>Ban</th><th>Check</th><th>Specimen</th><th>Property</th><th>Expected</th><th class="num">Checked</th><th>Result</th></tr></thead><tbody></tbody></table>',
   '</div></div>',
   '</section>',
 ].join('\n');
@@ -193,18 +193,23 @@ const CSS = 'text/css; charset=utf-8';
 const JS = 'text/javascript; charset=utf-8';
 const HTML = 'text/html; charset=utf-8';
 const TEXT = 'text/plain; charset=utf-8';
-/* Scripts run from this origin or by the sha256 of each inline script in the page actually served,
+/* Scripts run from this origin or by the sha256 of each inline script in the package page,
    computed at startup, so the policy cannot drift from the page and needs no 'unsafe-inline'. */
 const scriptHashes = (html) => [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
   .map((m) => `'sha256-${createHash('sha256').update(m[1], 'utf8').digest('base64')}'`);
-const csp = (html) => `default-src 'none'; script-src 'self'${scriptHashes(html).map((h) => ` ${h}`).join('')}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`;
+/** The script-src directive for the package's own page. Hashed from site/components.html as
+    shipped, before anything from the manifest is merged in, so a script that ever slipped in
+    with a label could not bring its own hash. */
+export const scriptPolicy = (sourceHtml) => `script-src 'self'${scriptHashes(sourceHtml).map((h) => ` ${h}`).join('')}`;
+const csp = (sourceHtml) => `default-src 'none'; ${scriptPolicy(sourceHtml)}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`;
 const THEME_PATH = /^\/theme\/([a-z0-9][a-z0-9-]{0,63})\.css$/;
 
 /** The board's http server, not yet listening. Hosts are allowed once the port is known. */
 export function createBoardServer({ root, pkgRoot, themes, onThemeRefused = () => {} }) {
   const read = (rel) => fs.readFileSync(path.join(pkgRoot, rel), 'utf8');
-  const page = boardPage(read('site/components.html'), themes);
-  const CSP = csp(page);
+  const source = read('site/components.html');
+  const CSP = csp(source);
+  const page = boardPage(source, themes);
   const files = new Map([
     ['/', [HTML, page]],
     ['/tokens.css', [CSS, read('tokens.css')]],
