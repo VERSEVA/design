@@ -77,7 +77,7 @@ for (const gate of walkers) {
     assert.ok(!r.out.includes(nestedBait), r.out);
   });
 
-  test(`${gate}: --exclude names a directory under the scan root, not a nested one`, () => {
+  test(`${gate}: --exclude never drops the scan root itself`, () => {
     const r = run(gate, [...tokens, '--exclude', 'swift', path.join(consumer, 'swift')]);
     assert.equal(r.code, 1);
     assert.ok(r.out.includes(topBait), r.out);
