@@ -52,6 +52,59 @@ the recorded failure mode (a dozen live-looking dead buttons).
 Label above (placeholder is never the label), 40/48px heights, `--r-sm`, error replaces help with
 `aria-invalid` + `aria-describedby` wired. Inline validation on blur; error copy says how to fix.
 
+### Secret field: `SecretField` (write-only)
+
+A field for keys and tokens. The value is written and never read back: once it is saved, no
+screen shows it again, to anyone. It composes `.field`, `.badge`, `.btn`, `.chiprow` and
+`.spinner`; it adds no CSS.
+
+- **The part never receives the stored value, and never re-reads it.** Props: `label`,
+  `isSet`, `onSave(value, signal)` returning a promise, `labels`, and optionally `name`, `id`,
+  `className`. No prop carries a value in: there is no `value` and no `defaultValue`.
+- **After a save the value is gone.** The typed value lives in the input element alone, never
+  in state, a ref, an attribute, storage, a message or a log. When `onSave` resolves the input
+  is cleared and unmounted. On Cancel it is cleared too.
+- **States:** unset (an empty input and Save, disabled until something is typed), typing,
+  saving (the input is disabled; Save holds `aria-busy`, a `.spinner` in place of its label and
+  its width; Cancel is there and works), set (the `.badge.ok` with its check, reading "Set",
+  beside the label, and a secondary Replace), replacing (an empty input in the same spot, with
+  Cancel then Save; Cancel returns to set), error (`.field.error`, the message under the input,
+  the typed value kept so the user can retry).
+- **A save that never settles does not trap the value on screen.** Cancel works while saving,
+  and Escape does the same: it clears the input, aborts the `AbortSignal` passed to `onSave`,
+  and whatever the save returns later is ignored. Unmounting mid-save aborts it too. A second
+  Save cannot start while one runs.
+- **Cancel hides the save; only the host can stop it.** A host that ignores the signal may still
+  store the value after Cancel, so the field can show unset while the host has stored it, until
+  the host flips `isSet`. Hosts pass the signal to `fetch` or check it before writing.
+- **Input:** `type="password"`, `autocomplete="off"`, `autocapitalize="off"`,
+  `spellcheck="false"`, no placeholder, no `<form>`. Browsers ignore `autocomplete="off"` on a
+  password input, so it also carries `data-1p-ignore`, `data-lpignore="true"`, `data-bwignore`
+  and `data-form-type="other"`, which ask the password managers directly. Not `new-password`:
+  that invites a generated password. It carries a `name` only when the host passes one.
+- **A host that passes `name` and wraps the field in its own form sends the value when that
+  form submits,** including while the user is still typing. Never wrap it in a GET form: the
+  value would land in the URL, the history and the server log.
+- **Focus never drops to the page.** Replace puts it in the input. Save moves it to the Save
+  button before the input is disabled. A landed save and Cancel put it on Replace. A failed
+  save puts it back in the input. Enter saves; Escape cancels a replace or a running save. When the host changes
+  `isSet` under the user, focus follows the control that replaced the one it was on, and text
+  being typed is kept.
+- **Announced:** the error is `role="alert"` and wired with `aria-invalid` and
+  `aria-describedby`; a polite `role="status"` line says "Saving" while the save runs and
+  "Saved" when it lands.
+- **Two fields on one page stay apart.** Save, Cancel and Replace are `aria-describedby` the
+  field label. `labels.noun` puts the thing in the visible text: "Save token", "Replace token".
+- **`labels.error` is static text.** The part never renders a rejection reason, since a host
+  error can carry the value, and the host must not build this label from the typed value or
+  from a server message that echoes it. The part drops a label that contains the whole typed
+  value and shows the built-in line; a partial echo it cannot catch.
+- **One primary: Save.** Replace is secondary, Cancel is ghost.
+- **Labels:** the built-in words are `SECRET_FIELD_LABELS` in `react/labels.ts`, the pure
+  module server code can read. `npx verseva add secret-field`.
+- **Host duties the part cannot do:** send the value over TLS, store it encrypted, return only
+  whether it is set, and keep it out of logs and analytics.
+
 ## Selection controls: `.sel`, `.switch`
 
 20px control, 44px hit area, `--accent` selected. Checkbox = many-of, radio = one-of (2–5),
