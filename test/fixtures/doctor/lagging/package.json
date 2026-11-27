@@ -1,0 +1,7 @@
+{
+  "name": "doctor-lagging",
+  "private": true,
+  "dependencies": {
+    "@verseva/design": "^1.5.0"
+  }
+}

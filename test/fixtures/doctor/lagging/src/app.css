@@ -1,0 +1,13 @@
+/* A product's own styles. One rule reaches into a package class. */
+.page { padding: var(--s-4); }
+
+/* .btn in a comment is not an override */
+.checkout .btn {
+  border-radius: 0;
+}
+
+.btn-like, .mybtn { color: var(--text-1); }
+[data-kind="btn"] { color: var(--text-1); }
+@media (min-width: 40rem) {
+  .page { padding: var(--s-6); }
+}
