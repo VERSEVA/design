@@ -191,7 +191,10 @@ test('CENSUS: a project that consumes no material yields one project-level findi
   const c = census(r.out);
   assert.equal(c.length, 1, r.out);
   assert.match(c[0], /^ {2}project {2}no material consumed in 3 files {2}Glass panel: \.glass$/);
-  assert.equal(run(['--strict', fx('material', 'bare')]).code, 1);
+  const strict = run(['--strict', fx('material', 'bare')]);
+  assert.equal(strict.code, 1);
+  assert.doesNotMatch(strict.out, /clean/, 'a failing run never says clean');
+  assert.match(strict.out, /^verseva-recipe-gate: no hand-built elements \(1 contract-owned element, /);
 });
 
 test('CENSUS: the same project with material "none" is skipped, and the output says so', () => {
