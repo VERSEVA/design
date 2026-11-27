@@ -2,8 +2,9 @@
 /**
  * verseva-recipe-gate: reports contract-owned elements built by hand. The
  * four gates prove values; this one asks whether a button, table, field,
- * select or dialog was built with the contract's classes at all. Signal 1
- * of the recipe gate. Advisory: findings exit 0 unless --strict is set.
+ * select or dialog was built with the contract's classes at all (signal 1),
+ * and whether the project consumes the signature material at all (signal 2,
+ * the material census). Advisory: findings exit 0 unless --strict is set.
  *
  * Usage:
  *   verseva-recipe-gate [--allow <path-substring>]... [--exclude <dir>]...
@@ -26,8 +27,15 @@
  *   finding; one literal holding a contract class passes.
  * - "recipe-ok: <reason>" waives one element: inside its tag, or on the
  *   line above it. The reason is required.
+ * - Material census: over every scanned file (.css too), a var() reference
+ *   to --glass-*, --nav-* or --accent-bloom, or a class attribute holding a
+ *   material class (a root part class whose rule in components.css
+ *   consumes those tokens, read at run time), is a use. --e-* is not
+ *   material. Zero uses across the whole scan is one project-level finding.
+ *   Comments are not read; in HTML, script and style bodies are.
  * - verseva.json in the working directory: files under "dir" are
- *   known-good; "recipeAllow" lists path substrings to skip.
+ *   known-good; "recipeAllow" lists path substrings to skip; "material" is
+ *   "full" (the default) or "none", which skips the census.
  * - --allow skips any file whose path contains the given substring.
  * - --exclude skips the directory of that name directly under a scan path.
  * - After "--" every argument is a path. Before it, an unknown argument
@@ -37,11 +45,13 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { contractClasses, contractParts, OWNED } from './contract-classes.mjs';
+import { contractClasses, contractParts, materialClasses, MATERIAL_RE, OWNED } from './contract-classes.mjs';
 
 const NAME = 'verseva-recipe-gate';
 const SCAN_EXT = new Set(['.html', '.jsx', '.tsx']);
 const JSX_EXT = new Set(['.jsx', '.tsx']);
+const CENSUS_EXT = new Set([...SCAN_EXT, '.css']);
+const MATERIAL_USE_RE = new RegExp(MATERIAL_RE.source, 'g');
 const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel']);
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
 const MARKER_RE = /recipe-ok:[ \t]*[^\s>*/-]/;
@@ -99,14 +109,14 @@ function* walk(p, exclude = []) {
   for (const entry of entries) {
     if (entry.isDirectory()) {
       if (!SKIP_DIRS.has(entry.name) && !exclude.includes(entry.name)) yield* walk(path.join(p, entry.name));
-    } else if (SCAN_EXT.has(path.extname(entry.name))) {
+    } else if (CENSUS_EXT.has(path.extname(entry.name))) {
       yield path.join(p, entry.name);
     }
   }
 }
 
 function readConfig() {
-  if (!fs.existsSync('verseva.json')) return { dir: null, recipeAllow: [] };
+  if (!fs.existsSync('verseva.json')) return { dir: null, recipeAllow: [], material: 'full' };
   let cfg;
   try {
     cfg = JSON.parse(fs.readFileSync('verseva.json', 'utf8'));
@@ -114,12 +124,13 @@ function readConfig() {
     fail(`${NAME}: verseva.json is not valid JSON`);
   }
   if (cfg === null || typeof cfg !== 'object' || Array.isArray(cfg)) fail(`${NAME}: verseva.json must hold an object`);
-  const { dir = null, recipeAllow = [] } = cfg;
+  const { dir = null, recipeAllow = [], material = 'full' } = cfg;
   if (dir !== null && (typeof dir !== 'string' || dir === '')) fail(`${NAME}: verseva.json "dir" must be a path`);
   if (!Array.isArray(recipeAllow) || recipeAllow.some((a) => typeof a !== 'string' || a === '')) {
     fail(`${NAME}: verseva.json "recipeAllow" must be a list of strings`);
   }
-  return { dir: dir === null ? null : path.resolve(dir), recipeAllow };
+  if (material !== 'full' && material !== 'none') fail(`${NAME}: verseva.json "material" must be "full" or "none"`);
+  return { dir: dir === null ? null : path.resolve(dir), recipeAllow, material };
 }
 
 /* Blank a region but keep its newlines, so line numbers hold. */
@@ -300,6 +311,7 @@ function scan(text, jsx, classes, parts) {
   };
 
   const stack = []; // open elements: { name, classes }
+  const used = []; // every class an attribute names, components included, for the census
   const spent = new Set(); // marker lines that already waived an element
   const found = [];
   let checked = 0;
@@ -324,6 +336,7 @@ function scan(text, jsx, classes, parts) {
     const attrs = component ? new Map() : attributes(body, jsx);
     const classAttr = attrs.get(jsx ? 'className' : 'class') ?? attrs.get('class');
     const own = classList(classAttr);
+    used.push(...(component ? classList(attributes(body, jsx).get('className')) : own));
 
     if (!jsx && IMPLIED_CLOSE[name]) {
       const [siblings, containers] = IMPLIED_CLOSE[name];
@@ -355,7 +368,16 @@ function scan(text, jsx, classes, parts) {
 
     if (!selfClosed && !VOID.has(name)) stack.push({ name, classes: own });
   }
-  return { found, checked };
+  return { found, checked, used };
+}
+
+/* Material uses in one file: var() references outside comments, plus class attributes naming a material class. */
+function materialUses(text, ext, usedClasses, material) {
+  let src;
+  if (ext === '.css') src = text.replace(/\/\*[\s\S]*?\*\//g, blank);
+  else if (JSX_EXT.has(ext)) src = readableJsx(text);
+  else src = text.replace(/<!--[\s\S]*?-->/g, blank).replace(/\/\*[\s\S]*?\*\//g, blank);
+  return (src.match(MATERIAL_USE_RE)?.length ?? 0) + usedClasses.filter((c) => material.has(c)).length;
 }
 
 const { tokens, allow, exclude, paths, strict } = parseArgs(process.argv.slice(2));
@@ -371,24 +393,48 @@ const skip = [...allow, ...config.recipeAllow];
 
 const classes = contractClasses();
 const parts = contractParts();
+const material = materialClasses();
 const findings = [];
 let checked = 0;
+let files = 0;
+let uses = 0;
 for (const root of paths) {
   for (const file of walk(root, exclude)) {
     const abs = path.resolve(file);
     if (skip.some((a) => abs.includes(a))) continue;
     if (config.dir && abs.startsWith(config.dir + path.sep)) continue;
-    const res = scan(fs.readFileSync(file, 'utf8'), JSX_EXT.has(path.extname(file)), classes, parts);
-    checked += res.checked;
-    for (const f of res.found) findings.push(`${file}:${f.line}  ${f.label}  ${f.section}`);
+    const ext = path.extname(file);
+    const text = fs.readFileSync(file, 'utf8');
+    files++;
+    let used = [];
+    if (ext !== '.css') {
+      const res = scan(text, JSX_EXT.has(ext), classes, parts);
+      checked += res.checked;
+      used = res.used;
+      for (const f of res.found) findings.push(`${file}:${f.line}  ${f.label}  ${f.section}`);
+    }
+    if (config.material === 'full') uses += materialUses(text, ext, used, material);
   }
 }
 
+const s = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const bare = config.material === 'full' && files > 0 && uses === 0;
+const log = strict && (findings.length || bare) ? console.error : console.log;
+const advisory = strict ? '' : ' (advisory)';
 if (findings.length) {
-  const log = strict ? console.error : console.log;
-  log(`${NAME}: ${findings.length} hand-built element${findings.length === 1 ? '' : 's'}${strict ? '' : ' (advisory)'}\n`);
+  log(`${NAME}: ${findings.length} hand-built element${findings.length === 1 ? '' : 's'}${advisory}\n`);
   for (const f of findings) log(`  ${f}`);
   log('\nBuild each from its section of docs/component-contract.md, or mark a ratified exception with "recipe-ok: <reason>".');
-  process.exit(strict ? 1 : 0);
+} else {
+  log(`${NAME}: clean (${s(checked, 'contract-owned element')}, ${classes.size} root part classes)`);
 }
-console.log(`${NAME}: clean (${checked} contract-owned element${checked === 1 ? '' : 's'}, ${classes.size} root part classes)`);
+if (config.material === 'none') {
+  log(`${NAME}: material census skipped (material: none)`);
+} else if (bare) {
+  log(`${NAME}: material census: no material consumed${advisory}\n`);
+  log(`  project  no material consumed in ${s(files, 'file')}  Glass panel: .glass`);
+  log(`\nConsume --glass-*, --nav-* or --accent-bloom, or a material class (${[...material].sort().join(', ')}), or declare "material": "none" in verseva.json.`);
+} else {
+  log(`${NAME}: material census: ${s(uses, 'use')} in ${s(files, 'file')}`);
+}
+process.exit(strict && (findings.length || bare) ? 1 : 0);
