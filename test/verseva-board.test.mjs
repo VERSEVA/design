@@ -148,6 +148,9 @@ test('a manifest of the wrong shape names the first problem in one line', async 
     [{ themes: [{ ...ok, label: 'a‮b' }] }, /themes\[0\]\.label has a control character/],
     [{ themes: [{ ...ok, css: 3 }] }, /themes\[0\]\.css must be a path string/],
     [{ themes: [{ ...ok, more: 1 }] }, /themes\[0\] has unknown key "more"/],
+    [{ themes: [{ ...ok, bans: 'glass' }] }, /themes\[0\]\.bans must be an array of ban names/],
+    [{ themes: [{ ...ok, bans: [1] }] }, /themes\[0\]\.bans\[0\] must be a ban name/],
+    [{ themes: [{ ...ok, bans: ['glass', 'glass'] }] }, /themes\[0\]\.bans\[1\] "glass" is a duplicate/],
     [{ themes: Array.from({ length: 65 }, (_, i) => ({ ...ok, id: `t${i}` })) }, /at most 64 themes/],
   ];
   for (const [shape, pattern] of cases) {
@@ -164,6 +167,52 @@ test('a theme outside the working directory is refused (exit 2)', async () => {
     fs.writeFileSync(path.join(path.dirname(cwd), 'probe.css'), THEME);
     assertRefused(await board(['--manifest', 'manifest.json'], cwd), /refused: theme "probe" is outside the working directory/);
   }
+});
+
+test('an unknown ban name stops startup with one line and exit 2', async () => {
+  for (const bans of [['glas'], ['glass', 'neon'], ['GLASS'], ['__proto__'], ['toString'], ['constructor']]) {
+    const cwd = project([{ id: 'probe', label: 'Probe', css: 'brand/probe.css', bans }]);
+    const bad = bans.find((b) => b !== 'glass');
+    assertRefused(await board(['--manifest', 'manifest.json'], cwd), new RegExp(`themes\\[0\\]\\.bans\\[${bans.indexOf(bad)}\\] "${bad}" is not a known ban \\(bloom, glass\\)`));
+  }
+});
+
+test('declared bans reach the switcher as data; every known ban is accepted', async () => {
+  const { BANS } = await import('../bin/board-bans.mjs');
+  const cwd = project([{ id: 'probe', label: 'Probe', css: 'brand/probe.css', bans: Object.keys(BANS) }]);
+  const r = await board(['--manifest', 'manifest.json'], cwd);
+  assert.ok(r.url, r.out);
+  try {
+    const page = await get(r.url, '/');
+    assert.match(page.body, new RegExp(`data-board-theme="probe" data-board-bans="${Object.keys(BANS).join(' ')}"`));
+    assert.match(page.body, /data-board-theme="" data-board-bans=""/);
+  } finally {
+    await stop(r.child);
+  }
+});
+
+test('the shipped ban table: each ban names specimens, a property and an expected value', async () => {
+  const { BANS, holds } = await import('../bin/board-bans.mjs');
+  assert.deepEqual(Object.keys(BANS).sort(), ['bloom', 'glass']);
+  assert.deepEqual(BANS.glass[0], { check: 'theme adds no glass', specimen: '.card', property: 'backdrop-filter', expect: 'none' });
+  for (const rows of Object.values(BANS)) {
+    assert.ok(rows.length > 0);
+    for (const row of rows) {
+      assert.equal(typeof row.specimen, 'string');
+      assert.match(row.check, /^[a-z ]+$/);
+      assert.match(row.property, /^[a-z-]+$/);
+      assert.equal(typeof row.expect, 'string');
+    }
+  }
+  /* equals by default; a zero-blur row also takes none, and fails any blur radius above 0 */
+  assert.equal(holds({ expect: 'none' }, 'none'), true);
+  assert.equal(holds({ expect: 'none' }, 'blur(0px)'), false);
+  const zero = { expect: 'blur(0px)', match: 'zero-blur' };
+  assert.equal(holds(zero, 'blur(0px) saturate(1.45)'), true);
+  assert.equal(holds(zero, 'none'), true);
+  assert.equal(holds(zero, 'blur(26px) saturate(1.45)'), false);
+  assert.equal(holds(zero, 'blur(0px) blur(2px)'), false);
+  assert.equal(holds(zero, 'saturate(1.45)'), false);
 });
 
 test('a non-.css theme, a symlinked theme and a theme behind a symlinked directory are refused', async () => {
@@ -285,11 +334,17 @@ test('it serves the page, the package css and themes by id, with nosniff and the
       assert.equal(res.headers['x-content-type-options'], 'nosniff', target);
       assert.equal(res.body, fs.readFileSync(path.join(root, file), 'utf8'), target);
     }
-    for (const target of ['/theme.js', '/board.js']) {
+    for (const target of ['/theme.js', '/board.js', '/board-bans.mjs', '/contrast-pairs.mjs']) {
       const res = await get(r.url, target);
       assert.equal(res.status, 200, target);
       assert.equal(res.headers['content-type'], 'text/javascript; charset=utf-8', target);
     }
+    /* the pairs and the ban table reach the browser as the package's own modules, byte for byte */
+    assert.equal((await get(r.url, '/contrast-pairs.mjs')).body, fs.readFileSync(path.join(root, 'bin', 'contrast-pairs.mjs'), 'utf8'));
+    assert.equal((await get(r.url, '/board-bans.mjs')).body, fs.readFileSync(path.join(root, 'bin', 'board-bans.mjs'), 'utf8'));
+    assert.match(page.body, /<script type="module" src="\/board\.js"><\/script>/);
+    assert.match(page.body, /<section class="comp" id="board-contrast" aria-labelledby="board-contrast-h">/);
+    assert.match(page.body, /<section class="comp" id="board-bans" aria-labelledby="board-bans-h">/);
     const theme = await get(r.url, '/theme/probe.css');
     assert.equal(theme.status, 200);
     assert.equal(theme.headers['content-type'], 'text/css; charset=utf-8');
@@ -301,6 +356,30 @@ test('it serves the page, the package css and themes by id, with nosniff and the
     const head = await get(r.url, '/theme/probe.css', { method: 'HEAD' });
     assert.equal(head.status, 200);
     assert.equal(head.body, '');
+  } finally {
+    await stop(r.child);
+  }
+});
+
+test('the script hashes come from the package page before the manifest: an injected inline script is not covered', async () => {
+  const { boardPage, scriptPolicy } = await import('../bin/cmd-board.mjs');
+  const source = fs.readFileSync(path.join(root, 'site', 'components.html'), 'utf8');
+  const sha = (text) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`;
+  const own = [...source.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => sha(m[1]));
+  assert.equal(own.length, 1);
+  /* a page in which escaping has failed: an extra inline script arrived with the manifest */
+  const injected = 'window.pwned = 1';
+  const page = boardPage(source, [{ id: 'probe', label: 'Probe', css: 'x.css', bans: [] }]).replace('</body>', `<script>${injected}</script></body>`);
+  assert.ok(page.includes(`<script>${injected}</script>`));
+  const policy = scriptPolicy(source);
+  assert.equal(policy, `script-src 'self' ${own[0]}`);
+  assert.ok(!policy.includes(sha(injected)));
+  /* the served header carries exactly the package page's hashes */
+  const r = await board(['--manifest', 'manifest.json'], project());
+  assert.ok(r.url, r.out);
+  try {
+    const header = (await get(r.url, '/')).headers['content-security-policy'];
+    assert.ok(header.split(';').map((d) => d.trim()).includes(policy), header);
   } finally {
     await stop(r.child);
   }
@@ -425,7 +504,7 @@ test('the example manifest ships placeholder names and serves from the package r
 test('every package file the board reads ships in the tarball', () => {
   const [pack] = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8' }));
   const shipped = new Set(pack.files.map((f) => f.path));
-  for (const f of ['bin/cmd-board.mjs', 'bin/board-client.js', 'site/components.html', 'site/site.css', 'site/theme.js', 'tokens.css', 'components.css', 'templates/theme-manifest.example.json']) {
+  for (const f of ['bin/cmd-board.mjs', 'bin/board-client.js', 'bin/board-bans.mjs', 'bin/contrast-pairs.mjs', 'site/components.html', 'site/site.css', 'site/theme.js', 'tokens.css', 'components.css', 'templates/theme-manifest.example.json']) {
     assert.ok(shipped.has(f), `${f} is not in the package`);
   }
 });

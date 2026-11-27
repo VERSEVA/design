@@ -240,3 +240,33 @@ for (const scheme of ['dark', 'light']) {
     assert.deepEqual(r.hover && { label: r.hover.label, rows: r.hover.rows, markers: r.hover.markers }, { label: 'W4', rows: ['Visits withheld', 'Booked 52'], markers: 1 });
   });
 }
+
+/* The hidden data tables (issue 206): each kit part on /data-viz carries one (Sparkline's from ARIA roles), clipped to a 1px box
+   that adds no width to the page, while the plot beside it stays drawn and aria-hidden. */
+const TABLES = `(() => {
+  const out = { tables: [], bad: [], scroll: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+  for (const wrap of document.querySelectorAll('#suppressed .sr-only, #gaps .sr-only')) {
+    const t = wrap.querySelector('table, [role="table"]');
+    const b = wrap.getBoundingClientRect(), tb = t.getBoundingClientRect();
+    const rows = t.tBodies ? t.tBodies[0].rows.length : t.querySelectorAll('[role="row"]').length - 1;
+    const r = { caption: t.caption?.textContent ?? t.getAttribute('aria-label'), rows, w: b.width, h: b.height, clip: getComputedStyle(wrap).clipPath };
+    out.tables.push(r);
+    if (b.width > 1 || b.height > 1) out.bad.push(r.caption + ' wrapper is ' + b.width + 'x' + b.height);
+    if (!/inset\\(50%/.test(r.clip)) out.bad.push(r.caption + ' is not clipped');
+    if (tb.width > 1 && getComputedStyle(wrap).overflow !== 'hidden') out.bad.push(r.caption + ' table overflows its wrapper');
+  }
+  return JSON.stringify(out);
+})()`;
+
+for (const width of [1440, 375]) {
+  test(`/data-viz hidden data tables are clipped and add no scroll width (${width}px)`, { timeout: 60000 }, async (t) => {
+    const page = await run.page({ width, height: 900, scheme: 'light' });
+    await page.goto('/data-viz');
+    const r = JSON.parse(await page.evaluate(TABLES));
+    await page.close();
+    t.diagnostic(r.tables.map((x) => `${x.caption}: ${x.rows} rows, ${x.w}x${x.h}`).join('; '));
+    assert.deepEqual(r.bad, []);
+    assert.equal(r.tables.length, 4);
+    assert.equal(r.scroll, 0);
+  });
+}

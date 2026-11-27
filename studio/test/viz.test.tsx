@@ -43,9 +43,10 @@ describe('LineChart', () => {
     expect(() => move(svg, 100)).not.toThrow();
   });
 
-  it('names the plot "A vs B", drops a third series, and dashes the second', () => {
+  it('names the plot "A vs B" with the table off, drops a third series, and dashes the second', () => {
     const { container } = render(
       <LineChart
+        table={false}
         labels={labels}
         series={[
           { name: 'A', values: [1, 2, 3] },
@@ -73,7 +74,7 @@ describe('LineChart', () => {
         format={(v) => `${v} kg`}
       />,
     );
-    const svg = screen.getByRole('img');
+    const svg = document.querySelector('.vizplot svg')!;
     stubBox(svg);
     move(svg, 160);
     const tip = screen.getByRole('status');
@@ -94,7 +95,7 @@ describe('LineChart', () => {
         ]}
       />,
     );
-    const svg = screen.getByRole('img');
+    const svg = document.querySelector('.vizplot svg')!;
     stubBox(svg);
     expect(() => move(svg, 320)).not.toThrow();
     const tip = screen.getByRole('status');
@@ -239,7 +240,7 @@ describe('Bars: suppressed items and display', () => {
     expect(bar.querySelector('.vlab')).toBeNull();
     expect(bar.querySelector('.vtrack')).not.toBeNull();
     expect(bar.getAttribute('title')).toBe('a: withheld');
-    expect(container.textContent).not.toMatch(/n\/a|withheld/i);
+    expect(container.querySelector('.bars')!.textContent).not.toMatch(/n\/a|withheld/i);
     expect(container.querySelector<HTMLElement>('.fill')!.style.height).toBe('100%');
     expect(warn).toHaveBeenCalled();
     expect(String(warn.mock.calls[0][0])).toMatch(/Bars.*"a".*display/);
@@ -629,7 +630,7 @@ describe('LineChart: null gaps', () => {
         format={(v) => { seen.push(v); return `${v} kg`; }}
       />,
     );
-    const svg = screen.getByRole('img');
+    const svg = document.querySelector('.vizplot svg')!;
     stubBox(svg);
     move(svg, 160);
     const tip = screen.getByRole('status');
@@ -645,7 +646,7 @@ describe('LineChart: null gaps', () => {
 
   it('takes the hover word from vizLabels, and treats NaN as withheld', () => {
     render(<LineChart labels={labels} series={[{ name: 'A', values: [1, 2, NaN, 4, 5] }]} vizLabels={{ withheld: 'Not shown' }} />);
-    const svg = screen.getByRole('img');
+    const svg = document.querySelector('.vizplot svg')!;
     stubBox(svg);
     move(svg, 160);
     expect(screen.getByRole('status').textContent).toBe('WedA Not shown');

@@ -226,9 +226,9 @@ export function Page() {
         <SpecimenTile id="lines" name="Line + area" icon={ICON} size="m" code={sample('lines')} focus={true}>
           <div className="demo">
             <div className="specimen" style={{ flex: "1", minWidth: "280px" }}>
-              <div className="seg mb-4" id="vrange">
-                <button type="button" aria-selected="true">12 weeks</button>
-                <button type="button" aria-selected="false">30 days</button>
+              <div className="seg mb-4" id="vrange" role="tablist" aria-label="Range">
+                <button type="button" role="tab" aria-selected="true">12 weeks</button>
+                <button type="button" role="tab" aria-selected="false">30 days</button>
               </div>
               <div className="vizplot" id="vseries" style={{ height: "150px" }} data-labels-a="W1,W2,W3,W4,W5,W6,W7,W8,W9,W10,W11,W12" data-a1="62,70,66,74,82,78,88,95,90,98,104,112" data-a2="41,44,40,52,58,55,61,72,66,74,79,84" data-refa="76|YOUR AVG · 12 WK" data-labels-b="D1,D5,D10,D15,D20,D25,D30" data-b1="88,95,90,98,104,112,118" data-b2="61,72,66,74,79,84,90" data-refb="94|YOUR AVG · 30 D" data-names="Priced,Won">
                 <svg preserveAspectRatio="none" role="img" aria-label="Priced vs won"></svg>
@@ -487,7 +487,7 @@ export function Page() {
                     <b>Q-2081 · Northline</b>
                     <span className="metaline">gate 6 of 9 · verifying</span>
                   </span>
-                  <span className="markstrip" title="6 of 9 cleared, now verifying" aria-label="6 of 9 gates cleared, current stage verifying">
+                  <span className="markstrip" role="img" title="6 of 9 cleared, now verifying" aria-label="6 of 9 gates cleared, current stage verifying">
                     <i className="cleared"></i>
                     <i className="cleared"></i>
                     <i className="cleared"></i>
@@ -504,7 +504,7 @@ export function Page() {
                     <b>Q-2080 · Harbor</b>
                     <span className="metaline">gate 3 of 9 · sourcing blocked</span>
                   </span>
-                  <span className="markstrip" title="2 cleared, attention on sourcing" aria-label="2 of 9 gates cleared, attention on sourcing">
+                  <span className="markstrip" role="img" title="2 cleared, attention on sourcing" aria-label="2 of 9 gates cleared, attention on sourcing">
                     <i className="cleared"></i>
                     <i className="cleared"></i>
                     <i className="attention"></i>
@@ -558,6 +558,7 @@ export function Page() {
           <div className="demo">
             <div className="specimen" style={{ minWidth: "300px", flex: "1" }}>
               <Bars
+                label="Visits by day"
                 height={110}
                 data={[
                   { label: 'Mon', value: 42 },
@@ -568,6 +569,7 @@ export function Page() {
               />
               <HBars
                 className="mt-4"
+                label="Visits by clinic"
                 data={[
                   { label: 'Clinic A', value: 48 },
                   { label: 'Clinic B', value: 31, alt: true },
@@ -583,6 +585,7 @@ export function Page() {
           <div className="demo">
             <div className="specimen" style={{ flex: "1", minWidth: "280px" }}>
               <LineChart
+                label="Visits and booked by week"
                 height={130}
                 labels={['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8']}
                 series={[
@@ -592,7 +595,7 @@ export function Page() {
               />
               <div className="mt-4">
                 <span className="speclabel">Sparkline</span>
-                <Sparkline values={[12, 14, 13, null, null, 17, 19, 22]} />
+                <Sparkline label="Visits by week" values={[12, 14, 13, null, null, 17, 19, 22]} />
               </div>
               <div className="takeaway">Visits withheld for W4 and W5; Booked withheld for W6 and W8.</div>
             </div>

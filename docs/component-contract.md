@@ -741,6 +741,23 @@ color-alone).
   - **The withheld word is copy:** `vizLabels={{ withheld }}` on `LineChart`, `Bars` and `HBars`,
     default `withheld`, lowercase since it follows a name (`react/labels.ts`).
   - **`Bars` and `HBars` hold no state and no hook:** they render without a client boundary.
+- **Values reach every user, not only a pointer (1.8).** `title` is pointer-only, so `Sparkline`,
+  `LineChart`, `Bars` and `HBars` each render their values as a visually hidden data table
+  (`.sr-only` around a `<table>`): one row per item or x label with a `th scope="row"`, one
+  column per drawn series (`LineChart`'s two; a one-series part has one column headed
+  `vizLabels.value`, default `Value`; `Sparkline` rows are numbered from 1). The optional `label`
+  prop is the table's `<caption>`; without it the caption is `vizLabels.table` (default `Chart
+  data`), and a `LineChart` is named by its series ("A vs B"). `Sparkline` sits in phrasing
+  content, so its table is spans with `role="table"`, `row`, `columnheader`, `rowheader` and
+  `cell`, named by `aria-label`: a `<table>` inside a `<p>` would close the paragraph on parse. A cell holds what the chart prints: the formatted value, a
+  suppressed item's `display` (the withheld word when it has none), and an EMPTY cell for a null
+  or a missing point, never a value. With the table present the plot is `aria-hidden` (the
+  `LineChart` svg drops `role="img"` and its legend and reference tag are hidden, the `.bars` group
+  and each `.hbar` row are hidden) and the
+  `title` attributes stay for pointer users. `table={false}` opts out, for a decorative sparkline
+  in a stat tile that already states the number; the part then renders exactly the markup it
+  did before the table existed. `Ring`, `ActivityStrip` and `Trend` already carry their value as
+  an accessible name or text, and render no table.
 
 ## Step funnel: `.funnel` (1.8)
 

@@ -61,7 +61,7 @@ const Rows = ({ rows }: { rows: [React.ReactNode, React.ReactNode][] }) => (
 function revenueView(size: WidgetSize) {
   const head = <><div className="wtile-num">₱1.84M</div><div className="wtile-sub"><Trend delta="+12.4%" judgment="good" /> vs Oct</div></>;
   if (size === 's') return <><Hd i={I.revenue} label="Revenue" />{head}</>;
-  if (size === 'm') return <><Hd i={I.revenue} label="Revenue" meta="Nov" /><div className="wx-split"><div>{head}</div><Sparkline values={REV} /></div></>;
+  if (size === 'm') return <><Hd i={I.revenue} label="Revenue" meta="Nov" /><div className="wx-split"><div>{head}</div><Sparkline values={REV} table={false} /></div></>;
   if (size === 'l') {
     return (
       <>
