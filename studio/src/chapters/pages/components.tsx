@@ -61,6 +61,11 @@ const snapWeek = (date: string, edge: 'from' | 'to') => {
   const monday = t - ((new Date(t).getUTCDay() + 6) % 7) * DAY_MS;
   return new Date(edge === 'from' ? monday : monday + 6 * DAY_MS).toISOString().slice(0, 10);
 };
+/* What the menu trigger calls a custom range, as the prototype did: whole weeks. */
+const rangeWeeks = (from: string, to: string) => {
+  const n = Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`) + DAY_MS) / (7 * DAY_MS));
+  return `${n} ${n === 1 ? 'week' : 'weeks'}`;
+};
 
 /* One state of the part: its name over a live specimen. `typed` types a date into the To field and
    leaves it once the page has settled, so the invalid state is the real one: a valid value, and a
@@ -1206,7 +1211,7 @@ export function Page() {
             <div className="demo range-demo">
               <RangeSpecimen name="Default" id="rm-a" variant="menu" custom compare />
               <RangeSpecimen name="Two presets" id="rm-b" variant="menu" presets={RANGE_PRESETS.slice(0, 2)} />
-              <RangeSpecimen name="Custom range" id="rm-c" variant="menu" custom compare start={{ range: 'custom', from: '2026-10-05', to: '2026-11-01', compare: false }} />
+              <RangeSpecimen name="Custom range" id="rm-c" variant="menu" custom compare formatCustom={rangeWeeks} start={{ range: 'custom', from: '2026-10-05', to: '2026-11-01', compare: false }} />
               <RangeSpecimen name="Compare on" id="rm-d" variant="menu" custom compare start={{ ...RANGE_WEEK, compare: true }} />
               <RangeSpecimen name="Disabled" id="rm-e" variant="menu" custom compare disabled />
             </div>
