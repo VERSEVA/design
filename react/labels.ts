@@ -33,3 +33,31 @@ export interface VizLabels {
 }
 
 export const VIZ_LABELS: VizLabels = { withheld: 'withheld' };
+
+export interface SecretFieldLabels {
+  /** The badge beside the label once a value is stored. */
+  set: string;
+  replace: string;
+  save: string;
+  cancel: string;
+  /** What is being stored, e.g. "token": Save and Replace then read "Save token" and "Replace token". Empty for none. */
+  noun: string;
+  /** Announced, and read in place of the Save label, while the save runs. */
+  saving: string;
+  /** Announced when a save lands. */
+  saved: string;
+  /** Shown and announced when a save fails. Static text that says how to fix it: never a
+      rejection reason, never anything built from the typed value. */
+  error: string;
+}
+
+export const SECRET_FIELD_LABELS: SecretFieldLabels = {
+  set: 'Set',
+  replace: 'Replace',
+  save: 'Save',
+  cancel: 'Cancel',
+  noun: '',
+  saving: 'Saving',
+  saved: 'Saved',
+  error: 'Not saved. Check the value and try again.',
+};
