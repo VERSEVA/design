@@ -62,6 +62,17 @@ const PROBE = `(async () => {
     });
     host.remove();
   }
+  /* The panels keep a track on every step at every width, even inside the specimen tile. */
+  const panelTracks = [...tile.querySelectorAll('.fpanels ol.funnel > li.hbar')]
+    .filter((li) => !li.querySelector('.skel')).map((li) => shown(li.querySelector('.htrack')) && li.querySelector('.htrack').getBoundingClientRect().width > 0);
+  /* A large tile uses its height: the last step ends near the bottom of the body. */
+  const fill = [...tile.querySelectorAll('.wtile[data-size="l"] > .wtile-body')].map((b) => {
+    const cs = getComputedStyle(b);
+    const top = b.getBoundingClientRect().top + parseFloat(cs.paddingTop);
+    const bottom = b.getBoundingClientRect().bottom - parseFloat(cs.paddingBottom);
+    const last = [...b.querySelectorAll('ol.funnel > li')].pop().getBoundingClientRect().bottom;
+    return Math.round(((last - top) / (bottom - top)) * 100) / 100;
+  });
   const chip = tile.querySelector('.funnel-drop[data-biggest] .badge');
   const tracks = [...tile.querySelectorAll('.wtile[data-size="m"] ol.funnel .htrack')].filter(shown).length;
   return JSON.stringify({
@@ -69,7 +80,7 @@ const PROBE = `(async () => {
     rows: tile.querySelectorAll('ol.funnel > li.hbar').length,
     sideways: Math.max(tile.scrollWidth - tile.clientWidth, Math.round(tile.getBoundingClientRect().right - document.documentElement.clientWidth)),
     chipColor: chip && getComputedStyle(chip).color,
-    tracks, loose,
+    tracks, loose, panelTracks, fill,
   });
 })()`;
 
@@ -88,6 +99,10 @@ for (const width of [375, 768, 1280]) {
       if (width >= 768) assert.ok(r.tracks > 0, 'M tiles draw their tracks');
       else assert.equal(r.tracks, 0);
       assert.ok(r.chipColor, 'the biggest drop carries its chip');
+      assert.ok(r.panelTracks.length >= 11 && r.panelTracks.every(Boolean), `panel tracks: ${JSON.stringify(r.panelTracks)}`);
+      /* two rows of height above a phone; on a phone an L tile shows its M view in one row */
+      if (width >= 768) assert.ok(r.fill.every((f) => f >= 0.9 && f <= 1.001), `large tile fill ${JSON.stringify(r.fill)}`);
+      console.log(`fill ${width} ${scheme}: ${JSON.stringify(r.fill)}`);
       assert.deepEqual(r.loose, [
         { w: '343px', head: false, share: false, track: true, ownLine: true, clipped: [] },
         { w: '30rem', head: false, share: true, track: true, ownLine: true, clipped: [] },

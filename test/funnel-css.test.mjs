@@ -1,6 +1,8 @@
 // Issue 217. The step funnel rules are a port of the approved prototype (plans/proto-1.8-studio-parts,
 // proposed.css, 1.A step rows). Each rule is held here string for string, so a later edit to the funnel
-// is a visible change to this list, not a drift from what the owner approved.
+// is a visible change to this list, not a drift from what the owner approved. One change, made in
+// review of PR 231: the four tile rules read .wtile-body>.funnel where the prototype wrote .wtile .funnel,
+// so a panel inside a tile (every studio specimen) keeps its tracks.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -30,11 +32,11 @@ const PORTED = [
   "@container (max-width:26rem){",
   ".funnel>li,.funnel[data-share]>li{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:\"label drop count\" \"track track track\";row-gap:var(--s-1)}",
   ".funnel-share,.funnel-head{display:none}",
-  ".wtile .funnel>li{grid-template-areas:\"label drop count\";row-gap:0}",
-  ".wtile .funnel .htrack{display:none}",
+  ".wtile-body>.funnel>li{grid-template-areas:\"label drop count\";row-gap:0}",
+  ".wtile-body>.funnel .htrack{display:none}",
   "}",
-  ".wtile .funnel{gap:var(--s-1)}",
-  ".wtile .funnel>li{min-height:20px}"
+  ".wtile-body>.funnel{gap:var(--s-1)}",
+  ".wtile-body>.funnel>li{min-height:20px}"
 ];
 
 test("components.css carries every prototype funnel rule verbatim, in order", () => {

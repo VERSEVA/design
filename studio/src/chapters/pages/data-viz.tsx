@@ -603,7 +603,11 @@ export function Page() {
             <div className="specimen">
               <div className="fpanels">
                 {FUNNEL_STATES.map(([k, l]) => (
-                  <div key={k}><span className="speclabel">{l}</span><FunnelPanel state={k} /></div>
+                  <div key={k}>
+                    <span className="speclabel">{l}</span>
+                    <FunnelPanel state={k} />
+                    {k === 'normal' && <div className="takeaway">Three in four page views never start the form.</div>}
+                  </div>
                 ))}
               </div>
               <div className="wgrid mt-5">
@@ -615,7 +619,6 @@ export function Page() {
                   <FunnelTile size="m" state="empty" />
                   <FunnelTile size="m" state="loading" />
               </div>
-              <div className="takeaway">Three in four page views never start the form, the biggest drop; contact requests fall under 5 when traffic is thin.</div>
             </div>
           </div>
         </SpecimenTile>

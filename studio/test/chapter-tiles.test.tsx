@@ -427,7 +427,8 @@ describe('Data viz tiles: step funnel', () => {
   it('keeps the withheld value out of the page, and captions the finding', () => {
     const root = page('data-viz');
     expect(root.querySelector('#funnel')!.innerHTML).not.toMatch(/Contact requests<\/th><td>3</);
-    expect(root.querySelectorAll('#funnel .specimen > .takeaway')).toHaveLength(1);
-    expect(root.querySelector('#funnel .takeaway')!.textContent).toMatch(/biggest drop/);
+    expect(root.querySelectorAll('#funnel .takeaway')).toHaveLength(1);
+    expect(root.querySelector('#funnel .takeaway')!.textContent).toBe('Three in four page views never start the form.');
+    expect(root.querySelector('#funnel .takeaway')!.previousElementSibling!.querySelector('[data-biggest]')).not.toBeNull();
   });
 });

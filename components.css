@@ -1242,7 +1242,8 @@ dialog.modal{width:min(calc(100% - var(--s-5)),420px)}
    fixed-column grid so every track shares one width. .funnel-head is the panel's column labels row
    (hidden from AT), .funnel-share the share of the first step (panel form, [data-share]), .funnel-drop
    the drop from the step before; [data-biggest] carries the neutral "Biggest drop" chip. A suppressed
-   step is .hbar[data-suppressed]: the withheld stub above. */
+   step is .hbar[data-suppressed]: the withheld stub above. The tile rules reach only a funnel directly in a
+   tile body (the prototype wrote .wtile .funnel), so a panel that sits inside a tile keeps its tracks. */
 .funnel{container-type:inline-size;list-style:none;margin:0;padding:0;display:grid;gap:var(--s-2)}
 .funnel>li{display:grid;grid-template-columns:minmax(0,9rem) minmax(2.5rem,1fr) 3.5rem 9.5rem;grid-template-areas:"label track count drop";align-items:center;column-gap:var(--s-3);min-height:24px}
 .funnel[data-share]>li{grid-template-columns:minmax(0,10rem) minmax(3rem,1fr) 3.5rem 4.5rem 9.5rem;grid-template-areas:"label track count share drop"}
@@ -1265,8 +1266,12 @@ dialog.modal{width:min(calc(100% - var(--s-5)),420px)}
   .funnel>li,.funnel[data-share]>li{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"label drop count" "track track track";row-gap:var(--s-1)}
   .funnel-share,.funnel-head{display:none}
   /* a phone tile holds one 180px row: numbers and drops only, the track drops out */
-  .wtile .funnel>li{grid-template-areas:"label drop count";row-gap:0}
-  .wtile .funnel .htrack{display:none}
+  .wtile-body>.funnel>li{grid-template-areas:"label drop count";row-gap:0}
+  .wtile-body>.funnel .htrack{display:none}
 }
-.wtile .funnel{gap:var(--s-1)}
-.wtile .funnel>li{min-height:20px}
+.wtile-body>.funnel{gap:var(--s-1)}
+.wtile-body>.funnel>li{min-height:20px}
+/* A large tile has two rows of height: its steps spread down it, and where it is wide enough to keep its
+   tracks each row is 32px at least. */
+.wtile[data-size="l"]>.wtile-body>.funnel{flex:1;align-content:space-between}
+@container (min-width:26rem){.wtile[data-size="l"]>.wtile-body>.funnel>li{min-height:32px}}
