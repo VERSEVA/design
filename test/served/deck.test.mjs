@@ -37,6 +37,16 @@ const key = async (p, k, code, keyCode) => {
   await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code, windowsVirtualKeyCode: keyCode });
   await wait(60);
 };
+/* The slide on screen once the crossfade has settled (a slow runner can sample mid-change). */
+const onAfter = async (p, want) => {
+  let on;
+  for (let i = 0; i < 20; i++) {
+    on = (await p.evaluate(STATE)).on;
+    if (JSON.stringify(on) === JSON.stringify(want)) return on;
+    await wait(50);
+  }
+  return on;
+};
 const swipe = async (p, from, to) => {
   await p.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: from, y: 360 }] });
   for (const x of [from + (to - from) / 3, from + (2 * (to - from)) / 3, to]) await p.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: 362 }] });
@@ -90,13 +100,13 @@ test('a swipe left moves forward, a swipe right moves back, a short drag does no
   try {
     await p.goto(URL_PATH);
     await swipe(p, 1000, 300);
-    assert.deepEqual((await p.evaluate(STATE)).on, [1]);
+    assert.deepEqual(await onAfter(p, [1]), [1]);
     await swipe(p, 1000, 300);
-    assert.deepEqual((await p.evaluate(STATE)).on, [2]);
+    assert.deepEqual(await onAfter(p, [2]), [2]);
     await swipe(p, 300, 1000);
-    assert.deepEqual((await p.evaluate(STATE)).on, [1]);
+    assert.deepEqual(await onAfter(p, [1]), [1]);
     await swipe(p, 640, 620);
-    assert.deepEqual((await p.evaluate(STATE)).on, [1]);
+    assert.deepEqual(await onAfter(p, [1]), [1]);
   } finally { await p.close(); }
 });
 
