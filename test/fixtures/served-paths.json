@@ -246,6 +246,7 @@
     "/tailwind.css": "file",
     "/tailwind.preset.cjs": "file",
     "/templates/deck.html": "file",
+    "/templates/document.html": "file",
     "/templates/releases.json": "file",
     "/templates/starter.html": "file",
     "/templates/theme-manifest.example.json": "file",
