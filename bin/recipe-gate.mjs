@@ -40,6 +40,7 @@
  *   "full" (the default) or "none", which skips the census.
  * - --allow skips any file whose path contains the given substring.
  * - --exclude skips the directory of that name directly under a scan path.
+ * - A file reached through overlapping scan paths is read once.
  * - After "--" every argument is a path. Before it, an unknown argument
  *   with a leading dash is refused.
  * - Exit 0 clean, or findings without --strict; exit 1 findings with
@@ -406,9 +407,12 @@ const findings = [];
 let checked = 0;
 let files = 0;
 let uses = 0;
+const seen = new Set(); // absolute paths already read: overlapping scan paths count a file once
 for (const root of paths) {
   for (const file of walk(root, exclude)) {
     const abs = path.resolve(file);
+    if (seen.has(abs)) continue;
+    seen.add(abs);
     if (skip.some((a) => abs.includes(a))) continue;
     if (config.dir && abs.startsWith(config.dir + path.sep)) continue;
     const ext = path.extname(file);

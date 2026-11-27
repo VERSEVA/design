@@ -134,3 +134,44 @@ test('RECIPE: a four-gate failure still exits 1, and the advisory section still 
   assert.equal(r.code, 1);
   assert.ok(r.stdout.includes(HEADING), 'the advisory section still runs');
 });
+
+/* ---- review round: timeout, opt-out (issue 191) ---- */
+
+/* A copy of bin/ whose recipe gate never finishes, so the advisory timeout is what ends it. */
+function hangingBin() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-gate-bin-'));
+  fs.cpSync(path.join(here, '..', 'bin'), dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'recipe-gate.mjs'), 'setInterval(() => {}, 1000);\n');
+  return path.join(dir, 'verseva-gate.mjs');
+}
+
+test('RECIPE: a hanging recipe gate times out, is reported, and never changes the exit code', () => {
+  const r = spawnSync(process.execPath, [hangingBin(), ...shipped, recipeFx('red.html')], {
+    encoding: 'utf8', cwd: loud(), timeout: 30000, env: { ...process.env, VERSEVA_ADVISORY_TIMEOUT_MS: '500' },
+  });
+  assert.equal(r.error, undefined, 'the suite itself finished');
+  assert.equal(r.code ?? r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /verseva-gate: all 4 gates clean\n/);
+  assert.match(r.stderr, /advisory gate errored: recipe \(timed out; exit code unchanged\)/);
+});
+
+test('RECIPE: the advisory timeout defaults to 60 seconds', () => {
+  const src = fs.readFileSync(bin, 'utf8');
+  assert.match(src, /VERSEVA_ADVISORY_TIMEOUT_MS\) \|\| 60000/);
+});
+
+test('RECIPE: --no-advisory skips the recipe gate and leaves the four gates as they are', () => {
+  for (const input of [[recipeFx('red.html')], [fx('proj-seam', 'inline.html')]]) {
+    const on = runIn(loud(), [...shipped, ...input]);
+    const off = runIn(loud(), ['--no-advisory', ...shipped, ...input]);
+    assert.equal(off.code, on.code, String(input));
+    assert.equal(off.stdout, beforeAdvisory(on.stdout), String(input));
+    assert.doesNotMatch(off.stdout + off.stderr, /advisory|verseva-recipe-gate/, String(input));
+  }
+});
+
+test('RECIPE: gate:studio passes --no-advisory (the source scan already covers studio)', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(here, '..', 'package.json'), 'utf8'));
+  assert.match(pkg.scripts['gate:studio'], /^node bin\/verseva-gate\.mjs --no-advisory /);
+  assert.doesNotMatch(pkg.scripts.gate, /--no-advisory/);
+});
