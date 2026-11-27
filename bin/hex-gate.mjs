@@ -17,15 +17,17 @@
  *   values, with a reason in the adjacent comment).
  * - All-digit 3/4-char matches (#123) are ignored: issue-ref guard.
  * - --allow skips any file whose path contains the given substring.
- * - --exclude skips the directory of that name directly under a scan
- *   path (top level only; the same name deeper down is still scanned).
+ * - --exclude skips every directory of that name, at any depth under a
+ *   scan path.
+ * - Symlinked files and directories are never followed, and no file whose
+ *   real path is outside the scan path is read (bin/gate-walk.mjs).
  * - Exit 1 with file:line listings on violations; exit 0 clean.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { walk } from './gate-walk.mjs';
 
 const SCAN_EXT = new Set(['.css', '.scss', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.html']);
-const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel']);
 const HEX_RE = /#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g;
 
 function normalize(hex) {
@@ -46,21 +48,6 @@ function parseArgs(argv) {
     else paths.push(argv[i]);
   }
   return { tokens, allow, exclude, paths };
-}
-
-function* walk(p, exclude = []) {
-  const st = fs.statSync(p);
-  if (st.isFile()) {
-    yield p;
-    return;
-  }
-  for (const entry of fs.readdirSync(p, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name) && !exclude.includes(entry.name)) yield* walk(path.join(p, entry.name));
-    } else if (SCAN_EXT.has(path.extname(entry.name))) {
-      yield path.join(p, entry.name);
-    }
-  }
 }
 
 function hexesIn(text) {
@@ -93,7 +80,7 @@ const tokenFiles = new Set(tokens.map((t) => path.resolve(t)));
 
 const violations = [];
 for (const root of paths) {
-  for (const file of walk(root, exclude)) {
+  for (const file of walk(root, { exts: SCAN_EXT, exclude })) {
     const abs = path.resolve(file);
     if (tokenFiles.has(abs)) continue;
     if (allow.some((a) => abs.includes(a))) continue;

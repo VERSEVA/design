@@ -13,6 +13,7 @@
     "/bin/contract-classes.mjs": "file",
     "/bin/contrast-gate.mjs": "file",
     "/bin/contrast-pairs.mjs": "file",
+    "/bin/gate-walk.mjs": "file",
     "/bin/hex-gate.mjs": "file",
     "/bin/recipe-gate.mjs": "file",
     "/bin/resolve-tokens.mjs": "file",
