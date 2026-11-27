@@ -30,6 +30,14 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        7,
+        8,
+        11
+      ],
+      "contract": "button-btn",
       "description": "Primary/secondary/ghost/destructive, sm-lg, loading; press sits it down 1px"
     },
     {
@@ -39,6 +47,13 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        7,
+        10
+      ],
+      "contract": "badge-badge--toast-toast--modal-modal",
       "description": "Status word on a tint; never a dot alone"
     },
     {
@@ -48,6 +63,14 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        1,
+        2,
+        6,
+        7,
+        11
+      ],
+      "contract": "card-card",
       "description": "Card + header/body/footer at the r-md posture"
     },
     {
@@ -57,6 +80,13 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        4,
+        7,
+        11
+      ],
+      "contract": "input--field-field",
       "description": "Label + input + help with a fix-it error state, wired for a11y"
     },
     {
@@ -69,6 +99,16 @@
         "badge",
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        7,
+        8,
+        10,
+        11
+      ],
+      "contract": "secret-field-secretfield-write-only",
       "description": "Write-only field for keys and tokens: empty after save, a Set badge, Replace in place; the stored value is never rendered back"
     },
     {
@@ -78,6 +118,14 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        7,
+        10,
+        11
+      ],
+      "contract": "selection-controls-sel-switch",
       "description": "Switch + Checkbox; the word carries the state"
     },
     {
@@ -87,6 +135,15 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        7,
+        8,
+        11,
+        12
+      ],
+      "contract": "segmented-seg--filter-chips-fchip--search-searchbox",
       "description": "Segmented control; aria-selected carries it"
     },
     {
@@ -96,6 +153,15 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        7,
+        10,
+        11
+      ],
+      "contract": "segmented-seg--filter-chips-fchip--search-searchbox",
       "description": "Filter chips with counts, single or multi"
     },
     {
@@ -103,6 +169,13 @@
       "file": "react/toast.tsx",
       "kind": "component",
       "deps": [],
+      "laws": [
+        1,
+        2,
+        7,
+        10
+      ],
+      "contract": "badge-badge--toast-toast--modal-modal",
       "description": "ToastProvider + useToast; one at a time, bottom-right"
     },
     {
@@ -112,6 +185,13 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        1,
+        2,
+        7,
+        8
+      ],
+      "contract": "badge-badge--toast-toast--modal-modal",
       "description": "Dialog at r-lg with escape/overlay close"
     },
     {
@@ -121,6 +201,15 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        5,
+        7,
+        10
+      ],
+      "contract": "stat-tile-stat",
       "description": "Display-face numeral over a quiet label"
     },
     {
@@ -130,6 +219,11 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        7
+      ],
+      "contract": "the-states-trio-every-data-surface",
       "description": "Skeleton bars that mirror the real layout"
     },
     {
@@ -147,6 +241,15 @@
         "cx",
         "bounded-state"
       ],
+      "laws": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        10
+      ],
+      "contract": "bounded-section-bounded-every-list-feed-and-table-in-a-section",
       "description": "Section capped at 5 rows (1 to 12 per instance) with a +N more count and a Show all action at the cap and above; its height never grows with its data"
     },
     {
@@ -156,6 +259,17 @@
       "deps": [
         "console-state"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        7,
+        8,
+        9,
+        10,
+        12
+      ],
+      "contract": "console-navigation-snav-grouplabel-switcher-orgchip-deprecated",
       "description": "Console navigation, flat or accordion, icons and a collapsed rail; active group refuses to collapse"
     },
     {
@@ -174,6 +288,14 @@
         "console-state",
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        7,
+        9,
+        12
+      ],
+      "contract": "console-shell-cshell-cside-switcher-capsule-tbar-drawer",
       "description": "Org switcher: logo or initials, your role, checked org, org actions"
     },
     {
@@ -184,6 +306,13 @@
         "menu",
         "console-state"
       ],
+      "laws": [
+        2,
+        7,
+        9,
+        12
+      ],
+      "contract": "console-shell-cshell-cside-switcher-capsule-tbar-drawer",
       "description": "Account capsule: avatar, name, email, account menu, settings gear"
     },
     {
@@ -195,6 +324,16 @@
         "console-state",
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        7,
+        9,
+        10,
+        12
+      ],
+      "contract": "console-shell-cshell-cside-switcher-capsule-tbar-drawer",
       "description": "Console top bar: breadcrumb, search with the K chord, notifications with a count, guides menu"
     },
     {
@@ -205,6 +344,16 @@
         "console-state",
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        7,
+        9,
+        10,
+        12
+      ],
+      "contract": "console-shell-cshell-cside-switcher-capsule-tbar-drawer",
       "description": "What's new drawer and platform stamp: releases newest first, New, Improved, Fixed; unread until opened"
     },
     {
@@ -215,6 +364,15 @@
         "console-state",
         "cx"
       ],
+      "laws": [
+        1,
+        2,
+        4,
+        7,
+        9,
+        12
+      ],
+      "contract": "console-shell-cshell-cside-switcher-capsule-tbar-drawer",
       "description": "Console shell layout: glass sidebar, 72px rail on the [ key, rail labels on hover and focus"
     },
     {
@@ -233,6 +391,16 @@
         "console-state",
         "cx"
       ],
+      "laws": [
+        1,
+        2,
+        3,
+        7,
+        8,
+        9,
+        10
+      ],
+      "contract": "live-activity-lact-lact-panel-160",
       "description": "Live activity capsule for the top bar: ring and percent of the job closest to done, +n, panel with steps, Cancel and Retry"
     },
     {
@@ -242,6 +410,12 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        3,
+        7,
+        11
+      ],
+      "contract": "global-floor-every-component",
       "description": "In-page section tabs; accent underline, never a hairline"
     },
     {
@@ -251,6 +425,15 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        7,
+        8,
+        10
+      ],
+      "contract": "row-menu-menuinline--checkable-menu-item",
       "description": "Dropdown menu; checkable items and custom triggers; closes on select, Escape, outside click"
     },
     {
@@ -260,6 +443,13 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        6,
+        7,
+        11
+      ],
+      "contract": "global-floor-every-component",
       "description": "Content accordion on native details/summary"
     },
     {
@@ -269,6 +459,11 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        2,
+        7
+      ],
+      "contract": "global-floor-every-component",
       "description": "Hover/focus label on the inverse ground"
     },
     {
@@ -279,6 +474,15 @@
         "labels",
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        5,
+        7,
+        11
+      ],
+      "contract": "charts-chartcard-bars-heat-the-data-contract",
       "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning"
     },
     {
@@ -288,6 +492,11 @@
       "deps": [
         "cx"
       ],
+      "laws": [
+        5,
+        8
+      ],
+      "contract": "global-floor-every-component",
       "description": "The motion kit: Stagger, Reveal (masked lines), Spotlight (group), Magnetic, NumberRoll; enter on entrance, settle on back, reduced-motion honored"
     },
     {
@@ -305,6 +514,13 @@
         "widget-state",
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        7,
+        8
+      ],
+      "contract": "widgets-wgrid-wtile-wstack-wgal-160",
       "description": "Add-widget drawer: every kind with its sizes as add buttons; sizes that do not fit stay listed, aria-disabled"
     },
     {
@@ -316,6 +532,12 @@
         "inert",
         "cx"
       ],
+      "laws": [
+        1,
+        3,
+        7
+      ],
+      "contract": "widgets-wgrid-wtile-wstack-wgal-160",
       "description": "Several widgets in one slot: wheel, swipe, dots, a timer with a visible pause; off under reduced motion"
     },
     {
@@ -328,6 +550,16 @@
         "inert",
         "cx"
       ],
+      "laws": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8
+      ],
+      "contract": "widgets-wgrid-wtile-wstack-wgal-160",
       "description": "Widget home: tiles pick their view from their size (S, M, L, XL); edit mode removes with Undo, resizes, reorders by drag, touch, buttons or Alt+Arrow, adds from the gallery; one focus widget spends the accent"
     },
     {
@@ -346,6 +578,16 @@
         "console-state",
         "cx"
       ],
+      "laws": [
+        1,
+        2,
+        3,
+        4,
+        7,
+        8,
+        9
+      ],
+      "contract": "command-bar-cmdk--three-column-top-bar-160",
       "description": "Command bar on the K chord: actions, go-to and recent filtered as you type; an Ask row only with onAsk, the answer streamed in place"
     },
     {
@@ -363,6 +605,15 @@
         "date-range-state",
         "cx"
       ],
+      "laws": [
+        2,
+        3,
+        4,
+        7,
+        8,
+        11
+      ],
+      "contract": "date-range-range-ctl-range-fields-18",
       "description": "Date range control: host presets as a segmented radiogroup or one menu trigger, Compare, custom dates snapped on blur and in a sheet on a phone; controlled, never touches the URL"
     }
   ],

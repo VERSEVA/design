@@ -421,3 +421,17 @@ test('the bin is registered in package.json', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   assert.equal(pkg.bin['verseva-recipe-gate'], 'bin/recipe-gate.mjs');
 });
+
+/* ---- overlapping scan paths (issue 191 review) ---- */
+
+test('overlapping scan paths are read once: each finding and each census file counts once', () => {
+  const once = run([fx('red.html')]).out;
+  for (const args of [[fx('red.html'), fx('red.html')], [fx(), fx('red.html')], [fx('red.html'), fx()]]) {
+    const r = run(args);
+    const f = findings(r.out);
+    assert.equal(f.filter((l) => /red\.html:/.test(l)).length, findings(once).length, `${args}\n${r.out}`);
+    assert.equal(new Set(f).size, f.length, `no finding repeats\n${r.out}`);
+  }
+  const files = (out) => Number(out.match(/material census: (?:\d+ uses? in |no material consumed in )?(\d+) files?/)?.[1] ?? out.match(/in (\d+) files?/)?.[1]);
+  assert.equal(files(run([fx(), fx('red.html')]).out), files(run([fx()]).out));
+});

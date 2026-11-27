@@ -102,6 +102,7 @@ npx verseva init
 npx verseva add button field toast console-shell console-nav org-switcher account-capsule console-topbar whats-new viz motion
 npx verseva block add pulse
 npx verseva list
+npx verseva brief button   # source + the laws that bind it + its contract section
 ```
 
 Upgrading from 1.1.0 or 1.2.0: re-add `menu` first (`npx verseva add menu --force`). `add` keeps files you already have, and the console shell parts need the 1.3.0 Menu.
@@ -184,7 +185,8 @@ npx verseva mcp init --client claude   # cursor | vscode
 ```
 
 One zero-dependency stdio server. The agent can list the registry, read any
-component's source, read the tokens and the laws, install components, and run
+component's source, get one component as a brief (`get_brief`: source, only the
+laws that bind it, its contract section), read the tokens and the laws, install components, and run
 the full gate suite with `run_gate` to PROVE its output stayed on-signature
 before calling anything done. No other design system gives an agent proof.
 
@@ -225,6 +227,19 @@ npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src
 | `verseva-contrast-gate` | A token pair below 4.5:1 body / 3:1 parts, in any theme or `[data-brand]` block, alpha composited | none: craft law |
 | `verseva-spacing-gate` | Inline margin/padding/gap (the seam law), multi-line JSX style objects included | `sp-ok` + reason |
 | `verseva-type-gate` | Off-token faces, sizes below 9.5px, `font:` shorthand included | `type-ok` + reason |
+
+A fifth gate, `verseva-recipe-gate`, is advisory: `verseva-gate` runs it after the four and
+prints its findings under an `advisory:` heading; it never changes the exit code, even when it
+errors or hangs (it is stopped after 60 seconds). `--no-advisory` skips it. It reports
+buttons, tables, fields, selects and dialogs built without the contract's classes, and a
+project that consumes none of the signature material (`--glass-*`, `--nav-*`,
+`--accent-bloom`, or a material class). Run it alone with `--strict` to exit 1 on findings.
+
+| Control | Effect |
+|---|---|
+| `recipe-ok: <reason>` | Waives one element: inside its tag or on the line above. The reason is required |
+| `recipeAllow` in `verseva.json` | Path substrings the recipe gate skips |
+| `material` in `verseva.json` | `"full"` (default) runs the material census; `"none"` skips it |
 
 Wire it into your build:
 
