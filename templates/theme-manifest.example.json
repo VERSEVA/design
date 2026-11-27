@@ -1,0 +1,8 @@
+{
+  "themes": [
+    { "id": "cobalt", "label": "Cobalt preset", "css": "themes/cobalt.css" },
+    { "id": "forest", "label": "Forest preset", "css": "themes/forest.css" },
+    { "id": "violet", "label": "Violet preset", "css": "themes/violet.css" },
+    { "id": "slate", "label": "Slate preset", "css": "themes/slate.css" }
+  ]
+}
