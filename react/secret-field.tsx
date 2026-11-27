@@ -11,7 +11,8 @@ export interface SecretFieldProps {
   isSet: boolean;
   /** Stores the typed value. Resolve when it is stored; reject (or throw) when it is not. The
       signal aborts on Cancel, Escape and unmount: a host that ignores it may still store the
-      value, and the field shows unset until the host flips `isSet`. */
+      value, and the field shows unset until the host flips `isSet`. An `AbortSignal` cannot cross
+      into a Server Action, so wrap `onSave` in a client function that calls the action. */
   onSave: (value: string, signal: AbortSignal) => Promise<unknown>;
   labels?: Partial<SecretFieldLabels>;
   /** Left off unless given: a named password input invites the browser to keep it. */

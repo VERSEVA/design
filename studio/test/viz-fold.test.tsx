@@ -162,7 +162,7 @@ describe('LineChart: the time window', () => {
 
   it('keeps the newest cap points, drops the oldest, aligned by index across series', () => {
     const c = render(<LineChart labels={labels} series={series} cap={3} />).container;
-    expect(rows(c)).toEqual([['W4', '', '6'], ['W5', '5', ''], ['W6', '6', '']]);
+    expect(rows(c)).toEqual([['W4', VIZ_LABELS.withheld, '6'], ['W5', '5', ''], ['W6', '6', '']]);
     expect([...c.querySelectorAll('.xlabels span')].map((s) => s.textContent)).toEqual(['W4', 'W6']);
   });
 

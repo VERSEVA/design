@@ -210,9 +210,10 @@ export function badgeCount(n: number): string | null {
 
 export function initials(name: string): string {
   const words = String(name ?? '').trim().split(/[\s-]+/).filter(Boolean);
-  if (!words.length) return '?';
-  if (words.length === 1) return Array.from(words[0]).slice(0, 2).join('').toUpperCase();
-  return (Array.from(words[0])[0] + Array.from(words[1])[0]).toUpperCase();
+  const [a, b] = words;
+  if (a === undefined) return '?';
+  if (b === undefined) return Array.from(a).slice(0, 2).join('').toUpperCase();
+  return (Array.from(a).slice(0, 1).join('') + Array.from(b).slice(0, 1).join('')).toUpperCase();
 }
 
 export function railTipPosition(rect: { top: number; right: number; height: number }, gap = 12): { x: number; y: number } {
@@ -230,9 +231,9 @@ const SAFE_SCHEMES = new Set(['http', 'https', 'mailto']);
 export function safeHref(href: string): string {
   if (typeof href !== 'string') return '#';
   const bare = href.replace(/[\u0000- \u007f-\u009f]/g, '');
-  const m = SCHEME.exec(bare);
-  if (!m) return href;
-  return SAFE_SCHEMES.has(m[1].toLowerCase()) ? href : '#';
+  const scheme = SCHEME.exec(bare)?.[1];
+  if (scheme === undefined) return href;
+  return SAFE_SCHEMES.has(scheme.toLowerCase()) ? href : '#';
 }
 
 /** Defaults merged with overrides; a key whose override is undefined keeps its default. */

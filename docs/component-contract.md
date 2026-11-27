@@ -77,6 +77,7 @@ screen shows it again, to anyone. It composes `.field`, `.badge`, `.btn`, `.chip
 - **Cancel hides the save; only the host can stop it.** A host that ignores the signal may still
   store the value after Cancel, so the field can show unset while the host has stored it, until
   the host flips `isSet`. Hosts pass the signal to `fetch` or check it before writing.
+- **A Server Action cannot take the signal.** An `AbortSignal` cannot cross into a Server Action, so the consumer wraps `onSave` in a client function that calls the action and handles the signal itself.
 - **Input:** `type="password"`, `autocomplete="off"`, `autocapitalize="off"`,
   `spellcheck="false"`, no placeholder, no `<form>`. Browsers ignore `autocomplete="off"` on a
   password input, so it also carries `data-1p-ignore`, `data-lpignore="true"`, `data-bwignore`
@@ -708,7 +709,7 @@ color-alone).
 - **Labels:** text tokens, never series color; selective direct labels; internals ≤10px mono.
 - **Takeaway caption, mandatory:** label the MEANING, not the axis.
 - **Hover:** per-mark tooltips; ≥2 series get a legend.
-- **Withheld data is never zero (1.7.1).** A missing point and a suppressed count are not small
+- **Withheld data is never zero (1.8.0).** A missing point and a suppressed count are not small
   numbers, and a chart that draws them as one is a defect.
   - **Suppressed item (`Bars`, `HBars`: `suppressed: true` with `display`).** A privacy floor. The
     item keeps its slot and draws the WITHHELD STUB on `[data-suppressed]`, with no fill, and prints
@@ -754,8 +755,9 @@ color-alone).
   data`), and a `LineChart` is named by its series ("A vs B"). `Sparkline` sits in phrasing
   content, so its table is spans with `role="table"`, `row`, `columnheader`, `rowheader` and
   `cell`, named by `aria-label`: a `<table>` inside a `<p>` would close the paragraph on parse. A cell holds what the chart prints: the formatted value, a
-  suppressed item's `display` (the withheld word when it has none), and an EMPTY cell for a null
-  or a missing point, never a value. With the table present the plot is `aria-hidden` (the
+  suppressed item's `display` (the withheld word when it has none), the withheld word for a
+  `LineChart` null (the word its hover shows), and an EMPTY cell for a `Sparkline` null or a
+  missing point, never a value. With the table present the plot is `aria-hidden` (the
   `LineChart` svg drops `role="img"` and its legend and reference tag are hidden, the `.bars` group
   and each `.hbar` row are hidden) and the
   `title` attributes stay for pointer users. `table={false}` opts out, for a decorative sparkline
@@ -769,7 +771,7 @@ color-alone).
   - **The Other fold (`Bars`, `HBars`).** With more items than `cap`, the first `cap` items stay, by
     input position (the kit never sorts), and every item past them folds into ONE Other mark, drawn
     last, on the alt fill (`--data-alt`: `.htrack i.alt`, and the same var on the `Bars` fill). So a
-    folded chart draws `cap` + 1 marks; a chart that fits draws as before. Other is an ordinary
+    folded chart draws `cap` + 1 marks: `cap` does not count Other, Other is extra (`cap={3}` draws 3 bars and Other, 4 rows). A chart that fits draws as before. Other is an ordinary
     counted mark: its value is the sum of the folded values, it counts toward the scale, prints
     as the raw sum on `Bars` (which has no `format`) and through `format` on `HBars`, and has its
     own row in the hidden table. The folded items' labels and values

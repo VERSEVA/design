@@ -116,9 +116,9 @@ export function WhatsNew({ open, onClose, version, releases, lastSeen = null, lo
       const drawer = drawerRef.current;
       if (e.key !== 'Tab' || !drawer) return;
       const nodes = [...drawer.querySelectorAll<HTMLElement>(FOCUSABLE)];
-      if (!nodes.length) return;
       const first = nodes[0];
       const last = nodes[nodes.length - 1];
+      if (!first || !last) return;
       if (!drawer.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
       else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }

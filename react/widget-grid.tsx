@@ -107,7 +107,10 @@ export function useWidgetColumns(forced?: Columns, container?: React.RefObject<E
       /* a hidden container measures 0: keep the last count until it has a width */
       const fit = (width: number) => { if (width > 0) setCols(columnsForContainer(width)); };
       fit(el.getBoundingClientRect().width);
-      const ro = new ResizeObserver((entries) => fit(entries[entries.length - 1].contentRect.width));
+      const ro = new ResizeObserver((entries) => {
+        const entry = entries[entries.length - 1];
+        if (entry) fit(entry.contentRect.width);
+      });
       ro.observe(el);
       return () => ro.disconnect();
     }
@@ -300,7 +303,7 @@ export function WidgetGrid({
     const next = addWidget(layout, kind, size);
     const it = next[next.length - 1];
     setGalleryOpen(false);
-    pendingFocus.current = it.id;
+    if (it) pendingFocus.current = it.id;
     commit(next);
     announce(addedMessage(defs.get(kind)?.name ?? kind));
   };

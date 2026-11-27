@@ -73,11 +73,17 @@ describe('the hidden data table', () => {
     expect(svg.hasAttribute('role')).toBe(false);
   });
 
-  it('LineChart: a null point is an empty cell, and a short series leaves its cells empty', () => {
+  it('LineChart: a null point reads the withheld word the hover shows, and a short series leaves its cells empty', () => {
     const { container } = render(
       <LineChart labels={['W1', 'W2', 'W3']} series={[{ name: 'A', values: [1, null, Number.NaN] }, { name: 'B', values: [4] }]} />,
     );
-    expect(rows(container)).toEqual([['W1', '1', '4'], ['W2', '', ''], ['W3', '', '']]);
+    const w = VIZ_LABELS.withheld;
+    expect(rows(container)).toEqual([['W1', '1', '4'], ['W2', w, ''], ['W3', w, '']]);
+  });
+
+  it('LineChart: the null cell takes the withheld word from vizLabels', () => {
+    const { container } = render(<LineChart labels={['a', 'b']} series={[{ name: 'A', values: [1, null] }]} vizLabels={{ withheld: 'held back' }} />);
+    expect(rows(container)).toEqual([['a', '1'], ['b', 'held back']]);
   });
 
   it('Sparkline: one row per point, numbered, a null as an empty cell', () => {
@@ -194,9 +200,9 @@ describe('the hidden data table never carries a withheld value', () => {
     expect(seen).not.toContain(3);
   });
 
-  it('LineChart and Sparkline: a null is an empty cell; a gap markup does not move with the other values', () => {
+  it('LineChart and Sparkline: a null cell (withheld word, or empty on Sparkline) does not move with the other values', () => {
     const line = (k: number) => render(<LineChart labels={['a', 'b']} series={[{ name: 'A', values: [k, null] }]} />).container;
-    expect(rows(line(987654))[1]).toEqual(['b', '']);
+    expect(rows(line(987654))[1]).toEqual(['b', VIZ_LABELS.withheld]);
     const spark = render(<Sparkline values={[null, 4]} />).container;
     expect(rows(spark)[0]).toEqual(['1', '']);
   });
