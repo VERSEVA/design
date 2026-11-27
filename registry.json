@@ -58,6 +58,7 @@
     { "name": "pulse", "file": "blocks/pulse.html", "assets": false, "description": "Analytics console: the whole viz kit assembled, crosshair hover, range toggle" },
     { "name": "launch", "file": "blocks/launch.html", "assets": false, "description": "Launch landing: the motion kit assembled: line reveal, spotlight, magnetic CTA, rolling stats, theme wipe" },
     { "name": "deck", "file": "templates/deck.html", "kind": "template", "assets": false, "description": "Deck template: keyboard and swipe paging, one slide per printed page, a plain scroll without scripting" },
+    { "name": "document", "file": "templates/document.html", "kind": "template", "assets": false, "description": "Document template: print with a running header, a page per section and repeating table headers" },
     { "name": "store", "source": "repo", "assets": true, "description": "Storefront with working cart; image assets live in the repo (site/examples)" },
     { "name": "studio", "source": "repo", "assets": true, "description": "Studio portfolio with tag filter; image assets live in the repo (site/examples)" }
   ]

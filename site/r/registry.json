@@ -703,6 +703,13 @@
       "description": "Deck template: keyboard and swipe paging, one slide per printed page, a plain scroll without scripting"
     },
     {
+      "name": "document",
+      "file": "templates/document.html",
+      "kind": "template",
+      "assets": false,
+      "description": "Document template: print with a running header, a page per section and repeating table headers"
+    },
+    {
       "name": "store",
       "source": "repo",
       "assets": true,
