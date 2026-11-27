@@ -215,7 +215,7 @@ classes: the wrapper and the custom-date row. Presets are the host's (for exampl
   range; a malformed one is ignored. A date is a real day in a year from 1000 on, so a
   half-typed year is a missing date. A field shows the host's value except while it holds
   typed text that is not yet a valid range: a change the host refuses falls back to the value,
-  and a change from the host never replaces what is being typed. The part does no calendar or time zone math; `zone` is a label on the range line.
+  and a change of the host's range or dates, or the custom fields closing, drops the typed text and its error. The part does no calendar or time zone math; `zone` is a label on the range line.
 - **States:** default; custom open; compare on (chip pressed, "vs previous" on the range line);
   invalid custom range (`.field.error` on the field that is wrong, `aria-invalid`, the reason in
   `.help`: a missing date, a start after the end, a date outside `min` and `max`), which emits
