@@ -121,8 +121,7 @@ type Row = readonly [string, readonly string[]];
  */
 const dataTable = (label: string | undefined, cols: readonly string[], rows: readonly Row[], Wrap: 'div' | 'span' = 'div') => (
   <Wrap className="sr-only">
-    {/* recipe-ok: visually hidden data table, never drawn, so the .table recipe does not apply */}
-    <table>
+    <table className="table">
       {label ? <caption>{label}</caption> : null}
       <thead><tr><td />{cols.map((c, i) => <th key={i} scope="col">{c}</th>)}</tr></thead>
       <tbody>{rows.map(([h, cells], i) => <tr key={i}><th scope="row">{h}</th>{cells.map((c, j) => <td key={j}>{c}</td>)}</tr>)}</tbody>
