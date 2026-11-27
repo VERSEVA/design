@@ -41,10 +41,10 @@ test('every slide face carries one title and one support line, and no footer', (
   }
 });
 
-test('every number on a face is labelled fact, estimate or projection', () => {
+test('every number on a face is labelled fact, estimate or projection, on a filled neutral badge', () => {
   for (const [i, f] of slides(html()).entries()) {
     const nums = (f.match(/class="num"|class="glass deck-chart"/g) ?? []).length;
-    const labels = (f.match(/class="badge"[^>]*>(Fact|Estimate|Projection)</g) ?? []).length;
+    const labels = (f.match(/class="badge neutral"[^>]*>(Fact|Estimate|Projection)</g) ?? []).length;
     assert.equal(labels, nums, `slide ${i + 1}: ${nums} numbers, ${labels} labels`);
   }
 });

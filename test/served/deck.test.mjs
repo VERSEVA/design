@@ -191,6 +191,26 @@ test('on a 375 by 812 phone every slide is reachable: content starts in the box,
   } finally { await p.close(); }
 });
 
+test('on a 375 by 812 phone no slide content overlaps the Sources control, and the control is a 44px target', async () => {
+  const p = await run.page({ width: 375, height: 812, touch: true });
+  try {
+    await p.goto(URL_PATH);
+    const r = await p.evaluate(`[...document.querySelectorAll('.deck-slide')].filter((s) => s.querySelector('.deck-src')).map((s) => {
+      const src = s.querySelector('.deck-src > summary').getBoundingClientRect();
+      const hit = [...s.querySelectorAll('h1, h2, .deck-sub, .stat, .glass:not(.deck-src-list), .hbar, .badge')].filter((el) => !el.closest('.deck-src')).some((el) => {
+        const b = el.getBoundingClientRect();
+        return b.left < src.right && b.right > src.left && b.top < src.bottom && b.bottom > src.top;
+      });
+      return { slide: s.id, hit, h: src.height };
+    })`);
+    assert.ok(r.length >= 5);
+    for (const x of r) {
+      assert.equal(x.hit, false, `${x.slide}: content overlaps Sources`);
+      assert.ok(x.h >= 44, `${x.slide}: Sources is ${x.h}px tall`);
+    }
+  } finally { await p.close(); }
+});
+
 test('the Sources control opens a visible list inside the screen, and Escape closes it', async () => {
   const p = await run.page({ width: 1280, height: 720 });
   try {
