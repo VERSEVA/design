@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { contractClasses, contractParts, materialClasses, PART_FLOOR } from '../bin/contract-classes.mjs';
+import { contractClasses, contractParts, materialClasses, materialSelectors, MATERIAL_RE, PART_FLOOR } from '../bin/contract-classes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
@@ -217,12 +217,32 @@ test('CENSUS: material "full" is the default and runs the census', () => {
 
 test('CENSUS: each kind of consumption passes on its own', () => {
   const files = fs.readdirSync(fx('material', 'used'));
-  assert.equal(files.length, 6);
+  assert.equal(files.length, 7);
   for (const f of files) {
     const r = run(['--strict', fx('material', 'used', f)]);
     assert.equal(r.code, 0, `${f}\n${r.out}`);
     assert.match(r.out, /\nverseva-recipe-gate: material census: \d+ uses? in 1 file\n$/, `${f}\n${r.out}`);
   }
+});
+
+test('CENSUS: a vendored components.css defines the material and does not count as consumption', () => {
+  const r = run([fx('material', 'vendored')]);
+  const c = census(r.out);
+  assert.equal(c.length, 1, r.out);
+  assert.match(c[0], /no material consumed in 2 files/);
+});
+
+test('CENSUS: only token names tokens.css defines count, not a project variable sharing the prefix', () => {
+  const r = run([fx('material', 'own-nav')]);
+  assert.equal(census(r.out).length, 1, r.out);
+  for (const t of ['--nav-height', '--glass', '--glass-fill-9', '--accent-bloomish']) assert.doesNotMatch(`var(${t})`, MATERIAL_RE, t);
+  for (const t of ['--nav-gap', '--glass-fill-3', '--accent-bloom', '--glass-inset']) assert.match(`var( ${t})`, MATERIAL_RE, t);
+});
+
+test('CENSUS: a class is credited only with the compound its material rule styles: .tab alone is not .tab.on', () => {
+  assert.equal(census(run([fx('material', 'tab-only')]).out).length, 1);
+  assert.equal(census(run([fx('material', 'used', 'tab.html')]).out).length, 0);
+  assert.ok(materialSelectors().some((sel) => sel.length === 1 && sel[0].join('.') === 'tab.on'));
 });
 
 test('CENSUS: one consuming file anywhere passes the whole project', () => {

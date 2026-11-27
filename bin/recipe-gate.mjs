@@ -28,11 +28,13 @@
  * - "recipe-ok: <reason>" waives one element: inside its tag, or on the
  *   line above it. The reason is required.
  * - Material census: over every scanned file (.css too), a var() reference
- *   to --glass-*, --nav-* or --accent-bloom, or a class attribute holding a
- *   material class (a root part class whose rule in components.css
- *   consumes those tokens, read at run time), is a use. --e-* is not
- *   material. Zero uses across the whole scan is one project-level finding.
- *   Comments are not read; in HTML, script and style bodies are.
+ *   to a --glass-*, --nav-* or --accent-bloom token that tokens.css
+ *   defines, or an element carrying the classes of a components.css rule
+ *   that consumes those tokens (".tab.on" needs both; read at run time),
+ *   is a use. --e-* is not material. A stylesheet that itself defines the
+ *   material (a vendored components.css) counts nothing. Zero uses across
+ *   the whole scan is one project-level finding. Comments are not read; in
+ *   HTML, script and style bodies are.
  * - verseva.json in the working directory: files under "dir" are
  *   known-good; "recipeAllow" lists path substrings to skip; "material" is
  *   "full" (the default) or "none", which skips the census.
@@ -45,7 +47,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { contractClasses, contractParts, materialClasses, MATERIAL_RE, OWNED } from './contract-classes.mjs';
+import { contractClasses, contractParts, definesMaterial, materialClasses, materialSelectors, MATERIAL_RE, OWNED } from './contract-classes.mjs';
 
 const NAME = 'verseva-recipe-gate';
 const SCAN_EXT = new Set(['.html', '.jsx', '.tsx']);
@@ -311,7 +313,7 @@ function scan(text, jsx, classes, parts) {
   };
 
   const stack = []; // open elements: { name, classes }
-  const used = []; // every class an attribute names, components included, for the census
+  const used = []; // each element's class list, components included, for the census
   const spent = new Set(); // marker lines that already waived an element
   const found = [];
   let checked = 0;
@@ -336,7 +338,7 @@ function scan(text, jsx, classes, parts) {
     const attrs = component ? new Map() : attributes(body, jsx);
     const classAttr = attrs.get(jsx ? 'className' : 'class') ?? attrs.get('class');
     const own = classList(classAttr);
-    used.push(...(component ? classList(attributes(body, jsx).get('className')) : own));
+    used.push(component ? classList(attributes(body, jsx).get('className')) : own);
 
     if (!jsx && IMPLIED_CLOSE[name]) {
       const [siblings, containers] = IMPLIED_CLOSE[name];
@@ -371,13 +373,18 @@ function scan(text, jsx, classes, parts) {
   return { found, checked, used };
 }
 
-/* Material uses in one file: var() references outside comments, plus class attributes naming a material class. */
-function materialUses(text, ext, usedClasses, material) {
+/* Material uses in one file: var() references outside comments, plus each material selector some
+   element satisfies (every compound's classes on one element). A stylesheet that defines the
+   material (a vendored components.css) is a definition and counts nothing. */
+function materialUses(text, ext, elements, selectors) {
   let src;
-  if (ext === '.css') src = text.replace(/\/\*[\s\S]*?\*\//g, blank);
-  else if (JSX_EXT.has(ext)) src = readableJsx(text);
+  if (ext === '.css') {
+    if (definesMaterial(text, material)) return 0;
+    src = text.replace(/\/\*[\s\S]*?\*\//g, blank);
+  } else if (JSX_EXT.has(ext)) src = readableJsx(text);
   else src = text.replace(/<!--[\s\S]*?-->/g, blank).replace(/\/\*[\s\S]*?\*\//g, blank);
-  return (src.match(MATERIAL_USE_RE)?.length ?? 0) + usedClasses.filter((c) => material.has(c)).length;
+  const on = (need) => elements.some((cls) => need.every((c) => cls.includes(c)));
+  return (src.match(MATERIAL_USE_RE)?.length ?? 0) + selectors.filter((sel) => sel.every(on)).length;
 }
 
 const { tokens, allow, exclude, paths, strict } = parseArgs(process.argv.slice(2));
@@ -394,6 +401,7 @@ const skip = [...allow, ...config.recipeAllow];
 const classes = contractClasses();
 const parts = contractParts();
 const material = materialClasses();
+const selectors = materialSelectors();
 const findings = [];
 let checked = 0;
 let files = 0;
@@ -413,7 +421,7 @@ for (const root of paths) {
       used = res.used;
       for (const f of res.found) findings.push(`${file}:${f.line}  ${f.label}  ${f.section}`);
     }
-    if (config.material === 'full') uses += materialUses(text, ext, used, material);
+    if (config.material === 'full') uses += materialUses(text, ext, used, selectors);
   }
 }
 
