@@ -18,7 +18,7 @@
   body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 16px; line-height: 1.55; }
 
   /* The plain scroll: what a reader gets with scripting off, and the base the paged view builds on. */
-  .deck-slide { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: var(--s-9) clamp(var(--s-5), 8vw, var(--s-10)); border-bottom: 1px solid var(--hairline); }
+  .deck-slide { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: safe center; padding: var(--s-9) clamp(var(--s-5), 8vw, var(--s-10)); border-bottom: 1px solid var(--hairline); }
   .deck-slide h1, .deck-slide h2 { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: -0.025em; line-height: 1.06; max-width: 22ch; text-wrap: balance; }
   .deck-slide h1 { font-size: clamp(40px, 6.2vw, 80px); }
   .deck-slide h2 { font-size: clamp(30px, 4.2vw, 54px); }
@@ -39,7 +39,7 @@
   .deck-chart .hbar { font-size: 16px; }
   .deck-chart .hbar .hlabel { width: 150px; }
   .deck-chart .hbar .htrack { height: 14px; }
-  .deck-chart .hbar .hcount { width: 64px; font-size: 15px; }
+  .deck-chart .hbar .hcount { width: 64px; font-family: var(--font-sans); font-size: 16px; font-variant-numeric: tabular-nums; }
   .deck-chart > .hd { justify-content: flex-start; }
 
   /* Two columns: today against the proposal. */
@@ -66,7 +66,7 @@
 
   @media screen {
     .deck-paged, .deck-paged body { height: 100%; overflow: hidden; }
-    .deck-paged .deck-slide { position: fixed; inset: 0; border: 0; opacity: 0; visibility: hidden; transform: translateY(var(--s-3)); transition: opacity var(--dur-3) var(--ease-entrance), transform var(--dur-3) var(--ease-entrance), visibility 0s linear var(--dur-3); }
+    .deck-paged .deck-slide { position: fixed; inset: 0; overflow-y: auto; overscroll-behavior: contain; border: 0; opacity: 0; visibility: hidden; transform: translateY(var(--s-3)); transition: opacity var(--dur-3) var(--ease-entrance), transform var(--dur-3) var(--ease-entrance), visibility 0s linear var(--dur-3); }
     .deck-paged .deck-slide.deck-back { transform: translateY(calc(var(--s-3) * -1)); }
     .deck-paged .deck-slide.deck-on { opacity: 1; visibility: visible; transform: none; transition: opacity var(--dur-3) var(--ease-entrance), transform var(--dur-3) var(--ease-entrance), visibility 0s; }
     .deck-paged .deck-bar { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 3; height: 3px; background: var(--surface-2); }

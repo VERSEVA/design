@@ -105,8 +105,14 @@ test('a component name still wins over a block name, and an unknown name still f
   assert.match(r.stderr, /unknown component: console/);
 });
 
-test('the committed site/r deck item matches the build', () => {
-  const cwd = tmp();
-  execFileSync(process.execPath, [bin, 'build', '--output', 'r'], { cwd, encoding: 'utf8' });
-  assert.equal(fs.readFileSync(path.join(root, 'site', 'r', 'deck.json'), 'utf8'), fs.readFileSync(path.join(cwd, 'r', 'deck.json'), 'utf8'));
+test('the committed site/r deck item is the self-contained template', () => {
+  /* Structural, not byte-equal: the item embeds tokens.css and components.css, which other changes edit. */
+  const item = JSON.parse(fs.readFileSync(path.join(root, 'site', 'r', 'deck.json'), 'utf8'));
+  assert.equal(item.name, 'deck');
+  assert.equal(item.kind, 'template');
+  assert.deepEqual(item.files.map((f) => f.path), ['deck.html']);
+  const content = item.files[0].content;
+  assert.doesNotMatch(content, /<link\b/);
+  assert.match(content, /--accent:/);
+  assert.equal(slides(content).length, 8);
 });

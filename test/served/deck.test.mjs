@@ -149,6 +149,54 @@ test('the sources sit behind a closed control on every slide that has them', asy
   } finally { await p.close(); }
 });
 
+/* Per slide: how far its content runs past its box, whether it scrolls, and whether anything starts above its top. */
+const FIT = `[...document.querySelectorAll('.deck-slide')].map((s, i) => {
+  const top = s.getBoundingClientRect().top;
+  const above = [...s.children].some((k) => k.getBoundingClientRect().top < top - 1);
+  return { slide: i + 1, over: s.scrollHeight - s.clientHeight, scrolls: getComputedStyle(s).overflowY === 'auto', above };
+})`;
+
+test('at 1280 by 720 every slide fits its face: nothing runs past the box', async () => {
+  const p = await run.page({ width: 1280, height: 720 });
+  try {
+    await p.goto(URL_PATH);
+    for (const f of await p.evaluate(FIT)) {
+      assert.ok(f.over <= 1, `slide ${f.slide} runs ${f.over}px past 720`);
+      assert.equal(f.above, false, `slide ${f.slide} starts above its top`);
+    }
+  } finally { await p.close(); }
+});
+
+test('on a 375 by 812 phone every slide is reachable: content starts in the box, and a tall slide scrolls', async () => {
+  const p = await run.page({ width: 375, height: 812, touch: true });
+  try {
+    await p.goto(URL_PATH);
+    for (const f of await p.evaluate(FIT)) {
+      assert.equal(f.above, false, `slide ${f.slide} starts above its top`);
+      if (f.over > 1) assert.ok(f.scrolls, `slide ${f.slide} runs ${f.over}px past the screen and does not scroll`);
+    }
+    await swipe(p, 320, 40);
+    assert.deepEqual((await p.evaluate(STATE)).on, [1], 'a swipe pages on a phone');
+  } finally { await p.close(); }
+});
+
+test('the Sources control opens a visible list inside the screen, and Escape closes it', async () => {
+  const p = await run.page({ width: 1280, height: 720 });
+  try {
+    await p.goto(`${URL_PATH}#4`);
+    const at = await p.evaluate(`(() => { const b = document.querySelector('#s4 .deck-src > summary').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; })()`);
+    for (const type of ['mousePressed', 'mouseReleased']) await p.send('Input.dispatchMouseEvent', { type, x: at.x, y: at.y, button: 'left', clickCount: 1 });
+    await wait(60);
+    const r = await p.evaluate(`(() => { const d = document.querySelector('#s4 .deck-src'); const b = d.querySelector('.deck-src-list').getBoundingClientRect(); return { open: d.open, b: { l: b.left, t: b.top, r: b.right, btm: b.bottom, w: b.width, h: b.height }, vw: innerWidth, vh: innerHeight }; })()`);
+    assert.equal(r.open, true);
+    assert.ok(r.b.w > 100 && r.b.h > 20, `list box ${r.b.w}x${r.b.h}`);
+    assert.ok(r.b.l >= 0 && r.b.t >= 0 && r.b.r <= r.vw && r.b.btm <= r.vh, `list inside the screen: ${JSON.stringify(r.b)}`);
+    await key(p, 'Escape', 'Escape', 27);
+    assert.equal(await p.evaluate(`document.querySelector('#s4 .deck-src').open`), false);
+    assert.deepEqual((await p.evaluate(STATE)).on, [3], 'closing the sources does not page');
+  } finally { await p.close(); }
+});
+
 test('the verseva add deck output links no stylesheet, opens from file:// and renders on the signature', async () => {
   const html = fs.readFileSync(added, 'utf8');
   assert.doesNotMatch(html, /<link\b[^>]*rel=["']?stylesheet/i);
