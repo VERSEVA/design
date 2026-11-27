@@ -11,20 +11,25 @@
  *                       [--strict] [--] <file-or-dir>...
  *
  * Rules:
- * - Scans .html .jsx .tsx; node_modules, .git, .next, dist, build, out
- *   are skipped.
+ * - Scans .html .jsx .tsx for elements; .ts and .js are read for the
+ *   census only. node_modules, .git, .next, dist, build, out are skipped.
  * - Owned elements: button, table, input, textarea, select, dialog, and
  *   any element with role="button" or role="dialog".
- * - An element passes when it carries a root part class (a class that
- *   leads a compound in components.css, read at run time; modifiers,
- *   spacing utilities and .sr-only do not count), or sits anywhere inside
- *   a parent part for that element: the floor in contract-classes.mjs, or
- *   a part the contract styles it under (".searchbox input").
+ * - An element passes when it carries a root part class for its own kind
+ *   (the floor in contract-classes.mjs, or a class components.css styles
+ *   on that element, "button.notif"; a .card on a button does not count),
+ *   or sits anywhere inside a parent part for that element: the floor in
+ *   contract-classes.mjs, or a part the contract styles it under
+ *   (".searchbox input").
  * - In .jsx and .tsx, comments and the contents of string literals are
- *   not scanned for tags.
+ *   not scanned for tags. Quotes and comment openers count only in code
+ *   and inside a tag, never in JSX text: "Don't" or "https://" there
+ *   hides nothing.
  * - Each file is judged on its own. Capitalised components are never
  *   followed. A className with no string literal is unknown, not a
- *   finding; one literal holding a contract class passes.
+ *   finding, and so is an element whose only class source is a spread
+ *   ({...props} with no className); one literal holding a contract class
+ *   passes. A spread beside a className is judged on that className.
  * - "recipe-ok: <reason>" waives one element: inside its tag, or on the
  *   line above it. The reason is required.
  * - Material census: over every scanned file (.css too), a var() reference
@@ -34,7 +39,8 @@
  *   is a use. --e-* is not material. A stylesheet that itself defines the
  *   material (a vendored components.css) counts nothing. Zero uses across
  *   the whole scan is one project-level finding. Comments are not read; in
- *   HTML, script and style bodies are.
+ *   HTML, script and style bodies are. In .ts and .js, each string literal
+ *   is read as one element's class list ('tab on' is a .tab.on).
  * - verseva.json in the working directory: files under "dir" are
  *   known-good; "recipeAllow" lists path substrings to skip; "material" is
  *   "full" (the default) or "none", which skips the census.
@@ -48,12 +54,13 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { contractClasses, contractParts, definesMaterial, materialClasses, materialSelectors, MATERIAL_RE, OWNED } from './contract-classes.mjs';
+import { contractClasses, contractParts, contractRoots, definesMaterial, materialClasses, materialSelectors, MATERIAL_RE, OWNED } from './contract-classes.mjs';
 
 const NAME = 'verseva-recipe-gate';
 const SCAN_EXT = new Set(['.html', '.jsx', '.tsx']);
 const JSX_EXT = new Set(['.jsx', '.tsx']);
-const CENSUS_EXT = new Set([...SCAN_EXT, '.css']);
+const CODE_EXT = new Set(['.ts', '.js']);
+const CENSUS_EXT = new Set([...SCAN_EXT, ...CODE_EXT, '.css']);
 const MATERIAL_USE_RE = new RegExp(MATERIAL_RE.source, 'g');
 const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel']);
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
@@ -139,50 +146,137 @@ function readConfig() {
 /* Blank a region but keep its newlines, so line numbers hold. */
 const blank = (s) => s.replace(/[^\n]/g, ' ');
 
+/* Words after which a "<" starts an expression, so it can open a JSX element. */
+const EXPR_WORDS = new Set(['return', 'yield', 'await', 'default', 'case', 'else', 'do', 'in', 'of']);
+
+/* Whether a "<" at i, in code, can open a JSX element: it sits where an expression starts (after
+   an operator, an opening bracket, "=>" or a word such as return), never after a value. */
+function opensElement(text, i) {
+  if (!/[A-Za-z>]/.test(text[i + 1] ?? '')) return false;
+  if (/^<[\w$]+\s+extends\b/.test(text.slice(i, i + 80))) return false; // a generic: <T extends X>(...)
+  let j = i - 1;
+  while (j >= 0 && /\s/.test(text[j])) j--;
+  if (j < 0) return true;
+  if (/[([{,;:?=&|!>+\-*%~^]/.test(text[j])) return true;
+  if (!/[\w$]/.test(text[j])) return false;
+  let k = j;
+  while (k > 0 && /[\w$]/.test(text[k - 1])) k--;
+  return EXPR_WORDS.has(text.slice(k, j + 1));
+}
+
+/* Comments blanked from i, or -1 when no comment starts there. */
+function commentEnd(text, i) {
+  if (text[i] !== '/') return -1;
+  if (text[i + 1] === '/') { const end = text.indexOf('\n', i); return end === -1 ? text.length : end; }
+  if (text[i + 1] === '*') { const close = text.indexOf('*/', i + 2); return close === -1 ? text.length : close + 2; }
+  return -1;
+}
+
+/* Index just past a quote that closes on its own line, or -1: a quote with no partner on its
+   line is an apostrophe, not a string. */
+function lineQuoteEnd(text, i) {
+  const q = text[i];
+  let j = i + 1;
+  while (j < text.length && text[j] !== q && text[j] !== '\n') j += text[j] === '\\' ? 2 : 1;
+  return text[j] === q ? j + 1 : -1;
+}
+
 /* A JSX file as the tag reader sees it: comments blanked, and every tag opener inside a string
-   or template literal blanked, so neither is scanned for tags. One pass; an unclosed comment is
-   blanked to the end of the file once. A quote with no partner on its line is text (an
-   apostrophe), not a string. Class names inside strings are untouched. */
+   or template literal blanked, so neither is scanned for tags. One pass over three contexts:
+   code (the module, and every {} expression), a tag (from "<name" to its ">"), and JSX text
+   (between an element's open and close). Quotes and comment openers count in code and in a tag,
+   never in JSX text, so "Don't" or "https://" there hides nothing. An unclosed comment is
+   blanked to the end of the file once. Class names inside strings are untouched. */
 function readableJsx(text) {
   const out = text.split('');
   const n = text.length;
   const wipe = (a, b) => { for (let k = a; k < b; k++) if (out[k] !== '\n') out[k] = ' '; };
-  const returns = []; // brace depth at which each open template placeholder ends
-  let depth = 0;
-  let inTemplate = false;
+  const hideTags = (a, b) => { for (let k = a; k < b; k++) if (out[k] === '<') out[k] = ' '; };
+  /* Frames: code { depth }, tpl, tag { closing }, text { open }. The bottom code frame never pops. */
+  const stack = [{ mode: 'code', depth: 0 }];
   let i = 0;
   while (i < n) {
+    const top = stack.at(-1);
     const ch = text[i];
-    if (inTemplate) {
+    if (top.mode === 'tpl') {
       if (ch === '\\') i += 2;
-      else if (ch === '`') { inTemplate = false; i++; }
-      else if (ch === '$' && text[i + 1] === '{') { returns.push(depth++); inTemplate = false; i += 2; }
+      else if (ch === '`') { stack.pop(); i++; }
+      else if (ch === '$' && text[i + 1] === '{') { stack.push({ mode: 'code', depth: 0 }); i += 2; }
       else { if (ch === '<') out[i] = ' '; i++; }
-    } else if (ch === '/' && text[i + 1] === '/') {
-      let end = text.indexOf('\n', i);
-      if (end === -1) end = n;
-      wipe(i, end);
-      i = end;
-    } else if (ch === '/' && text[i + 1] === '*') {
-      const close = text.indexOf('*/', i + 2);
-      const end = close === -1 ? n : close + 2;
-      wipe(i, end);
-      i = end;
-    } else if (ch === '"' || ch === "'") {
-      let j = i + 1;
-      while (j < n && text[j] !== ch && text[j] !== '\n') j += text[j] === '\\' ? 2 : 1;
-      if (text[j] === ch) {
-        for (let k = i + 1; k < j; k++) if (out[k] === '<') out[k] = ' ';
+    } else if (top.mode === 'text') {
+      if (ch === '{') { stack.push({ mode: 'code', depth: 0 }); i++; }
+      else if (ch === '<' && text[i + 1] === '/') { stack.push({ mode: 'tag', closing: true, start: i + 2 }); i += 2; }
+      else if (ch === '<' && /[A-Za-z>]/.test(text[i + 1] ?? '')) { stack.push({ mode: 'tag', closing: false, start: i + 1 }); i++; }
+      else i++;
+    } else if (top.mode === 'tag') {
+      const end = commentEnd(text, i);
+      if (ch === '"' || ch === "'") {
+        const close = skipQuote(text, i);
+        const stop = close === -1 ? n : close;
+        hideTags(i + 1, stop);
+        i = stop;
+      } else if (end !== -1) { wipe(i, end); i = end; }
+      else if (ch === '{') { stack.push({ mode: 'code', depth: 0 }); i++; }
+      else if (ch === '<' && /^[A-Za-z][\w.:-]*$/.test(text.slice(top.start, i))) {
+        /* Type arguments right after the name (<Select<Option> ...>) belong to the tag. */
+        let depth = 0;
+        let j = i;
+        for (; j < n; j++) {
+          if (text[j] === '<') depth++;
+          else if (text[j] === '>' && --depth === 0) break;
+        }
         i = j + 1;
-      } else i++;
+      } else if (ch === '>' && top.fromCode && /^[\w$]+\s*$/.test(text.slice(top.start, i)) && /^>\s*\(/.test(text.slice(i, i + 64))) {
+        stack.pop(); // a generic function type or arrow, <T>(x: T) => T: not a tag
+        i++;
+      } else if (ch === '>' || (ch === '/' && text[i + 1] === '>')) {
+        stack.pop();
+        const parent = stack.at(-1);
+        if (top.closing) {
+          if (parent.mode === 'text' && --parent.open === 0) stack.pop();
+        } else if (ch === '>') {
+          if (parent.mode === 'text') parent.open++;
+          else stack.push({ mode: 'text', open: 1 });
+        }
+        i += ch === '>' ? 1 : 2;
+      } else if (/[<;(),]/.test(ch)) stack.pop(); // never a tag (a comparison or a generic): reread ch where it opened
+      else i++;
     } else {
-      if (ch === '`') inTemplate = true;
-      else if (ch === '{') depth++;
-      else if (ch === '}' && --depth === returns.at(-1)) { returns.pop(); inTemplate = true; }
-      i++;
+      const end = commentEnd(text, i);
+      if (end !== -1) { wipe(i, end); i = end; }
+      else if (ch === '"' || ch === "'") {
+        const close = lineQuoteEnd(text, i);
+        if (close === -1) i++;
+        else { hideTags(i + 1, close - 1); i = close; }
+      } else if (ch === '`') { stack.push({ mode: 'tpl' }); i++; }
+      else if (ch === '{') { top.depth++; i++; }
+      else if (ch === '}') {
+        if (top.depth === 0 && stack.length > 1) stack.pop();
+        else if (top.depth > 0) top.depth--;
+        i++;
+      } else if (ch === '<' && opensElement(text, i)) { stack.push({ mode: 'tag', closing: false, start: i + 1, fromCode: true }); i++; }
+      else i++;
     }
   }
   return out.join('');
+}
+
+/* The string literals of a .ts or .js file, comments skipped: the census reads only these there. */
+function codeLiterals(text) {
+  const found = [];
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    const end = commentEnd(text, i);
+    if (end !== -1) { i = end; continue; }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      const close = ch === '`' ? skipQuote(text, i) : lineQuoteEnd(text, i);
+      if (close === -1) { i++; continue; }
+      found.push(...(literalsIn(text.slice(i, close)) ?? []));
+      i = close;
+    } else i++;
+  }
+  return found;
 }
 
 /* The text the tag reader sees. In HTML: comments, script bodies and style bodies blanked. */
@@ -222,13 +316,18 @@ function tagEnd(text, i, jsx) {
 }
 
 /* Attributes of one tag: name -> { literal: [strings] } or { literal: null } for an expression
-   holding no string literal. A bare attribute maps to an empty literal. */
+   holding no string literal. A bare attribute maps to an empty literal. In JSX, attrs.spread is
+   set when the tag spreads props ({...rest}). */
 function attributes(body, jsx) {
   const attrs = new Map();
   let i = 0;
   while (i < body.length) {
     const ch = body[i];
-    if (jsx && ch === '{') { i = braceEnd(body, i); continue; } // spread
+    if (jsx && ch === '{') {
+      if (/^\{\s*\.\.\./.test(body.slice(i, i + 64))) attrs.spread = true;
+      i = braceEnd(body, i);
+      continue;
+    }
     const name = body.slice(i).match(/^[A-Za-z_:@][\w:.-]*/)?.[0];
     if (!name) { i++; continue; }
     i += name.length;
@@ -302,7 +401,7 @@ function ownedKind(tag, attrs) {
   return { tag, kind, label: `<${tag}>` };
 }
 
-function scan(text, jsx, classes, parts) {
+function scan(text, jsx, roots, parts) {
   const src = readable(text, jsx);
   const rawLines = text.split('\n');
   const lineStarts = [0];
@@ -351,9 +450,10 @@ function scan(text, jsx, classes, parts) {
     const owned = component ? null : ownedKind(name, attrs);
     if (owned) {
       checked++;
-      const unknown = classAttr !== undefined && classAttr.literal === null;
+      /* No literal to read: an expression with no string, or only a spread with no className. */
+      const unknown = (classAttr !== undefined && classAttr.literal === null) || (classAttr === undefined && attrs.spread === true);
       const passes = unknown
-        || own.some((c) => classes.has(c))
+        || own.some((c) => roots[owned.kind].has(c))
         || stack.some((e) => e.classes.some((c) => parts[owned.tag].has(c)));
       if (!passes) {
         const line = lineOf(m.index);
@@ -379,7 +479,12 @@ function scan(text, jsx, classes, parts) {
    material (a vendored components.css) is a definition and counts nothing. */
 function materialUses(text, ext, elements, selectors) {
   let src;
-  if (ext === '.css') {
+  if (CODE_EXT.has(ext)) {
+    /* A .ts or .js file: its string literals only, each read as one element's class list. */
+    const literals = codeLiterals(text);
+    src = literals.join('\n');
+    elements = literals.map((s) => s.split(/\s+/).filter(Boolean));
+  } else if (ext === '.css') {
     if (definesMaterial(text, material)) return 0;
     src = text.replace(/\/\*[\s\S]*?\*\//g, blank);
   } else if (JSX_EXT.has(ext)) src = readableJsx(text);
@@ -400,6 +505,7 @@ const config = readConfig();
 const skip = [...allow, ...config.recipeAllow];
 
 const classes = contractClasses();
+const roots = contractRoots();
 const parts = contractParts();
 const material = materialClasses();
 const selectors = materialSelectors();
@@ -419,8 +525,8 @@ for (const root of paths) {
     const text = fs.readFileSync(file, 'utf8');
     files++;
     let used = [];
-    if (ext !== '.css') {
-      const res = scan(text, JSX_EXT.has(ext), classes, parts);
+    if (ext !== '.css' && !CODE_EXT.has(ext)) {
+      const res = scan(text, JSX_EXT.has(ext), roots, parts);
       checked += res.checked;
       used = res.used;
       for (const f of res.found) findings.push(`${file}:${f.line}  ${f.label}  ${f.section}`);

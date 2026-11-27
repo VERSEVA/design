@@ -1,6 +1,6 @@
 // Recipe gate. Signal 1: contract-owned elements built by hand. Signal 2: a material census, one
 // project-level finding when nothing scanned consumes the signature material. Advisory by
-// default, exit 1 only under --strict. The GREEN set is every shipped block and template.
+// default, exit 1 only under --strict. The GREEN set is every shipped block, template and react component.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { contractClasses, contractParts, materialClasses, materialSelectors, MATERIAL_RE, PART_FLOOR } from '../bin/contract-classes.mjs';
+import { contractClasses, contractParts, contractRoots, materialClasses, materialSelectors, MATERIAL_RE, PART_FLOOR, ROOT_FLOOR } from '../bin/contract-classes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
@@ -136,13 +136,13 @@ test('GREEN: every block and template yields zero findings', () => {
     assert.equal(r.code, 0, `${path.basename(f)}\n${r.out}`);
     assert.deepEqual(findings(r.out), [], `${path.basename(f)}\n${r.out}`);
   }
-  const all = run(['--strict', path.join(root, 'blocks'), path.join(root, 'templates')]);
+  const all = run(['--strict', path.join(root, 'blocks'), path.join(root, 'templates'), path.join(root, 'react')]);
   assert.equal(all.code, 0, all.out);
   assert.match(all.out, /^verseva-recipe-gate: clean /);
 });
 
-test('GREEN: no block or template carries a recipe-ok marker', () => {
-  for (const d of ['blocks', 'templates']) {
+test('GREEN: no block, template or react component carries a recipe-ok marker', () => {
+  for (const d of ['blocks', 'templates', 'react']) {
     for (const f of fs.readdirSync(path.join(root, d))) assert.ok(!fs.readFileSync(path.join(root, d, f), 'utf8').includes('recipe-ok'), f);
   }
 });
@@ -264,8 +264,7 @@ test('CENSUS: files skipped by dir, recipeAllow or --allow do not count as consu
 test('CENSUS: blocks/console.html passes on its own, and so do react/ and the block and template set', () => {
   for (const p of [['blocks/console.html'], ['react'], ['blocks', 'templates']]) {
     const r = run(['--strict', ...p.map((x) => path.join(root, x))]);
-    /* react/ carries one signal-1 element finding that predates the census (a className passed by spread). */
-    if (p[0] !== 'react') assert.equal(r.code, 0, `${p}\n${r.out}`);
+    assert.equal(r.code, 0, `${p}\n${r.out}`);
     assert.deepEqual(census(r.out), [], `${p}\n${r.out}`);
     assert.match(r.out, /\nverseva-recipe-gate: material census: \d+ uses? in \d+ files?\n$/, `${p}\n${r.out}`);
   }
@@ -341,6 +340,47 @@ test('a className with no string literal is unknown; one literal with a contract
   assert.equal(f.length, 2, f.join('\n'));
   assert.match(f[0], /literals\.tsx:16 {2}<button>/, 'literals with no contract class are a finding');
   assert.match(f[1], /literals\.tsx:18 {2}<input>/, 'a capitalised wrapper is not followed');
+});
+
+/* ---- accuracy (issue 209) ---- */
+
+const where = (out) => findings(out).map((l) => l.match(/:(\d+) {2}(<[^>]+>)/).slice(1).join(' '));
+
+test('209.1: apostrophes and // in jsx text hide no tag; strings and comments in code and braces still do', () => {
+  const r = run([fx('jsx-text.tsx')]);
+  assert.deepEqual(where(r.out), ['5 <button>', '6 <button>', '7 <table>', '20 <select>'], r.out);
+});
+
+test('209.2: a root class counts only for its own element', () => {
+  const r = run([fx('roots.html')]);
+  assert.deepEqual(where(r.out), ['2 <button>', '3 <select>', '4 <table>', '5 <div role="dialog">', '6 <input type="checkbox">'], r.out);
+});
+
+test('209.2: root classes are keyed per element: the floor plus every "element.class" rule', () => {
+  const roots = contractRoots();
+  const classes = contractClasses();
+  for (const c of Object.values(ROOT_FLOOR).flat()) assert.ok(classes.has(c), `${c} is a root part class`);
+  assert.ok(roots.button.has('btn') && roots.button.has('notif') && roots.button.has('acct'));
+  assert.ok(roots.dialog.has('modal') && roots.dialog.has('sheet'));
+  assert.ok(roots.table.has('table') && roots.choice.has('sw') && roots.choice.has('chk'));
+  assert.ok(!roots.button.has('card') && !roots.field.has('table') && !roots.table.has('toast'));
+  assert.ok(!roots.dialog.has('btn') && !roots.choice.has('modal'));
+});
+
+test('209.3: a spread with no className is unknown; a spread beside utilities is still reported', () => {
+  const r = run([fx('spread.tsx')]);
+  assert.deepEqual(where(r.out), ['5 <button>', '6 <button>'], r.out);
+});
+
+test('209.4: material classes in .ts and .js string literals count for the census, and nothing else there is scanned', () => {
+  for (const d of ['ts-literal', 'js-literal']) {
+    const r = run(['--strict', fx('material', d)]);
+    assert.equal(r.code, 0, `${d}\n${r.out}`);
+    assert.deepEqual(findings(r.out), [], r.out);
+    assert.match(r.out, /\nverseva-recipe-gate: material census: \d+ uses? in 2 files\n$/, `${d}\n${r.out}`);
+  }
+  const c = run([fx('material', 'ts-comment')]);
+  assert.equal(census(c.out).length, 1, `a class in a comment is not a use\n${c.out}`);
 });
 
 /* ---- config ---- */

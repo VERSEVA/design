@@ -471,6 +471,7 @@
       "file": "react/viz.tsx",
       "kind": "component",
       "deps": [
+        "labels",
         "cx"
       ],
       "laws": [

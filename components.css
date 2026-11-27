@@ -528,6 +528,11 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .bar:hover .fill{opacity:.82}
 .bar .mlab{font-family:var(--font-mono);font-size:10px;color:var(--chart-label,var(--text-3))}
 .bar .vlab{font-family:var(--font-mono);font-size:10px;color:var(--text-2)}
+/* Withheld data (1.7.1). A suppressed bar is a short hatched stub, the same height whatever was withheld,
+   so it never reads as a value (a tall slot reads as the biggest bar) or as a loading skeleton. The hatch is
+   the text ladder over nothing (law 11: a hairline cannot carry meaning), never the accent. The display
+   ("<5") sits on the stub in the value's own face and size, on the baseline of its neighbours' numbers. */
+.bar .vtrack{flex:none;width:100%;max-width:34px;height:var(--s-3);border-radius:4px 4px 0 0;background:repeating-linear-gradient(135deg,var(--text-3) 0 2px,transparent 2px 5px)}
 .heat{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}
 .heat span{aspect-ratio:1;border-radius:5px;background:var(--data-0);cursor:default}
 .heat span.d1{background:var(--data-1)}
@@ -645,6 +650,7 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .hbar .htrack{height:8px;min-width:0;flex:1;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
 .hbar .htrack i{display:block;height:100%;border-radius:var(--r-pill);background:var(--data-3)}
 .hbar .htrack i.alt{background:var(--data-alt)}
+.hbar[data-suppressed] .htrack{background-image:repeating-linear-gradient(135deg,var(--text-3) 0 2px,transparent 2px 5px);background-size:var(--s-4) 100%;background-repeat:no-repeat}
 .hbar .hcount{width:40px;flex:none;text-align:right;font-family:var(--font-mono);font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-1)}
 
 /* Activity strip + calendar cells: ONE intensity language via the ladder */
@@ -687,6 +693,13 @@ button.notif:hover,a.notif:hover{background:var(--surface-2)}
 .viztip{position:absolute;top:0;right:0;display:grid;gap:2px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-sm);box-shadow:var(--e-2);padding:6px 10px;font-size:11.5px;color:var(--text-2);pointer-events:none;z-index:5}
 .viztip b{font-family:var(--font-mono);font-size:10px;color:var(--text-3);font-weight:600}
 .viztip span{font-variant-numeric:tabular-nums;color:var(--text-1)}
+.viztip span[data-withheld]{color:var(--text-2)}
+/* The gap band under a line: the bar stub's hatch, --s-1 tall, below the zero baseline by 2 plot units or
+   --s-1, whichever is larger, and never on it. HTML over the plot's frame, so the hatch keeps its angle
+   however the svg stretches. An all-null chart also says the withheld word, centred in the plot. */
+.vizframe{display:block;position:relative;height:100%}
+.vizgap{position:absolute;top:max(var(--vizband-top),calc(var(--vizband-base) + var(--s-1)));height:var(--s-1);background:repeating-linear-gradient(135deg,var(--text-3) 0 2px,transparent 2px 5px);pointer-events:none}
+.vizgap-word{position:absolute;inset:0;display:grid;place-items:center;font-size:11.5px;color:var(--text-2);pointer-events:none}
 
 /* ---- Console recipes (1.2.0, promoted from the Studio CRM) ---- */
 
@@ -762,9 +775,13 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media (max-width:767px){.bulkbar{width:auto;margin-inline:0;flex-wrap:wrap}.bulkbar .count{margin-right:auto;border-right:0}}
 
 /* ---- Widgets (1.6.0): grid, tile, edit mode, smart stack, gallery ---- */
-/* Grid: 4 columns, 2 under 1100px, 1 under 560px. Sparse row flow (never dense), so DOM order,
-   focus order and visual order agree. Each tile picks its view from data-size; the React grid
-   writes the fitted size, so L and XL show their M view in one column. */
+/* Grid: 4 columns, 2 under 1100px, 1 under 560px of viewport. Container mode is opt-in: inside
+   .wgrid-wrap (the React part's container prop renders it) the grid counts from the wrapper's
+   width instead, 4 columns from 688px (four 160px small tiles and three gaps), 2 from 560px,
+   1 below. Sparse row flow (never dense), so DOM order, focus order and visual order agree. Each
+   tile picks its view from data-size; the React grid writes the fitted size, so L and XL show
+   their M view in one column. */
+.wgrid-wrap{container:wgrid / inline-size;width:100%;min-width:0}
 .wgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:180px;grid-auto-flow:row;gap:var(--s-4);width:100%}
 .wtile{position:relative;min-width:0;display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface-body),var(--glass-fill-3);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow),var(--glass-glow),var(--glass-inset);color:var(--text-1);transition:border-color var(--dur-1) var(--ease-standard),opacity var(--dur-2) var(--ease-standard)}
 .wtile[data-size="s"]{grid-column:span 1;grid-row:span 1}
@@ -899,7 +916,16 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 @media (max-width:1099.98px){.wgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 2}}
 @media (max-width:559.98px){.wgrid{grid-template-columns:minmax(0,1fr);gap:var(--s-3)}.wtile[data-size]{grid-column:span 1;grid-row:span 1}.wtile-body{padding:var(--s-3)}}
-/* A forced column count (the columns prop) wins over the viewport breakpoints */
+/* Inside .wgrid-wrap the wrapper's width decides, in both directions: 4 columns from 688px even
+   on a viewport under 1100px. The viewport rules above are the fallback for a bare .wgrid */
+@container wgrid (min-width:688px){.wgrid{grid-template-columns:repeat(4,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 4}}
+@container wgrid (max-width:687.98px){.wgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 2}}
+@container wgrid (max-width:559.98px){.wgrid{grid-template-columns:minmax(0,1fr);gap:var(--s-3)}.wtile[data-size]{grid-column:span 1;grid-row:span 1}.wtile-body{padding:var(--s-3)}}
+/* A small tile under 180px (4 columns in a wrapper under 768px) cannot hold the 178px four-size
+   pill in a row: the sizes sit 2 by 2, beside Move stacked */
+@container wgrid (min-width:688px) and (max-width:767.98px){.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)){flex-direction:row;align-items:flex-end;justify-content:center}.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)) .wtile-move{flex-direction:column}.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-sizes:has(>button:nth-child(4)){display:inline-grid;grid-template-columns:repeat(2,auto);border-radius:var(--r-md)}}
+@container wgrid (max-width:767.98px){.wgrid[data-cols="4"] .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)){flex-direction:row;align-items:flex-end;justify-content:center}.wgrid[data-cols="4"] .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)) .wtile-move{flex-direction:column}.wgrid[data-cols="4"] .wtile[data-size="s"] .wtile-sizes:has(>button:nth-child(4)){display:inline-grid;grid-template-columns:repeat(2,auto);border-radius:var(--r-md)}}
+/* A forced column count (the columns prop) wins over the container and viewport breakpoints */
 .wgrid[data-cols="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
 .wgrid[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .wgrid[data-cols="1"]{grid-template-columns:minmax(0,1fr)}
