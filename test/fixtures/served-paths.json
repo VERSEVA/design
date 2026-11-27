@@ -7,6 +7,7 @@
     "/DEPLOY.md": "file",
     "/LICENSE": "file",
     "/README.md": "file",
+    "/bin/brief.mjs": "file",
     "/bin/contract-classes.mjs": "file",
     "/bin/contrast-gate.mjs": "file",
     "/bin/contrast-pairs.mjs": "file",
