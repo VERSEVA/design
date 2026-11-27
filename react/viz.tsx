@@ -21,7 +21,7 @@ import { VIZ_LABELS, type VizLabels } from './labels';
  *
  * The values as a table (1.8). Every part also renders its values as a visually hidden data table
  * (`.sr-only`), so keyboard, touch and screen reader users reach what `title` gives a pointer; the plot
- * is then aria-hidden. `label` is its caption. `table={false}` opts out, for a decorative sparkline
+ * is then aria-hidden. `label` is its caption (default `vizLabels.table`; a LineChart is named by its series). `table={false}` opts out, for a decorative sparkline
  * beside a number that already says it; the part then renders as it did before.
  */
 
@@ -119,14 +119,26 @@ type Row = readonly [string, readonly string[]];
  * The hidden data table: one row per item or x label, one column per series. A withheld cell holds what
  * the part prints (a suppressed item's display, or empty for a null), never a value.
  */
-const dataTable = (label: string | undefined, cols: readonly string[], rows: readonly Row[], Wrap: 'div' | 'span' = 'div') => (
-  <Wrap className="sr-only">
+const dataTable = (name: string, cols: readonly string[], rows: readonly Row[]) => (
+  <div className="sr-only">
     <table className="table">
-      {label ? <caption>{label}</caption> : null}
+      <caption>{name}</caption>
       <thead><tr><td />{cols.map((c, i) => <th key={i} scope="col">{c}</th>)}</tr></thead>
       <tbody>{rows.map(([h, cells], i) => <tr key={i}><th scope="row">{h}</th>{cells.map((c, j) => <td key={j}>{c}</td>)}</tr>)}</tbody>
     </table>
-  </Wrap>
+  </div>
+);
+/**
+ * The same table from ARIA roles on spans, for Sparkline: it sits in phrasing content (a sentence, a
+ * paragraph), where a <table> would close the <p> on parse and spill out of its hidden wrapper.
+ */
+const spanTable = (name: string, cols: readonly string[], rows: readonly Row[]) => (
+  <span className="sr-only">
+    <span role="table" aria-label={name}>
+      <span role="row"><span role="cell" />{cols.map((c, i) => <span key={i} role="columnheader">{c}</span>)}</span>
+      {rows.map(([h, cells], i) => <span key={i} role="row"><span role="rowheader">{h}</span>{cells.map((c, j) => <span key={j} role="cell">{c}</span>)}</span>)}
+    </span>
+  </span>
 );
 
 /** An all-null chart shows a band and nothing else, which can read as loading: it says the word in the plot. */
@@ -181,7 +193,7 @@ export function Sparkline({ values, max, area = true, label, table = true, vizLa
   return (
     <span className={cx('spark', className)}>
       {gapped ? <span className="vizframe">{plot}{gapBands([p], W, H, base, 4)}{gapWord([p], L.withheld)}</span> : plot}
-      {table && dataTable(label, [L.value], values.map((v, i) => [String(i + 1), [known(v) ? String(v) : '']]), 'span')}
+      {table && spanTable(label ?? L.table, [L.value], values.map((v, i) => [String(i + 1), [known(v) ? String(v) : '']]))}
     </span>
   );
 }
@@ -285,7 +297,7 @@ export function LineChart({ labels, series, reference, height = 140, format = St
   return (
     <div className={cx('vizplot', className)}>
       {gapped ? <span className="vizframe">{plot}{gapBands(all, W, height, base, pad)}{gapWord(all, L.withheld)}</span> : plot}
-      {reference && <span className="reftag" style={{ top: `${(refY / height) * 100}%` }}>{reference.label}</span>}
+      {reference && <span className="reftag" style={{ top: `${(refY / height) * 100}%` }} aria-hidden={table ? 'true' : undefined}>{reference.label}</span>}
       {hover !== null && (
         <div className="viztip" role="status">
           <b>{labels[hover]}</b>
@@ -303,12 +315,12 @@ export function LineChart({ labels, series, reference, height = 140, format = St
         <span>{labels[labels.length - 1]}</span>
       </div>
       {shown.length > 1 && (
-        <div className="vizlegend mt-2">
+        <div className="vizlegend mt-2" aria-hidden={table ? 'true' : undefined}>
           <span><i /> {shown[0].name}</span>
           <span><i className="alt" /> {shown[1].name}</span>
         </div>
       )}
-      {table && dataTable(label, shown.map((s) => s.name),
+      {table && dataTable(label ?? shown.map((s) => s.name).join(' vs '), shown.map((s) => s.name),
         labels.map((x, i) => [x, shown.map((s) => { const v = s.values[i]; return known(v) ? format(v) : ''; })]))}
     </div>
   );
@@ -381,7 +393,7 @@ export function Bars({ data, showValues = true, height = 120, label, table = tru
           );
         })}
       </div>
-      {table && dataTable(label, [L.value], data.map((d) => [d.label, [d.suppressed ? (d.display ?? L.withheld) : String(d.display ?? d.value)]]))}
+      {table && dataTable(label ?? L.table, [L.value], data.map((d) => [d.label, [d.suppressed ? (d.display ?? L.withheld) : String(d.display ?? d.value)]]))}
     </div>
   );
 }
@@ -429,7 +441,7 @@ export function HBars({ data, format = String, label, table = true, vizLabels, c
         </div>
         );
       })}
-      {table && dataTable(label, [L.value], data.map((d, k) => [d.label, [d.suppressed ? (d.display ?? L.withheld) : printed[k]!]]))}
+      {table && dataTable(label ?? L.table, [L.value], data.map((d, k) => [d.label, [d.suppressed ? (d.display ?? L.withheld) : printed[k]!]]))}
     </div>
   );
 }
