@@ -72,7 +72,9 @@ enforce, binding by engagement contract rather than by gate.
     72px icon rail whose labels show on hover and on keyboard focus.)
 13. **Laws are dated and live with the tokens.** Incidents become named laws written into this
     file and enforced at the pipeline (the gate suite: hex, contrast, spacing, type); when a
-    law generalizes, it lands here, not in one brand's theme.
+    law generalizes, it lands here, not in one brand's theme. (Amended 2026-11-27: a fifth
+    gate, recipe, runs in the suite as advisory: it reports and never fails the build.
+    Promotion to enforcing is a later ruling.)
 14. **Signature carriage.** Named engagements carry the credit line ("Built on VERSEVA
     Design.") by default; white-label surfaces carry the craft only, no credit, unless the
     contract says otherwise. Public naming of any client engagement still requires that

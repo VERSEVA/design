@@ -170,6 +170,18 @@ npx verseva-gate --tokens node_modules/@verseva/design/tokens.css src
 | `verseva-spacing-gate` | Inline margin/padding/gap (the seam law), multi-line JSX style objects included | `sp-ok` + reason |
 | `verseva-type-gate` | Off-token faces, sizes below 9.5px, `font:` shorthand included | `type-ok` + reason |
 
+A fifth gate, `verseva-recipe-gate`, is advisory: `verseva-gate` runs it after the four and
+prints its findings under an `advisory:` heading; it never changes the exit code. It reports
+buttons, tables, fields, selects and dialogs built without the contract's classes, and a
+project that consumes none of the signature material (`--glass-*`, `--nav-*`,
+`--accent-bloom`, or a material class). Run it alone with `--strict` to exit 1 on findings.
+
+| Control | Effect |
+|---|---|
+| `recipe-ok: <reason>` | Waives one element: inside its tag or on the line above. The reason is required |
+| `recipeAllow` in `verseva.json` | Path substrings the recipe gate skips |
+| `material` in `verseva.json` | `"full"` (default) runs the material census; `"none"` skips it |
+
 Wire it into your build:
 
 ```json
