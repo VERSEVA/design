@@ -113,3 +113,25 @@ for (const scheme of ['dark', 'light']) {
     assert.ok(Math.abs(r.tag - r.line) <= 1, 'the goal tag is not centred on its line');
   });
 }
+
+/* The goal tag sits in its own column beside the plot, so a proportional bar can never run under it. */
+const TAG = `(async () => {
+  await new Promise((r) => setTimeout(r, 400));
+  const tile = document.querySelector('#bars .goal');
+  tile.scrollIntoView({ block: 'center' });
+  const tag = tile.querySelector('.reftag').getBoundingClientRect();
+  const hits = [...tile.querySelectorAll('.bar, .bar .fill, .bar .vlab')].map((b) => b.getBoundingClientRect())
+    .filter((b) => b.width && b.height && b.left < tag.right && b.right > tag.left && b.top < tag.bottom && b.bottom > tag.top);
+  return JSON.stringify({ tag: [tag.left, tag.top, tag.width, tag.height].map(Math.round), hits: hits.length });
+})()`;
+
+for (const width of [1280, 375]) {
+  test(`/data-viz: the Bars tile's goal tag covers no bar (${width}px)`, { timeout: 60000 }, async (t) => {
+    const p = await run.page({ width, height: 900, scheme: 'dark' });
+    await p.goto('/data-viz');
+    const r = JSON.parse(await p.evaluate(TAG));
+    await p.close();
+    t.diagnostic(`tag at ${r.tag.join(',')}`);
+    assert.equal(r.hits, 0, 'the goal tag overlaps a bar');
+  });
+}

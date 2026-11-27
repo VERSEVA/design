@@ -205,6 +205,8 @@ export function Page() {
               <div className="goal" style={{ width: "280px" }}>
                 <div className="goalplot">
                   <div className="goalline" style={{ top: "28%" }}></div>
+                </div>
+                <div className="goaltag">
                   <span className="reftag" style={{ top: "28%" }}>GOAL 130</span>
                 </div>
                 <div className="bars" style={{ height: "130px" }}>
