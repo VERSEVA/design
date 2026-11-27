@@ -353,14 +353,14 @@ for (const scheme of ['dark', 'light']) {
   });
 }
 
-test('at 375px each menu trigger keeps its label on one line and nothing in it overflows', { timeout: 120000 }, async () => {
+test('at 375px each menu trigger keeps its label on one line, its icons whole, and nothing in it overflows', { timeout: 120000 }, async () => {
   const page = await open({ width: 375, scheme: 'dark' });
   const r = await probe(page, `
     return JSON.stringify([...document.querySelectorAll('#range-menu .specimen')].map((s) => {
       const trig = s.querySelector('.menu > .btn'), box = s.getBoundingClientRect(), t = trig.getBoundingClientRect();
       /* lines of the label, read from the text itself: a flex item reports one box however it wraps */
       const lines = [...trig.querySelectorAll('[data-lbl]')].map((el) => { const g = document.createRange(); g.selectNodeContents(el); return new Set([...g.getClientRects()].filter((x) => x.width > 0).map((x) => Math.round(x.top))).size; });
-      return { face: trig.textContent, lines, w: Math.round(t.width), box: Math.round(box.width), inside: t.left >= box.left - 0.5 && t.right <= box.right + 0.5, overflow: trig.scrollWidth > trig.clientWidth + 1 || trig.scrollHeight > trig.clientHeight + 1 };
+      return { face: trig.textContent, lines, icons: [...trig.querySelectorAll(':scope > svg')].map((g) => Math.round(g.getBoundingClientRect().width)), w: Math.round(t.width), box: Math.round(box.width), inside: t.left >= box.left - 0.5 && t.right <= box.right + 0.5, overflow: trig.scrollWidth > trig.clientWidth + 1 || trig.scrollHeight > trig.clientHeight + 1 };
     }));
   `);
   await page.close();
@@ -368,5 +368,6 @@ test('at 375px each menu trigger keeps its label on one line and nothing in it o
   for (const t of r) {
     assert.deepEqual(t.lines, [1], `the trigger label wraps: ${t.face} (${t.lines}, ${t.w}px in ${t.box}px)`);
     assert.ok(t.inside && !t.overflow, `the trigger leaves its specimen: ${t.face}`);
+    assert.deepEqual(t.icons, [16, 16], `the trigger's icons are squeezed: ${t.face}`);
   }
 });

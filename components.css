@@ -1191,8 +1191,9 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .range-ctl>.seg button:disabled,.range-ctl>.fchip:disabled{opacity:.45;cursor:not-allowed}
 /* the menu's one-of-a-set presets sit in a group, laid out as the list lays out its items */
 .menu[data-range] .menu-list>[role="group"]{display:grid;gap:2px}
-/* the trigger's label stays on one line; the dates beside it may wrap */
+/* the trigger's label stays on one line and its icons keep their size; the dates beside it may wrap */
 .menu[data-range]>.btn [data-lbl]{white-space:nowrap}
+.menu[data-range]>.btn>svg{flex:none}
 /* every filter chip: a button takes the system face unless told; the chip reads in the face around it */
 .fchip{font-family:inherit}
 
