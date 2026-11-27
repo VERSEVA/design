@@ -10,14 +10,16 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
 /* Code only: comments out, so doctrine prose may name the words. */
 const code = (src) => src.replace(/\/\*[^]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-/* Every string and template literal, the one console.warn message aside (it quotes an example display). */
-const literals = (src) => [...code(src).replace(/console\.warn\([^]*?\);/g, '').matchAll(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g)].map((m) => m[0]);
+/* The one console.warn message aside: it quotes an example display for the developer. */
+const quiet = (src) => code(src).replace(/console\.warn\([^]*?\);/g, '');
+/* Every string and template literal. */
+const literals = (src) => [...quiet(src).matchAll(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g)].map((m) => m[0]);
 
 test('viz.tsx holds no fold or window word and no floor number', () => {
   const src = read('react/viz.tsx');
   const found = literals(src).filter((l) => /\bOther\b|\(other\)|<5|\bLast\b|\bweeks?\b/i.test(l));
   assert.deepEqual(found, [], 'move the word into VIZ_LABELS in react/labels.ts');
-  assert.doesNotMatch(code(src), /[<>]=?\s*5\b(?!\d|\.)/, 'compare against VIZ_FLOOR, not a literal 5');
+  assert.doesNotMatch(quiet(src), /[<>]=?\s*5\b(?!\d|\.)/, 'compare against VIZ_FLOOR, not a literal 5');
 });
 
 test('the scan catches what it is for', () => {

@@ -34,9 +34,24 @@ export interface VizLabels {
   value: string;
   /** The hidden data table's name when the part has no `label` (a LineChart is named by its series instead). */
   table: string;
+  /** The one mark the items past `cap` fold into (Bars, HBars). */
+  other: string;
+  /** What a suppressed Other prints: the floor label. */
+  floor: string;
+  /** The note a windowed LineChart shows, and adds to its table caption: n is the points kept. */
+  window: (n: number) => string;
 }
 
-export const VIZ_LABELS: VizLabels = { withheld: 'withheld', value: 'Value', table: 'Chart data' };
+export const VIZ_LABELS: VizLabels = {
+  withheld: 'withheld',
+  value: 'Value',
+  table: 'Chart data',
+  other: 'Other',
+  floor: '<5',
+  window: (n) => `Last ${n}`,
+};
+/** The privacy floor: an Other whose own total is under this is suppressed. */
+export const VIZ_FLOOR = 5;
 
 /** The step funnel's copy (funnel.tsx): a product passes its own words through `labels`. */
 export interface FunnelLabels {
