@@ -59,3 +59,6 @@
 @media (max-width: 559.98px) { [data-chapter="data-viz"] #funnel .wgrid { grid-template-columns: minmax(0, 1fr); } }
 /* The panels sit under the tile's h2, so their heading is an h3, set as the package sets a panel's h4. */
 [data-chapter="data-viz"] #funnel .glass > .hd h3 { margin: 0; font-size: .875rem; font-weight: 600; }
+[data-chapter="data-viz"] #fold .specimen { flex: 1 1 100%; min-width: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: var(--s-5); align-items: start; }
+[data-chapter="data-viz"] #fold .takeaway { grid-column: 1 / -1; }
+[data-chapter="data-viz"] #fold .vizplot svg { height: 110px; }

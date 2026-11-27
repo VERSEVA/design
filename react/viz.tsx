@@ -1,7 +1,8 @@
 'use client';
 import * as React from 'react';
 import { cx } from './cx';
-import { VIZ_LABELS, type VizLabels } from './labels';
+import { VIZ_LABELS, VIZ_FLOOR, type VizLabels } from './labels';
+import { chartCap } from './bounded-state';
 
 /**
  * The chart kit, synthesized from the portfolio's shipped viz. Doctrine in
@@ -23,6 +24,12 @@ import { VIZ_LABELS, type VizLabels } from './labels';
  * (`.sr-only`), so keyboard, touch and screen reader users reach what `title` gives a pointer; the plot
  * is then aria-hidden. `label` is its caption (default `vizLabels.table`; a LineChart is named by its series). `table={false}` opts out, for a decorative sparkline
  * beside a number that already says it; the part then renders as it did before.
+ *
+ * Bounded charts (1.8). `cap` on Bars and HBars keeps the first `cap` items by position (the kit never sorts)
+ * and folds the rest into one Other mark, last, on the alt fill. Other is a privacy floor of its own: a
+ * suppressed item is never read into it and makes it suppressed, and so does a total under VIZ_FLOOR. `cap`
+ * on LineChart keeps the newest `cap` points and drops the oldest, and says so in its legend and caption.
+ * Without `cap` each part renders exactly as before.
  */
 
 declare const process: { env: { NODE_ENV?: string } };
@@ -128,6 +135,8 @@ const dataTable = (name: string, cols: readonly string[], rows: readonly Row[]) 
     </table>
   </div>
 );
+/** A table's caption, with the window note when the chart dropped its oldest points. */
+const caption = (name: string, note?: string) => (note ? `${name}, ${note}` : name);
 /**
  * The same table from ARIA roles on spans, for Sparkline: it sits in phrasing content (a sentence, a
  * paragraph), where a <table> would close the <p> on parse and spill out of its hidden wrapper.
@@ -207,11 +216,13 @@ export interface LineChartProps {
   height?: number;
   /** Formats the hover readout; defaults to the raw number. */
   format?: (v: number) => string;
+  /** The time window: keeps the newest `cap` points of every series and drops the oldest. Absent draws them all. */
+  cap?: number;
   /** Caption of the hidden data table. */
   label?: string;
   /** False drops the hidden data table and keeps the plot as a named image. */
   table?: boolean;
-  /** Copy: the word a gap shows on hover, and an all-null chart shows in its plot. */
+  /** Copy: the word a gap shows on hover, and an all-null chart shows in its plot; the window note. */
   vizLabels?: Partial<VizLabels>;
   className?: string;
 }
@@ -221,11 +232,17 @@ export interface LineChartProps {
  * Series two rides --data-alt AND a dash, so identity survives print and
  * CVD. Hover is the default layer: crosshair + readout.
  */
-export function LineChart({ labels, series, reference, height = 140, format = String, label, table = true, vizLabels, className }: LineChartProps) {
+export function LineChart({ labels: every, series: whole, reference, height = 140, format = String, cap, label, table = true, vizLabels, className }: LineChartProps) {
   const id = React.useId();
   const L = { ...VIZ_LABELS, ...vizLabels };
   const W = 320;
   const pad = 6;
+  /* The window: one index range from the labels, so a short series stays aligned; the oldest points go. */
+  const keep = chartCap(cap);
+  const from = keep !== undefined && every.length > keep ? every.length - keep : 0;
+  const windowed = from > 0;
+  const labels = windowed ? every.slice(from) : every;
+  const series = windowed ? whole.map((s) => ({ ...s, values: s.values.slice(from, every.length) })) : whole;
   const shown = series.slice(0, 2);
   const top = Math.max(...shown.flatMap((s) => s.values.filter(known)), reference?.value ?? 1);
   const [hover, setHover] = React.useState<number | null>(null);
@@ -314,13 +331,16 @@ export function LineChart({ labels, series, reference, height = 140, format = St
         <span>{labels[0]}</span>
         <span>{labels[labels.length - 1]}</span>
       </div>
-      {shown.length > 1 && (
+      {(shown.length > 1 || windowed) && (
         <div className="vizlegend mt-2" aria-hidden={table ? 'true' : undefined}>
+          {shown.length > 1 && <>
           <span><i /> {shown[0].name}</span>
           <span><i className="alt" /> {shown[1].name}</span>
+          </>}
+          {windowed && <span>{L.window(labels.length)}</span>}
         </div>
       )}
-      {table && dataTable(label ?? shown.map((s) => s.name).join(' vs '), shown.map((s) => s.name),
+      {table && dataTable(caption(label ?? shown.map((s) => s.name).join(' vs '), windowed ? L.window(labels.length) : undefined), shown.map((s) => s.name),
         labels.map((x, i) => [x, shown.map((s) => { const v = s.values[i]; return known(v) ? format(v) : ''; })]))}
     </div>
   );
@@ -352,24 +372,48 @@ function warnMissingDisplay(part: string, data: readonly { label: string; suppre
   console.warn(`${part}: suppressed item "${missing}" has no display; it prints no label. Pass the floor label, for example display: "<5".`);
 }
 
+/** The mark the items past `cap` fold into; `fold` marks it, for the alt fill and its own key. */
+type Folded<T> = T & { fold?: true };
+/**
+ * Keeps the first `cap` items by position and folds the rest into one Other item, last. A suppressed item is
+ * never read: one in the rest makes Other suppressed before any value is summed, and so does a total under
+ * VIZ_FLOOR. A suppressed Other prints the floor label, holds value 0 and so stays out of the scale.
+ */
+function foldOther<T extends { label: string; value: number; suppressed?: boolean }>(data: T[], cap: number | undefined, L: VizLabels): Folded<T>[] {
+  const keep = chartCap(cap);
+  if (keep === undefined || data.length <= keep) return data;
+  const rest = data.slice(keep);
+  const total = rest.some((d) => d.suppressed) ? undefined : rest.reduce((sum, d) => sum + d.value, 0);
+  /* Fails closed: a NaN or infinite total is never printed, it is suppressed like a total under the floor. */
+  const other = total === undefined || !Number.isFinite(total) || !(total >= VIZ_FLOOR)
+    ? { label: L.other, value: 0, suppressed: true, display: L.floor, fold: true }
+    : { label: L.other, value: total, fold: true };
+  return [...data.slice(0, keep), other as Folded<T>];
+}
+/** Other's own key: a data row may already be labelled Other. */
+const FOLD_KEY = '\u0000';
+
 export interface BarsProps {
   data: BarsItem[];
   /** Prints each value on/above its mark, the portfolio default. */
   showValues?: boolean;
   height?: number;
+  /** Marks drawn before the fold: items past it become one Other mark, last. Absent draws every item. */
+  cap?: number;
   /** Caption of the hidden data table. */
   label?: string;
   /** False drops the hidden data table. */
   table?: boolean;
-  /** Copy: the word a suppressed item with no display carries in its title and table cell; the value header. */
+  /** Copy: the word a suppressed item with no display carries in its title and table cell; the value header; Other and its floor label. */
   vizLabels?: Partial<VizLabels>;
   className?: string;
 }
 
 /** Vertical bars, numbers on the marks, no axis. */
-export function Bars({ data, showValues = true, height = 120, label, table = true, vizLabels, className }: BarsProps) {
+export function Bars({ data: given, showValues = true, height = 120, cap, label, table = true, vizLabels, className }: BarsProps) {
   const L = { ...VIZ_LABELS, ...vizLabels };
-  warnMissingDisplay('Bars', data);
+  warnMissingDisplay('Bars', given);
+  const data = foldOther(given, cap, L);
   const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   return (
     <div className={cx(className)}>
@@ -378,7 +422,7 @@ export function Bars({ data, showValues = true, height = 120, label, table = tru
           if (d.suppressed) {
             const display: string | undefined = d.display;
             return (
-              <div className="bar" key={d.label} title={`${d.label}: ${display ?? L.withheld}`} data-suppressed="">
+              <div className="bar" key={d.fold ? FOLD_KEY : d.label} title={`${d.label}: ${display ?? L.withheld}`} data-suppressed="">
                 {showValues && display !== undefined && <span className="vlab">{display}</span>}
                 <div className="vtrack" />
                 <span className="mlab">{d.label}</span>
@@ -387,9 +431,9 @@ export function Bars({ data, showValues = true, height = 120, label, table = tru
           }
           const shown = d.display ?? d.value;
           return (
-          <div className="bar" key={d.label} title={`${d.label}: ${shown}`}>
+          <div className="bar" key={d.fold ? FOLD_KEY : d.label} title={`${d.label}: ${shown}`}>
             {showValues && <span className="vlab">{shown}</span>}
-            <div className="fill" style={{ height: `${(d.value / top) * 100}%`, background: d.level !== undefined ? `var(--data-${d.level})` : undefined }} />
+            <div className="fill" style={{ height: `${(d.value / top) * 100}%`, background: d.fold ? 'var(--data-alt)' : d.level !== undefined ? `var(--data-${d.level})` : undefined }} />
             <span className="mlab">{d.label}</span>
           </div>
           );
@@ -404,6 +448,8 @@ export interface HBarsProps {
   /** `format` never sees a suppressed value. */
   data: HBarsItem[];
   format?: (v: number) => string;
+  /** Rows drawn before the fold: items past it become one Other row, last, on the alt fill. Absent draws every item. */
+  cap?: number;
   /** Caption of the hidden data table. */
   label?: string;
   /** False drops the hidden data table. */
@@ -414,9 +460,10 @@ export interface HBarsProps {
 }
 
 /** Label / track / mono count rows: the axis-free distribution. */
-export function HBars({ data, format = String, label, table = true, vizLabels, className }: HBarsProps) {
+export function HBars({ data: given, format = String, cap, label, table = true, vizLabels, className }: HBarsProps) {
   const L = { ...VIZ_LABELS, ...vizLabels };
-  warnMissingDisplay('HBars', data);
+  warnMissingDisplay('HBars', given);
+  const data = foldOther(given, cap, L);
   const top = Math.max(...data.filter((d) => !d.suppressed).map((d) => d.value), 1);
   const hidden = table ? 'true' : undefined;
   /* Formatted once, for the row and its table cell; never for a suppressed item. */
@@ -427,7 +474,7 @@ export function HBars({ data, format = String, label, table = true, vizLabels, c
         if (d.suppressed) {
           const display: string | undefined = d.display;
           return (
-            <div className="hbar" key={d.label} title={`${d.label}: ${display ?? L.withheld}`} data-suppressed="" aria-hidden={hidden}>
+            <div className="hbar" key={d.fold ? FOLD_KEY : d.label} title={`${d.label}: ${display ?? L.withheld}`} data-suppressed="" aria-hidden={hidden}>
               <span className="hlabel">{d.label}</span>
               <span className="htrack" />
               <span className="hcount">{display}</span>
@@ -436,9 +483,9 @@ export function HBars({ data, format = String, label, table = true, vizLabels, c
         }
         const shown = printed[k];
         return (
-        <div className="hbar" key={d.label} title={`${d.label}: ${shown}`} aria-hidden={hidden}>
+        <div className="hbar" key={d.fold ? FOLD_KEY : d.label} title={`${d.label}: ${shown}`} aria-hidden={hidden}>
           <span className="hlabel">{d.label}</span>
-          <span className="htrack"><i className={d.alt ? 'alt' : undefined} style={{ width: `${(d.value / top) * 100}%` }} /></span>
+          <span className="htrack"><i className={d.alt || d.fold ? 'alt' : undefined} style={{ width: `${(d.value / top) * 100}%` }} /></span>
           <span className="hcount">{shown}</span>
         </div>
         );

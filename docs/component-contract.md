@@ -762,6 +762,33 @@ color-alone).
   in a stat tile that already states the number; the part then renders exactly the markup it
   did before the table existed. `Ring`, `ActivityStrip` and `Trend` already carry their value as
   an accessible name or text, and render no table.
+- **A chart is bounded too (1.8): the Other fold and the time window.** The bounded-section rule
+  reaches charts through one optional prop, `cap`, on `Bars`, `HBars` and `LineChart`. Without it
+  every part renders exactly the markup it did before. A whole number from 1 applies, with no upper
+  limit; any other value falls back to 5 (`chartCap` in `react/bounded-state.ts`).
+  - **The Other fold (`Bars`, `HBars`).** With more items than `cap`, the first `cap` items stay, by
+    input position (the kit never sorts), and every item past them folds into ONE Other mark, drawn
+    last, on the alt fill (`--data-alt`: `.htrack i.alt`, and the same var on the `Bars` fill). So a
+    folded chart draws `cap` + 1 marks; a chart that fits draws as before. Other is an ordinary
+    counted mark: its value is the sum of the folded values, it counts toward the scale, prints
+    as the raw sum on `Bars` (which has no `format`) and through `format` on `HBars`, and has its
+    own row in the hidden table. The folded items' labels and values
+    appear nowhere.
+  - **Other is a privacy floor of its own.** A suppressed item is never read into Other: if any
+    folded item is suppressed, Other is suppressed before anything is summed. Other is also
+    suppressed when its own total is under 5 (`VIZ_FLOOR`), and fails closed: a total that is not
+    a finite number (a `NaN` or infinite folded value) is suppressed too. A suppressed Other is a suppressed item
+    in every way above: the withheld stub, no fill, `display` the floor label `<5`, out of the scale,
+    never passed to `format` on `HBars`, and `<5` in its hidden table cell. The same chart renders the same
+    markup whatever a folded suppressed value is, and whatever a sub-floor total is.
+  - **The time window (`LineChart`).** With more x labels than `cap`, the newest `cap` points stay
+    and the oldest drop, one index range for the labels and every series, so a short series stays
+    aligned. The scale, the hover, the x labels and the hidden table come from the window only. The
+    window shows: a note in `.vizlegend` (beside the series keys, or alone for one series) and the
+    same note after the table caption.
+  - **The words are copy:** `vizLabels={{ other, floor, window }}`, defaults `Other`, `<5` and
+    `Last N` (`react/labels.ts`, with `VIZ_FLOOR`). No fold or window word lives in `viz.tsx`; a
+    test holds it.
 
 ## Step funnel: `.funnel` (1.8)
 
