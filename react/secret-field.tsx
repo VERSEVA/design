@@ -9,8 +9,10 @@ export interface SecretFieldProps {
   label: string;
   /** Whether a value is stored. The part never receives the value itself, by any prop. */
   isSet: boolean;
-  /** Stores the typed value. Resolve when it is stored; reject (or throw) when it is not. */
-  onSave: (value: string) => Promise<unknown>;
+  /** Stores the typed value. Resolve when it is stored; reject (or throw) when it is not. The
+      signal aborts on Cancel, Escape and unmount: a host that ignores it may still store the
+      value, and the field shows unset until the host flips `isSet`. */
+  onSave: (value: string, signal: AbortSignal) => Promise<unknown>;
   labels?: Partial<SecretFieldLabels>;
   /** Left off unless given: a named password input invites the browser to keep it. */
   name?: string;
@@ -25,9 +27,9 @@ const CHECK = (
 );
 
 /* Reads the value and hands it over in one frame, so no closure of the part keeps it. */
-function send(input: HTMLInputElement, onSave: SecretFieldProps['onSave']): Promise<unknown> {
+function send(input: HTMLInputElement, onSave: SecretFieldProps['onSave'], signal: AbortSignal): Promise<unknown> {
   try {
-    return Promise.resolve(onSave(input.value));
+    return Promise.resolve(onSave(input.value, signal));
   } catch {
     return Promise.reject();
   }
@@ -38,8 +40,8 @@ function send(input: HTMLInputElement, onSave: SecretFieldProps['onSave']): Prom
  * Set, it is a badge and a Replace action; Replace opens an empty input in the same spot with
  * Save and Cancel. The typed value lives in the input element alone: it is not in state, not in
  * a ref, not in an attribute, and the input is cleared and unmounted when the save lands. A
- * failed save leaves the value in the input for a retry; Cancel ends a save that does not
- * settle. The error text comes from the labels, never from the rejection, which may carry the
+ * failed save leaves the value in the input for a retry; Cancel (or Escape) ends a save that
+ * does not settle and aborts the signal it was given. The error text comes from the labels, never from the rejection, which may carry the
  * value.
  */
 export function SecretField({ label, isSet, onSave, labels, name, id, className }: SecretFieldProps) {
@@ -92,6 +94,12 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
   const mounted = React.useRef(false);
   /* Counts saves and cancels, so a result that arrives after Cancel belongs to nobody. */
   const run = React.useRef(0);
+  /* The running save's controller: Cancel, Escape and unmount abort it, so the host can stop. */
+  const pending = React.useRef<AbortController | null>(null);
+  const abort = () => {
+    pending.current?.abort();
+    pending.current = null;
+  };
 
   const stored = isSet || saved;
   const editing = !stored || replacing;
@@ -100,6 +108,7 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
     mounted.current = true;
     return () => {
       mounted.current = false;
+      abort();
     };
   }, []);
 
@@ -115,6 +124,7 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
      With a stored value the field goes back to Set; without one the emptied input stays. */
   const leaveEdit = () => {
     run.current += 1;
+    abort();
     if (inputRef.current) inputRef.current.value = '';
     setBusy(false);
     setLock(undefined);
@@ -141,9 +151,12 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
     setBusy(true);
     setError(null);
     setSaid(L.saving);
-    send(input, onSave).then(
+    const controller = new AbortController();
+    pending.current = controller;
+    send(input, onSave, controller.signal).then(
       () => {
         if (run.current !== mine) return;
+        pending.current = null;
         input.value = '';
         if (!mounted.current) return;
         setSaved(true);
@@ -153,6 +166,7 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
       },
       () => {
         if (run.current !== mine || !mounted.current) return;
+        pending.current = null;
         setBusy(false);
         setLock(undefined);
         setSaid('');
@@ -167,14 +181,19 @@ export function SecretField({ label, isSet, onSave, labels, name, id, className 
     if (e.key === 'Enter') {
       e.preventDefault();
       save();
-    } else if (e.key === 'Escape' && stored && !busy) {
+    }
+  };
+  /* Escape does what Cancel does, wherever Cancel shows: while saving the input is disabled and
+     focus is on Save, so the key is taken on the field, not only on the input. */
+  const onFieldKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape' && editing && (stored || busy)) {
       e.preventDefault();
       leaveEdit();
     }
   };
 
   return (
-    <div className={cx('field', editing && error !== null && 'error', className)}>
+    <div className={cx('field', editing && error !== null && 'error', className)} onKeyDown={onFieldKeyDown}>
       <div className="chiprow">
         <label htmlFor={editing ? inputId : undefined} id={labelId}>{label}</label>
         {stored && <Badge tone="ok">{CHECK}{L.set}</Badge>}

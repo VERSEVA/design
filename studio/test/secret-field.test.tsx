@@ -125,7 +125,7 @@ describe('SecretField: the value is gone after save', () => {
     expect(typed.value).toBe(SECRET);
     fireEvent.click(button('Save'));
     expect(onSave).toHaveBeenCalledTimes(1);
-    expect(onSave.mock.calls[0]).toEqual([SECRET]);
+    expect(onSave.mock.calls[0]).toEqual([SECRET, expect.any(AbortSignal)]);
 
     await act(async () => { d.resolve(); });
 
@@ -189,7 +189,7 @@ describe('SecretField: the value is gone after save', () => {
 
     await act(async () => { fireEvent.click(button('Save')); });
     expect(onSave).toHaveBeenCalledTimes(2);
-    expect(onSave.mock.calls[1]).toEqual([SECRET]);
+    expect(onSave.mock.calls[1]).toEqual([SECRET, expect.any(AbortSignal)]);
     expect(typed.isConnected).toBe(false);
     expect(typed.value).toBe('');
     expectNowhere(container);
@@ -350,9 +350,89 @@ describe('SecretField: the value is gone after save', () => {
     type(typed, SECRET);
     fireEvent.click(button('Save'));
     unmount();
+    expect(typed.value).toBe('');
+    expectNowhere(container);
     await act(async () => { d.reject(new Error(SECRET)); });
     expect(typed.value).toBe('');
+    expectNowhere(container);
     expect(spies.every((s) => s.mock.calls.length === 0)).toBe(true);
+  });
+
+  it('Escape while saving cancels exactly as Cancel does: cleared, gone, the late result ignored', async () => {
+    const spies = spyConsole();
+    const d = deferred();
+    const { container } = render(<SecretField label="Access token" isSet onSave={() => d.promise} />);
+    fireEvent.click(button('Replace'));
+    const typed = input(container)!;
+    type(typed, SECRET);
+    fireEvent.click(button('Save'));
+    /* Focus is on the busy Save: the disabled input cannot take the key. */
+    expect(document.activeElement).toBe(container.querySelector('.btn-primary'));
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(input(container)).toBeNull();
+    expect(typed.isConnected).toBe(false);
+    expect(typed.value).toBe('');
+    expect(document.activeElement).toBe(button('Replace'));
+    expectNowhere(container);
+    await act(async () => { d.resolve(); });
+    expect(container.querySelector('[role="status"]')!.textContent).toBe('');
+    expectNowhere(container);
+    expect(spies.every((s) => s.mock.calls.length === 0)).toBe(true);
+  });
+
+  it('on an unset field, Escape during a save empties the input and gives it back, as Cancel does', () => {
+    const { container } = render(<SecretField label="Access token" isSet={false} onSave={() => new Promise<void>(() => {})} />);
+    const typed = input(container)!;
+    type(typed, SECRET);
+    fireEvent.click(button('Save'));
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(input(container)).toBe(typed);
+    expect(typed.value).toBe('');
+    expect(typed.disabled).toBe(false);
+    expect(document.activeElement).toBe(typed);
+    expectNowhere(container);
+  });
+
+  it('hands onSave an AbortSignal and aborts it on Cancel, on Escape and on unmount', async () => {
+    const signals: AbortSignal[] = [];
+    const onSave = vi.fn((_value: string, signal: AbortSignal) => { signals.push(signal); return new Promise<void>(() => {}); });
+    const { container, unmount } = render(<SecretField label="Access token" isSet onSave={onSave} />);
+    const run = () => { fireEvent.click(button('Replace')); type(input(container)!, SECRET); fireEvent.click(button('Save')); };
+
+    run();
+    expect(signals[0]).toBeInstanceOf(AbortSignal);
+    expect(signals[0].aborted).toBe(false);
+    fireEvent.click(button('Cancel'));
+    expect(signals[0].aborted).toBe(true);
+
+    run();
+    expect(signals[1].aborted).toBe(false);
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(signals[1].aborted).toBe(true);
+
+    run();
+    expect(signals[2].aborted).toBe(false);
+    unmount();
+    expect(signals[2].aborted).toBe(true);
+    expect(holds(signals.map((s) => s.reason), SECRET)).toBe(false);
+  });
+
+  it('does not abort the signal of a save that lands or fails', async () => {
+    const signals: AbortSignal[] = [];
+    const onSave = vi.fn<(value: string, signal: AbortSignal) => Promise<void>>((_v, signal) => { signals.push(signal); return signals.length === 1 ? Promise.reject(new Error('no')) : Promise.resolve(); });
+    const { container } = render(<SecretField label="Access token" isSet={false} onSave={onSave} />);
+    type(input(container)!, SECRET);
+    await act(async () => { fireEvent.click(button('Save')); });
+    expect(signals[0].aborted).toBe(false);
+    await act(async () => { fireEvent.click(button('Save')); });
+    expect(signals[1].aborted).toBe(false);
+    expect(input(container)).toBeNull();
+    expectNowhere(container);
+  });
+
+  it('keeps no copy in a module-level variable: the part declares no top-level let or var', () => {
+    const part = fs.readFileSync(path.resolve(__dirname, '../../react/secret-field.tsx'), 'utf8');
+    expect(part).not.toMatch(/^(export\s+)?(let|var)\s/m);
   });
 
   it('has no prop that carries a value in', () => {
@@ -505,7 +585,7 @@ describe('SecretField: focus never drops to the page', () => {
     fireEvent.click(button('Replace'));
     type(input(container)!, SECRET);
     await act(async () => { fireEvent.keyDown(input(container)!, { key: 'Enter' }); });
-    expect(onSave).toHaveBeenCalledWith(SECRET);
+    expect(onSave).toHaveBeenCalledWith(SECRET, expect.any(AbortSignal));
     expect(document.activeElement).toBe(button('Replace'));
     notOnBody();
   });
