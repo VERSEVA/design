@@ -61,6 +61,40 @@ function compoundLists(sel) {
 /* The class a compound leads with. A class on an element selector ("a.active") is a state of that element, not a part. */
 const leadClass = (compound) => compound.match(/^\.([a-zA-Z_-][\w-]*)/)?.[1];
 
+/* A reference to the signature material: the --glass-* and --nav-* families and --accent-bloom.
+   --e-* is not material: the Tailwind bridge maps every shadow utility to it. A declaration
+   (a ban nulling a token) is not a reference. */
+export const MATERIAL_RE = /var\(\s*--(?:glass-|nav-|accent-bloom(?![\w-]))/;
+
+/* Innermost rules: selector prelude and declaration block. Comments, at-rule heads and keyframe steps dropped. */
+function rules(css) {
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const out = [];
+  for (const m of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const prelude = m[1].slice(m[1].lastIndexOf(';') + 1).trim();
+    if (!prelude || prelude.startsWith('@') || /^(from|to|[\d.]+%)/.test(prelude)) continue;
+    out.push({ selector: prelude.replace(/\[[^\]]*\]/g, ''), body: m[2] });
+  }
+  return out;
+}
+
+/* Root part classes whose rules consume material: every root class a compound of the rule's
+   selector leads with, so ".snav a.active" counts .snav and ".tab.on" counts .tab. */
+export function materialClasses(file = DEFAULT_CSS) {
+  const roots = contractClasses(file);
+  const found = new Set();
+  for (const { selector, body } of rules(fs.readFileSync(file, 'utf8'))) {
+    if (!MATERIAL_RE.test(body)) continue;
+    for (const compounds of compoundLists(selector)) {
+      for (const compound of compounds) {
+        const lead = leadClass(compound);
+        if (lead && roots.has(lead)) found.add(lead);
+      }
+    }
+  }
+  return found;
+}
+
 export function contractClasses(file = DEFAULT_CSS) {
   const classes = new Set();
   for (const sel of selectors(fs.readFileSync(file, 'utf8'))) {

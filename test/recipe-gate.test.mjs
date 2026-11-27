@@ -1,5 +1,6 @@
-// Recipe gate, signal 1: contract-owned elements built by hand. Advisory by default,
-// exit 1 only under --strict. The GREEN set is every shipped block and template.
+// Recipe gate. Signal 1: contract-owned elements built by hand. Signal 2: a material census, one
+// project-level finding when nothing scanned consumes the signature material. Advisory by
+// default, exit 1 only under --strict. The GREEN set is every shipped block and template.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -7,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { contractClasses, contractParts, PART_FLOOR } from '../bin/contract-classes.mjs';
+import { contractClasses, contractParts, materialClasses, PART_FLOOR } from '../bin/contract-classes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
@@ -20,6 +21,7 @@ function run(args, cwd = root) {
   return { code: r.status, out: `${r.stdout}${r.stderr}` };
 }
 const findings = (out) => out.split('\n').filter((l) => /^ {2}.+:\d+ {2}</.test(l));
+const census = (out) => out.split('\n').filter((l) => /^ {2}project {2}/.test(l));
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'verseva-recipe-'));
 
 /* ---- contract class set ---- */
@@ -129,8 +131,10 @@ test('GREEN: every block and template yields zero findings', () => {
   const files = ['blocks', 'templates'].flatMap((d) => fs.readdirSync(path.join(root, d)).filter((f) => f.endsWith('.html')).map((f) => path.join(root, d, f)));
   assert.ok(files.length >= 7);
   for (const f of files) {
-    const r = run(['--strict', f]);
+    /* One file alone can hold no material; the census is judged over the whole set below. */
+    const r = run([f]);
     assert.equal(r.code, 0, `${path.basename(f)}\n${r.out}`);
+    assert.deepEqual(findings(r.out), [], `${path.basename(f)}\n${r.out}`);
   }
   const all = run(['--strict', path.join(root, 'blocks'), path.join(root, 'templates')]);
   assert.equal(all.code, 0, all.out);
@@ -144,14 +148,120 @@ test('GREEN: no block or template carries a recipe-ok marker', () => {
 });
 
 test('contract classes, parent parts at any depth, hidden inputs, scripts and comments all pass', () => {
-  const r = run(['--strict', fx('green.html')]);
+  const r = run([fx('green.html')]);
   assert.equal(r.code, 0, r.out);
+  assert.deepEqual(findings(r.out), [], r.out);
 });
 
 test('an unclosed cell does not lend its part to the next cell', () => {
   const f = findings(run([fx('stale-part.html')]).out);
   assert.equal(f.length, 1, f.join('\n'));
   assert.match(f[0], /stale-part\.html:4 {2}<input>/);
+});
+
+/* ---- material census (signal 2) ---- */
+
+test('the material class set is derived from components.css: classes whose rules consume material', () => {
+  const mat = materialClasses();
+  for (const c of ['glass', 'navshell', 'navmain', 'cside', 'bulkbar', 'wtile', 'lact', 'cmdk', 'tab', 'snav']) assert.ok(mat.has(c), c);
+  for (const c of ['btn', 'card', 'field', 'table', 'modal', 'on', 'active']) assert.ok(!mat.has(c), c);
+  const roots = contractClasses();
+  for (const c of mat) assert.ok(roots.has(c), `${c} is a root part class`);
+});
+
+test('material classes: --e-* does not count, a declaration is not consumption, nesting and :is() are read', () => {
+  const css = path.join(tmp(), 'c.css');
+  fs.writeFileSync(css, [
+    '/* .ghost{background:var(--glass-fill-3)} */',
+    '.elev{box-shadow:var(--e-1)}',
+    '.pane{background:var(--glass-fill-3)}',
+    '.inert{--glass-blur:0;--accent-bloom:none}',
+    '.bare{color:var(--glass)}',
+    '@media (min-width:1px){.rail .pill.on{border:1px solid var(--nav-frame)}}',
+    '.wrap:is(.halo){background:var(--accent-bloom)}',
+    '@keyframes k{from{opacity:0}to{opacity:1}}',
+  ].join('\n'));
+  assert.deepEqual([...materialClasses(css)].sort(), ['halo', 'pane', 'pill', 'rail', 'wrap']);
+});
+
+test('CENSUS: a project that consumes no material yields one project-level finding', () => {
+  const r = run([fx('material', 'bare')]);
+  assert.equal(r.code, 0, 'advisory without --strict');
+  assert.deepEqual(findings(r.out), [], r.out);
+  const c = census(r.out);
+  assert.equal(c.length, 1, r.out);
+  assert.match(c[0], /^ {2}project {2}no material consumed in 3 files {2}Glass panel: \.glass$/);
+  assert.equal(run(['--strict', fx('material', 'bare')]).code, 1);
+});
+
+test('CENSUS: the same project with material "none" is skipped, and the output says so', () => {
+  const cwd = tmp();
+  fs.cpSync(fx('material', 'bare'), cwd, { recursive: true });
+  fs.writeFileSync(path.join(cwd, 'verseva.json'), '{"material": "none"}');
+  const r = run(['--strict', '.'], cwd);
+  assert.equal(r.code, 0, r.out);
+  assert.deepEqual(census(r.out), []);
+  assert.match(r.out, /^verseva-recipe-gate: clean /);
+  assert.match(r.out, /\nverseva-recipe-gate: material census skipped \(material: none\)\n$/);
+});
+
+test('CENSUS: material "full" is the default and runs the census', () => {
+  const cwd = tmp();
+  fs.cpSync(fx('material', 'bare'), cwd, { recursive: true });
+  fs.writeFileSync(path.join(cwd, 'verseva.json'), '{"material": "full"}');
+  assert.equal(census(run(['.'], cwd).out).length, 1);
+});
+
+test('CENSUS: each kind of consumption passes on its own', () => {
+  const files = fs.readdirSync(fx('material', 'used'));
+  assert.equal(files.length, 6);
+  for (const f of files) {
+    const r = run(['--strict', fx('material', 'used', f)]);
+    assert.equal(r.code, 0, `${f}\n${r.out}`);
+    assert.match(r.out, /\nverseva-recipe-gate: material census: \d+ uses? in 1 file\n$/, `${f}\n${r.out}`);
+  }
+});
+
+test('CENSUS: one consuming file anywhere passes the whole project', () => {
+  const r = run(['--strict', fx('material', 'bare'), fx('material', 'used', 'var.css')]);
+  assert.equal(r.code, 0, r.out);
+});
+
+test('CENSUS: files skipped by dir, recipeAllow or --allow do not count as consumption', () => {
+  const cwd = tmp();
+  fs.cpSync(fx('material', 'bare'), path.join(cwd, 'app'), { recursive: true });
+  fs.cpSync(fx('material', 'used'), path.join(cwd, 'kit'), { recursive: true });
+  fs.writeFileSync(path.join(cwd, 'verseva.json'), '{"dir": "kit"}');
+  assert.equal(census(run(['.'], cwd).out).length, 1, 'a vendored kit under dir does not pass the project');
+  fs.writeFileSync(path.join(cwd, 'verseva.json'), '{}');
+  assert.equal(census(run(['--allow', 'kit/', '.'], cwd).out).length, 1);
+  assert.equal(census(run(['.'], cwd).out).length, 0);
+});
+
+test('CENSUS: blocks/console.html passes on its own, and so do react/ and the block and template set', () => {
+  for (const p of [['blocks/console.html'], ['react'], ['blocks', 'templates']]) {
+    const r = run(['--strict', ...p.map((x) => path.join(root, x))]);
+    /* react/ carries one signal-1 element finding that predates the census (a className passed by spread). */
+    if (p[0] !== 'react') assert.equal(r.code, 0, `${p}\n${r.out}`);
+    assert.deepEqual(census(r.out), [], `${p}\n${r.out}`);
+    assert.match(r.out, /\nverseva-recipe-gate: material census: \d+ uses? in \d+ files?\n$/, `${p}\n${r.out}`);
+  }
+});
+
+test('CENSUS: nothing scanned is not a finding', () => {
+  const r = run(['--strict', '--allow', 'red.', fx('red.html')]);
+  assert.equal(r.code, 0, r.out);
+  assert.deepEqual(census(r.out), []);
+});
+
+test('an invalid material value exits 2 with one line', () => {
+  for (const v of ['"partial"', 'true', '""', 'null']) {
+    const cwd = tmp();
+    fs.writeFileSync(path.join(cwd, 'verseva.json'), `{"material": ${v}}`);
+    const r = run([fx('red.html')], cwd);
+    assert.equal(r.code, 2, v);
+    assert.match(r.out, /^verseva-recipe-gate: verseva\.json "material" must be "full" or "none"\n$/, v);
+  }
 });
 
 /* ---- marker ---- */
