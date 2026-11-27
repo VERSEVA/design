@@ -218,14 +218,17 @@ export function DateRange({
 
   /* A field shows the host's value, except while the user is mid-edit in it: `edit` holds only
      what was typed and not yet committed. A valid commit clears it, so a change the host
-     refuses falls back to the value, and a change from the host never lands on typed text. */
-  const [edit, setEdit] = React.useState<{ from: string | null; to: string | null }>({ from: null, to: null });
+     refuses falls back to the value. A change of the host's range or dates, or the fields
+     closing, drops the typed text and its error, so an abandoned edit never comes back. */
+  const NO_EDIT = { from: null, to: null };
+  const [edit, setEdit] = React.useState<{ from: string | null; to: string | null }>(NO_EDIT);
   const draft: Draft = { from: edit.from ?? value.from, to: edit.to ?? value.to };
   const [errors, setErrors] = React.useState<DateRangeErrors>(() => (isCustom ? check(draft).errors : {}));
-  const [seen, setSeen] = React.useState({ range: value.range, from: value.from, to: value.to });
-  if (seen.range !== value.range || seen.from !== value.from || seen.to !== value.to) {
-    setSeen({ range: value.range, from: value.from, to: value.to });
-    setErrors(isCustom ? check(draft).errors : {});
+  const [seen, setSeen] = React.useState({ range: value.range, from: value.from, to: value.to, isCustom });
+  if (seen.range !== value.range || seen.from !== value.from || seen.to !== value.to || seen.isCustom !== isCustom) {
+    setSeen({ range: value.range, from: value.from, to: value.to, isCustom });
+    setEdit(NO_EDIT);
+    setErrors(isCustom ? check({ from: value.from, to: value.to }).errors : {});
   }
 
   const [dialog, setDialog] = React.useState<'sheet' | 'modal' | null>(null);

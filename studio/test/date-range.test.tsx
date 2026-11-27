@@ -221,11 +221,51 @@ describe('DateRange, the fields and the host', () => {
     expect(input('to').value).toBe('2026-11-15');
   });
 
-  it('when the host changes the dates, the field being typed in keeps its text and the other follows', () => {
+  it('when the host changes the range or the dates, typed text and its error are dropped', () => {
     const { rerender } = render(<DateRange id="t" presets={PRESETS} custom value={CUSTOM} onChange={() => {}} />);
     fireEvent.change(input('from'), { target: { value: '2026-10-05' } });
     rerender(<DateRange id="t" presets={PRESETS} custom value={{ ...CUSTOM, from: '2026-11-09', to: '2026-11-29' }} onChange={() => {}} />);
-    expect([input('from').value, input('to').value]).toEqual(['2026-10-05', '2026-11-29']);
+    expect([input('from').value, input('to').value]).toEqual(['2026-11-09', '2026-11-29']);
+    fireEvent.change(input('to'), { target: { value: '2026-11-01' } });
+    fireEvent.blur(input('to'));
+    expect(input('to').getAttribute('aria-invalid')).toBe('true');
+    rerender(<DateRange id="t" presets={PRESETS} custom value={{ ...CUSTOM, range: 'other', from: '2026-11-09', to: '2026-11-29' }} onChange={() => {}} />);
+    expect([input('to').value, input('to').getAttribute('aria-invalid')]).toEqual(['2026-11-29', null]);
+    fireEvent.change(input('from'), { target: { value: '2026-10-05' } });
+    rerender(<DateRange id="t" presets={PRESETS} custom value={{ ...CUSTOM, range: 'other', from: '2026-11-09', to: '2026-11-29', compare: true }} onChange={() => {}} />);
+    expect(input('from').value).toBe('2026-10-05');
+  });
+
+  /* An edit abandoned by choosing a preset must not come back, or be sent, when Custom returns. */
+  for (const [edge, typed, kept] of [['from', '2026-11-20', '2026-11-23'], ['from', '', '2026-11-23'], ['to', '2026-10-01', '2026-11-29'], ['to', '', '2026-11-29']] as const) {
+    it(`an abandoned ${edge} edit (${typed || 'emptied'}) is gone after a preset and Custom again`, () => {
+      const onChange = vi.fn();
+      render(<Host custom start={CUSTOM} onChange={onChange} />);
+      fireEvent.change(input(edge), { target: { value: typed } });
+      fireEvent.blur(input(edge));
+      expect([input(edge).value, document.querySelectorAll('[aria-invalid]').length, onChange.mock.calls.length]).toEqual([typed, 1, 0]);
+      fireEvent.click(radio('This week'));
+      fireEvent.click(radio('Custom'));
+      expect(onChange.mock.lastCall![0]).toEqual({ ...WEEK, range: 'custom' });
+      expect([input(edge).value, document.querySelectorAll('[aria-invalid]').length]).toEqual([kept, 0]);
+      const other = edge === 'from' ? 'to' : 'from';
+      fireEvent.blur(input(other));
+      fireEvent.blur(input(edge));
+      expect(onChange).toHaveBeenCalledTimes(2);
+    });
+  }
+
+  it('when the custom fields close with no change of value, typed text and its error are dropped', () => {
+    const LAST_WEEK: DateRangeValue = { range: '7', from: '2026-11-16', to: '2026-11-22', compare: false };
+    const { container, rerender } = render(<DateRange id="t" presets={PRESETS} custom value={LAST_WEEK} onChange={() => {}} />);
+    fireEvent.change(input('to'), { target: { value: '2026-11-01' } });
+    fireEvent.blur(input('to'));
+    expect(input('to').getAttribute('aria-invalid')).toBe('true');
+    const BACK = [{ ...PRESETS[0], from: '2026-11-16', to: '2026-11-22' }, PRESETS[1]];
+    rerender(<DateRange id="t" presets={BACK} custom value={LAST_WEEK} onChange={() => {}} />);
+    expect(container.querySelector<HTMLElement>('.range-fields')!.hidden).toBe(true);
+    rerender(<DateRange id="t" presets={PRESETS} custom value={LAST_WEEK} onChange={() => {}} />);
+    expect([input('to').value, input('to').getAttribute('aria-invalid')]).toEqual(['2026-11-22', null]);
   });
 
   it('a half-typed year is a missing date, not year 2', () => {
