@@ -178,6 +178,42 @@ a class; `:is()` and `:where()` do. `overrides` holds one row per selector (a
 selector list gives one row per member), sorted by file then line; `file` is a
 POSIX path relative to the working directory.
 
+## Board
+
+```sh
+npx verseva board --manifest themes.json              # a free port
+npx verseva board --manifest themes.json --port 4390
+```
+
+Every contract specimen (the Components page) under any theme a local manifest
+names, on `http://127.0.0.1:<port>/`, so a theme is seen on the whole system
+before it ships. Themes stay private: the manifest and the theme files live in
+your project, never in this package. Pick a theme from the switcher in the
+topbar; `?brand=<id>` opens one directly; an edit to a theme file shows on reload.
+
+```json
+{
+  "themes": [
+    { "id": "acme", "label": "Acme", "css": "brand/theme.css" }
+  ]
+}
+```
+
+`id` is the theme's `[data-brand]` slug (lowercase letters, digits, dashes);
+`label` is text (1 to 64 characters); `css` resolves against the working
+directory. `templates/theme-manifest.example.json` names the four presets and
+runs from the package root.
+
+Contained by construction: the manifest and every theme must be regular files
+inside the working directory (a path that leaves it, a symlink anywhere on the
+path, a FIFO or a directory is refused), themes end in `.css`, and sizes are
+capped (manifest 64 KB, at most 64 themes, theme 1 MB). The server binds
+127.0.0.1 only, answers only a `127.0.0.1` or `localhost` Host on its port,
+refuses requests a browser marks as started by another site,
+serves the package's own files plus `/theme/<id>.css` by manifest id, and returns
+404 for any other path however it is encoded. Every response carries
+`X-Content-Type-Options: nosniff`. A bad manifest stops with one line and exit 2.
+
 ## Agents
 
 ```sh

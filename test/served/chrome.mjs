@@ -142,7 +142,8 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
       async goto(p) {
         const loaded = waitFor('Page.loadEventFired', sessionId);
         loaded.catch(() => {}); /* awaited below; a failed navigate must not leave it unhandled */
-        await send('Page.navigate', { url: origin + p }, sessionId);
+        /* a path is on the out/ server; an absolute http URL is another local server (the board) */
+        await send('Page.navigate', { url: /^http:\/\//.test(p) ? p : origin + p }, sessionId);
         await loaded;
       },
       async evaluate(expression) {
