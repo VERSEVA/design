@@ -114,6 +114,17 @@ describe('Other is a privacy floor', () => {
     expect(last(rows(at))).toEqual([VIZ_LABELS.other, '5']);
   });
 
+  it('fails closed: a NaN or an infinite folded value makes Other suppressed with display "<5"', () => {
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      const data: BarItem[] = [...five, { label: 'f', value: 9 }, { label: 'g', value: bad }];
+      for (const c of [render(<Bars data={data} cap={5} />).container, render(<HBars data={data as HBarItem[]} cap={5} />).container]) {
+        expect(c.querySelectorAll('[data-suppressed]')).toHaveLength(1);
+        expect(last(rows(c))).toEqual([VIZ_LABELS.other, VIZ_LABELS.floor]);
+        expect(c.innerHTML).not.toMatch(/NaN|Infinity/);
+      }
+    }
+  });
+
   it('renders identical markup whether a hidden folded value is 3 or 987654, table on, Bars and HBars', () => {
     for (const showValues of [true, false]) {
       expect(renderToStaticMarkup(<Bars data={withSecret(987654)} cap={5} showValues={showValues} label="L" />))

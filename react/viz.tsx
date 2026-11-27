@@ -384,7 +384,8 @@ function foldOther<T extends { label: string; value: number; suppressed?: boolea
   if (keep === undefined || data.length <= keep) return data;
   const rest = data.slice(keep);
   const total = rest.some((d) => d.suppressed) ? undefined : rest.reduce((sum, d) => sum + d.value, 0);
-  const other = total === undefined || total < VIZ_FLOOR
+  /* Fails closed: a NaN or infinite total is never printed, it is suppressed like a total under the floor. */
+  const other = total === undefined || !Number.isFinite(total) || !(total >= VIZ_FLOOR)
     ? { label: L.other, value: 0, suppressed: true, display: L.floor, fold: true }
     : { label: L.other, value: total, fold: true };
   return [...data.slice(0, keep), other as Folded<T>];

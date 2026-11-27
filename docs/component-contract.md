@@ -771,13 +771,15 @@ color-alone).
     last, on the alt fill (`--data-alt`: `.htrack i.alt`, and the same var on the `Bars` fill). So a
     folded chart draws `cap` + 1 marks; a chart that fits draws as before. Other is an ordinary
     counted mark: its value is the sum of the folded values, it counts toward the scale, prints
-    through `format`, and has its own row in the hidden table. The folded items' labels and values
+    as the raw sum on `Bars` (which has no `format`) and through `format` on `HBars`, and has its
+    own row in the hidden table. The folded items' labels and values
     appear nowhere.
   - **Other is a privacy floor of its own.** A suppressed item is never read into Other: if any
     folded item is suppressed, Other is suppressed before anything is summed. Other is also
-    suppressed when its own total is under 5 (`VIZ_FLOOR`). A suppressed Other is a suppressed item
+    suppressed when its own total is under 5 (`VIZ_FLOOR`), and fails closed: a total that is not
+    a finite number (a `NaN` or infinite folded value) is suppressed too. A suppressed Other is a suppressed item
     in every way above: the withheld stub, no fill, `display` the floor label `<5`, out of the scale,
-    never passed to `format`, and `<5` in its hidden table cell. The same chart renders the same
+    never passed to `format` on `HBars`, and `<5` in its hidden table cell. The same chart renders the same
     markup whatever a folded suppressed value is, and whatever a sub-floor total is.
   - **The time window (`LineChart`).** With more x labels than `cap`, the newest `cap` points stay
     and the oldest drop, one index range for the labels and every series, so a short series stays
