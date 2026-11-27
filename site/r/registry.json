@@ -346,6 +346,23 @@
         "cx"
       ],
       "description": "Command bar on the K chord: actions, go-to and recent filtered as you type; an Ask row only with onAsk, the answer streamed in place"
+    },
+    {
+      "name": "date-range-state",
+      "file": "react/date-range-state.ts",
+      "kind": "util",
+      "deps": [],
+      "description": "Date range logic and built-in words: the value shape, the custom range check, the range line; pure, so server code can read it"
+    },
+    {
+      "name": "date-range",
+      "file": "react/date-range.tsx",
+      "kind": "component",
+      "deps": [
+        "date-range-state",
+        "cx"
+      ],
+      "description": "Date range control: host presets as a segmented radiogroup or one menu trigger, Compare, custom dates snapped on blur and in a sheet on a phone; controlled, never touches the URL"
     }
   ],
   "themes": [

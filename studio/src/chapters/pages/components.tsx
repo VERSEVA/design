@@ -4,13 +4,15 @@
 // bulk, accordion nav): scoped to the chapter root, listeners on the abort signal, and
 // every change it makes to the DOM undone on cleanup. Code panels are the tiles' own.
 import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { DateRange, type DateRangeProps, type DateRangeValue } from '../../../../react/date-range';
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
 import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
 import './components.css';
 /* The sections with a specimen, in page order: sample i of components.code.json (built by
    studio/scripts/chapter-code.mjs from the frozen page) is the sample of SAMPLED[i]. The samples
    load on first intent, so they stay out of the main chunk. */
-export const SAMPLED = ['spacing', 'button', 'field', 'secret', 'switch', 'permission-picking', 'sel-two-line', 'card', 'glass', 'badge', 'toast', 'modal', 'erase', 'table', 'table-pin', 'bounded', 'bulk', 'stat', 'chart', 'seg', 'fchip', 'search', 'rows', 'kv', 'tline', 'skeleton', 'select', 'tabs', 'menu', 'rowmenu', 'tooltip', 'crumbsdoc', 'pagerdoc', 'progressdoc', 'calloutdoc', 'emptydoc', 'accdoc', 'topnav', 'sidenav', 'sheet', 'navshell', 'accordion-nav', 'shell', 'shell-rail', 'switcher', 'capsule', 'topbar', 'notifications', 'whatsnew', 'panel-states', 'drawer-states'];
+export const SAMPLED = ['spacing', 'button', 'field', 'secret', 'switch', 'permission-picking', 'sel-two-line', 'card', 'glass', 'badge', 'toast', 'modal', 'erase', 'table', 'table-pin', 'bounded', 'bulk', 'stat', 'chart', 'seg', 'fchip', 'search', 'rows', 'kv', 'tline', 'skeleton', 'select', 'tabs', 'menu', 'rowmenu', 'range', 'range-menu', 'tooltip', 'crumbsdoc', 'pagerdoc', 'progressdoc', 'calloutdoc', 'emptydoc', 'accdoc', 'topnav', 'sidenav', 'sheet', 'navshell', 'accordion-nav', 'shell', 'shell-rail', 'switcher', 'capsule', 'topbar', 'notifications', 'whatsnew', 'panel-states', 'drawer-states'];
 let samples: Promise<string[]> | undefined;
 const sample = (id: string) => () => (samples ??= import('./components.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
 
@@ -91,6 +93,56 @@ function BoundedSpecimen({ id, name, rows }: { id: string; name: string; rows: n
   );
 }
 
+/* Date range specimens: fixed dates (the week of 23 Nov 2026) and whole weeks, Monday to Sunday.
+   Each specimen is controlled here and writes its value and its onChange count to data-value and
+   data-emits, which test/served/date-range.test.mjs reads. */
+const RANGE_PRESETS = [
+  { value: '7', label: 'This week', from: '2026-11-23', to: '2026-11-29' },
+  { value: '28', label: '4 weeks', from: '2026-11-02', to: '2026-11-29' },
+  { value: '91', label: '13 weeks', from: '2026-08-31', to: '2026-11-29' },
+];
+const RANGE_WEEK: DateRangeValue = { range: '7', from: '2026-11-23', to: '2026-11-29', compare: false };
+const DAY_MS = 864e5;
+const snapWeek = (date: string, edge: 'from' | 'to') => {
+  const t = Date.parse(`${date}T00:00:00Z`);
+  const monday = t - ((new Date(t).getUTCDay() + 6) % 7) * DAY_MS;
+  return new Date(edge === 'from' ? monday : monday + 6 * DAY_MS).toISOString().slice(0, 10);
+};
+/* What the menu trigger calls a custom range, as the prototype did: whole weeks. */
+const rangeWeeks = (from: string, to: string) => {
+  const n = Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`) + DAY_MS) / (7 * DAY_MS));
+  return `${n} ${n === 1 ? 'week' : 'weeks'}`;
+};
+
+/* One state of the part: its name over a live specimen. `typed` types a date into the To field and
+   leaves it once the page has settled, so the invalid state is the real one: a valid value, and a
+   field holding a date the part will not emit. */
+function RangeSpecimen({ name, typed, start = RANGE_WEEK, presets = RANGE_PRESETS, ...props }: { name: string; typed?: string; start?: DateRangeValue; presets?: DateRangeProps['presets'] } & Omit<DateRangeProps, 'value' | 'onChange' | 'presets'>) {
+  const [value, setValue] = useState(start);
+  const [emits, setEmits] = useState(0);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!typed) return;
+    let next = 0;
+    const first = requestAnimationFrame(() => {
+      const input = box.current?.querySelector<HTMLInputElement>('input[data-k="to"]');
+      if (!input) return;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, typed);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      next = requestAnimationFrame(() => input.dispatchEvent(new FocusEvent('focusout', { bubbles: true })));
+    });
+    return () => { cancelAnimationFrame(first); cancelAnimationFrame(next); };
+  }, [typed]);
+  return (
+    <div className="range-state">
+      <span className="range-state-name">{name}</span>
+      <div className="specimen" ref={box} data-value={JSON.stringify(value)} data-emits={emits}>
+        <DateRange {...props} presets={presets} value={value} onChange={(v) => { setValue(v); setEmits((n) => n + 1); }} snap={snapWeek} min="2025-10-27" max="2026-11-29" />
+      </div>
+    </div>
+  );
+}
+
 /* One header icon per category. */
 const ICON = {
   setup: tileIcon(<><path d="m8 8-4 4 4 4" /><path d="m16 8 4 4-4 4" /></>),
@@ -134,6 +186,8 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
     });
   });
   root.querySelectorAll('.menu').forEach((menu) => {
+    /* the date range part runs its own menu */
+    if (menu.hasAttribute('data-range')) return;
     const trigger = menu.querySelector<HTMLElement>('[aria-haspopup]')!;
     const list = menu.querySelector<HTMLElement>('.menu-list')!;
     on(trigger, 'click', () => {
@@ -1203,6 +1257,24 @@ export function Page() {
                   </div>
                 </div>
               </div>
+            </div>
+          </SpecimenTile>
+          <SpecimenTile id="range" name="Date range" icon={ICON.control} size="xl" meta="5 states" code={sample('range')}>
+            <div className="demo range-demo">
+              <RangeSpecimen name="Default" id="rg-a" custom compare zone="UTC" />
+              <RangeSpecimen name="Two presets" id="rg-b" presets={RANGE_PRESETS.slice(0, 2)} zone="UTC" />
+              <RangeSpecimen name="Custom, compare on" id="rg-c" custom compare zone="UTC" start={{ range: 'custom', from: '2026-10-05', to: '2026-11-01', compare: true }} />
+              <RangeSpecimen name="Invalid range" id="rg-d" custom compare zone="UTC" start={{ range: 'custom', from: '2026-11-02', to: '2026-11-15', compare: false }} typed="2026-10-25" />
+              <RangeSpecimen name="Disabled" id="rg-e" custom compare zone="UTC" disabled start={{ range: '28', from: '2026-11-02', to: '2026-11-29', compare: false }} />
+            </div>
+          </SpecimenTile>
+          <SpecimenTile id="range-menu" name="Range menu" icon={ICON.control} size="xl" meta="5 states" code={sample('range-menu')}>
+            <div className="demo range-demo">
+              <RangeSpecimen name="Default" id="rm-a" variant="menu" custom compare />
+              <RangeSpecimen name="Two presets" id="rm-b" variant="menu" presets={RANGE_PRESETS.slice(0, 2)} />
+              <RangeSpecimen name="Custom range" id="rm-c" variant="menu" custom compare formatCustom={rangeWeeks} start={{ range: 'custom', from: '2026-10-05', to: '2026-11-01', compare: false }} />
+              <RangeSpecimen name="Compare on" id="rm-d" variant="menu" custom compare start={{ ...RANGE_WEEK, compare: true }} />
+              <RangeSpecimen name="Disabled" id="rm-e" variant="menu" custom compare disabled />
             </div>
           </SpecimenTile>
           <SpecimenTile id="tooltip" name="Tooltip" icon={ICON.control} size="s" code={sample('tooltip')}>

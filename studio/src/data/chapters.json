@@ -129,6 +129,14 @@
         "label": "Row menu"
       },
       {
+        "id": "range",
+        "label": "Date range"
+      },
+      {
+        "id": "range-menu",
+        "label": "Range menu"
+      },
+      {
         "id": "tooltip",
         "label": "Tooltip"
       },
