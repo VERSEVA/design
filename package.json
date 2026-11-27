@@ -19,6 +19,7 @@
     "./preset": "./tailwind.preset.cjs",
     "./react/*": "./react/*.tsx",
     "./react/activity-state": "./react/activity-state.ts",
+    "./react/bounded-state": "./react/bounded-state.ts",
     "./react/command-state": "./react/command-state.ts",
     "./react/console-state": "./react/console-state.ts",
     "./react/cx": "./react/cx.ts",
