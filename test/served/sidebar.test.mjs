@@ -40,7 +40,7 @@ for (const state of ['expanded', 'collapsed']) {
 }
 
 // On a wide screen the side nav sits flush against the window's left edge, expanded and as the
-// rail; only the content column is capped and centred (1.7.1: the shell used to centre at 1440).
+// rail; only the content column is capped and centred (1.8.0: the shell used to centre at 1440).
 for (const state of ['expanded', 'collapsed']) {
   test(`the ${state} side nav is flush left at 1920 on / and /components`, { timeout: 120000 }, async () => {
     for (const path of ['/', '/components']) {

@@ -71,7 +71,7 @@ export function Menu({ trigger, renderTrigger, items, className, label, listClas
     if (!nodes.length) return;
     const at = nodes.indexOf(document.activeElement as HTMLButtonElement);
     const next = at === -1 ? (dir === -1 ? nodes.length - 1 : 0) : (at + dir + nodes.length) % nodes.length;
-    nodes[next].focus();
+    nodes[next]?.focus();
   };
 
   const focusEdge = (last: boolean) => {

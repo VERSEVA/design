@@ -106,7 +106,7 @@ export function moveSelection(current: number, delta: number, options: ReadonlyA
   let i = Number.isInteger(current) && current >= 0 && current < n ? current : step > 0 ? -1 : n;
   for (let k = 0; k < n; k++) {
     i = (i + step + n) % n;
-    if (!options[i].disabled) return i;
+    if (!options[i]?.disabled) return i;
   }
   return -1;
 }

@@ -70,6 +70,7 @@ export function OrgSwitcher({ orgs, currentId, onSwitch, onSettings, onMembers, 
   if (!orgs.length) return null;
   const L = withDefaults(ORG_SWITCHER_LABELS, labels);
   const current = orgs.find((o) => o.id === currentId) ?? orgs[0];
+  if (!current) return null;
 
   const items: (MenuItemDef | 'separator')[] = orgs.map((o) => ({
     id: `org:${o.id}`,

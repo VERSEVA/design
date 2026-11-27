@@ -37,7 +37,9 @@ export function Tabs({ items, value, onChange, panelId, className, ...rest }: Ta
     else if (e.key === 'End') next = items.length - 1;
     if (next === -1) return;
     e.preventDefault();
-    onChange(items[next].value);
+    const item = items[next];
+    if (!item) return;
+    onChange(item.value);
     refs.current[next]?.focus();
   };
 

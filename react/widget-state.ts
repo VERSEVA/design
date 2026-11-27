@@ -57,7 +57,7 @@ export function fitSize(size: WidgetSize, sizes: readonly WidgetSize[], cols: Co
   const cap = Math.min(rank(size), rank(largestSizeFor(cols)));
   const ok = SIZE_ORDER.filter((s) => sizes.includes(s));
   const under = ok.filter((s) => rank(s) <= cap);
-  return under.length ? under[under.length - 1] : (ok[0] ?? size);
+  return under[under.length - 1] ?? ok[0] ?? size;
 }
 
 /** Every supported size in order; the ones that do not fit stay listed (rendered aria-disabled). */
@@ -102,8 +102,7 @@ export function move<T>(layout: readonly T[], from: number, to: number): T[] {
   const n = layout.length;
   if (from === to || from < 0 || to < 0 || from >= n || to >= n) return layout as T[];
   const next = layout.slice();
-  const [it] = next.splice(from, 1);
-  next.splice(to, 0, it);
+  next.splice(to, 0, ...next.splice(from, 1));
   return next;
 }
 
@@ -112,7 +111,8 @@ export function swap<T>(layout: readonly T[], i: number, j: number): T[] {
   const n = layout.length;
   if (i === j || i < 0 || j < 0 || i >= n || j >= n) return layout as T[];
   const next = layout.slice();
-  [next[i], next[j]] = [next[j], next[i]];
+  next.splice(i, 1, ...layout.slice(j, j + 1));
+  next.splice(j, 1, ...layout.slice(i, i + 1));
   return next;
 }
 
@@ -172,8 +172,9 @@ export function addWidget(layout: readonly LayoutItem[], kind: string, size: Wid
 
 export function removeWidget(layout: readonly LayoutItem[], id: string): { layout: LayoutItem[]; removed: Removed | null } {
   const index = layout.findIndex((x) => x.id === id);
-  if (index < 0) return { layout: layout as LayoutItem[], removed: null };
-  return { layout: layout.filter((_, i) => i !== index), removed: { item: layout[index], index } };
+  const item = layout[index];
+  if (index < 0 || !item) return { layout: layout as LayoutItem[], removed: null };
+  return { layout: layout.filter((_, i) => i !== index), removed: { item, index } };
 }
 
 /** Undo a remove: back at its old index (clamped). A layout that already holds the id is returned as is. */
@@ -186,7 +187,8 @@ export function restoreWidget(layout: readonly LayoutItem[], removed: Removed): 
 
 export function resizeWidget(layout: readonly LayoutItem[], id: string, size: WidgetSize, specs: readonly WidgetSpec[]): LayoutItem[] {
   const i = layout.findIndex((x) => x.id === id);
-  if (i < 0 || layout[i].size === size || !specFor(specs, layout[i].kind)?.sizes.includes(size)) return layout as LayoutItem[];
+  const cur = layout[i];
+  if (!cur || cur.size === size || !specFor(specs, cur.kind)?.sizes.includes(size)) return layout as LayoutItem[];
   return layout.map((x, k) => (k === i ? { ...x, size } : x));
 }
 

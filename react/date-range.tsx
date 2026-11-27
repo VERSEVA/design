@@ -306,7 +306,8 @@ export function DateRange({
 
   if (variant === 'menu') {
     /* the preset's name, the custom label, or (a value that is neither) the range itself */
-    const current = chosen >= 0 ? presets[chosen].label : isCustom ? formatCustom?.(value.from, value.to) ?? L.custom : null;
+    const chosenPreset = presets[chosen];
+    const current = chosenPreset ? chosenPreset.label : isCustom ? formatCustom?.(value.from, value.to) ?? L.custom : null;
     const close = (refocus: boolean) => { setOpen(false); if (refocus) trigRef.current?.focus(); };
     const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (!open) {
@@ -324,7 +325,7 @@ export function DateRange({
       const to = moveIndex(e.key, items.indexOf(document.activeElement as HTMLButtonElement), items.length);
       if (to === null) return;
       e.preventDefault();
-      items[to].focus();
+      items[to]?.focus();
     };
     return (
       <div className={cx('menu', className)} data-range="menu" ref={rootRef} onKeyDown={onKeyDown}>
@@ -383,6 +384,7 @@ export function DateRange({
   const stop = roving ?? (on >= 0 ? on : 0);
   const pick = (at: number, el: HTMLElement, how: 'click' | 'key') => {
     const o = options[at];
+    if (!o) return;
     if (o.preset) { pickPreset(o.preset); return; }
     if (isPhone()) {
       /* an arrow onto Custom only moves focus; the sheet opens on a tap, Enter or Space */
@@ -397,11 +399,12 @@ export function DateRange({
     const at = list.indexOf(document.activeElement as HTMLButtonElement);
     if (at < 0) return;
     const to = moveIndex(e.key, at, list.length);
-    if (to === null) return;
+    const el = to === null ? undefined : list[to];
+    if (to === null || !el) return;
     e.preventDefault();
-    list[to].focus();
+    el.focus();
     setRoving(null);
-    pick(to, list[to], 'key');
+    pick(to, el, 'key');
   };
 
   return (

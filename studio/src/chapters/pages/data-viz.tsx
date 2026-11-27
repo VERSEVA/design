@@ -6,7 +6,7 @@
 // The legacy inline script runs as the chapter script for the drawing (sparklines, the line
 // plot and its range): scoped to the chapter root, listeners on the abort signal, and whatever
 // it adds to the DOM removed on cleanup. Code panels are the tiles' own.
-// Withheld data (1.7.1), after the rail's sections: Suppressed values and Gaps render the kit's own
+// Withheld data (1.8.0), after the rail's sections: Suppressed values and Gaps render the kit's own
 // parts (react/viz), so no value of a suppressed item reaches the page and the gap hover is live.
 // Their useId gradient ids are named in order in the samples (specimenCode stableIds).
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
