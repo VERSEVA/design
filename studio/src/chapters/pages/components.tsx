@@ -12,11 +12,58 @@ import './components.css';
 /* The sections with a specimen, in page order: sample i of components.code.json (built by
    studio/scripts/chapter-code.mjs from the frozen page) is the sample of SAMPLED[i]. The samples
    load on first intent, so they stay out of the main chunk. */
-export const SAMPLED = ['spacing', 'button', 'field', 'switch', 'permission-picking', 'sel-two-line', 'card', 'glass', 'badge', 'toast', 'modal', 'erase', 'table', 'table-pin', 'bounded', 'bulk', 'stat', 'chart', 'seg', 'fchip', 'search', 'rows', 'kv', 'tline', 'skeleton', 'select', 'tabs', 'menu', 'rowmenu', 'range', 'range-menu', 'tooltip', 'crumbsdoc', 'pagerdoc', 'progressdoc', 'calloutdoc', 'emptydoc', 'accdoc', 'topnav', 'sidenav', 'sheet', 'navshell', 'accordion-nav', 'shell', 'shell-rail', 'switcher', 'capsule', 'topbar', 'notifications', 'whatsnew', 'panel-states', 'drawer-states'];
+export const SAMPLED = ['spacing', 'button', 'field', 'secret', 'switch', 'permission-picking', 'sel-two-line', 'card', 'glass', 'badge', 'toast', 'modal', 'erase', 'table', 'table-pin', 'bounded', 'bulk', 'stat', 'chart', 'seg', 'fchip', 'search', 'rows', 'kv', 'tline', 'skeleton', 'select', 'tabs', 'menu', 'rowmenu', 'range', 'range-menu', 'tooltip', 'crumbsdoc', 'pagerdoc', 'progressdoc', 'calloutdoc', 'emptydoc', 'accdoc', 'topnav', 'sidenav', 'sheet', 'navshell', 'accordion-nav', 'shell', 'shell-rail', 'switcher', 'capsule', 'topbar', 'notifications', 'whatsnew', 'panel-states', 'drawer-states'];
 let samples: Promise<string[]> | undefined;
 const sample = (id: string) => () => (samples ??= import('./components.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
 
 export const INSTALL = "<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/tokens.css\">\n<link rel=\"stylesheet\" href=\"node_modules/@verseva/design/components.css\">\n\n<!-- consumer surfaces boot light (law 9): -->\n<html data-theme=\"light\">\n\n<!-- enforce before you ship: -->\nnpx verseva-gate --tokens node_modules/@verseva/design/tokens.css src\n\n<!-- React, source-distribution (the shadcn model): components land in\n     YOUR project as source you own -->\nnpx verseva init\nnpx verseva add button field toast console-nav\nnpx verseva block add quote-tool";
+
+/* The secret field's six states, as the React part (react/secret-field.tsx) renders them. */
+const SECRET_STATES = [
+  { name: 'Unset', id: 'sk-unset' },
+  { name: 'Typing', id: 'sk-typing', filled: true },
+  { name: 'Saving', id: 'sk-saving', filled: true, busy: true },
+  { name: 'Set', id: 'sk-set', stored: true, view: true },
+  { name: 'Replacing', id: 'sk-replacing', stored: true },
+  { name: 'Error', id: 'sk-error', stored: true, filled: true, error: true },
+] as const satisfies ReadonlyArray<{ name: string; id: string; stored?: boolean; view?: boolean; filled?: boolean; busy?: boolean; error?: boolean }>;
+const SECRET_DEMO = 'demo-value-for-specimen-only';
+
+function SecretSpecimen({ name, id, stored = false, view = false, filled = false, busy = false, error = false }: { name: string; id: string; stored?: boolean; view?: boolean; filled?: boolean; busy?: boolean; error?: boolean }) {
+  return (
+    <div className="secret-state">
+      <span className="grouplabel">{name}</span>
+      <div className="specimen" inert>
+        <div className={error ? 'field error' : 'field'}>
+          <div className="chiprow">
+            <label htmlFor={view ? undefined : id} id={`${id}-l`}>Access token</label>
+            {stored && (
+              <span className="badge ok">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 8.5l3 3 6-7" /></svg>
+                Set
+              </span>
+            )}
+          </div>
+          {!view && <input id={id} type="password" autoComplete="off" autoCapitalize="off" spellCheck="false" data-1p-ignore="" data-lpignore="true" data-bwignore="" data-form-type="other" disabled={busy} aria-invalid={error || undefined} aria-describedby={error ? `${id}-e` : undefined} />}
+          {error && <p className="help" id={`${id}-e`} role="alert">The provider rejected this token. Paste a new one.</p>}
+          {view ? (
+            <div className="chiprow">
+              <button type="button" className="btn btn-secondary sm" aria-describedby={`${id}-l`}>Replace token</button>
+            </div>
+          ) : (
+            <div className="chiprow">
+              {(stored || busy) && <button type="button" className="btn btn-ghost sm" aria-describedby={`${id}-l`}>Cancel</button>}
+              {busy
+                ? <button type="button" className="btn btn-primary sm" aria-busy="true" aria-describedby={`${id}-l`}><span className="spinner" aria-hidden="true" /><span className="sr-only">Saving</span></button>
+                : <button type="button" className="btn btn-primary sm" disabled={!filled} aria-describedby={`${id}-l`}>Save token</button>}
+            </div>
+          )}
+          <span className="sr-only" role="status" aria-live="polite">{busy ? 'Saving' : null}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* The bounded specimen's rows: one list, cut to each state's length (0, 3, the cap, the cap plus 40), and whole in the table. */
 const QUOTE_CLIENTS = ['Northline Foods', 'Harbor Botanics', 'Cedar Mills', 'Alder Freight', 'Juniper Labs'];
@@ -175,6 +222,15 @@ export const script: ChapterScript = (root, signal, onCleanup) => {
     on(input, 'input', () => { go.disabled = input.value.trim() !== input.dataset.phrase; });
   });
 
+  /* The secret specimens show a typed value without one written into the markup, and the
+     busy Save keeps the width of its label. The snapshot above puts both back. */
+  root.querySelectorAll<HTMLInputElement>('#sk-typing, #sk-saving, #sk-error').forEach((input) => { input.value = SECRET_DEMO; });
+  root.querySelectorAll('#secret').forEach((sec) => {
+    const from = sec.querySelector<HTMLElement>('#sk-typing ~ .chiprow .btn-primary');
+    const busy = sec.querySelector<HTMLElement>('#sk-saving ~ .chiprow .btn-primary');
+    if (from && busy && from.offsetWidth) busy.style.width = `${from.offsetWidth}px`;
+  });
+
   root.querySelectorAll<HTMLElement>('.bulk-demo').forEach((panel) => {
     const all = panel.querySelector<HTMLInputElement>('thead .pick input')!;
     const boxes = [...panel.querySelectorAll<HTMLInputElement>('tbody .pick input')];
@@ -288,6 +344,11 @@ export function Page() {
                   <div className="help">Enter a work email first.</div>
                 </div>
               </div>
+            </div>
+          </SpecimenTile>
+          <SpecimenTile id="secret" name="Secret field" icon={ICON.control} size="xl" meta="6 states" code={sample('secret')}>
+            <div className="demo">
+              {SECRET_STATES.map((s) => <SecretSpecimen key={s.id} {...s} />)}
             </div>
           </SpecimenTile>
           <SpecimenTile id="switch" name="Checkbox + switch" icon={ICON.control} size="m" meta="2 variants" code={sample('switch')}>

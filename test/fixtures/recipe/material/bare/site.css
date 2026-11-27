@@ -1,0 +1,3 @@
+/* var(--glass-fill-3) in a comment is not consumption */
+.page { box-shadow: var(--e-1); }
+.page.flat { --glass-blur: 0; --accent-bloom: none; }

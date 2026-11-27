@@ -218,10 +218,10 @@ describe('Components as tiles', () => {
   it('renders every section as a tile in one bento grid, in rail order, each named by its h2 (the rail drops a " · variant" suffix)', () => {
     const { container } = render(<Components />);
     const tiles = [...container.querySelectorAll<HTMLElement>('.chap .wgrid.sgrid > section.stile')];
-    expect(tiles.length).toBe(53);
+    expect(tiles.length).toBe(54);
     expect(tiles.map((t) => t.id)).toEqual(comp.sections.map((s) => s.id));
     expect(tiles.map((t) => t.querySelector(':scope > .wtile-body > .wtile-hd > h2.stile-name')!.textContent!.split(' · ')[0])).toEqual(comp.sections.map((s) => s.label));
-    expect(container.querySelectorAll('.chap h2').length).toBe(53);
+    expect(container.querySelectorAll('.chap h2').length).toBe(54);
   });
 
   it('sizes each tile to its content: button rows M, tables and consoles XL', () => {
