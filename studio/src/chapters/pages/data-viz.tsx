@@ -56,10 +56,10 @@ const FUNNEL_ICON = (
 function FunnelPanel({ state }: { state: FunnelState }) {
   const busy = state === 'loading';
   return (
-    <section className="glass" aria-label="Funnel steps" aria-busy={busy || undefined}>
-      <div className="hd"><h4>Funnel steps</h4><div className="chiprow"><span className="metaline">4 weeks</span></div></div>
+    <div className="glass" aria-busy={busy || undefined}>
+      <div className="hd"><h3>Funnel steps</h3><div className="chiprow"><span className="metaline">4 weeks</span></div></div>
       <div className="bd"><Funnel steps={FUNNEL_STEPS[state]} share loading={busy} /></div>
-    </section>
+    </div>
   );
 }
 function FunnelTile({ size, state }: { size: 'm' | 'l'; state: FunnelState }) {

@@ -403,7 +403,7 @@ describe('Decks tiles', () => {
 describe('Data viz tiles: step funnel', () => {
   it('draws the panel in all five states', () => {
     const root = page('data-viz');
-    const panels = [...root.querySelectorAll('#funnel .fpanels section.glass')];
+    const panels = [...root.querySelectorAll('#funnel .fpanels .glass')];
     expect(panels).toHaveLength(5);
     const [normal, withheld, single, empty, loading] = panels;
     expect(normal.querySelectorAll('ol.funnel[data-share] > li.hbar')).toHaveLength(5);
