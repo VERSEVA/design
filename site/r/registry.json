@@ -60,6 +60,18 @@
       "description": "Label + input + help with a fix-it error state, wired for a11y"
     },
     {
+      "name": "secret-field",
+      "file": "react/secret-field.tsx",
+      "kind": "component",
+      "deps": [
+        "labels",
+        "button",
+        "badge",
+        "cx"
+      ],
+      "description": "Write-only field for keys and tokens: empty after save, a Set badge, Replace in place; the stored value is never rendered back"
+    },
+    {
       "name": "switch",
       "file": "react/switch.tsx",
       "kind": "component",
