@@ -131,10 +131,10 @@ export function Funnel({ steps, share = false, loading = false, label, table = t
         ))}
       </ol>
       {table && (
-        /* A table sizes to its content whatever its width says, so the hiding box is a div around it. */
+        /* A table sizes to its content whatever its width says, so the hiding box is a div around it.
+           The table is the contract .table, never seen. */
         <div className="sr-only">
-          {/* recipe-ok: the visually hidden data table for assistive tech, never drawn, so not a .table */}
-          <table>
+          <table className="table">
             <caption>{name}</caption>
             <thead>
               <tr><th scope="col">{L.step}</th><th scope="col">{L.count}</th><th scope="col">{L.share}</th><th scope="col">{L.drop}</th></tr>
