@@ -150,3 +150,47 @@ test('a hung server fails the session within its timeout', async () => {
   await assert.rejects(session([{ id: 1, method: 'initialize', params: {} }], { timeoutMs: 500, args: hang }), /mcp timeout after 500ms; got ids $/);
   assert.ok(Date.now() - t0 < 5000);
 });
+
+/** Write raw lines to the server; resolve with the first `count` responses, in order. */
+function rawSession(lines, count) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [bin], { stdio: ['pipe', 'pipe', 'pipe'] });
+    const out = [];
+    let buf = '';
+    const timer = setTimeout(() => { child.kill(); reject(new Error(`mcp timeout; got ${JSON.stringify(out)}`)); }, SESSION_TIMEOUT_MS);
+    child.stdout.on('data', (d) => {
+      buf += d;
+      let nl;
+      while ((nl = buf.indexOf('\n')) !== -1) {
+        const line = buf.slice(0, nl);
+        buf = buf.slice(nl + 1);
+        if (line.trim()) out.push(JSON.parse(line));
+        if (out.length === count) { clearTimeout(timer); child.kill(); resolve(out); }
+      }
+    });
+    child.on('error', reject);
+    for (const l of lines) child.stdin.write(l + '\n');
+  });
+}
+
+test('a raw U+2028 or U+2029 inside a request string does not split the line; the call gets its reply', async () => {
+  const call = (id, name) => `{"jsonrpc":"2.0","id":${id},"method":"tools/call","params":{"name":"get_brief","arguments":{"name":"${name}"}}}`;
+  const got = await rawSession([call(1, 'button x'), call(2, 'card y'), '{"jsonrpc":"2.0","id":3,"method":"ping"}'], 3);
+  assert.deepEqual(got.map((m) => m.id), [1, 2, 3]);
+  assert.equal(got[0].result.isError, true);
+  assert.match(got[0].result.content[0].text, /^refused: "button\?x" is not a registry name/);
+  assert.equal(got[1].result.isError, true);
+  assert.deepEqual(got[2].result, {});
+});
+
+test('a line that does not parse gets -32700 with id null, and the server keeps answering', async () => {
+  const got = await rawSession(['{nope', '{"jsonrpc":"2.0","id":7,"method":"ping"}'], 2);
+  assert.deepEqual(got[0], { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse error' } });
+  assert.equal(got[1].id, 7);
+});
+
+test('a JSON null, number or string line gets -32600 with id null instead of crashing the server', async () => {
+  const got = await rawSession(['null', '42', '"tools/list"', '{"jsonrpc":"2.0","id":8,"method":"ping"}'], 4);
+  for (const m of got.slice(0, 3)) assert.deepEqual(m, { jsonrpc: '2.0', id: null, error: { code: -32600, message: 'invalid request' } });
+  assert.equal(got[3].id, 8);
+});

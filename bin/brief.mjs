@@ -78,9 +78,15 @@ export function buildBrief(pkgRoot, registry, name) {
   if (comp.kind !== 'component') return { error: `not a component: ${name} is a ${comp.kind}; briefs cover kind: component entries` };
 
   const bad = (why) => ({ error: `registry is inconsistent: ${name} ${why}` });
-  const root = path.resolve(pkgRoot);
+  /* Real paths on both sides, and no symlink at the file itself: a link is never followed,
+     wherever it points, and a link in a parent directory cannot carry the read outside. */
+  const root = fs.realpathSync(pkgRoot);
+  const shown = JSON.stringify(comp.file);
   const file = path.resolve(root, comp.file);
-  if (!file.startsWith(root + path.sep)) return bad(`file ${JSON.stringify(comp.file)} resolves outside the package`);
+  let st;
+  try { st = fs.lstatSync(file); } catch { return bad(`file ${shown} does not exist`); }
+  if (st.isSymbolicLink()) return bad(`file ${shown} is a symlink; briefs read regular files only`);
+  if (!fs.realpathSync(file).startsWith(root + path.sep)) return bad(`file ${shown} resolves outside the package`);
   if (!Array.isArray(comp.laws) || comp.laws.length === 0) return bad('names no laws');
   if (typeof comp.contract !== 'string') return bad('names no contract anchor');
 

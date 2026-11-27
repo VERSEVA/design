@@ -10,7 +10,6 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import readline from 'node:readline';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { buildBrief } from './brief.mjs';
@@ -172,15 +171,21 @@ function callTool(name, args = {}) {
   return errText(`unknown tool: ${name}`);
 }
 
-const rl = readline.createInterface({ input: process.stdin, terminal: false });
 const send = (msg) => process.stdout.write(JSON.stringify(msg) + '\n');
 
-rl.on('line', (line) => {
+function onLine(line) {
   if (!line.trim()) return;
   let msg;
-  try { msg = JSON.parse(line); } catch { return; }
+  try { msg = JSON.parse(line); } catch {
+    send({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse error' } });
+    return;
+  }
   if (Array.isArray(msg)) {
     send({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'batch requests are not supported' } });
+    return;
+  }
+  if (!msg || typeof msg !== 'object') {
+    send({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'invalid request' } });
     return;
   }
   const { id, method, params } = msg;
@@ -207,4 +212,20 @@ rl.on('line', (line) => {
     return;
   }
   if (id !== undefined) send({ jsonrpc: '2.0', id, error: { code: -32601, message: `method not found: ${method}` } });
+}
+
+/* MCP stdio framing is newline-delimited, so split on \n alone. readline would also split on
+   \r, U+2028 and U+2029, cutting a request whose JSON string holds one, and the caller would
+   get no reply. setEncoding keeps a multibyte character whole across chunks. */
+let pending = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => {
+  pending += chunk;
+  let nl;
+  while ((nl = pending.indexOf('\n')) !== -1) {
+    const line = pending.slice(0, nl).replace(/\r$/, '');
+    pending = pending.slice(nl + 1);
+    onLine(line);
+  }
 });
+process.stdin.on('end', () => { if (pending) onLine(pending); });
