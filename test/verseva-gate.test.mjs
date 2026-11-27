@@ -91,6 +91,12 @@ test('RECIPE: the suite exits 0 on the recipe RED fixture and prints its finding
   assert.match(advisory, /material census: no material consumed/);
 });
 
+test('RECIPE: the suite exits 0 on the utility-built RED fixture and prints its findings', () => {
+  const r = runIn(loud(), [...shipped, recipeFx('red-utilities.html')]);
+  assert.equal(r.code, 0, r.stdout + r.stderr);
+  assert.match(r.stdout.slice(r.stdout.indexOf(HEADING)), /hand-built elements? \(advisory\)\n\n {2}.+red-utilities\.html:\d+ {2}</);
+});
+
 test('RECIPE: the four gates print the same bytes and exit the same with and without recipe findings', () => {
   for (const input of [[recipeFx('red.html')], [fx('proj-seam', 'inline.html')], [fx('nope')]]) {
     const a = runIn(loud(), [...shipped, ...input]);
@@ -123,7 +129,7 @@ test('RECIPE: a recipe error (bad verseva.json) is reported and never changes th
   assert.doesNotMatch(r.stdout + r.stderr, /gate failed/);
 });
 
-test('RECIPE: a four-gate failure still exits 1 when the recipe gate is clean', () => {
+test('RECIPE: a four-gate failure still exits 1, and the advisory section still prints', () => {
   const r = runIn(quiet(), [...shipped, fx('proj-seam', 'inline.html')]);
   assert.equal(r.code, 1);
   assert.ok(r.stdout.includes(HEADING), 'the advisory section still runs');
