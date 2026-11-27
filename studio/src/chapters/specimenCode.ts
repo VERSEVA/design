@@ -31,9 +31,15 @@ function lines(node: Node, depth: number, out: string[]) {
   out.push(`${pad}</${el.localName}>`);
 }
 
+/** React's useId ids depend on what rendered before; a sample names them in order of appearance (g1, g2), so the same specimen always gives the same text. */
+export function stableIds(html: string): string {
+  const seen = new Map<string, string>();
+  return html.replace(/_[rR]_[0-9a-zA-Z]+_/g, (id) => seen.get(id) ?? (seen.set(id, `g${seen.size + 1}`), seen.get(id)!));
+}
+
 /** The specimen's children as a code sample. */
 export function specimenCode(spec: Element): string {
   const out: string[] = [];
   spec.childNodes.forEach((n) => lines(n, 0, out));
-  return out.join('\n');
+  return stableIds(out.join('\n'));
 }

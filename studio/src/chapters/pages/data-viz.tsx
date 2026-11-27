@@ -6,13 +6,17 @@
 // The legacy inline script runs as the chapter script for the drawing (sparklines, the line
 // plot and its range): scoped to the chapter root, listeners on the abort signal, and whatever
 // it adds to the DOM removed on cleanup. Code panels are the tiles' own.
+// Withheld data (1.7.1), after the rail's sections: Suppressed values and Gaps render the kit's own
+// parts (react/viz), so no value of a suppressed item reaches the page and the gap hover is live.
+// Their useId gradient ids are named in order in the samples (specimenCode stableIds).
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
 import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
+import { Bars, HBars, LineChart, Sparkline } from '../../../../react/viz';
 import './data-viz.css';
 /* The sections with a specimen, in page order: sample i of data-viz.code.json is the sample of
    SAMPLED[i], generated from these specimens as drawn (studio/test/chapter-code.test.ts holds it
    byte for byte; VSV_WRITE_CODE=1 rewrites it). The samples load on first intent. */
-export const SAMPLED = ['stat', 'spark', 'lines', 'bars', 'stacked', 'hbars', 'heat', 'rings', 'gates', 'meaning'];
+export const SAMPLED = ['stat', 'spark', 'lines', 'bars', 'stacked', 'hbars', 'heat', 'rings', 'gates', 'meaning', 'suppressed', 'gaps'];
 let samples: Promise<string[]> | undefined;
 const sample = (id: string) => () => (samples ??= import('./data-viz.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
 
@@ -504,6 +508,50 @@ export function Page() {
                 <span className="srcdot"><i></i>{" ERP IMPORT"}</span>
                 <span className="srcdot"><i className="neu"></i>{" WEARABLE"}</span>
               </div>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="suppressed" name="Suppressed values" icon={ICON} size="m" meta="2 withheld" code={sample('suppressed')} focus={false}>
+          <div className="demo">
+            <div className="specimen" style={{ minWidth: "300px", flex: "1" }}>
+              <Bars
+                height={110}
+                data={[
+                  { label: 'Mon', value: 42 },
+                  { label: 'Tue', value: 3, display: '<5', suppressed: true },
+                  { label: 'Wed', value: 0 },
+                  { label: 'Thu', value: 57 },
+                ]}
+              />
+              <HBars
+                className="mt-4"
+                data={[
+                  { label: 'Clinic A', value: 48 },
+                  { label: 'Clinic B', value: 31, alt: true },
+                  { label: 'Clinic C', value: 2, display: '<5', suppressed: true },
+                  { label: 'Clinic D', value: 0 },
+                ]}
+              />
+              <div className="takeaway">Thursday peaks at 57; Tuesday and Clinic C are under 5.</div>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="gaps" name="Gaps" icon={ICON} size="m" meta="4 gaps" code={sample('gaps')} focus={false}>
+          <div className="demo">
+            <div className="specimen" style={{ flex: "1", minWidth: "280px" }}>
+              <LineChart
+                height={130}
+                labels={['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8']}
+                series={[
+                  { name: 'Visits', values: [62, 70, 66, null, null, 78, 88, 95] },
+                  { name: 'Booked', values: [41, 44, 40, 52, 58, null, 61, null] },
+                ]}
+              />
+              <div className="mt-4">
+                <span className="speclabel">Sparkline</span>
+                <Sparkline values={[12, 14, 13, null, null, 17, 19, 22]} />
+              </div>
+              <div className="takeaway">Visits withheld for W4 and W5; Booked withheld for W6 and W8.</div>
             </div>
           </div>
         </SpecimenTile>

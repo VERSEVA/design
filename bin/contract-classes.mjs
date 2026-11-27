@@ -7,6 +7,8 @@
  *   ever rides on another class (".btn.sm") is not one, and neither are the
  *   spacing utilities or .sr-only: a utility-built element can carry those
  *   and still be built by hand.
+ * - contractRoots(): the root classes keyed per kind of owned element, so a
+ *   .card on a button or a .table on a select is not the contract's.
  * - contractParts(): the parent parts, keyed per element. A fixed floor,
  *   plus every ".part <element>" rule in components.css, so a part that
  *   styles its buttons does not cover an input.
@@ -27,6 +29,31 @@ export const PART_FLOOR = {
   input: ['field', 'sel', 'pick', 'switch'],
   textarea: ['field'],
   select: ['field'],
+};
+
+/* The root classes the contract names for each kind of owned element: a class counts for an element
+   only when it is listed here for that element's kind, or components.css styles it on that element
+   ("button.notif", "dialog.sheet"). Every name is a root class components.css ships (a test holds that). */
+export const ROOT_FLOOR = {
+  button: [
+    'btn', 'btn-primary', 'btn-secondary', 'btn-ghost', 'btn-destructive', 'ibtn', 'menu-item', 'fchip',
+    'switcher', 'collapse-row', 'platform', 'panel-ft', 'sgroup-head', 'cmdk-trigger', 'lact', 'tab',
+    'wgrid-add', 'wstack-dot', 'wstack-pause', 'wstack-step', 'wtile-x', 'wtile-handle',
+  ],
+  table: ['table'],
+  field: ['cmdk-input'],
+  choice: ['chk'],
+  dialog: ['modal', 'sheet', 'drawer', 'cmdk', 'menu-list', 'lact-panel'],
+};
+
+/* The kinds of owned element an "element.class" rule styles. */
+const KINDS_OF_TAG = {
+  button: ['button'],
+  table: ['table'],
+  input: ['field', 'choice'],
+  textarea: ['field'],
+  select: ['field'],
+  dialog: ['dialog'],
 };
 
 /* Classes a hand-built element can carry without being a contract part. */
@@ -136,6 +163,25 @@ export function contractClasses(file = DEFAULT_CSS) {
     }
   }
   return classes;
+}
+
+/* Root classes per kind of owned element: the floor, plus every class components.css styles on
+   an owned element itself ("button.notif" counts .notif for buttons, "input.sw" .sw for inputs). */
+export function contractRoots(file = DEFAULT_CSS) {
+  const roots = {};
+  for (const [kind, names] of Object.entries(ROOT_FLOOR)) roots[kind] = new Set(names);
+  for (const sel of selectors(fs.readFileSync(file, 'utf8'))) {
+    for (const compounds of compoundLists(sel)) {
+      for (const compound of compounds) {
+        const tag = compound.match(/^[a-z]+/)?.[0];
+        if (!KINDS_OF_TAG[tag]) continue;
+        for (const m of compound.matchAll(/\.([a-zA-Z_-][\w-]*)/g)) {
+          for (const kind of KINDS_OF_TAG[tag]) roots[kind].add(m[1]);
+        }
+      }
+    }
+  }
+  return roots;
 }
 
 export function contractParts(file = DEFAULT_CSS) {

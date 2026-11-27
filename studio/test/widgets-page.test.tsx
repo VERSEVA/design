@@ -20,11 +20,11 @@ describe('/widgets', () => {
     return r;
   }
 
-  it('is in the sidebar and renders the three sections', async () => {
+  it('is in the sidebar and renders the four sections', async () => {
     const { container } = await open();
     expect(container.querySelector('.studio-side a[href="/widgets"]')?.getAttribute('aria-current')).toBe('page');
     expect(container.querySelector('h1')?.textContent).toBe('Widgets');
-    expect([...container.querySelectorAll('.studio-main h2')].map((h) => h.firstChild?.textContent?.trim())).toEqual(['Home', 'Sizes', 'States']);
+    expect([...container.querySelectorAll('.studio-main h2')].map((h) => h.firstChild?.textContent?.trim())).toEqual(['Home', 'Sizes', 'Container', 'States']);
   });
 
   it('home: six widgets, one focus widget (the only one allowed the accent), the stack, the capsule slot beside the bell', async () => {

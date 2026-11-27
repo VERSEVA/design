@@ -232,6 +232,61 @@ Row ≥44px: leading avatar/icon, primary line body/600, metaline 12px sentence-
 Mobile bottom sheet, top corners 26–30, grabber, focus trapped, drag/Escape dismiss, content
 scrolls inside fixed chrome. Desktop: side drawer 360–480px. Navigation never lives in a sheet.
 
+## Date range: `.range-ctl`, `.range-fields` (1.8)
+
+One control sets the period a page of charts covers. It composes existing parts and adds two
+classes: the wrapper and the custom-date row. Presets are the host's (for example This week,
+4 weeks, 13 weeks, each with its own dates); the part ships none.
+
+- **Segmented (default):** `.range-ctl` is one wrapping row holding, in order, the presets on
+  `.seg` as a radiogroup (`role="radiogroup"`, each button `role="radio"` with `aria-checked`,
+  which carries the same pressed look as `aria-selected`), the custom dates (`.range-fields`,
+  two `.field` date inputs, shown for Custom), an optional Compare toggle (`.fchip` with
+  `aria-pressed`, named "Compare with previous period"), and a quiet range line (`.metaline`,
+  `aria-live="polite"`).
+- **Menu (compact, for a page header):** a plain `.menu` with `data-range`. One `.btn.btn-secondary`
+  trigger shows the current preset and its dates; the list holds one `menuitemradio` per preset
+  with its dates in a `.metaline`, then Custom and a `menuitemcheckbox` for Compare only when
+  the host passes them. The presets and Custom sit in one `role="group"`, apart from the Compare
+  on/off item. Custom opens `.range-fields` in a `.modal`, centred.
+- **Phone (under 560px):** the presets share the row at full width, the inline fields are
+  dropped, and Custom opens `.range-fields` in the `.sheet`, from either form, with Cancel and
+  Apply. The sheet and the modal sit on a native `<dialog>` (`dialog.sheet`, `dialog.modal`):
+  focus is trapped, the page is inert, and Escape or a press on the backdrop is Cancel.
+- **Value:** controlled, one plain object, `{ range, from, to, compare }`, dates as
+  `YYYY-MM-DD`. Every change is one `onChange` with the whole value. The part keeps no value
+  and never reads or writes the URL; the host decides where the value lives.
+- **What counts as chosen:** a preset is chosen only when the value carries its name and both
+  its dates. Any other dates read as Custom, whatever name they came under (a link saved last
+  week still says "This week", over last week's dates); with no Custom passed, nothing is
+  chosen and the first preset is the tab stop. The menu trigger then reads the range itself.
+  Two presets with one value: the first is the one chosen.
+- **The range line:** day and month, then the full end date ("23 Nov to 29 Nov 2026"); the start
+  carries its own year when it differs ("29 Dec 2025 to 4 Jan 2026").
+- **Custom dates:** an optional `snap(date, edge)` from the host snaps a date (to a whole week,
+  say) when its field loses focus or on Enter, never while typing. `min` and `max` bound the
+  range; a malformed one is ignored. A date is a real day in a year from 1000 on, so a
+  half-typed year is a missing date. A field shows the host's value except while it holds
+  typed text that is not yet a valid range: a change the host refuses falls back to the value,
+  and a change of the host's range or dates, or the custom fields closing, drops the typed text and its error. The part does no calendar or time zone math; `zone` is a label on the range line.
+- **States:** default; custom open; compare on (chip pressed, "vs previous" on the range line);
+  invalid custom range (`.field.error` on the field that is wrong, `aria-invalid`, the reason in
+  `.help`: a missing date, a start after the end, a date outside `min` and `max`), which emits
+  nothing and keeps the last valid value; disabled (every control `:disabled`, at .45).
+- **Keyboard:** the presets are one tab stop; arrows, Home and End move and choose, wrapping.
+  Under 560px an arrow onto Custom only moves focus, and Enter, Space or a tap opens the sheet.
+  The menu opens on the checked preset (Enter, Space, ArrowDown; ArrowUp opens on the last
+  item); arrows, Home and End move; Escape closes and returns focus to the trigger; choosing
+  closes and returns focus. Closing the sheet or the modal returns focus to what opened it.
+- **Touch:** every target is 44px tall on a coarse pointer.
+- **Accent:** not spent. The checked preset and the pressed chip are neutral (law 3); only
+  Apply in the sheet or modal is primary.
+- **React:** `DateRange` (`npx verseva add date-range`), `variant="segmented" | "menu"`,
+  `presets`, `value`, `onChange`, `custom`, `compare`, `snap`, `min`, `max`, `zone`,
+  `formatRange`, `formatCustom` (what the menu trigger calls a custom range, default "Custom"),
+  `labels`, `disabled`, `id`. The words, the value type and the range check live
+  in the pure `date-range-state` module, so server code can read them.
+
 ## NAVSHELL: `.navshell` (the signature's most particular component)
 
 **Copy it, never approximate it.** `components.css` carries the 1:1 port; the studio renders it
@@ -649,6 +704,43 @@ color-alone).
 - **Labels:** text tokens, never series color; selective direct labels; internals ≤10px mono.
 - **Takeaway caption, mandatory:** label the MEANING, not the axis.
 - **Hover:** per-mark tooltips; ≥2 series get a legend.
+- **Withheld data is never zero (1.7.1).** A missing point and a suppressed count are not small
+  numbers, and a chart that draws them as one is a defect.
+  - **Suppressed item (`Bars`, `HBars`: `suppressed: true` with `display`).** A privacy floor. The
+    item keeps its slot and draws the WITHHELD STUB on `[data-suppressed]`, with no fill, and prints
+    `display` (the floor label, for example `<5`), never the value. The value stays out of the scale
+    maximum, the bar length, the `title`, the hover text and every attribute: the same chart renders
+    the same markup whatever the suppressed value is. `format` is never called with it. The kit does
+    not sort; a consumer that sorts must not order suppressed items by their value.
+  - **The stub is one fixed size,** never a bar length: `.vtrack` is `--s-3` tall with the label
+    sitting on it; a suppressed `.htrack` carries a `--s-4` stub at the start of its track. Both are
+    a 135deg hatch of `--text-3` over nothing: the text ladder, since a hairline cannot carry
+    meaning (law 11). Never the accent, a status hue or a sign color; never full height (that reads
+    as the largest value) and never a plain soft block (that reads as a loading skeleton). The
+    `display` is set like the numbers beside it, on their baseline.
+  - **`display` is required with `suppressed: true`** (the item types say so). If it is missing at
+    run time the item prints no label, its `title` carries the withheld word, and development warns.
+  - **`display` without `suppressed: true` is not a privacy floor:** it only replaces the printed
+    value and the `title`; the bar still draws from the real value and counts toward the scale.
+  - **Gap (`LineChart` series, `Sparkline`: `null`).** The line breaks at a null and resumes after
+    it; the area fill breaks with it. No point is drawn there, it is never interpolated across, and
+    it is left out of the scale. A hatched band marks the gap: `.vizgap`, `--s-1` tall, BELOW the zero
+    baseline by 2 plot units or `--s-1`, whichever is larger, and never on it, the stub's own 135deg `--text-3` hatch. It is HTML over the
+    plot (`.vizframe`), not part of the stretched svg, so the hatch keeps its angle; it is
+    `aria-hidden` and carries no value. Its place and width come only from which indices are null:
+    the null indices and half a step either side (the midpoint to the next known point), never
+    under a known value; a gap at an end takes the half step there is. Bands mark an
+    index, not a series: two series share one row, and stretches that touch are one band. A chart with a gap keeps that room under its
+    plot; one without renders as before. Hover on a null index shows no value and no marker for that
+    series, and names it with the withheld word in `--text-2`. The end dot marks the last index, so
+    a series ending in a null has none. A value alone between two gaps is an r=3 dot. A real `0` is
+    a value and draws on the baseline; `NaN` is a gap. A series or a chart that is ALL null is
+    withheld, not empty: one band across the whole plot. A chart that is all null also says the
+    withheld word, centred in the plot in `--text-2`. Only an empty array is the empty state. The dashed
+    `--data-alt` second series is unchanged alongside gaps.
+  - **The withheld word is copy:** `vizLabels={{ withheld }}` on `LineChart`, `Bars` and `HBars`,
+    default `withheld`, lowercase since it follows a name (`react/labels.ts`).
+  - **`Bars` and `HBars` hold no state and no hook:** they render without a client boundary.
 
 ## Widgets: `.wgrid`, `.wtile`, `.wstack`, `.wgal` (1.6.0)
 
@@ -658,11 +750,31 @@ An adaptive home: a grid of tiles, each picking its view from its size. React pa
 
 **Grid and sizes**
 
-| Columns | Viewport | Largest size | Notes |
-|---|---|---|---|
-| 4 | 1100px and up | XL | |
-| 2 | 560 to 1099px | L | XL shows its L view |
-| 1 | under 560px | M | L and XL show their M view |
+| Columns | Viewport | Container mode: wrapper width | Largest size | Notes |
+|---|---|---|---|---|
+| 4 | 1100px and up | 688px and up | XL | |
+| 2 | 560 to 1099px | 560 to 687px | L | XL shows its L view |
+| 1 | under 560px | under 560px | M | L and XL show their M view |
+
+By default the grid steps down on the viewport. **Container mode is opt-in**, for a grid beside a
+sidebar: it steps down on the room the grid has. 688px is four 160px small tiles and three 16px
+gaps, the narrowest a small tile holds its numeral. There is no 3 column step: spans are 1, 2
+and 4.
+
+- CSS: wrap the grid, `<div class="wgrid-wrap"><div class="wgrid">`. The wrapper is
+  `container: wgrid / inline-size; width: 100%; min-width: 0` and holds the grid only: keep
+  fixed parts (the undo toast, the gallery) outside it.
+- React: `<WidgetGrid container>` renders that wrapper and counts columns from its width.
+  `className` still lands on `.wgrid`, now one level below the part's root element.
+- In container mode, placement (`grid-column`, `flex`), height and `position: sticky` go on a
+  parent element you own, not on `.wgrid` or the wrapper. The parent must give the wrapper a
+  width: shrink-to-fit parents (`inline-block`, an `auto` track, `width: max-content`) are not
+  supported, because a size container cannot take its width from its content.
+- A browser without container queries shows the viewport steps.
+- `columns` on the React part, or `data-cols="4|2|1"` on `.wgrid`, pins the count in either mode.
+
+In container mode a small tile narrower than 180px (4 columns in a wrapper under 768px) lays the
+four-size pill out 2 by 2 beside Move, stacked.
 
 S is 1x1, M 2x1, L 2x2, XL 4x2 on 180px rows with `--s-4` gaps (`--s-3` in one column). A size
 that does not fit drops to the largest supported size that does (`fitSize`); the tile carries the
@@ -673,6 +785,7 @@ focus order and visual order agree.
 
 | Part | Classes | Holds |
 |---|---|---|
+| Container (opt-in) | `.wgrid-wrap` > `.wgrid` | Container mode: the grid's query container; nothing else |
 | Grid | `.wgrid` (`[data-editing]`), a polite live region | `role="region"` named Widgets |
 | Tile | `.wtile[data-size]` (`[data-focus]`, `[data-dragging]`, `aria-busy`, `aria-disabled`), `.wtile-body` | `role="group"` with `aria-roledescription="widget"`, named "Revenue, large"; glass at `--r-lg` |
 | Content | `.wtile-hd` (+ `svg`), `.wtile-meta`, `.wtile-num`, `.wtile-sub`, `.wtile-rows` > `.wtile-row` (+ `b`, `.wtile-val`), `.wtile-foot` | Header, numeral, caption, rows, footer |
