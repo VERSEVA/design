@@ -21,3 +21,8 @@ export function After() {
 }
 
 const html = '<dialog>a module-level string</dialog>';
+type Pick = <T>(xs: T[]) => T; // a generic function type is not a tag: '<button>' sits in a comment
+const pick: <T>(xs: T[]) => T = (xs) => xs[0];
+export const Typed = () => <div><Select<Option> value={pick} /></div>;
+// <button>an old line comment after the generics</button>
+const late = '<dialog>a string after the generics</dialog>';

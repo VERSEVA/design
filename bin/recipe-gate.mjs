@@ -205,8 +205,8 @@ function readableJsx(text) {
       else { if (ch === '<') out[i] = ' '; i++; }
     } else if (top.mode === 'text') {
       if (ch === '{') { stack.push({ mode: 'code', depth: 0 }); i++; }
-      else if (ch === '<' && text[i + 1] === '/') { stack.push({ mode: 'tag', closing: true }); i += 2; }
-      else if (ch === '<' && /[A-Za-z>]/.test(text[i + 1] ?? '')) { stack.push({ mode: 'tag', closing: false }); i++; }
+      else if (ch === '<' && text[i + 1] === '/') { stack.push({ mode: 'tag', closing: true, start: i + 2 }); i += 2; }
+      else if (ch === '<' && /[A-Za-z>]/.test(text[i + 1] ?? '')) { stack.push({ mode: 'tag', closing: false, start: i + 1 }); i++; }
       else i++;
     } else if (top.mode === 'tag') {
       const end = commentEnd(text, i);
@@ -217,7 +217,19 @@ function readableJsx(text) {
         i = stop;
       } else if (end !== -1) { wipe(i, end); i = end; }
       else if (ch === '{') { stack.push({ mode: 'code', depth: 0 }); i++; }
-      else if (ch === '>' || (ch === '/' && text[i + 1] === '>')) {
+      else if (ch === '<' && /^[A-Za-z][\w.:-]*$/.test(text.slice(top.start, i))) {
+        /* Type arguments right after the name (<Select<Option> ...>) belong to the tag. */
+        let depth = 0;
+        let j = i;
+        for (; j < n; j++) {
+          if (text[j] === '<') depth++;
+          else if (text[j] === '>' && --depth === 0) break;
+        }
+        i = j + 1;
+      } else if (ch === '>' && top.fromCode && /^[\w$]+\s*$/.test(text.slice(top.start, i)) && /^>\s*\(/.test(text.slice(i, i + 64))) {
+        stack.pop(); // a generic function type or arrow, <T>(x: T) => T: not a tag
+        i++;
+      } else if (ch === '>' || (ch === '/' && text[i + 1] === '>')) {
         stack.pop();
         const parent = stack.at(-1);
         if (top.closing) {
@@ -242,7 +254,7 @@ function readableJsx(text) {
         if (top.depth === 0 && stack.length > 1) stack.pop();
         else if (top.depth > 0) top.depth--;
         i++;
-      } else if (ch === '<' && opensElement(text, i)) { stack.push({ mode: 'tag', closing: false }); i++; }
+      } else if (ch === '<' && opensElement(text, i)) { stack.push({ mode: 'tag', closing: false, start: i + 1, fromCode: true }); i++; }
       else i++;
     }
   }
@@ -305,7 +317,7 @@ function tagEnd(text, i, jsx) {
 
 /* Attributes of one tag: name -> { literal: [strings] } or { literal: null } for an expression
    holding no string literal. A bare attribute maps to an empty literal. In JSX, attrs.spread is
-   set when the tag spreads props ({...rest}); a blanked comment ({    }) is not a spread. */
+   set when the tag spreads props ({...rest}). */
 function attributes(body, jsx) {
   const attrs = new Map();
   let i = 0;

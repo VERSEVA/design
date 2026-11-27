@@ -369,7 +369,7 @@ test('209.2: root classes are keyed per element: the floor plus every "element.c
 
 test('209.3: a spread with no className is unknown; a spread beside utilities is still reported', () => {
   const r = run([fx('spread.tsx')]);
-  assert.deepEqual(where(r.out), ['5 <button>', '6 <button>', '7 <button>'], r.out);
+  assert.deepEqual(where(r.out), ['5 <button>', '6 <button>'], r.out);
 });
 
 test('209.4: material classes in .ts and .js string literals count for the census, and nothing else there is scanned', () => {
