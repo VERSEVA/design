@@ -748,7 +748,9 @@ How many reach each step of a flow, the drop between steps, and the biggest drop
 `Funnel` (`npx verseva add funnel`), no state and no hook, so it renders without a client boundary.
 
 - **Steps are bar items:** `{ label, value, display?, suppressed? }`, the `HBars` item shape; a
-  suppressed step needs `display`. In order, first step first. The kit does not sort.
+  suppressed step needs `display`. `display` on a known step only replaces its printed count, as on
+  a bar; the bar, share and drops still come from `value`. In order, first step first. The kit does
+  not sort.
 - **Rows:** an `ol.funnel`; each step is an `.hbar` row on one fixed-column grid so every track has
   the same width: label, a bar scaled to the first step, the count (mono, tabular), the share of
   the first step (`.funnel-share`, panel form only), and the drop from the step before

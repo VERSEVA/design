@@ -87,7 +87,7 @@ export function Funnel({ steps, share = false, loading = false, label, table = t
     const drop: Drop = i === 0 ? null : !s.suppressed && !prev.suppressed && prev.value > 0 ? 1 - s.value / prev.value : undefined;
     return {
       step: s,
-      count: s.suppressed ? s.display : format(s.value),
+      count: s.suppressed ? s.display : s.display ?? format(s.value),
       width: s.suppressed ? null : `${((s.value / top) * 100).toFixed(1)}%`,
       share: s.suppressed || base === null ? null : s.value / base,
       drop,

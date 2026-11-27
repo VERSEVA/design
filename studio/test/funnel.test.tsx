@@ -83,6 +83,14 @@ describe('Funnel: shares, drops and the biggest drop', () => {
     expect(container.querySelector('[data-biggest]')).toBeNull();
   });
 
+  it('prints display in place of a known count, as a bar item does, and still draws from the value', () => {
+    const { container } = render(<Funnel steps={[S('a', 200), { label: 'b', value: 50, display: '50 people' }]} />);
+    const r = rows(container);
+    expect(text(r[1].querySelector('.hcount'))).toBe('50 people');
+    expect(r[1].querySelector<HTMLElement>('.htrack > i')!.style.width).toBe('25%');
+    expect(text(container.querySelectorAll('table tbody tr')[1].querySelector('td'))).toBe('50 people');
+  });
+
   it('formats counts through format', () => {
     const { container } = render(<Funnel steps={NORMAL} format={(v) => `n${v}`} />);
     expect(text(container.querySelector('.hcount'))).toBe('n2480');
