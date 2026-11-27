@@ -3,7 +3,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   LAYOUT_KEY, SIZE_ORDER, SIZE_LABEL,
-  columnsForWidth, largestSizeFor, sizeFits, fitSize, sizeOptions, spanOf, placeAll,
+  columnsForWidth, columnsForContainer, largestSizeFor, sizeFits, fitSize, sizeOptions, spanOf, placeAll,
   move, moveBy, rowPartner, swap, moveDirection, addWidget, removeWidget, restoreWidget, resizeWidget, nextFocusId,
   serializeLayout, parseLayout, readLayout, writeLayout,
   movedMessage, resizedMessage, removedMessage, addedMessage,
@@ -41,6 +41,15 @@ describe('columns and fit', () => {
     assert.equal(columnsForWidth(560), 2);
     assert.equal(columnsForWidth(559), 1);
     assert.equal(columnsForWidth(375), 1);
+  });
+
+  test('container mode: 4 columns from a 688px wrapper, 2 from 560px, 1 below', () => {
+    assert.equal(columnsForContainer(1112), 4);
+    assert.equal(columnsForContainer(952), 4);
+    assert.equal(columnsForContainer(688), 4);
+    assert.equal(columnsForContainer(687), 2);
+    assert.equal(columnsForContainer(560), 2);
+    assert.equal(columnsForContainer(559), 1);
   });
   test('the largest size each column count holds', () => {
     assert.equal(largestSizeFor(4), 'xl');

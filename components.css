@@ -762,9 +762,13 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media (max-width:767px){.bulkbar{width:auto;margin-inline:0;flex-wrap:wrap}.bulkbar .count{margin-right:auto;border-right:0}}
 
 /* ---- Widgets (1.6.0): grid, tile, edit mode, smart stack, gallery ---- */
-/* Grid: 4 columns, 2 under 1100px, 1 under 560px. Sparse row flow (never dense), so DOM order,
-   focus order and visual order agree. Each tile picks its view from data-size; the React grid
-   writes the fitted size, so L and XL show their M view in one column. */
+/* Grid: 4 columns, 2 under 1100px, 1 under 560px of viewport. Container mode is opt-in: inside
+   .wgrid-wrap (the React part's container prop renders it) the grid counts from the wrapper's
+   width instead, 4 columns from 688px (four 160px small tiles and three gaps), 2 from 560px,
+   1 below. Sparse row flow (never dense), so DOM order, focus order and visual order agree. Each
+   tile picks its view from data-size; the React grid writes the fitted size, so L and XL show
+   their M view in one column. */
+.wgrid-wrap{container:wgrid / inline-size;width:100%;min-width:0}
 .wgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:180px;grid-auto-flow:row;gap:var(--s-4);width:100%}
 .wtile{position:relative;min-width:0;display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface-body),var(--glass-fill-3);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow),var(--glass-glow),var(--glass-inset);color:var(--text-1);transition:border-color var(--dur-1) var(--ease-standard),opacity var(--dur-2) var(--ease-standard)}
 .wtile[data-size="s"]{grid-column:span 1;grid-row:span 1}
@@ -899,7 +903,16 @@ a.lrow:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 @media (max-width:1099.98px){.wgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 2}}
 @media (max-width:559.98px){.wgrid{grid-template-columns:minmax(0,1fr);gap:var(--s-3)}.wtile[data-size]{grid-column:span 1;grid-row:span 1}.wtile-body{padding:var(--s-3)}}
-/* A forced column count (the columns prop) wins over the viewport breakpoints */
+/* Inside .wgrid-wrap the wrapper's width decides, in both directions: 4 columns from 688px even
+   on a viewport under 1100px. The viewport rules above are the fallback for a bare .wgrid */
+@container wgrid (min-width:688px){.wgrid{grid-template-columns:repeat(4,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 4}}
+@container wgrid (max-width:687.98px){.wgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.wtile[data-size="xl"]{grid-column:span 2}}
+@container wgrid (max-width:559.98px){.wgrid{grid-template-columns:minmax(0,1fr);gap:var(--s-3)}.wtile[data-size]{grid-column:span 1;grid-row:span 1}.wtile-body{padding:var(--s-3)}}
+/* A small tile under 180px (4 columns in a wrapper under 768px) cannot hold the 178px four-size
+   pill in a row: the sizes sit 2 by 2, beside Move stacked */
+@container wgrid (min-width:688px) and (max-width:767.98px){.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)){flex-direction:row;align-items:flex-end;justify-content:center}.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)) .wtile-move{flex-direction:column}.wgrid:not([data-cols]) .wtile[data-size="s"] .wtile-sizes:has(>button:nth-child(4)){display:inline-grid;grid-template-columns:repeat(2,auto);border-radius:var(--r-md)}}
+@container wgrid (max-width:767.98px){.wgrid[data-cols="4"] .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)){flex-direction:row;align-items:flex-end;justify-content:center}.wgrid[data-cols="4"] .wtile[data-size="s"] .wtile-edit:has(.wtile-sizes>button:nth-child(4)) .wtile-move{flex-direction:column}.wgrid[data-cols="4"] .wtile[data-size="s"] .wtile-sizes:has(>button:nth-child(4)){display:inline-grid;grid-template-columns:repeat(2,auto);border-radius:var(--r-md)}}
+/* A forced column count (the columns prop) wins over the container and viewport breakpoints */
 .wgrid[data-cols="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
 .wgrid[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .wgrid[data-cols="1"]{grid-template-columns:minmax(0,1fr)}

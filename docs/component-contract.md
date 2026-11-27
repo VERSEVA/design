@@ -713,11 +713,31 @@ An adaptive home: a grid of tiles, each picking its view from its size. React pa
 
 **Grid and sizes**
 
-| Columns | Viewport | Largest size | Notes |
-|---|---|---|---|
-| 4 | 1100px and up | XL | |
-| 2 | 560 to 1099px | L | XL shows its L view |
-| 1 | under 560px | M | L and XL show their M view |
+| Columns | Viewport | Container mode: wrapper width | Largest size | Notes |
+|---|---|---|---|---|
+| 4 | 1100px and up | 688px and up | XL | |
+| 2 | 560 to 1099px | 560 to 687px | L | XL shows its L view |
+| 1 | under 560px | under 560px | M | L and XL show their M view |
+
+By default the grid steps down on the viewport. **Container mode is opt-in**, for a grid beside a
+sidebar: it steps down on the room the grid has. 688px is four 160px small tiles and three 16px
+gaps, the narrowest a small tile holds its numeral. There is no 3 column step: spans are 1, 2
+and 4.
+
+- CSS: wrap the grid, `<div class="wgrid-wrap"><div class="wgrid">`. The wrapper is
+  `container: wgrid / inline-size; width: 100%; min-width: 0` and holds the grid only: keep
+  fixed parts (the undo toast, the gallery) outside it.
+- React: `<WidgetGrid container>` renders that wrapper and counts columns from its width.
+  `className` still lands on `.wgrid`, now one level below the part's root element.
+- In container mode, placement (`grid-column`, `flex`), height and `position: sticky` go on a
+  parent element you own, not on `.wgrid` or the wrapper. The parent must give the wrapper a
+  width: shrink-to-fit parents (`inline-block`, an `auto` track, `width: max-content`) are not
+  supported, because a size container cannot take its width from its content.
+- A browser without container queries shows the viewport steps.
+- `columns` on the React part, or `data-cols="4|2|1"` on `.wgrid`, pins the count in either mode.
+
+In container mode a small tile narrower than 180px (4 columns in a wrapper under 768px) lays the
+four-size pill out 2 by 2 beside Move, stacked.
 
 S is 1x1, M 2x1, L 2x2, XL 4x2 on 180px rows with `--s-4` gaps (`--s-3` in one column). A size
 that does not fit drops to the largest supported size that does (`fitSize`); the tile carries the
@@ -728,6 +748,7 @@ focus order and visual order agree.
 
 | Part | Classes | Holds |
 |---|---|---|
+| Container (opt-in) | `.wgrid-wrap` > `.wgrid` | Container mode: the grid's query container; nothing else |
 | Grid | `.wgrid` (`[data-editing]`), a polite live region | `role="region"` named Widgets |
 | Tile | `.wtile[data-size]` (`[data-focus]`, `[data-dragging]`, `aria-busy`, `aria-disabled`), `.wtile-body` | `role="group"` with `aria-roledescription="widget"`, named "Revenue, large"; glass at `--r-lg` |
 | Content | `.wtile-hd` (+ `svg`), `.wtile-meta`, `.wtile-num`, `.wtile-sub`, `.wtile-rows` > `.wtile-row` (+ `b`, `.wtile-val`), `.wtile-foot` | Header, numeral, caption, rows, footer |

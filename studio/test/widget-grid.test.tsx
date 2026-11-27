@@ -336,6 +336,18 @@ describe('WidgetGrid', () => {
     expect(container.querySelector('.wgrid-empty')).not.toBeNull();
   });
 
+  it('default mode renders the grid as the root element, with no wrapper; container mode wraps it', () => {
+    const { container } = render(<WidgetGrid definitions={DEFS} layout={L3} className="mine" storageKey={null} />);
+    const root = container.firstElementChild!;
+    expect(root.className).toBe('wgrid mine');
+    expect(container.querySelector('.wgrid-wrap')).toBeNull();
+    const { container: c2 } = render(<WidgetGrid container definitions={DEFS} layout={L3} className="mine" storageKey={null} />);
+    const wrap = c2.firstElementChild!;
+    expect(wrap.className).toBe('wgrid-wrap');
+    expect(wrap.children).toHaveLength(1);
+    expect(wrap.firstElementChild!.className).toBe('wgrid mine');
+  });
+
   it('the columns prop drives the CSS through data-cols', () => {
     const { container } = render(<WidgetGrid definitions={DEFS} layout={L3} columns={2} storageKey={null} />);
     expect(container.querySelector('.wgrid')!.getAttribute('data-cols')).toBe('2');
