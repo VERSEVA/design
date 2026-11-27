@@ -168,6 +168,7 @@ export default function ColorPanel({ id, onClose }: { id: string; onClose: () =>
           const bg = swatch(o.value);
           return (
             <button
+              // recipe-ok: accent swatch radio; the contract has no swatch picker part
               key={o.value || 'signature'}
               type="button"
               role="radio"

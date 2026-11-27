@@ -93,7 +93,7 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 
 .studio-select { display: none; padding: var(--s-2) var(--s-4); border-bottom: 1px solid var(--hairline); background: var(--bg); }
 .studio-select select { width: 100%; height: 44px; padding: 0 var(--s-3); border-radius: var(--r-sm); border: 1px solid var(--hairline-strong); background: var(--surface); color: var(--text-1); font: inherit; }
-.studio-select select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.studio-select select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-color: var(--hairline-strong); box-shadow: none; }
 
 /* Body: sidebar (232px, or the 72px rail under <html data-rail="collapsed">), main, and on
    chapter and Foundations pages the On this page rail at wide viewports. */
@@ -120,14 +120,14 @@ img:where(:not(.chap *)), video:where(:not(.chap *)), canvas:where(:not(.chap *)
 :root[data-rail="collapsed"] .side-rail { display: flex; }
 .railset { display: grid; gap: var(--s-1); justify-items: center; }
 .railset + .railset { margin-top: var(--s-2); padding-top: var(--s-2); border-top: 1px solid var(--hairline); }
-.railbtn { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: var(--r-sm); background: none; color: var(--text-2); cursor: pointer; text-decoration: none; transition: background var(--dur-1) var(--ease-standard), color var(--dur-1) var(--ease-standard), transform var(--dur-1) var(--ease-standard); }
-.railbtn:hover, .railbtn[aria-expanded="true"] { background: var(--surface-2); color: var(--text-1); }
-.railbtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Rail buttons are the contract's icon button (.ibtn) at rail size. */
+.railbtn { width: 44px; height: 44px; }
+.railbtn svg { width: 18px; height: 18px; }
 .railbtn:active { transform: translateY(1px); }
 .railbtn.active { color: var(--text-1); background: var(--accent-bloom); box-shadow: var(--accent-active-glow); }
 .railbtn.active svg { color: var(--accent-on); }
 .side-rail .collapse-row { margin-top: auto; width: 44px; padding: 0; justify-content: center; }
-.side-rail .collapse-row svg { transform: scaleX(-1); }
+.side-rail .collapse-row svg { width: 16px; height: 16px; transform: scaleX(-1); }
 .railfly { position: fixed; left: var(--rt-x, 0px); top: var(--rt-y, 0px); z-index: 16; width: 240px; max-height: calc(100dvh - var(--rt-y, 0px) - var(--s-4)); overflow-y: auto; padding: var(--s-2); background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); box-shadow: var(--e-2); }
 .railfly[hidden] { display: none; }
 .railfly .grouplabel { display: block; padding: var(--s-1) 9px var(--s-1); }

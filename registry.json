@@ -39,7 +39,9 @@
     { "name": "smart-stack", "file": "react/smart-stack.tsx", "kind": "component", "deps": ["labels", "inert", "cx"], "description": "Several widgets in one slot: wheel, swipe, dots, a timer with a visible pause; off under reduced motion" },
     { "name": "widget-grid", "file": "react/widget-grid.tsx", "kind": "component", "deps": ["widget-state", "widget-gallery", "inert", "cx"], "description": "Widget home: tiles pick their view from their size (S, M, L, XL); edit mode removes with Undo, resizes, reorders by drag, touch, buttons or Alt+Arrow, adds from the gallery; one focus widget spends the accent" },
     { "name": "command-state", "file": "react/command-state.ts", "kind": "util", "deps": [], "description": "Command bar logic: filtering, group order, ask detection, wrapping selection" },
-    { "name": "command-bar", "file": "react/command-bar.tsx", "kind": "component", "deps": ["command-state", "console-state", "cx"], "description": "Command bar on the K chord: actions, go-to and recent filtered as you type; an Ask row only with onAsk, the answer streamed in place" }
+    { "name": "command-bar", "file": "react/command-bar.tsx", "kind": "component", "deps": ["command-state", "console-state", "cx"], "description": "Command bar on the K chord: actions, go-to and recent filtered as you type; an Ask row only with onAsk, the answer streamed in place" },
+    { "name": "date-range-state", "file": "react/date-range-state.ts", "kind": "util", "deps": [], "description": "Date range logic and built-in words: the value shape, the custom range check, the range line; pure, so server code can read it" },
+    { "name": "date-range", "file": "react/date-range.tsx", "kind": "component", "deps": ["date-range-state", "cx"], "description": "Date range control: host presets as a segmented radiogroup or one menu trigger, Compare, custom dates snapped on blur and in a sheet on a phone; controlled, never touches the URL" }
   ],
   "themes": [
     { "name": "cobalt", "file": "themes/cobalt.css", "description": "Blue accent preset, contrast-gate proven both themes" },
