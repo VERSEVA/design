@@ -28,6 +28,10 @@
   .bulk-demo td { white-space: nowrap; }
   #glass .specimen, #kv .specimen { flex: 1 1 280px; }
   #erase .specimen { flex: 0 1 420px; }
+  #secret .demo { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: var(--s-5); align-items: start; }
+  #secret .secret-state { display: grid; gap: var(--s-2); align-content: start; min-width: 0; }
+  #secret .secret-state > .grouplabel { margin: 0; }
+  #secret .specimen { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: var(--s-5); min-width: 0; }
   #shell .specimen, #shell-rail .specimen, #topbar .specimen, #notifications .specimen, #whatsnew .specimen { flex: 1 1 100%; min-width: 0; }
   #panel-states .specimen { flex: 1 1 380px; min-width: 0; }
   #drawer-states .specimen { flex: 1 1 100%; min-width: 0; }
@@ -123,6 +127,61 @@ npx verseva block add quote-tool</code></pre></div>
         <div class="help">Enter a work email first.</div>
       </div>
     </div></div>
+    <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
+  </section>
+
+  <section class="comp" id="secret">
+    <h2>Secret field</h2>
+    <div class="demo">
+      <div class="secret-state"><span class="grouplabel">Unset</span><div class="specimen" inert>
+        <div class="field">
+          <div class="chiprow"><label for="sk-unset" id="sk-unset-l">Access token</label></div>
+          <input id="sk-unset" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
+          <div class="chiprow"><button type="button" class="btn btn-primary sm" aria-describedby="sk-unset-l" disabled>Save token</button></div>
+          <span class="sr-only" role="status" aria-live="polite"></span>
+        </div>
+      </div></div>
+      <div class="secret-state"><span class="grouplabel">Typing</span><div class="specimen" inert>
+        <div class="field">
+          <div class="chiprow"><label for="sk-typing" id="sk-typing-l">Access token</label></div>
+          <input id="sk-typing" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
+          <div class="chiprow"><button type="button" class="btn btn-primary sm" aria-describedby="sk-typing-l">Save token</button></div>
+          <span class="sr-only" role="status" aria-live="polite"></span>
+        </div>
+      </div></div>
+      <div class="secret-state"><span class="grouplabel">Saving</span><div class="specimen" inert>
+        <div class="field">
+          <div class="chiprow"><label for="sk-saving" id="sk-saving-l">Access token</label></div>
+          <input id="sk-saving" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" disabled>
+          <div class="chiprow"><button type="button" class="btn btn-ghost sm" aria-describedby="sk-saving-l">Cancel</button><button type="button" class="btn btn-primary sm" aria-describedby="sk-saving-l" aria-busy="true"><span class="spinner" aria-hidden="true"></span><span class="sr-only">Saving</span></button></div>
+          <span class="sr-only" role="status" aria-live="polite">Saving</span>
+        </div>
+      </div></div>
+      <div class="secret-state"><span class="grouplabel">Set</span><div class="specimen" inert>
+        <div class="field">
+          <div class="chiprow"><label id="sk-set-l">Access token</label><span class="badge ok"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 8.5l3 3 6-7"></path></svg>Set</span></div>
+          <div class="chiprow"><button type="button" class="btn btn-secondary sm" aria-describedby="sk-set-l">Replace token</button></div>
+          <span class="sr-only" role="status" aria-live="polite"></span>
+        </div>
+      </div></div>
+      <div class="secret-state"><span class="grouplabel">Replacing</span><div class="specimen" inert>
+        <div class="field">
+          <div class="chiprow"><label for="sk-replacing" id="sk-replacing-l">Access token</label><span class="badge ok"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 8.5l3 3 6-7"></path></svg>Set</span></div>
+          <input id="sk-replacing" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
+          <div class="chiprow"><button type="button" class="btn btn-ghost sm" aria-describedby="sk-replacing-l">Cancel</button><button type="button" class="btn btn-primary sm" aria-describedby="sk-replacing-l" disabled>Save token</button></div>
+          <span class="sr-only" role="status" aria-live="polite"></span>
+        </div>
+      </div></div>
+      <div class="secret-state"><span class="grouplabel">Error</span><div class="specimen" inert>
+        <div class="field error">
+          <div class="chiprow"><label for="sk-error" id="sk-error-l">Access token</label><span class="badge ok"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 8.5l3 3 6-7"></path></svg>Set</span></div>
+          <input id="sk-error" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" aria-invalid="true" aria-describedby="sk-error-e">
+          <p class="help" id="sk-error-e" role="alert">The provider rejected this token. Paste a new one.</p>
+          <div class="chiprow"><button type="button" class="btn btn-ghost sm" aria-describedby="sk-error-l">Cancel</button><button type="button" class="btn btn-primary sm" aria-describedby="sk-error-l">Save token</button></div>
+          <span class="sr-only" role="status" aria-live="polite"></span>
+        </div>
+      </div></div>
+    </div>
     <div class="codewrap"><button class="btn btn-secondary sm copybtn" type="button">Copy</button><pre><code></code></pre></div>
   </section>
 
@@ -1320,6 +1379,15 @@ npx verseva block add quote-tool</code></pre></div>
   document.querySelectorAll('.modal.erase input[data-phrase]').forEach((input) => {
     const go = input.closest('.modal').querySelector('.btn-destructive');
     input.addEventListener('input', () => { go.disabled = input.value.trim() !== input.dataset.phrase; });
+  });
+
+  /* The secret specimens show a typed value without one written into the markup, and the
+     busy Save keeps the width of its label. */
+  document.querySelectorAll('#sk-typing, #sk-saving, #sk-error').forEach((input) => { input.value = 'demo-value-for-specimen-only'; });
+  document.querySelectorAll('#secret').forEach((sec) => {
+    const from = sec.querySelector('#sk-typing ~ .chiprow .btn-primary');
+    const busy = sec.querySelector('#sk-saving ~ .chiprow .btn-primary');
+    if (from && busy && from.offsetWidth) busy.style.width = `${from.offsetWidth}px`;
   });
 
   document.querySelectorAll('.bulk-demo').forEach((panel) => {
