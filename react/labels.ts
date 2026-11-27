@@ -32,9 +32,11 @@ export interface VizLabels {
   withheld: string;
   /** The column header of the hidden data table on a one-series part (Sparkline, Bars, HBars). */
   value: string;
+  /** The hidden data table's name when the part has no `label` (a LineChart is named by its series instead). */
+  table: string;
 }
 
-export const VIZ_LABELS: VizLabels = { withheld: 'withheld', value: 'Value' };
+export const VIZ_LABELS: VizLabels = { withheld: 'withheld', value: 'Value', table: 'Chart data' };
 
 export interface SecretFieldLabels {
   /** The badge beside the label once a value is stored. */

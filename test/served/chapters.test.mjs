@@ -241,14 +241,15 @@ for (const scheme of ['dark', 'light']) {
   });
 }
 
-/* The hidden data tables (issue 206): each kit part on /data-viz carries one, clipped to a 1px box
+/* The hidden data tables (issue 206): each kit part on /data-viz carries one (Sparkline's from ARIA roles), clipped to a 1px box
    that adds no width to the page, while the plot beside it stays drawn and aria-hidden. */
 const TABLES = `(() => {
   const out = { tables: [], bad: [], scroll: document.documentElement.scrollWidth - document.documentElement.clientWidth };
   for (const wrap of document.querySelectorAll('#suppressed .sr-only, #gaps .sr-only')) {
-    const t = wrap.querySelector('table');
+    const t = wrap.querySelector('table, [role="table"]');
     const b = wrap.getBoundingClientRect(), tb = t.getBoundingClientRect();
-    const r = { caption: t.caption?.textContent, rows: t.tBodies[0].rows.length, w: b.width, h: b.height, clip: getComputedStyle(wrap).clipPath };
+    const rows = t.tBodies ? t.tBodies[0].rows.length : t.querySelectorAll('[role="row"]').length - 1;
+    const r = { caption: t.caption?.textContent ?? t.getAttribute('aria-label'), rows, w: b.width, h: b.height, clip: getComputedStyle(wrap).clipPath };
     out.tables.push(r);
     if (b.width > 1 || b.height > 1) out.bad.push(r.caption + ' wrapper is ' + b.width + 'x' + b.height);
     if (!/inset\\(50%/.test(r.clip)) out.bad.push(r.caption + ' is not clipped');
