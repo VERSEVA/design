@@ -242,6 +242,7 @@
     "/site/web-ui.html": "redirect",
     "/tailwind.css": "file",
     "/tailwind.preset.cjs": "file",
+    "/templates/deck.html": "file",
     "/templates/releases.json": "file",
     "/templates/starter.html": "file",
     "/theme.js": "file",

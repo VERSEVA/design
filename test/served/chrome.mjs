@@ -132,19 +132,26 @@ export async function start({ extra = {}, sendTimeoutMs = 30000, launchTimeoutMs
   });
 
   /* A page at a width, colour scheme and motion preference: { goto(path), evaluate(expr) }. */
-  async function page({ width = 375, height = 812, scheme = 'dark', reducedMotion = false } = {}) {
+  /* scripts: false turns page scripting off before the first navigation; touch: true enables touch input. */
+  async function page({ width = 375, height = 812, scheme = 'dark', reducedMotion = false, scripts = true, touch = false } = {}) {
     const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
     const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
     await send('Page.enable', {}, sessionId);
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 2, mobile: width < 768 }, sessionId);
     await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }, { name: 'prefers-reduced-motion', value: reducedMotion ? 'reduce' : 'no-preference' }] }, sessionId);
+    if (!scripts) await send('Emulation.setScriptExecutionDisabled', { value: true }, sessionId);
+    if (touch) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 }, sessionId);
+    /* A path on the served origin, or an absolute URL (file:// included). */
+    const open = async (url) => {
+      const loaded = waitFor('Page.loadEventFired', sessionId);
+      loaded.catch(() => {}); /* awaited below; a failed navigate must not leave it unhandled */
+      await send('Page.navigate', { url }, sessionId);
+      await loaded;
+    };
     return {
-      async goto(p) {
-        const loaded = waitFor('Page.loadEventFired', sessionId);
-        loaded.catch(() => {}); /* awaited below; a failed navigate must not leave it unhandled */
-        await send('Page.navigate', { url: origin + p }, sessionId);
-        await loaded;
-      },
+      goto: (p) => open(/^[a-z]+:/.test(p) ? p : origin + p),
+      /* A raw CDP call on this page's session: input events, print, media. */
+      send: (method, params) => send(method, params, sessionId),
       async evaluate(expression) {
         const { result, exceptionDetails } = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, sessionId);
         if (exceptionDetails) throw new Error(exceptionDetails.exception?.description ?? exceptionDetails.text);

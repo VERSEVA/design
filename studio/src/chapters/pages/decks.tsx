@@ -64,6 +64,12 @@ export function Page() {
             </table>
           </div>
         </SpecimenTile>
+        <SpecimenTile id="deck-template" name="Deck template" icon={ICON.slide} size="xl" meta="8 slides">
+          <pre className="cmd">npx verseva add deck</pre>
+          <div>
+            <a className="btn btn-secondary" href="/templates/deck.html">Open the deck</a>
+          </div>
+        </SpecimenTile>
       </SpecimenGrid>
       <footer className="site">
         <span>VERSEVA · open source · MIT</span>

@@ -6,7 +6,7 @@ export const match = 'build';
 export const order = 60;
 export const usage = ['npx verseva build [--output d]'];
 
-export function run({ pkgRoot, registry, valueOf, localItem }) {
+export function run({ pkgRoot, registry, valueOf, localItem, templateItem }) {
   const out = valueOf('--output') ?? path.resolve('r');
   fs.mkdirSync(out, { recursive: true });
   let count = 0;
@@ -16,7 +16,7 @@ export function run({ pkgRoot, registry, valueOf, localItem }) {
     count++;
   }
   for (const b of registry.blocks.filter((x) => !x.source)) {
-    const item = {
+    const item = b.kind === 'template' ? templateItem(b.name) : {
       name: b.name,
       kind: 'block',
       description: b.description,

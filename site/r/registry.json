@@ -676,6 +676,13 @@
       "description": "Launch landing: the motion kit assembled: line reveal, spotlight, magnetic CTA, rolling stats, theme wipe"
     },
     {
+      "name": "deck",
+      "file": "templates/deck.html",
+      "kind": "template",
+      "assets": false,
+      "description": "Deck template: keyboard and swipe paging, one slide per printed page, a plain scroll without scripting"
+    },
+    {
       "name": "store",
       "source": "repo",
       "assets": true,

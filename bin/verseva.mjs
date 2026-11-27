@@ -82,9 +82,31 @@ const rewriteBlockHrefs = (html) => html
   .replace(/href="(?:\.\.\/)+tokens\.css[^"]*"/g, 'href="node_modules/@verseva/design/tokens.css"')
   .replace(/href="(?:\.\.\/)+components\.css[^"]*"/g, 'href="node_modules/@verseva/design/components.css"');
 
+/* A template installs as one file that opens from file://: each link to the package's
+   tokens.css or components.css becomes a <style> holding that file, in the link's place.
+   A function replacer, so a "$" in the CSS is never read as a replacement pattern. */
+function inlineTemplate(html) {
+  return html.replace(/<link rel="stylesheet" href="(?:\.\.\/)+(tokens|components)\.css(?:\?[^"]*)?">/g,
+    (_, name) => `<style>\n${fs.readFileSync(path.join(pkgRoot, `${name}.css`), 'utf8').trim()}\n</style>`);
+}
+
+/* A registry block with kind "template", as an installable item with its CSS inlined. */
+function templateItem(name) {
+  const block = registry.blocks.find((b) => b.name === name && b.kind === 'template');
+  if (!block) return null;
+  return {
+    name: block.name,
+    kind: 'template',
+    description: block.description,
+    deps: [],
+    files: [{ path: `${block.name}.html`, content: inlineTemplate(fs.readFileSync(path.join(pkgRoot, block.file), 'utf8')) }],
+  };
+}
+
+/* A component by name; failing that, a template (add falls back to blocks for template names). */
 function localItem(name) {
   const comp = registry.components.find((c) => c.name === name);
-  if (!comp) return null;
+  if (!comp) return templateItem(name);
   const src = path.resolve(pkgRoot, comp.file);
   if (!src.startsWith(path.resolve(pkgRoot) + path.sep)) {
     console.error(`refused: registry file ${comp.file} resolves outside the package`);
@@ -143,7 +165,7 @@ for (const name of found) {
 }
 commands.sort((a, b) => a.order - b.order || a.file.localeCompare(b.file));
 
-const ctx = { pkgRoot, registry, config, rest, dirFlag, valueOf, readJson, writeFileInto, rewriteBlockHrefs, localItem };
+const ctx = { pkgRoot, registry, config, rest, dirFlag, valueOf, readJson, writeFileInto, rewriteBlockHrefs, localItem, templateItem };
 const command = commands.find((c) => c.claims.includes(cmd));
 if (command) await command.run(ctx);
 

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deck</title>
+<!-- One self-contained deck. `npx verseva add deck` inlines the two stylesheets below, so the
+     file it writes opens from file://. Dark by default; add data-theme="light" to <html> for light.
+     Arrow keys, Page Up/Down, Space, Home and End move between slides; so does a swipe.
+     Without scripting the slides read as one scroll; printing gives one slide per page.
+     Faces: a title that states the claim, one support line, a labelled number. Sources sit
+     behind the Sources control on each slide. -->
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: 16px; line-height: 1.55; }
+
+  /* The plain scroll: what a reader gets with scripting off, and the base the paged view builds on. */
+  .deck-slide { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: var(--s-9) clamp(var(--s-5), 8vw, var(--s-10)); border-bottom: 1px solid var(--hairline); }
+  .deck-slide h1, .deck-slide h2 { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: -0.025em; line-height: 1.06; max-width: 22ch; text-wrap: balance; }
+  .deck-slide h1 { font-size: clamp(40px, 6.2vw, 80px); }
+  .deck-slide h2 { font-size: clamp(30px, 4.2vw, 54px); }
+  .deck-sub { color: var(--text-2); font-size: clamp(17px, 1.7vw, 22px); max-width: 54ch; padding-top: var(--s-4); }
+  .deck-body { padding-top: var(--s-8); max-width: var(--container-content); }
+
+  /* Labelled numbers: the label sits above its value, the class of number beside it. */
+  .deck-slide .statrow { gap: var(--s-5); }
+  .deck-slide .stat { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-5); }
+  .deck-slide .stat .lbl { order: -1; margin: 0; font-size: 15px; color: var(--text-2); }
+  .deck-slide .stat .num { font-size: clamp(40px, 4.6vw, 60px); }
+  .deck-slide .stat .num small { font-size: clamp(18px, 2vw, 26px); font-weight: 600; letter-spacing: 0; color: var(--text-2); }
+  .deck-slide .stat .badge { align-self: flex-start; }
+
+  /* The chart: the package bars, set at slide scale. */
+  .deck-chart > .bd { padding: var(--s-6); }
+  .deck-chart .hbars { gap: var(--s-4); }
+  .deck-chart .hbar { font-size: 16px; }
+  .deck-chart .hbar .hlabel { width: 150px; }
+  .deck-chart .hbar .htrack { height: 14px; }
+  .deck-chart .hbar .hcount { width: 64px; font-size: 15px; }
+  .deck-chart > .hd { justify-content: flex-start; }
+
+  /* Two columns: today against the proposal. */
+  .deck-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-5); }
+  .deck-pair .glass > .bd { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-6); }
+  .deck-pair .lbl { font-size: 15px; color: var(--text-2); }
+  .deck-pair .num { font-family: var(--font-display); font-weight: var(--display-weight); font-size: clamp(40px, 4.6vw, 60px); line-height: 1.05; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  .deck-pair .num small { font-size: clamp(18px, 2vw, 26px); font-weight: 600; letter-spacing: 0; color: var(--text-2); }
+  .deck-pair .badge { align-self: flex-start; }
+  .deck-steps { list-style: none; padding: var(--s-3) 0 0; display: grid; gap: var(--s-2); color: var(--text-2); font-size: 15px; }
+
+  /* Sources: off the face, behind one control in the slide's corner. */
+  .deck-src { position: absolute; right: var(--s-5); bottom: var(--s-5); z-index: 2; }
+  .deck-src > summary { list-style: none; }
+  .deck-src > summary::-webkit-details-marker { display: none; }
+  .deck-src > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .deck-src[open] > summary { background: var(--surface-2); color: var(--text-1); }
+  .deck-src-list { position: absolute; right: 0; bottom: calc(100% + var(--s-2)); width: min(420px, calc(100vw - var(--s-7))); }
+  .deck-src-list > .bd { padding: var(--s-4) var(--s-5); }
+  .deck-src-list ul { padding-left: var(--s-4); display: grid; gap: var(--s-2); color: var(--text-2); font-size: 14px; }
+
+  /* Chrome: neutral progress along the top edge, so the one accent stays with the data, the counter and arrows top right. Paged view only. */
+  .deck-bar, .deck-ctl { display: none; }
+
+  @media screen {
+    .deck-paged, .deck-paged body { height: 100%; overflow: hidden; }
+    .deck-paged .deck-slide { position: fixed; inset: 0; border: 0; opacity: 0; visibility: hidden; transform: translateY(var(--s-3)); transition: opacity var(--dur-3) var(--ease-entrance), transform var(--dur-3) var(--ease-entrance), visibility 0s linear var(--dur-3); }
+    .deck-paged .deck-slide.deck-back { transform: translateY(calc(var(--s-3) * -1)); }
+    .deck-paged .deck-slide.deck-on { opacity: 1; visibility: visible; transform: none; transition: opacity var(--dur-3) var(--ease-entrance), transform var(--dur-3) var(--ease-entrance), visibility 0s; }
+    .deck-paged .deck-bar { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 3; height: 3px; background: var(--surface-2); }
+    .deck-bar i { display: block; height: 100%; background: var(--text-2); transform-origin: left; transform: scaleX(0); transition: transform var(--dur-3) var(--ease-standard); }
+    .deck-paged .deck-ctl { display: flex; align-items: center; gap: var(--s-1); position: fixed; top: var(--s-4); right: var(--s-4); z-index: 3; }
+    .deck-count { min-width: 56px; text-align: center; font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  }
+  @media screen and (prefers-reduced-motion: reduce) {
+    .deck-paged .deck-slide, .deck-paged .deck-slide.deck-on, .deck-bar i { transition: none; transform: none; }
+  }
+
+  @media print {
+    html, body { height: auto; overflow: visible; }
+    .deck-slide { position: relative; height: 720px; min-height: 0; overflow: hidden; border: 0; break-after: page; break-inside: avoid; opacity: 1; visibility: visible; transform: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: var(--bg); }
+    .deck-slide:last-of-type { break-after: auto; }
+    .deck-bar, .deck-ctl, .deck-src { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="deck-bar" aria-hidden="true"><i></i></div>
+<nav class="deck-ctl" aria-label="Slides">
+  <button class="ibtn deck-prev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+  <span class="deck-count" aria-live="polite">1 / 8</span>
+  <button class="ibtn deck-next" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+</nav>
+<main class="deck">
+
+<section class="deck-slide" id="s1" aria-roledescription="slide" aria-label="1 of 8">
+  <h1>Halve onboarding, from 14 days to 7, this quarter</h1>
+  <p class="deck-sub">A plan for the operations review.</p>
+</section>
+
+<section class="deck-slide" id="s2" aria-roledescription="slide" aria-label="2 of 8">
+  <h2>A new account waits 14 days before its first use</h2>
+  <p class="deck-sub">The median over the last two quarters, steady to within a day.</p>
+  <div class="deck-body">
+    <div class="statrow">
+      <div class="stat"><div class="num">14<small> days</small></div><div class="lbl">Median time to first use</div><span class="badge">Fact</span></div>
+      <div class="stat"><div class="num">412</div><div class="lbl">Accounts opened, two quarters</div><span class="badge">Fact</span></div>
+    </div>
+  </div>
+  <details class="deck-src"><summary class="btn btn-ghost sm">Sources</summary><div class="glass deck-src-list"><div class="bd"><ul><li>Onboarding log, accounts opened January to June.</li><li>First use: the first day an account records a completed task.</li></ul></div></div></details>
+</section>
+
+<section class="deck-slide" id="s3" aria-roledescription="slide" aria-label="3 of 8">
+  <h2>Two steps hold 9 of the 14 days</h2>
+  <p class="deck-sub">Data import and access review run one after the other.</p>
+  <div class="deck-body">
+    <div class="statrow">
+      <div class="stat"><div class="num">5<small> days</small></div><div class="lbl">Data import</div><span class="badge">Fact</span></div>
+      <div class="stat"><div class="num">4<small> days</small></div><div class="lbl">Access review</div><span class="badge">Fact</span></div>
+      <div class="stat"><div class="num">5<small> days</small></div><div class="lbl">Every other step</div><span class="badge">Fact</span></div>
+    </div>
+  </div>
+  <details class="deck-src"><summary class="btn btn-ghost sm">Sources</summary><div class="glass deck-src-list"><div class="bd"><ul><li>Onboarding log, median days per step, accounts opened January to June.</li></ul></div></div></details>
+</section>
+
+<section class="deck-slide" id="s4" aria-roledescription="slide" aria-label="4 of 8">
+  <h2>Accounts that start within 7 days stay longer</h2>
+  <p class="deck-sub">Share still active after 90 days, by days to first use.</p>
+  <div class="deck-body">
+    <div class="glass deck-chart">
+      <div class="hd"><span class="badge">Fact</span></div>
+      <div class="bd">
+        <div class="hbars">
+          <div class="hbar"><span class="hlabel">7 days or fewer</span><span class="htrack"><i style="width:92%"></i></span><span class="hcount">92%</span></div>
+          <div class="hbar"><span class="hlabel">8 to 14 days</span><span class="htrack"><i style="width:84%"></i></span><span class="hcount">84%</span></div>
+          <div class="hbar"><span class="hlabel">15 to 21 days</span><span class="htrack"><i style="width:76%"></i></span><span class="hcount">76%</span></div>
+          <div class="hbar"><span class="hlabel">22 days or more</span><span class="htrack"><i style="width:61%"></i></span><span class="hcount">61%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <details class="deck-src"><summary class="btn btn-ghost sm">Sources</summary><div class="glass deck-src-list"><div class="bd"><ul><li>Account records, 90-day status for accounts opened January to March.</li><li>Grouped by days from opening to first use.</li></ul></div></div></details>
+</section>
+
+<section class="deck-slide" id="s5" aria-roledescription="slide" aria-label="5 of 8">
+  <h2>Volume doubles next year, so the wait grows unless the steps change</h2>
+  <p class="deck-sub">Review capacity stays flat while new accounts double.</p>
+  <div class="deck-body">
+    <div class="statrow">
+      <div class="stat"><div class="num">2x</div><div class="lbl">New accounts next year</div><span class="badge">Projection</span></div>
+      <div class="stat"><div class="num">20<small> days</small></div><div class="lbl">Time to first use at that volume</div><span class="badge">Projection</span></div>
+    </div>
+  </div>
+  <details class="deck-src"><summary class="btn btn-ghost sm">Sources</summary><div class="glass deck-src-list"><div class="bd"><ul><li>Sales plan, new accounts by quarter.</li><li>Wait modelled on today's review capacity, held flat.</li></ul></div></div></details>
+</section>
+
+<section class="deck-slide" id="s6" aria-roledescription="slide" aria-label="6 of 8">
+  <h2>Run import and review side by side instead of in turn</h2>
+  <p class="deck-sub">Review starts on day one, while the data loads.</p>
+  <div class="deck-body">
+    <div class="deck-pair">
+      <div class="glass"><div class="bd"><span class="lbl">Today</span><span class="num">9<small> days</small></span><span class="badge">Fact</span><ol class="deck-steps"><li>Import, then review</li></ol></div></div>
+      <div class="glass"><div class="bd"><span class="lbl">Proposed</span><span class="num">5<small> days</small></span><span class="badge">Estimate</span><ol class="deck-steps"><li>Import and review together</li></ol></div></div>
+    </div>
+  </div>
+  <details class="deck-src"><summary class="btn btn-ghost sm">Sources</summary><div class="glass deck-src-list"><div class="bd"><ul><li>Estimate: the longer of the two steps today, import at 5 days.</li></ul></div></div></details>
+</section>
+
+<section class="deck-slide" id="s7" aria-roledescription="slide" aria-label="7 of 8">
+  <h2>The change gives each account back 7 days</h2>
+  <p class="deck-sub">For two weeks of one engineer's time.</p>
+  <div class="deck-body">
+    <div class="statrow">
+      <div class="stat"><div class="num">7<small> days</small></div><div class="lbl">Time to first use</div><span class="badge">Estimate</span></div>
+      <div class="stat"><div class="num">+6<small> pts</small></div><div class="lbl">Still active after 90 days</div><span class="badge">Projection</span></div>
+      <div class="stat"><div class="num">2<small> weeks</small></div><div class="lbl">Engineering cost</div><span class="badge">Estimate</span></div>
+    </div>
+  </div>
+  <details class="deck-src"><summary class="btn btn-ghost sm">Sources</summary><div class="glass deck-src-list"><div class="bd"><ul><li>Time to first use: 14 days less the 4-day review overlap and 3 days of queue.</li><li>Retention: the 8 to 14 day group moving to the 7-day group, from slide 4.</li><li>Cost: engineering sizing, two weeks for one engineer.</li></ul></div></div></details>
+</section>
+
+<section class="deck-slide" id="s8" aria-roledescription="slide" aria-label="8 of 8">
+  <h1>Approve two weeks of engineering to start in June</h1>
+  <p class="deck-sub">A decision from the operations lead by the end of May.</p>
+</section>
+
+</main>
+<script>
+(() => {
+  const root = document.documentElement;
+  const slides = [...document.querySelectorAll('.deck-slide')];
+  const n = slides.length;
+  if (!n) return;
+  const count = document.querySelector('.deck-count');
+  const fill = document.querySelector('.deck-bar i');
+  const prev = document.querySelector('.deck-prev');
+  const next = document.querySelector('.deck-next');
+  let at = -1;
+
+  const fromHash = () => {
+    const k = Number.parseInt(location.hash.slice(1), 10);
+    return Number.isInteger(k) && k >= 1 && k <= n ? k - 1 : 0;
+  };
+
+  function show(k) {
+    k = Math.max(0, Math.min(n - 1, k));
+    if (k === at) return;
+    const back = k < at;
+    at = k;
+    slides.forEach((s, i) => {
+      const on = i === k;
+      s.classList.toggle('deck-on', on);
+      s.classList.toggle('deck-back', !on && back);
+      s.toggleAttribute('inert', !on);
+      if (!on) s.querySelectorAll('.deck-src[open]').forEach((d) => { d.open = false; });
+    });
+    count.textContent = `${k + 1} / ${n}`;
+    fill.style.transform = `scaleX(${(k + 1) / n})`;
+    prev.disabled = k === 0;
+    next.disabled = k === n - 1;
+    if (location.hash !== `#${k + 1}`) history.replaceState(null, '', `#${k + 1}`);
+  }
+
+  root.classList.add('deck-paged');
+  show(fromHash());
+
+  prev.addEventListener('click', () => show(at - 1));
+  next.addEventListener('click', () => show(at + 1));
+  addEventListener('hashchange', () => show(fromHash()));
+
+  addEventListener('keydown', (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const onControl = e.target instanceof Element && e.target.closest('summary, button, a, input, textarea, select');
+    const open = document.querySelector('.deck-src[open]');
+    if (e.key === 'Escape' && open) { open.open = false; open.querySelector('summary').focus(); return; }
+    if ((e.key === ' ' || e.key === 'Enter') && onControl) return;
+    const step = { ArrowRight: 1, ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowLeft: -1, ArrowUp: -1, PageUp: -1 }[e.key];
+    if (step) { e.preventDefault(); show(at + step); return; }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(n - 1); }
+  });
+
+  /* A swipe: a mostly horizontal drag of at least 48px. */
+  let x0 = null, y0 = null, lastX = null, lastY = null;
+  addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    lastX = lastY = null;
+  }, { passive: true });
+  addEventListener('touchmove', (e) => {
+    if (x0 === null || e.touches.length !== 1) return;
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+  }, { passive: true });
+  addEventListener('touchend', () => {
+    if (x0 === null || lastX === null) { x0 = null; return; }
+    const dx = lastX - x0, dy = lastY - y0;
+    x0 = lastX = lastY = null;
+    if (Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.5) show(at + (dx < 0 ? 1 : -1));
+  });
+})();
+</script>
+</body>
+</html>

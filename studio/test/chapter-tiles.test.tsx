@@ -350,9 +350,11 @@ describe('Motion tiles', () => {
 });
 
 describe('Decks tiles', () => {
-  it('holds the slide and the five-beat structure side by side', () => {
+  it('holds the slide and the five-beat structure side by side, then the deck template on its own row', () => {
     const root = page('decks');
-    expect([...root.querySelectorAll('section.stile')].map((t) => [t.id, t.getAttribute('data-size')])).toEqual([['slide-anatomy', 'm'], ['structure', 'm']]);
+    expect([...root.querySelectorAll('section.stile')].map((t) => [t.id, t.getAttribute('data-size')])).toEqual([['slide-anatomy', 'm'], ['structure', 'm'], ['deck-template', 'xl']]);
+    expect(root.querySelector('#deck-template a.btn')!.getAttribute('href')).toBe('/templates/deck.html');
+    expect(root.querySelector('#deck-template pre.cmd')!.textContent).toBe('npx verseva add deck');
     expect(root.querySelector('#slide-anatomy .slide-mock h3')!.textContent).toBe('One claim, stated as a verdict');
     expect(root.querySelectorAll('#structure tbody tr').length).toBe(5);
   });
