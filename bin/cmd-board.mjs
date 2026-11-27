@@ -16,8 +16,10 @@
  * checked from the stat before any read (manifest 64 KB, theme 1 MB), and the file is opened
  * with O_NOFOLLOW and O_NONBLOCK and re-checked by its descriptor. A theme is re-read on every
  * request under the same guards, so an edit shows on reload and a theme swapped for a symlink
- * after startup is a 404. The server binds 127.0.0.1 only, answers only a Host of
- * 127.0.0.1:<port> or localhost:<port> (DNS rebinding gets 421), takes GET and HEAD, and serves
+ * after startup is a 404. A file with a second hard link is refused (that name could be a file
+ * outside the working directory). The server binds 127.0.0.1 only, answers only a Host of
+ * 127.0.0.1:<port> or localhost:<port> (DNS rebinding gets 421), refuses a request a browser marks
+ * as started by another site (Sec-Fetch-Site, 403), takes GET and HEAD, and serves
  * a fixed set of package files plus /theme/<id>.css by manifest id. The URL is matched as raw
  * text against that set and is never decoded or joined onto a path: every other path is 404.
  * Every response carries nosniff; theme css goes out as text/css only, and no theme path
@@ -61,6 +63,8 @@ function guardedRead(root, given, max, { outside } = {}) {
   try { real = fs.realpathSync(abs); } catch { throw new BoardError(`${shown} not found`); }
   if (real !== abs) throw refused(`${shown} is a symlink (or sits behind one)`);
   if (!st.isFile()) throw refused(`${shown} is not a regular file`);
+  /* A second hard link can be a name for a file outside the working directory. */
+  if (st.nlink > 1) throw refused(`${shown} has more than one hard link`);
   const over = () => new BoardError(`${shown} is over ${max >= 1024 * 1024 ? `${max / (1024 * 1024)} MB` : `${max / 1024} KB`}`);
   if (st.size > max) throw over();
   let fd;
@@ -71,11 +75,13 @@ function guardedRead(root, given, max, { outside } = {}) {
   }
   try {
     const fst = fs.fstatSync(fd);
-    if (!fst.isFile() || fst.ino !== st.ino || fst.dev !== st.dev) throw refused(`${shown} changed while it was read`);
-    const buf = Buffer.alloc(max + 1);
+    if (!fst.isFile() || fst.ino !== st.ino || fst.dev !== st.dev || fst.nlink > 1) throw refused(`${shown} changed while it was read`);
+    /* Sized to the stat, one byte over: a file that grew since is refused, never read past max. */
+    const cap = Math.min(fst.size, max);
+    const buf = Buffer.alloc(cap + 1);
     let n = 0;
-    for (let k; n <= max && (k = fs.readSync(fd, buf, n, max + 1 - n, null)) > 0;) n += k;
-    if (n > max) throw over();
+    for (let k; n <= cap && (k = fs.readSync(fd, buf, n, cap + 1 - n, null)) > 0;) n += k;
+    if (n > cap) throw refused(`${shown} changed while it was read`);
     return buf.subarray(0, n).toString('utf8');
   } finally {
     fs.closeSync(fd);
@@ -186,6 +192,9 @@ export function createBoardServer({ root, pkgRoot, themes, onThemeRefused = () =
       res.end(req.method === 'HEAD' ? undefined : buf);
     };
     if (!hosts.has(req.headers.host)) return send(421, TEXT, 'misdirected request\n');
+    /* A browser marks a request another site started; only this page and direct loads are served. */
+    const site = req.headers['sec-fetch-site'];
+    if (site !== undefined && site !== 'same-origin' && site !== 'none') return send(403, TEXT, 'forbidden\n');
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(405, TEXT, 'method not allowed\n', { allow: 'GET, HEAD' });
     /* Raw text, query dropped: never decoded, never joined onto a path. */
     const raw = req.url ?? '';
@@ -204,6 +213,11 @@ export function createBoardServer({ root, pkgRoot, themes, onThemeRefused = () =
     }
     return send(404, TEXT, 'not found\n');
   });
+  /* A local tool for one person: a few connections, short timeouts, so a stuck client cannot hold it. */
+  server.maxConnections = 64;
+  server.headersTimeout = 5000;
+  server.requestTimeout = 10000;
+  server.keepAliveTimeout = 5000;
   server.allowPort = (port) => {
     hosts.clear();
     hosts.add(`127.0.0.1:${port}`);

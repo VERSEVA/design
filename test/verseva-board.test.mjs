@@ -180,6 +180,24 @@ test('a non-.css theme, a symlinked theme and a theme behind a symlinked directo
   assertRefused(await board(['--manifest', 'manifest.json'], dir), /refused: linked\/probe\.css is a symlink/);
 });
 
+test('a hardlinked manifest or theme is refused: a second name can point outside the working directory', async () => {
+  const outside = tmp();
+  fs.writeFileSync(path.join(outside, 'private.css'), '[data-brand="probe"] { --secret: 1; }\n');
+  const cwd = project([{ id: 'probe', label: 'Probe', css: 'brand/link.css' }]);
+  fs.linkSync(path.join(outside, 'private.css'), path.join(cwd, 'brand', 'link.css'));
+  const r = await board(['--manifest', 'manifest.json'], cwd);
+  assertRefused(r, /refused: brand\/link\.css has more than one hard link/);
+  assert.doesNotMatch(r.out, /secret/);
+  fs.writeFileSync(path.join(outside, 'm.json'), JSON.stringify({ themes: [] }));
+  fs.linkSync(path.join(outside, 'm.json'), path.join(cwd, 'm.json'));
+  assertRefused(await board(['--manifest', 'm.json'], cwd), /refused: m\.json has more than one hard link/);
+});
+
+test('run from the filesystem root, every file is outside the working directory', async () => {
+  const cwd = project();
+  assertRefused(await board(['--manifest', path.relative('/', path.join(cwd, 'manifest.json'))], '/'), /outside the working directory/);
+});
+
 test('a missing or oversized theme stops startup', async () => {
   const cwd = project([{ id: 'probe', label: 'Probe', css: 'brand/none.css' }]);
   assertRefused(await board(['--manifest', 'manifest.json'], cwd), /brand\/none\.css not found/);
@@ -315,6 +333,36 @@ test('a request for another host name is refused (DNS rebinding)', async () => {
       assert.equal(res.headers['x-content-type-options'], 'nosniff', host);
     }
     for (const host of [`127.0.0.1:${port}`, `localhost:${port}`]) assert.equal((await get(r.url, '/', { host })).status, 200, host);
+  } finally {
+    await stop(r.child);
+  }
+});
+
+test('a cross-site request is refused before any file is served', async () => {
+  const r = await board(['--manifest', 'manifest.json'], project());
+  assert.ok(r.url, r.out);
+  const send = (target, site) => {
+    const u = new URL(r.url);
+    return new Promise((resolve, reject) => {
+      const req = http.request({ host: u.hostname, port: u.port, path: target, agent: false, headers: { 'sec-fetch-site': site } }, (res) => {
+        let body = '';
+        res.on('data', (c) => { body += c; });
+        res.on('end', () => resolve({ status: res.statusCode, body, nosniff: res.headers['x-content-type-options'] }));
+      });
+      req.on('error', reject);
+      req.end();
+    });
+  };
+  try {
+    for (const site of ['cross-site', 'same-site']) {
+      for (const target of ['/theme/probe.css', '/', '/tokens.css']) {
+        const res = await send(target, site);
+        assert.equal(res.status, 403, `${site} ${target}`);
+        assert.equal(res.nosniff, 'nosniff');
+        assert.ok(!res.body.includes('--accent'));
+      }
+    }
+    for (const site of ['same-origin', 'none']) assert.equal((await send('/theme/probe.css', site)).status, 200, site);
   } finally {
     await stop(r.child);
   }
