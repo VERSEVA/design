@@ -203,8 +203,10 @@ export function Page() {
           <div className="demo">
             <div className="specimen">
               <div className="goal" style={{ width: "280px" }}>
-                <div className="goalline" style={{ top: "28%" }}></div>
-                <span className="reftag" style={{ top: "28%" }}>GOAL 130</span>
+                <div className="goalplot">
+                  <div className="goalline" style={{ top: "28%" }}></div>
+                  <span className="reftag" style={{ top: "28%" }}>GOAL 130</span>
+                </div>
                 <div className="bars" style={{ height: "130px" }}>
                   <div className="bar">
                     <span className="vlab">96</span>
