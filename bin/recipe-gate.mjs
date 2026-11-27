@@ -45,7 +45,10 @@
  *   known-good; "recipeAllow" lists path substrings to skip; "material" is
  *   "full" (the default) or "none", which skips the census.
  * - --allow skips any file whose path contains the given substring.
- * - --exclude skips the directory of that name directly under a scan path.
+ * - --exclude skips every directory of that name, at any depth under a
+ *   scan path.
+ * - Symlinked files and directories are never followed, and no file whose
+ *   real path is outside the scan path is read (bin/gate-walk.mjs).
  * - A file reached through overlapping scan paths is read once.
  * - After "--" every argument is a path. Before it, an unknown argument
  *   with a leading dash is refused.
@@ -54,6 +57,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { walk } from './gate-walk.mjs';
 import { contractClasses, contractParts, contractRoots, definesMaterial, materialClasses, materialSelectors, MATERIAL_RE, OWNED } from './contract-classes.mjs';
 
 const NAME = 'verseva-recipe-gate';
@@ -62,7 +66,6 @@ const JSX_EXT = new Set(['.jsx', '.tsx']);
 const CODE_EXT = new Set(['.ts', '.js']);
 const CENSUS_EXT = new Set([...SCAN_EXT, ...CODE_EXT, '.css']);
 const MATERIAL_USE_RE = new RegExp(MATERIAL_RE.source, 'g');
-const SKIP_DIRS = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'out', '.turbo', '.vercel']);
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
 const MARKER_RE = /recipe-ok:[ \t]*[^\s>*/-]/;
 
@@ -107,22 +110,6 @@ function parseArgs(argv) {
     else paths.push(argv[i]);
   }
   return { tokens, allow, exclude, paths, strict };
-}
-
-function* walk(p, exclude = []) {
-  const st = fs.statSync(p);
-  if (st.isFile()) {
-    yield p;
-    return;
-  }
-  const entries = fs.readdirSync(p, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name) && !exclude.includes(entry.name)) yield* walk(path.join(p, entry.name));
-    } else if (CENSUS_EXT.has(path.extname(entry.name))) {
-      yield path.join(p, entry.name);
-    }
-  }
 }
 
 function readConfig() {
@@ -515,7 +502,7 @@ let files = 0;
 let uses = 0;
 const seen = new Set(); // absolute paths already read: overlapping scan paths count a file once
 for (const root of paths) {
-  for (const file of walk(root, exclude)) {
+  for (const file of walk(root, { exts: CENSUS_EXT, exclude, sort: true })) {
     const abs = path.resolve(file);
     if (seen.has(abs)) continue;
     seen.add(abs);
