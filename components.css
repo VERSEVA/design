@@ -1236,3 +1236,42 @@ dialog.sheet::backdrop,dialog.modal::backdrop{background:color-mix(in srgb,var(-
 .modal .bd>.btn.icon{position:absolute;top:var(--s-3);right:var(--s-3);width:44px;height:44px}
 .modal .bd:has(>.btn.icon) h4{padding-right:var(--s-7)}
 dialog.modal{width:min(calc(100% - var(--s-5)),420px)}
+
+/* ---- Step funnel (1.8): .funnel, .funnel-head, .funnel-share, .funnel-drop ----
+   Ported from the approved prototype (1.A step rows). An ordered step list; each li is an .hbar on a
+   fixed-column grid so every track shares one width. .funnel-head is the panel's column labels row
+   (hidden from AT), .funnel-share the share of the first step (panel form, [data-share]), .funnel-drop
+   the drop from the step before; [data-biggest] carries the neutral "Biggest drop" chip. A suppressed
+   step is .hbar[data-suppressed]: the withheld stub above. The tile rules reach only a funnel directly in a
+   tile body (the prototype wrote .wtile .funnel), so a panel that sits inside a tile keeps its tracks. */
+.funnel{container-type:inline-size;list-style:none;margin:0;padding:0;display:grid;gap:var(--s-2)}
+.funnel>li{display:grid;grid-template-columns:minmax(0,9rem) minmax(2.5rem,1fr) 3.5rem 9.5rem;grid-template-areas:"label track count drop";align-items:center;column-gap:var(--s-3);min-height:24px}
+.funnel[data-share]>li{grid-template-columns:minmax(0,10rem) minmax(3rem,1fr) 3.5rem 4.5rem 9.5rem;grid-template-areas:"label track count share drop"}
+.funnel .hlabel{grid-area:label;width:auto}
+.funnel .htrack{grid-area:track}
+.funnel .hcount{grid-area:count;width:auto}
+.funnel-head{font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap}
+.funnel-head>:nth-child(n+3){text-align:right}
+.funnel-share{grid-area:share;text-align:right;font-size:12.5px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.funnel-drop{grid-area:drop;display:inline-flex;align-items:center;justify-content:flex-end;gap:var(--s-2);font-size:12.5px;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.funnel-drop[data-biggest]{color:var(--text-1);font-weight:600}
+.funnel-drop .badge{font-weight:600}
+/* Narrow container: the track takes its own line so tracks stay one width.
+   The panel form (five columns) narrows at 34rem, the tile form (four) at 26rem. */
+@container (max-width:34rem){
+  .funnel[data-share]>li{grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-areas:"label share drop count" "track track track track";row-gap:var(--s-1)}
+  .funnel[data-share]>.funnel-head{display:none}
+}
+@container (max-width:26rem){
+  .funnel>li,.funnel[data-share]>li{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"label drop count" "track track track";row-gap:var(--s-1)}
+  .funnel-share,.funnel-head{display:none}
+  /* a phone tile holds one 180px row: numbers and drops only, the track drops out */
+  .wtile-body>.funnel>li{grid-template-areas:"label drop count";row-gap:0}
+  .wtile-body>.funnel .htrack{display:none}
+}
+.wtile-body>.funnel{gap:var(--s-1)}
+.wtile-body>.funnel>li{min-height:20px}
+/* A large tile has two rows of height: its steps spread evenly down it (a short funnel does not split to
+   the top and bottom edges), and where it is wide enough to keep its tracks each row is 32px at least. */
+.wtile[data-size="l"]>.wtile-body>.funnel{flex:1;align-content:space-evenly}
+@container (min-width:26rem){.wtile[data-size="l"]>.wtile-body>.funnel>li{min-height:32px}}

@@ -12,11 +12,12 @@
 import { NativeChapter, type ChapterScript } from '../NativeChapter';
 import { SpecimenGrid, SpecimenTile, tileIcon } from '../../tiles/SpecimenTile';
 import { Bars, HBars, LineChart, Sparkline } from '../../../../react/viz';
+import { Funnel, type FunnelStep } from '../../../../react/funnel';
 import './data-viz.css';
 /* The sections with a specimen, in page order: sample i of data-viz.code.json is the sample of
    SAMPLED[i], generated from these specimens as drawn (studio/test/chapter-code.test.ts holds it
    byte for byte; VSV_WRITE_CODE=1 rewrites it). The samples load on first intent. */
-export const SAMPLED = ['stat', 'spark', 'lines', 'bars', 'stacked', 'hbars', 'heat', 'rings', 'gates', 'meaning', 'suppressed', 'gaps'];
+export const SAMPLED = ['stat', 'spark', 'lines', 'bars', 'stacked', 'hbars', 'heat', 'rings', 'gates', 'meaning', 'suppressed', 'gaps', 'funnel'];
 let samples: Promise<string[]> | undefined;
 const sample = (id: string) => () => (samples ??= import('./data-viz.code.json').then((m) => m.default, (e) => { samples = undefined; throw e; })).then((c) => c[SAMPLED.indexOf(id)]);
 
@@ -30,6 +31,48 @@ const lpts = (vals: number[], W: number, H: number, pad: number, top: number): P
 ]);
 const lp = (p: Pt[]) => p.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
 const ap = (p: Pt[], H: number, pad: number) => `M${p[0][0].toFixed(1)} ${H - pad} ${lp(p).slice(1)} L${p[p.length - 1][0].toFixed(1)} ${H - pad} Z`;
+
+/* Step funnel (1.8): the kit's own Funnel in a panel and in M and L widget tiles, in every state. */
+const STEPS: FunnelStep[] = [
+  { label: 'Page views', value: 2480 },
+  { label: 'Form starts', value: 620 },
+  { label: 'Form completes', value: 434 },
+  { label: 'Result views', value: 410 },
+  { label: 'Contact requests', value: 151 },
+];
+const STEPS_WITHHELD: FunnelStep[] = [
+  { label: 'Page views', value: 214 },
+  { label: 'Form starts', value: 61 },
+  { label: 'Form completes', value: 22 },
+  { label: 'Result views', value: 20 },
+  { label: 'Contact requests', value: 3, display: '<5', suppressed: true },
+];
+type FunnelState = 'normal' | 'withheld' | 'single' | 'empty' | 'loading';
+const FUNNEL_STEPS: Record<FunnelState, FunnelStep[]> = { normal: STEPS, withheld: STEPS_WITHHELD, single: [{ label: 'Page views', value: 312 }], empty: [], loading: [] };
+const FUNNEL_STATES: [FunnelState, string][] = [['normal', 'Normal'], ['withheld', 'One withheld step'], ['single', 'Single step'], ['empty', 'Empty'], ['loading', 'Loading']];
+const FUNNEL_ICON = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M2.5 3h11L9.5 8v4.5l-3 1.5V8z" /></svg>
+);
+function FunnelPanel({ state }: { state: FunnelState }) {
+  const busy = state === 'loading';
+  return (
+    <div className="glass" aria-busy={busy || undefined}>
+      <div className="hd"><h3>Funnel steps</h3><div className="chiprow"><span className="metaline">4 weeks</span></div></div>
+      <div className="bd"><Funnel steps={FUNNEL_STEPS[state]} share loading={busy} /></div>
+    </div>
+  );
+}
+function FunnelTile({ size, state }: { size: 'm' | 'l'; state: FunnelState }) {
+  const busy = state === 'loading';
+  return (
+    <div className="wtile" data-size={size} role="group" aria-roledescription="widget" aria-label={`Funnel completion, ${size === 'm' ? 'medium' : 'large'}`} aria-busy={busy || undefined}>
+      <div className="wtile-body">
+        <div className="wtile-hd">{FUNNEL_ICON}<span>Funnel completion</span><span className="wtile-meta">4 weeks</span></div>
+        <Funnel steps={FUNNEL_STEPS[state]} share={size === 'l'} loading={busy} empty={<p className="wtile-sub">No funnel events</p>} />
+      </div>
+    </div>
+  );
+}
 
 export const script: ChapterScript = (root, signal, onCleanup) => {
   const on = <K extends keyof HTMLElementEventMap>(el: Element, type: K, fn: (e: HTMLElementEventMap[K]) => void) =>
@@ -555,6 +598,30 @@ export function Page() {
                 <Sparkline label="Visits by week" values={[12, 14, 13, null, null, 17, 19, 22]} />
               </div>
               <div className="takeaway">Visits withheld for W4 and W5; Booked withheld for W6 and W8.</div>
+            </div>
+          </div>
+        </SpecimenTile>
+        <SpecimenTile id="funnel" name="Step funnel" icon={ICON} size="xl" meta="5 states" code={sample('funnel')} focus={false}>
+          <div className="demo">
+            <div className="specimen">
+              <div className="fpanels">
+                {FUNNEL_STATES.map(([k, l]) => (
+                  <div key={k}>
+                    <span className="speclabel">{l}</span>
+                    <FunnelPanel state={k} />
+                    {k === 'normal' && <div className="takeaway">Three in four page views never start the form.</div>}
+                  </div>
+                ))}
+              </div>
+              <div className="wgrid mt-5">
+                  <FunnelTile size="m" state="normal" />
+                  <FunnelTile size="m" state="withheld" />
+                  <FunnelTile size="l" state="normal" />
+                  <FunnelTile size="l" state="withheld" />
+                  <FunnelTile size="m" state="single" />
+                  <FunnelTile size="m" state="empty" />
+                  <FunnelTile size="m" state="loading" />
+              </div>
             </div>
           </div>
         </SpecimenTile>

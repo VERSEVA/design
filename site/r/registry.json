@@ -486,6 +486,25 @@
       "description": "The chart kit: Sparkline, LineChart (crosshair hover), Bars, HBars, Ring, ActivityStrip, Trend; numbers on marks, deltas by meaning"
     },
     {
+      "name": "funnel",
+      "file": "react/funnel.tsx",
+      "kind": "component",
+      "deps": [
+        "viz",
+        "labels",
+        "cx"
+      ],
+      "laws": [
+        2,
+        3,
+        4,
+        7,
+        11
+      ],
+      "contract": "step-funnel-funnel-18",
+      "description": "Step funnel in rows: each step a bar scaled to the first, its count, share and drop, the biggest drop on a neutral chip; suppressed steps are a privacy floor; hidden data table"
+    },
+    {
       "name": "motion",
       "file": "react/motion.tsx",
       "kind": "component",

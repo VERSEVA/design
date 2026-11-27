@@ -43,3 +43,11 @@
    and gives the sparkline the block its fixed height needs. */
 [data-chapter="data-viz"] #gaps .vizplot svg { height: 130px; }
 [data-chapter="data-viz"] #gaps .spark { display: block; max-width: 220px; }
+/* Step funnel: the five panel states, two across where 30rem fits, then the widget tiles at M and L in a two-column grid, each tile the
+   specimen's full width; one column on a phone, where L shows its M view (components.css). */
+[data-chapter="data-viz"] #funnel .specimen { flex: 1 1 100%; min-width: 0; }
+[data-chapter="data-viz"] #funnel .fpanels { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr)); gap: var(--s-5); align-items: start; }
+[data-chapter="data-viz"] #funnel .wgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 559.98px) { [data-chapter="data-viz"] #funnel .wgrid { grid-template-columns: minmax(0, 1fr); } }
+/* The panels sit under the tile's h2, so their heading is an h3, set as the package sets a panel's h4. */
+[data-chapter="data-viz"] #funnel .glass > .hd h3 { margin: 0; font-size: .875rem; font-weight: 600; }
